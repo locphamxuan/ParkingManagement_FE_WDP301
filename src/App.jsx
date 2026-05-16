@@ -103,13 +103,22 @@ export default function App() {
   );
 
   const headerActions = useMemo(
-    () => [
-      { key: 'home', label: 'Trang chủ', onClick: navigateToHome },
-      { key: 'login', label: 'Đăng nhập', onClick: () => openAuth('login') },
-      { key: 'register', label: 'Đăng ký', onClick: () => openAuth('register') },
-      { key: 'logout', label: 'Đăng xuất', onClick: handleLogout },
-    ],
-    [handleLogout, navigateToHome, openAuth]
+    () => {
+      const actions = [{ key: 'home', label: 'Trang chủ', onClick: navigateToHome }];
+
+      if (isAuthenticated) {
+        actions.push({ key: 'logout', label: 'Đăng xuất', onClick: handleLogout });
+        return actions;
+      }
+
+      actions.push(
+        { key: 'login', label: 'Đăng nhập', onClick: () => openAuth('login') },
+        { key: 'register', label: 'Đăng ký', onClick: () => openAuth('register') }
+      );
+
+      return actions;
+    },
+    [handleLogout, isAuthenticated, navigateToHome, openAuth]
   );
 
   if (isAuthRoute) {

@@ -1,5 +1,11 @@
 import { useMemo, useState } from 'react';
-import './AuthPage.css';
+import Brand from '@/components/layout/Brand';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
+import { ArrowLeft } from 'lucide-react';
 
 const initialForm = {
   fullName: '',
@@ -12,9 +18,14 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
   const [form, setForm] = useState(initialForm);
 
   const title = useMemo(
-    () => (mode === 'login' ? 'Đăng nhập vào PBMS' : 'Tạo tài khoản PBMS'),
+    () => (mode === 'login' ? 'Đăng nhập' : 'Đăng ký tài khoản'),
     [mode]
   );
+
+  const noticeClass =
+    notice?.type === 'error'
+      ? 'border-destructive/30 bg-destructive/5 text-destructive'
+      : 'border-yellow-200 bg-yellow-50 text-amber-900';
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -23,15 +34,11 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
     const payload = {
       email: form.email.trim(),
       password: form.password,
       ...(mode === 'register'
-        ? {
-            fullName: form.fullName.trim(),
-            phone: form.phone.trim(),
-          }
+        ? { fullName: form.fullName.trim(), phone: form.phone.trim() }
         : {}),
     };
 
@@ -39,129 +46,145 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
       await onSubmit({ mode, payload });
       setForm(initialForm);
     } catch (_error) {
-      // Error message is handled by the auth hook and surfaced in the header.
+      // Lỗi hiển thị qua toast.
     }
   };
 
   return (
-    <main className="auth-standalone">
-      <section className="auth-shell">
-        <aside className="auth-promo panel">
-          <p className="eyebrow">PBMS Account</p>
-          <h2>Đăng nhập nhanh để bắt đầu sử dụng hệ thống giữ xe.</h2>
-          <p className="hero-text">
-            Bạn có thể đăng nhập để theo dõi thông tin cá nhân, hoặc tạo tài khoản mới chỉ trong vài bước đơn giản.
-          </p>
-
-          <div className="auth-promo-points">
-            <article>
-              <strong>Dễ sử dụng</strong>
-              <span>Giao diện rõ ràng, thao tác nhanh ngay cả khi mới dùng lần đầu.</span>
-            </article>
-            <article>
-              <strong>Tiết kiệm thời gian</strong>
-              <span>Đăng nhập một lần để truy cập nhanh các chức năng cần thiết.</span>
-            </article>
-            <article>
-              <strong>An tâm sử dụng</strong>
-              <span>Thông tin tài khoản được bảo vệ và kiểm soát chặt chẽ trong hệ thống.</span>
-            </article>
+    <main className="page-surface flex min-h-screen flex-col lg:flex-row">
+      <section className="hidden flex-1 flex-col justify-between overflow-hidden rounded-r-[2rem] bg-gradient-to-br from-yellow-100 via-white to-yellow-50 p-10 shadow-lg shadow-yellow-200/40 lg:flex">
+        <div className="space-y-8">
+          <Brand subtitle="Đăng nhập an toàn" />
+          <div className="space-y-4">
+            <p className="text-sm font-semibold uppercase tracking-[0.32em] text-amber-900">Trải nghiệm hiện đại</p>
+            <h2 className="max-w-sm text-3xl font-semibold tracking-tight text-amber-950">
+              Một tài khoản quản lý toàn bộ hệ thống bãi giữ xe.
+            </h2>
+            <p className="max-w-md text-sm leading-7 text-slate-600">
+              Giao diện rõ ràng, thông tin trực quan và phong cách thiết kế vàng rực phù hợp với vận hành chuyên nghiệp.
+            </p>
           </div>
-        </aside>
+        </div>
 
-        <section className="panel auth-panel">
-          <div className="panel-head">
-            <div>
-              <p className="eyebrow">Tài khoản</p>
-              <h2>{title}</h2>
-            </div>
-            <button className="ghost-button" type="button" onClick={onBackHome}>
-              Về trang chủ
-            </button>
-          </div>
+        <div className="space-y-4 rounded-[2rem] bg-amber-500/10 p-5 text-sm text-amber-900 shadow-inner shadow-yellow-100/70">
+          <p className="font-semibold">Ưu điểm nổi bật</p>
+          <ul className="space-y-2 pl-4 text-slate-700">
+            <li>• Tốc độ truy cập nhanh</li>
+            <li>• Bảo mật vai trò và phiên</li>
+            <li>• Thiết kế tối ưu trên cả desktop</li>
+          </ul>
+        </div>
 
-          <div className={`auth-notice ${notice?.type ? `is-${notice.type}` : ''}`}>
-            {notice?.message}
+        <p className="text-xs text-amber-700">© PBMS {new Date().getFullYear()}</p>
+      </section>
+
+      <section className="flex flex-1 flex-col justify-center px-4 py-10 sm:px-8 lg:px-12">
+        <div className="mx-auto w-full max-w-md">
+          <div className="mb-6 flex items-center justify-between lg:hidden">
+            <Brand subtitle="PBMS" />
+            <Button type="button" variant="ghost" size="sm" onClick={onBackHome}>
+              <ArrowLeft className="h-4 w-4" />
+              Trang chủ
+            </Button>
           </div>
 
-          <div className="segmented-control" role="tablist" aria-label="Chuyển chế độ xác thực">
-            <button
-              className={`segmented-item ${mode === 'login' ? 'is-active' : ''}`}
-              type="button"
-              onClick={() => onModeChange('login')}
-            >
-              Đăng nhập
-            </button>
-            <button
-              className={`segmented-item ${mode === 'register' ? 'is-active' : ''}`}
-              type="button"
-              onClick={() => onModeChange('register')}
-            >
-              Đăng ký
-            </button>
-          </div>
+          <Card className="glass-card border border-yellow-100 bg-white/80 shadow-xl shadow-yellow-100/40">
+            <CardHeader className="space-y-4">
+              <div className="hidden lg:block">
+                <Button type="button" variant="ghost" size="sm" className="-ml-2" onClick={onBackHome}>
+                  <ArrowLeft className="h-4 w-4" />
+                  Trang chủ
+                </Button>
+              </div>
+              <CardTitle className="text-2xl font-semibold text-amber-950">{title}</CardTitle>
+              <div className="grid grid-cols-2 gap-1 rounded-full border border-yellow-200 bg-yellow-50 p-1">
+                <Button
+                  type="button"
+                  variant={mode === 'login' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => onModeChange('login')}
+                >
+                  Đăng nhập
+                </Button>
+                <Button
+                  type="button"
+                  variant={mode === 'register' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => onModeChange('register')}
+                >
+                  Đăng ký
+                </Button>
+              </div>
+            </CardHeader>
 
-          <form className="auth-form" onSubmit={handleSubmit}>
-            {mode === 'register' && (
-              <>
-                <label className="field">
-                  <span>Họ và tên</span>
-                  <input
-                    id="fullName"
-                    name="fullName"
-                    type="text"
-                    placeholder="Nguyễn Văn A"
-                    value={form.fullName}
+            <CardContent className="space-y-5">
+              {notice?.message ? (
+                <div className={cn('rounded-2xl border px-3 py-2 text-sm', noticeClass)}>
+                  {notice.message}
+                </div>
+              ) : null}
+
+              <form className="space-y-4" onSubmit={handleSubmit}>
+                {mode === 'register' && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="fullName">Họ và tên</Label>
+                      <Input
+                        id="fullName"
+                        name="fullName"
+                        placeholder="Nguyễn Văn A"
+                        value={form.fullName}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Số điện thoại</Label>
+                      <Input
+                        id="phone"
+                        name="phone"
+                        type="tel"
+                        placeholder="0901234567"
+                        value={form.phone}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </>
+                )}
+
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="user@pbms.vn"
+                    value={form.email}
                     onChange={handleChange}
                     required
                   />
-                </label>
+                </div>
 
-                <label className="field">
-                  <span>Số điện thoại</span>
-                  <input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    placeholder="0901234567"
-                    value={form.phone}
+                <div className="space-y-2">
+                  <Label htmlFor="password">Mật khẩu</Label>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    placeholder="Ít nhất 6 ký tự"
+                    value={form.password}
                     onChange={handleChange}
+                    required
                   />
-                </label>
-              </>
-            )}
+                </div>
 
-            <label className="field">
-              <span>Email</span>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="user@pbms.vn"
-                value={form.email}
-                onChange={handleChange}
-                required
-              />
-            </label>
-
-            <label className="field">
-              <span>Mật khẩu</span>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="Ít nhất 6 ký tự"
-                value={form.password}
-                onChange={handleChange}
-                required
-              />
-            </label>
-
-            <button className="primary-button auth-submit" type="submit" disabled={isLoading}>
-              {isLoading ? 'Đang xử lý...' : mode === 'login' ? 'Đăng nhập' : 'Đăng ký'}
-            </button>
-          </form>
-        </section>
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? 'Đang xử lý...' : mode === 'login' ? 'Đăng nhập' : 'Tạo tài khoản'}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
       </section>
     </main>
   );

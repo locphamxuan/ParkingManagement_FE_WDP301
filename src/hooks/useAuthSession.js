@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
-import { DEFAULT_API_BASE, requestJson } from '../services/pbmsApi';
+import { setApiBase } from '@/lib/axios';
+import * as authService from '@/services/authService';
+import { DEFAULT_API_BASE } from '@/services/config';
 import {
   clearSession,
   loadApiBase,
   loadSession,
   saveApiBase,
   saveSession,
-} from '../services/storage';
+} from '@/services/storage';
 
 export default function useAuthSession({ onMessage } = {}) {
   const [apiBase, setApiBaseState] = useState(() => loadApiBase(DEFAULT_API_BASE));
@@ -28,8 +30,10 @@ export default function useAuthSession({ onMessage } = {}) {
 
   const updateApiBase = useCallback(
     (nextApiBase) => {
-      setApiBaseState(nextApiBase);
-      saveApiBase(nextApiBase);
+      const normalized = nextApiBase.trim().replace(/\/$/, '');
+      setApiBaseState(normalized);
+      saveApiBase(normalized);
+      setApiBase(normalized);
       pushMessage('Đã lưu địa chỉ kết nối.', 'success');
     },
     [pushMessage]
@@ -43,11 +47,7 @@ export default function useAuthSession({ onMessage } = {}) {
 
     try {
       setIsLoading(true);
-      const response = await requestJson({
-        apiBase,
-        path: '/users/auth/me',
-        token: session.token,
-      });
+      const response = await authService.getMe();
       const user = response?.data?.user;
 
       if (!user) {
@@ -66,18 +66,13 @@ export default function useAuthSession({ onMessage } = {}) {
     } finally {
       setIsLoading(false);
     }
-  }, [apiBase, persistSession, pushMessage, session.token]);
+  }, [persistSession, pushMessage, session.token]);
 
   const login = useCallback(
     async (payload) => {
       try {
         setIsLoading(true);
-        const response = await requestJson({
-          apiBase,
-          path: '/users/auth/login',
-          method: 'POST',
-          body: payload,
-        });
+        const response = await authService.login(payload);
         const nextSession = response?.data;
 
         if (!nextSession?.token || !nextSession?.user) {
@@ -94,19 +89,14 @@ export default function useAuthSession({ onMessage } = {}) {
         setIsLoading(false);
       }
     },
-    [apiBase, persistSession, pushMessage]
+    [persistSession, pushMessage]
   );
 
   const register = useCallback(
     async (payload) => {
       try {
         setIsLoading(true);
-        const response = await requestJson({
-          apiBase,
-          path: '/users/auth/register',
-          method: 'POST',
-          body: payload,
-        });
+        const response = await authService.register(payload);
         const nextSession = response?.data;
 
         if (!nextSession?.token || !nextSession?.user) {
@@ -123,7 +113,7 @@ export default function useAuthSession({ onMessage } = {}) {
         setIsLoading(false);
       }
     },
-    [apiBase, persistSession, pushMessage]
+    [persistSession, pushMessage]
   );
 
   const logout = useCallback(() => {
@@ -131,6 +121,10 @@ export default function useAuthSession({ onMessage } = {}) {
     persistSession({ token: '', user: null });
     pushMessage('Đã đăng xuất khỏi hệ thống.', 'success');
   }, [persistSession, pushMessage]);
+
+  useEffect(() => {
+    setApiBase(apiBase);
+  }, [apiBase]);
 
   useEffect(() => {
     const hasToken = Boolean(session.token);

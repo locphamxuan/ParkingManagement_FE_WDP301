@@ -19,7 +19,7 @@ export function SearchFilterBar({
   return (
     <div className="flex flex-col gap-3 rounded-lg border border-border bg-card/80 p-3 md:flex-row md:items-center md:justify-between">
       <div className="relative w-full md:max-w-md">
-        <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+        <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-stone-500" size={16} />
         <Input
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}

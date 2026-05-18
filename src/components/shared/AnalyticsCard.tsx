@@ -17,8 +17,8 @@ export function AnalyticsCard({ label, value, delta, index = 0 }: AnalyticsCardP
     >
       <Card className="h-full">
         <CardHeader className="pb-2">
-          <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">{label}</p>
-          <CardTitle className="mt-1 text-[1.9rem] leading-none tracking-[-0.05em]">{value}</CardTitle>
+          <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-stone-600">{label}</p>
+          <CardTitle className="mt-1 text-[1.9rem] leading-none tracking-[-0.05em] text-black">{value}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-xs font-medium text-primary/90">{delta}</p>

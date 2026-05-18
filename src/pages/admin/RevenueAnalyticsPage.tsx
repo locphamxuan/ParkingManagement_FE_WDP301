@@ -40,7 +40,7 @@ export function RevenueAnalyticsPage() {
               <BarChart data={data.buildings}>
                 <CartesianGrid stroke="rgba(191,161,131,0.22)" strokeDasharray="3 3" />
                 <XAxis dataKey="name" hide />
-                <YAxis tick={{ fill: '#7c6a57' }} />
+                <YAxis tick={{ fill: '#111827' }} />
                 <Tooltip
                   contentStyle={{
                     background: '#fffaf3',

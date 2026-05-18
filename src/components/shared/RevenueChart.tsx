@@ -35,8 +35,8 @@ export function RevenueChart({ data }: RevenueChartProps) {
               </linearGradient>
             </defs>
             <CartesianGrid stroke="rgba(191,161,131,0.22)" strokeDasharray="3 3" />
-            <XAxis dataKey="date" tick={{ fill: '#7c6a57', fontSize: 12 }} tickLine={false} axisLine={{ stroke: 'rgba(191,161,131,0.32)' }} />
-            <YAxis tick={{ fill: '#7c6a57', fontSize: 12 }} tickLine={false} axisLine={{ stroke: 'rgba(191,161,131,0.32)' }} />
+            <XAxis dataKey="date" tick={{ fill: '#111827', fontSize: 12 }} tickLine={false} axisLine={{ stroke: 'rgba(191,161,131,0.32)' }} />
+            <YAxis tick={{ fill: '#111827', fontSize: 12 }} tickLine={false} axisLine={{ stroke: 'rgba(191,161,131,0.32)' }} />
             <Tooltip
               contentStyle={{
                 background: '#fffaf3',
@@ -45,7 +45,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
                 boxShadow: '0 16px 36px rgba(120,83,48,0.14)',
               }}
             />
-            <Legend />
+            <Legend wrapperStyle={{ color: '#111827' }} />
             <Area type="monotone" dataKey="revenue" stroke="#f97316" strokeWidth={2.4} fill="url(#rev)" />
             <Area type="monotone" dataKey="occupancy" stroke="#1f2a44" strokeWidth={2} fill="url(#occ)" />
           </AreaChart>

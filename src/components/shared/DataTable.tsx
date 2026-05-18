@@ -33,7 +33,7 @@ export function DataTable<T extends Record<string, unknown>>({
                 {columns.map((column) => (
                   <th
                     key={String(column.key)}
-                    className="border-b border-border px-3 py-2 text-left text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground"
+                    className="border-b border-border px-3 py-2 text-left text-xs font-semibold uppercase tracking-[0.08em] text-stone-600"
                   >
                     {column.title}
                   </th>
@@ -53,7 +53,7 @@ export function DataTable<T extends Record<string, unknown>>({
                 ))
               ) : (
                 <tr>
-                  <td className="px-3 py-6 text-sm text-muted-foreground" colSpan={columns.length}>
+                  <td className="px-3 py-6 text-sm text-stone-700" colSpan={columns.length}>
                     {emptyText}
                   </td>
                 </tr>

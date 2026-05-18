@@ -1,26 +1,44 @@
 import ModuleGrid from '../components/modules/ModuleGrid';
+import type { LegacyModule } from '../data/mainFlow';
 import './DashboardPage.css';
 
-export default function DashboardPage({ user, onLogout, onRefresh, modules, onAction }) {
-  const displayName = user?.fullName || user?.email || 'người dùng';
+interface DashboardUser {
+  fullName?: string;
+  email?: string;
+  role?: string;
+  phone?: string;
+  isActive?: boolean;
+  lastLoginAt?: string;
+}
+
+interface DashboardPageProps {
+  user?: DashboardUser | null;
+  onLogout: () => void;
+  onRefresh: () => void;
+  modules: LegacyModule[];
+  onAction: (module: LegacyModule) => void;
+}
+
+export default function DashboardPage({ user, onLogout, onRefresh, modules, onAction }: DashboardPageProps) {
+  const displayName = user?.fullName || user?.email || 'nguoi dung';
 
   return (
     <main className="workspace dashboard-view">
       <section className="panel dashboard-hero">
         <div>
-          <p className="eyebrow">Phiên làm việc</p>
-          <h2>Xin chào, {displayName}!</h2>
+          <p className="eyebrow">Phien lam viec</p>
+          <h2>Xin chao, {displayName}!</h2>
           <p className="hero-text">
-            Đây là bảng điều khiển của bạn trong PBMS. Tại đây có thể xem hồ sơ cá nhân và đi tới các chức năng chính của hệ thống.
+            Day la bang dieu khien cua ban trong PBMS. Tai day co the xem ho so ca nhan va di toi cac chuc nang chinh cua he thong.
           </p>
         </div>
 
         <div className="session-actions">
           <button className="ghost-button" type="button" onClick={onRefresh}>
-            Làm mới hồ sơ
+            Lam moi ho so
           </button>
           <button className="primary-button danger" type="button" onClick={onLogout}>
-            Đăng xuất
+            Dang xuat
           </button>
         </div>
       </section>
@@ -29,7 +47,7 @@ export default function DashboardPage({ user, onLogout, onRefresh, modules, onAc
         <article className="panel summary-card">
           <div className="card-header">
             <div>
-              <p className="eyebrow">Hồ sơ người dùng</p>
+              <p className="eyebrow">Ho so nguoi dung</p>
               <h3>{displayName}</h3>
             </div>
             <span className="role-badge">{user?.role || 'user'}</span>
@@ -41,33 +59,33 @@ export default function DashboardPage({ user, onLogout, onRefresh, modules, onAc
               <dd>{user?.email || '-'}</dd>
             </div>
             <div>
-              <dt>Số điện thoại</dt>
+              <dt>So dien thoai</dt>
               <dd>{user?.phone || '-'}</dd>
             </div>
             <div>
-              <dt>Trạng thái</dt>
-              <dd>{user?.isActive ? 'Đang hoạt động' : 'Bị khóa'}</dd>
+              <dt>Trang thai</dt>
+              <dd>{user?.isActive ? 'Dang hoat dong' : 'Bi khoa'}</dd>
             </div>
             <div>
-              <dt>Đăng nhập gần nhất</dt>
+              <dt>Dang nhap gan nhat</dt>
               <dd>{formatDate(user?.lastLoginAt)}</dd>
             </div>
           </dl>
         </article>
 
         <article className="panel roadmap-card">
-          <p className="eyebrow">Lộ trình</p>
+          <p className="eyebrow">Lo trinh</p>
           <div className="roadmap-list">
             <div>
-              <strong>Quản lý bãi</strong>
+              <strong>Quan ly bai</strong>
               <span>Buildings, floors, slots, reservations</span>
             </div>
             <div>
-              <strong>Vận hành</strong>
+              <strong>Van hanh</strong>
               <span>Check-in, check-out, shift revenues</span>
             </div>
             <div>
-              <strong>Tài chính</strong>
+              <strong>Tai chinh</strong>
               <span>Wallet, payments, subscriptions</span>
             </div>
           </div>
@@ -77,8 +95,8 @@ export default function DashboardPage({ user, onLogout, onRefresh, modules, onAc
       <section className="panel module-panel dashboard-module-panel">
         <div className="panel-head">
           <div>
-            <p className="eyebrow">Chức năng chính</p>
-            <h2>Bảng điều khiển</h2>
+            <p className="eyebrow">Chuc nang chinh</p>
+            <h2>Bang dieu khien</h2>
           </div>
         </div>
 
@@ -88,7 +106,7 @@ export default function DashboardPage({ user, onLogout, onRefresh, modules, onAc
   );
 }
 
-function formatDate(value) {
+function formatDate(value?: string) {
   if (!value) return '-';
 
   const date = new Date(value);

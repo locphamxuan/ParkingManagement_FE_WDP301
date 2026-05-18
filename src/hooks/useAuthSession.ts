@@ -6,44 +6,60 @@ import {
   loadSession,
   saveApiBase,
   saveSession,
+  type LocalSession,
 } from '../services/storage';
 
-export default function useAuthSession({ onMessage } = {}) {
+interface UseAuthSessionOptions {
+  onMessage?: (message: string, type?: 'info' | 'success' | 'error') => void;
+}
+
+interface AuthPayload {
+  email: string;
+  password: string;
+  fullName?: string;
+  phone?: string;
+}
+
+interface AuthApiResponse {
+  data?: LocalSession;
+}
+
+export default function useAuthSession({ onMessage }: UseAuthSessionOptions = {}) {
   const [apiBase, setApiBaseState] = useState(() => loadApiBase(DEFAULT_API_BASE));
-  const [session, setSession] = useState(() => loadSession());
+  const [session, setSession] = useState<LocalSession>(() => loadSession());
   const [isLoading, setIsLoading] = useState(false);
   const [isBootstrapping, setIsBootstrapping] = useState(true);
 
   const pushMessage = useCallback(
-    (message, type = 'info') => {
+    (message: string, type: 'info' | 'success' | 'error' = 'info') => {
       onMessage?.(message, type);
     },
     [onMessage]
   );
 
-  const persistSession = useCallback((nextSession) => {
+  const persistSession = useCallback((nextSession: LocalSession) => {
     setSession(nextSession);
     saveSession(nextSession);
   }, []);
 
   const updateApiBase = useCallback(
-    (nextApiBase) => {
+    (nextApiBase: string) => {
       setApiBaseState(nextApiBase);
       saveApiBase(nextApiBase);
-      pushMessage('Đã lưu địa chỉ kết nối.', 'success');
+      pushMessage('Da luu dia chi ket noi.', 'success');
     },
     [pushMessage]
   );
 
   const refreshProfile = useCallback(async () => {
     if (!session.token) {
-      pushMessage('Bạn cần đăng nhập trước.', 'error');
+      pushMessage('Ban can dang nhap truoc.', 'error');
       return null;
     }
 
     try {
       setIsLoading(true);
-      const response = await requestJson({
+      const response = await requestJson<AuthApiResponse>({
         apiBase,
         path: '/users/auth/me',
         token: session.token,
@@ -51,17 +67,17 @@ export default function useAuthSession({ onMessage } = {}) {
       const user = response?.data?.user;
 
       if (!user) {
-        throw new Error('Không đọc được thông tin người dùng');
+        throw new Error('Khong doc duoc thong tin nguoi dung');
       }
 
-      const nextSession = { token: session.token, user };
+      const nextSession: LocalSession = { token: session.token, user };
       persistSession(nextSession);
-      pushMessage('Đã làm mới hồ sơ cá nhân.', 'success');
+      pushMessage('Da lam moi ho so ca nhan.', 'success');
       return nextSession;
     } catch (error) {
       clearSession();
       persistSession({ token: '', user: null });
-      pushMessage(`Phiên không hợp lệ: ${error.message}`, 'error');
+      pushMessage(`Phien khong hop le: ${(error as Error).message}`, 'error');
       return null;
     } finally {
       setIsLoading(false);
@@ -69,10 +85,10 @@ export default function useAuthSession({ onMessage } = {}) {
   }, [apiBase, persistSession, pushMessage, session.token]);
 
   const login = useCallback(
-    async (payload) => {
+    async (payload: AuthPayload) => {
       try {
         setIsLoading(true);
-        const response = await requestJson({
+        const response = await requestJson<AuthApiResponse>({
           apiBase,
           path: '/users/auth/login',
           method: 'POST',
@@ -81,14 +97,14 @@ export default function useAuthSession({ onMessage } = {}) {
         const nextSession = response?.data;
 
         if (!nextSession?.token || !nextSession?.user) {
-          throw new Error('Phản hồi đăng nhập không hợp lệ');
+          throw new Error('Phan hoi dang nhap khong hop le');
         }
 
         persistSession(nextSession);
-        pushMessage('Đăng nhập thành công.', 'success');
+        pushMessage('Dang nhap thanh cong.', 'success');
         return nextSession;
       } catch (error) {
-        pushMessage(error.message, 'error');
+        pushMessage((error as Error).message, 'error');
         throw error;
       } finally {
         setIsLoading(false);
@@ -98,10 +114,10 @@ export default function useAuthSession({ onMessage } = {}) {
   );
 
   const register = useCallback(
-    async (payload) => {
+    async (payload: AuthPayload) => {
       try {
         setIsLoading(true);
-        const response = await requestJson({
+        const response = await requestJson<AuthApiResponse>({
           apiBase,
           path: '/users/auth/register',
           method: 'POST',
@@ -110,14 +126,14 @@ export default function useAuthSession({ onMessage } = {}) {
         const nextSession = response?.data;
 
         if (!nextSession?.token || !nextSession?.user) {
-          throw new Error('Phản hồi đăng ký không hợp lệ');
+          throw new Error('Phan hoi dang ky khong hop le');
         }
 
         persistSession(nextSession);
-        pushMessage('Đăng ký thành công.', 'success');
+        pushMessage('Dang ky thanh cong.', 'success');
         return nextSession;
       } catch (error) {
-        pushMessage(error.message, 'error');
+        pushMessage((error as Error).message, 'error');
         throw error;
       } finally {
         setIsLoading(false);
@@ -129,7 +145,7 @@ export default function useAuthSession({ onMessage } = {}) {
   const logout = useCallback(() => {
     clearSession();
     persistSession({ token: '', user: null });
-    pushMessage('Đã đăng xuất khỏi hệ thống.', 'success');
+    pushMessage('Da dang xuat khoi he thong.', 'success');
   }, [persistSession, pushMessage]);
 
   useEffect(() => {

@@ -1,8 +1,33 @@
+import type { LegacyModule } from '../../data/mainFlow';
 import './Header.css';
 
-export default function Header({ currentView, session, notice, actions, modules, onModuleAction }) {
+interface HeaderAction {
+  key: string;
+  label: string;
+  onClick: () => void;
+}
+
+interface HeaderProps {
+  currentView: string;
+  session: { token?: string; user?: Record<string, unknown> | null } | null;
+  notice: { message?: string; type?: string };
+  actions: HeaderAction[];
+  modules: LegacyModule[];
+  onModuleAction: (module: LegacyModule) => void;
+}
+
+export default function Header({
+  currentView,
+  session,
+  notice,
+  actions,
+  modules,
+  onModuleAction,
+}: HeaderProps) {
   const activeLabel =
-    currentView === 'dashboard' ? 'Bảng điều khiển' : currentView === 'auth' ? 'Tài khoản' : 'Trang chủ';
+    currentView === 'dashboard' ? 'Bang dieu khien' : currentView === 'auth' ? 'Tai khoan' : 'Trang chu';
+
+  const user = session?.user as { fullName?: string; email?: string } | undefined;
 
   return (
     <header className="topbar">
@@ -20,14 +45,14 @@ export default function Header({ currentView, session, notice, actions, modules,
         </div>
 
         <div className="topbar-meta">
-          <div className="status-chip contact">Hỗ trợ 24/7</div>
+          <div className="status-chip contact">Ho tro 24/7</div>
           <div className="status-chip soft">
-            {session?.token ? `Xin chào, ${session.user?.fullName || session.user?.email || 'người dùng'}` : 'Chưa đăng nhập'}
+            {session?.token ? `Xin chao, ${user?.fullName || user?.email || 'nguoi dung'}` : 'Chua dang nhap'}
           </div>
           <div className="status-chip soft">{activeLabel}</div>
         </div>
 
-        <nav className="topbar-actions auth-actions" aria-label="Điều hướng tài khoản">
+        <nav className="topbar-actions auth-actions" aria-label="Dieu huong tai khoan">
           {actions.map((action) => (
             <button
               key={action.key}
@@ -42,8 +67,8 @@ export default function Header({ currentView, session, notice, actions, modules,
       </div>
 
       <div className="topbar-workflows">
-        <div className="workflow-label">Nghiệp vụ chính</div>
-        <nav className="workflow-nav" aria-label="Chức năng nghiệp vụ">
+        <div className="workflow-label">Nghiep vu chinh</div>
+        <nav className="workflow-nav" aria-label="Chuc nang nghiep vu">
           {modules.map((module) => (
             <button
               key={module.id}

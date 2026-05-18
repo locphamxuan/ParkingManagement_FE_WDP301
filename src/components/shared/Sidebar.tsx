@@ -50,8 +50,8 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       <div className="mb-4 flex items-center justify-between rounded-2xl border border-border/80 bg-white/78 p-3 shadow-[0_10px_24px_rgba(120,83,48,0.08)]">
         {!collapsed ? (
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">PBMS</p>
-            <p className="text-sm font-semibold text-foreground">Smart City Control</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-stone-600">PBMS</p>
+            <p className="text-sm font-semibold text-black">Smart City Control</p>
           </div>
         ) : (
           <Fingerprint className="text-primary drop-shadow-[0_0_12px_rgba(249,115,22,0.3)]" />
@@ -74,7 +74,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                   'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition duration-200',
                   isActive
                     ? 'bg-gradient-to-r from-primary to-orange-400 text-primary-foreground shadow-[0_12px_24px_rgba(249,115,22,0.22)]'
-                    : 'text-muted-foreground hover:bg-primary/10 hover:text-foreground'
+                    : 'text-stone-700 hover:bg-primary/10 hover:text-black'
                 )
               }
             >

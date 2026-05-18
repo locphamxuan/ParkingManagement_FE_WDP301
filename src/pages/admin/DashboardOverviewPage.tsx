@@ -89,7 +89,7 @@ export function DashboardOverviewPage() {
             <CardTitle>Operational Guardrails</CardTitle>
           </CardHeader>
           <CardContent>
-            <ul className="space-y-2 text-sm text-foreground/82">
+            <ul className="space-y-2 text-sm text-black">
               {data.operationalGuardrails.map((rule) => (
                 <li key={rule} className="rounded-lg border border-border/70 bg-muted/40 p-2.5 transition-colors duration-200 hover:border-primary/18 hover:bg-orange-50/70">
                   {rule}

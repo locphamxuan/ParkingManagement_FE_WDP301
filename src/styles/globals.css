@@ -36,19 +36,19 @@
 .admin-theme {
   color-scheme: light;
   --app-background: 35 60% 98%;
-  --app-foreground: 221 39% 19%;
+  --app-foreground: 221 46% 10%;
   --app-primary: 24 94% 54%;
   --app-primary-foreground: 20 20% 98%;
   --app-secondary: 32 72% 95%;
-  --app-secondary-foreground: 221 39% 19%;
+  --app-secondary-foreground: 221 46% 10%;
   --app-muted: 34 44% 96%;
-  --app-muted-foreground: 220 15% 43%;
+  --app-muted-foreground: 220 13% 26%;
   --app-card: 0 0% 100%;
-  --app-card-foreground: 221 39% 19%;
+  --app-card-foreground: 221 46% 10%;
   --app-border: 28 36% 86%;
   --app-input: 28 36% 86%;
   --app-ring: 24 94% 54%;
-  --text: #1f2a44;
+  --text: #111827;
   --shadow: 0 16px 40px rgba(120, 83, 48, 0.12);
 }
 

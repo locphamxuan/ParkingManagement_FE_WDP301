@@ -11,9 +11,9 @@ export function MonitoringWidget({ metric }: MonitoringWidgetProps) {
     <Card>
       <CardContent className="flex items-center justify-between gap-3 p-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">{metric.label}</p>
-          <p className="mt-1 text-xl font-semibold">{metric.value}</p>
-          <p className="text-xs text-muted-foreground">{metric.trend}</p>
+          <p className="text-xs uppercase tracking-[0.14em] text-stone-600">{metric.label}</p>
+          <p className="mt-1 text-xl font-semibold text-black">{metric.value}</p>
+          <p className="text-xs text-stone-700">{metric.trend}</p>
         </div>
         <StatusBadge status={metric.status} />
       </CardContent>

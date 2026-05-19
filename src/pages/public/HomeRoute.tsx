@@ -14,6 +14,10 @@ export function HomeRoute() {
     navigate('/dashboard');
   }, [navigate]);
 
+  const onOpenAdmin = useCallback(() => {
+    navigate('/admin/login');
+  }, [navigate]);
+
   const onAction = useCallback((module: any) => {
     if (module.id === 'auth') return onOpenAuth('login');
     if (module.id === 'profile') return onOpenDashboard();
@@ -21,7 +25,15 @@ export function HomeRoute() {
     return undefined;
   }, [onOpenAuth, onOpenDashboard]);
 
-  return <HomePage modules={mainFlowModules} onOpenAuth={onOpenAuth} onOpenDashboard={onOpenDashboard} onAction={onAction} />;
+  return (
+    <HomePage
+      modules={mainFlowModules}
+      onOpenAuth={onOpenAuth}
+      onOpenDashboard={onOpenDashboard}
+      onAction={onAction}
+      onOpenAdmin={onOpenAdmin}
+    />
+  );
 }
 
 export default HomeRoute;

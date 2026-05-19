@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { LockKeyhole } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,13 +9,9 @@ import { useAuth } from '@/hooks/useAuth';
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { login, isAuthenticating, error, isAdmin } = useAuth();
+  const { login, isAuthenticating, error } = useAuth();
   const [email, setEmail] = useState('admin@gmail.com');
   const [password, setPassword] = useState('1');
-
-  if (isAdmin) {
-    return <Navigate to="/admin/dashboard" replace />;
-  }
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

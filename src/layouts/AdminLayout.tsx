@@ -6,19 +6,19 @@ import { useAuth } from '@/hooks/useAuth';
 import { MOCK_ADMIN } from '@/utils/constants';
 
 const titles: Record<string, string> = {
-  '/admin/dashboard': 'Enterprise Dashboard',
-  '/admin/dashboard/buildings': 'Buildings Operations',
-  '/admin/dashboard/managers': 'Manager Governance',
-  '/admin/dashboard/users': 'User Governance',
-  '/admin/dashboard/revenue-analytics': 'Revenue Analytics',
-  '/admin/dashboard/wallet-governance': 'Wallet Governance',
-  '/admin/dashboard/pricing-policies': 'Pricing Policies',
-  '/admin/dashboard/policy-push-logs': 'Policy Push Logs',
-  '/admin/dashboard/audit-logs': 'Audit Logs',
-  '/admin/dashboard/fraud-detection': 'Fraud Detection',
-  '/admin/dashboard/system-health': 'System Health',
-  '/admin/dashboard/notifications': 'Notifications',
-  '/admin/dashboard/settings': 'Settings',
+  '/admin/dashboard': 'Bảng điều khiển doanh nghiệp',
+  '/admin/dashboard/buildings': 'Quản lý tòa nhà',
+  '/admin/dashboard/managers': 'Quản lý nhân sự',
+  '/admin/dashboard/users': 'Quản lý người dùng',
+  '/admin/dashboard/revenue-analytics': 'Phân tích doanh thu',
+  '/admin/dashboard/wallet-governance': 'Quản lý ví',
+  '/admin/dashboard/pricing-policies': 'Chính sách giá',
+  '/admin/dashboard/policy-push-logs': 'Lịch sử đẩy chính sách',
+  '/admin/dashboard/audit-logs': 'Nhật ký kiểm toán',
+  '/admin/dashboard/fraud-detection': 'Phát hiện gian lận',
+  '/admin/dashboard/system-health': 'Tình trạng hệ thống',
+  '/admin/dashboard/notifications': 'Thông báo',
+  '/admin/dashboard/settings': 'Cài đặt',
 };
 
 export function AdminLayout() {

@@ -17,9 +17,9 @@ export function ModalForm({ open, onOpenChange, title, children, onSubmit }: Mod
         {children}
         <div className="flex justify-end gap-2">
           <Button variant="secondary" onClick={() => onOpenChange(false)}>
-            Cancel
+            Hủy
           </Button>
-          <Button onClick={onSubmit}>Save</Button>
+          <Button onClick={onSubmit}>Lưu</Button>
         </div>
       </div>
     </Modal>

@@ -5,21 +5,21 @@ import { RevenueChart } from '@/components/shared/RevenueChart';
 import { useAdminDataset } from '@/hooks/useAdminDataset';
 
 const kpis = [
-  { label: 'Gross Revenue MTD', value: '42.1B VND', delta: '+14.2%' },
-  { label: 'Net Distribution', value: '36.8B VND', delta: '+9.1%' },
-  { label: 'Average Ticket', value: '198K VND', delta: '+5.4%' },
-  { label: 'Wallet Collection Rate', value: '42%', delta: '+2.2%' },
+  { label: 'Tổng doanh thu (MTD)', value: '42.1B VND', delta: '+14.2%' },
+  { label: 'Phân phối ròng', value: '36.8B VND', delta: '+9.1%' },
+  { label: 'Giá vé trung bình', value: '198K VND', delta: '+5.4%' },
+  { label: 'Tỉ lệ thu từ ví', value: '42%', delta: '+2.2%' },
 ];
 
 export function RevenueAnalyticsPage() {
   const { data, isLoading, error } = useAdminDataset();
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading revenue analytics...</div>;
+    return <div className="text-sm text-muted-foreground">Đang tải phân tích doanh thu...</div>;
   }
 
   if (error || !data) {
-    return <div className="text-sm text-red-600">{error || 'Failed to load revenue analytics.'}</div>;
+    return <div className="text-sm text-red-600">{error || 'Tải phân tích doanh thu thất bại.'}</div>;
   }
 
   return (
@@ -56,13 +56,13 @@ export function RevenueAnalyticsPage() {
         </div>
 
         <DataTable
-          title="Shift Revenue Snapshot"
+          title="Snapshot doanh thu ca"
           rows={data.revenueTrend}
           columns={[
-            { key: 'date', title: 'Day' },
-            { key: 'sessions', title: 'Sessions' },
-            { key: 'occupancy', title: 'Occupancy %' },
-            { key: 'revenue', title: 'Revenue (M VND)' },
+            { key: 'date', title: 'Ngày' },
+            { key: 'sessions', title: 'Phiên' },
+            { key: 'occupancy', title: 'Tỉ lệ chiếm dụng %' },
+            { key: 'revenue', title: 'Doanh thu (M VND)' },
           ]}
         />
       </section>

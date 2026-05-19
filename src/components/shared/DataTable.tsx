@@ -18,7 +18,7 @@ export function DataTable<T extends Record<string, unknown>>({
   title,
   rows,
   columns,
-  emptyText = 'No records found.',
+  emptyText = 'Không tìm thấy bản ghi.',
 }: DataTableProps<T>) {
   return (
     <Card>

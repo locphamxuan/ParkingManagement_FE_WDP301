@@ -32,32 +32,32 @@ export function AppRouter() {
           <Route path="buildings" element={<BuildingsPage />} />
           <Route
             path="managers"
-            element={<ModulePlaceholderPage title="Managers" description="Manager assignment workflow and governance panel." />}
+            element={<ModulePlaceholderPage title="Quản lý" description="Quy trình phân công quản lý và bảng điều khiển quản trị." />}
           />
           <Route path="users" element={<UsersPage />} />
           <Route path="revenue-analytics" element={<RevenueAnalyticsPage />} />
           <Route
             path="wallet-governance"
-            element={<ModulePlaceholderPage title="Wallet Governance" description="System wallet controls, distribution windows and approvals." />}
+            element={<ModulePlaceholderPage title="Quản lý ví" description="Điều khiển ví hệ thống, khung phân phối và phê duyệt." />}
           />
           <Route
             path="pricing-policies"
-            element={<ModulePlaceholderPage title="Pricing Policies" description="Global policy ranges, policy templates and role constraints." />}
+            element={<ModulePlaceholderPage title="Chính sách giá" description="Phạm vi chính sách, mẫu chính sách và ràng buộc theo vai trò." />}
           />
           <Route
             path="policy-push-logs"
-            element={<ModulePlaceholderPage title="Policy Push Logs" description="Cross-building policy push history and rollback actions." />}
+            element={<ModulePlaceholderPage title="Lịch sử đẩy chính sách" description="Lịch sử đẩy chính sách giữa tòa nhà và thao tác hoàn tác." />}
           />
           <Route path="audit-logs" element={<AuditLogsPage />} />
           <Route path="fraud-detection" element={<FraudDetectionPage />} />
           <Route path="system-health" element={<SystemHealthPage />} />
           <Route
             path="notifications"
-            element={<ModulePlaceholderPage title="Notifications" description="Notification templates, queue monitoring and delivery channels." />}
+            element={<ModulePlaceholderPage title="Thông báo" description="Mẫu thông báo, giám sát hàng đợi và kênh gửi." />}
           />
           <Route
             path="settings"
-            element={<ModulePlaceholderPage title="Settings" description="Platform settings, access policy and operational preferences." />}
+            element={<ModulePlaceholderPage title="Cài đặt" description="Cấu hình nền tảng, chính sách truy cập và tùy chọn vận hành." />}
           />
         </Route>
       </Route>

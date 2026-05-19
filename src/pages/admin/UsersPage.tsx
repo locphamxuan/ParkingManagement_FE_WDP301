@@ -27,35 +27,35 @@ export function UsersPage() {
     });
   }, [data?.users, query, roleFilter]);
 
-  if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading users...</div>;
-  }
+    if (isLoading) {
+      return <div className="text-sm text-muted-foreground">Đang tải danh sách người dùng...</div>;
+    }
 
-  if (error || !data) {
-    return <div className="text-sm text-red-600">{error || 'Failed to load users.'}</div>;
-  }
+    if (error || !data) {
+      return <div className="text-sm text-red-600">{error || 'Tải người dùng thất bại.'}</div>;
+    }
 
   const columns: DataColumn<UserRecord>[] = [
-    { key: 'name', title: 'User' },
+    { key: 'name', title: 'Người dùng' },
     { key: 'email', title: 'Email' },
-    { key: 'role', title: 'Role', render: (row) => <StatusBadge status={row.role} /> },
-    { key: 'status', title: 'Status', render: (row) => <StatusBadge status={row.status} /> },
+    { key: 'role', title: 'Vai trò', render: (row) => <StatusBadge status={row.role} /> },
+    { key: 'status', title: 'Trạng thái', render: (row) => <StatusBadge status={row.status} /> },
     {
       key: 'walletBalance',
-      title: 'Wallet Balance',
+      title: 'Số dư ví',
       render: (row) => `${row.walletBalance.toLocaleString()} VND`,
     },
     {
       key: 'linkedPlates',
-      title: 'Linked Plates',
+      title: 'Biển số liên kết',
       render: (row) => row.linkedPlates.join(', '),
     },
     {
       key: 'actions',
-      title: 'Actions',
+      title: 'Hành động',
       render: (row) => (
         <Button variant="ghost" size="sm" onClick={() => setSelectedUser(row)}>
-          View
+          Xem
         </Button>
       ),
     },
@@ -71,24 +71,24 @@ export function UsersPage() {
         filterOptions={['all', 'admin', 'manager', 'staff', 'user']}
       />
 
-      <DataTable title="Users" rows={filtered} columns={columns} />
+      <DataTable title="Người dùng" rows={filtered} columns={columns} />
 
       <ModalForm
         open={Boolean(selectedUser)}
         onOpenChange={(open) => {
           if (!open) setSelectedUser(null);
         }}
-        title="User Details"
+        title="Chi tiết người dùng"
         onSubmit={() => setSelectedUser(null)}
       >
         {selectedUser ? (
           <div className="grid gap-2 text-sm text-muted-foreground">
-            <p><strong className="text-foreground">Name:</strong> {selectedUser.name}</p>
+            <p><strong className="text-foreground">Họ tên:</strong> {selectedUser.name}</p>
             <p><strong className="text-foreground">Email:</strong> {selectedUser.email}</p>
-            <p><strong className="text-foreground">Role:</strong> {selectedUser.role}</p>
-            <p><strong className="text-foreground">Status:</strong> {selectedUser.status}</p>
-            <p><strong className="text-foreground">Wallet:</strong> {selectedUser.walletBalance.toLocaleString()} VND</p>
-            <p><strong className="text-foreground">Linked plates:</strong> {selectedUser.linkedPlates.join(', ')}</p>
+            <p><strong className="text-foreground">Vai trò:</strong> {selectedUser.role}</p>
+            <p><strong className="text-foreground">Trạng thái:</strong> {selectedUser.status}</p>
+            <p><strong className="text-foreground">Số dư ví:</strong> {selectedUser.walletBalance.toLocaleString()} VND</p>
+            <p><strong className="text-foreground">Biển số liên kết:</strong> {selectedUser.linkedPlates.join(', ')}</p>
           </div>
         ) : null}
       </ModalForm>

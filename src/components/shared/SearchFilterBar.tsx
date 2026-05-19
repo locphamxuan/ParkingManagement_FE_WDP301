@@ -23,7 +23,7 @@ export function SearchFilterBar({
         <Input
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
-          placeholder="Search..."
+          placeholder="Tìm kiếm..."
           className="pl-9"
         />
       </div>
@@ -33,11 +33,28 @@ export function SearchFilterBar({
           onChange={(e) => onFilterChange(e.target.value)}
           className="h-10 rounded-md border border-border bg-secondary px-3 text-sm text-foreground outline-none"
         >
-          {filterOptions.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
+          {filterOptions.map((option) => {
+            const map: Record<string, string> = {
+              all: 'Tất cả',
+              active: 'Hoạt động',
+              inactive: 'Không hoạt động',
+              maintenance: 'Bảo trì',
+              warning: 'Cảnh báo',
+              admin: 'Quản trị viên',
+              manager: 'Quản lý',
+              staff: 'Nhân viên',
+              user: 'Người dùng',
+              low: 'Thấp',
+              medium: 'Trung bình',
+              high: 'Cao',
+              critical: 'Nguy cấp',
+            };
+            return (
+              <option key={option} value={option}>
+                {map[option] ?? option}
+              </option>
+            );
+          })}
         </select>
       ) : null}
     </div>

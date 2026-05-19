@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { LockKeyhole } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,13 +9,9 @@ import { useAuth } from '@/hooks/useAuth';
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { login, isAuthenticating, error, isAdmin } = useAuth();
+  const { login, isAuthenticating, error } = useAuth();
   const [email, setEmail] = useState('admin@gmail.com');
   const [password, setPassword] = useState('1');
-
-  if (isAdmin) {
-    return <Navigate to="/admin/dashboard" replace />;
-  }
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -37,8 +33,8 @@ export function LoginPage() {
           <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-md bg-primary/20 text-primary">
             <LockKeyhole size={18} />
           </div>
-          <CardTitle className="text-2xl">Admin Login</CardTitle>
-          <p className="text-sm text-muted-foreground">Use mock credentials to enter PBMS admin control center.</p>
+          <CardTitle className="text-2xl">Đăng nhập Admin</CardTitle>
+          <p className="text-sm text-muted-foreground">Sử dụng thông tin giả để truy cập Trung tâm điều hành PBMS.</p>
         </CardHeader>
         <CardContent>
           <form className="grid gap-4" onSubmit={onSubmit}>
@@ -47,14 +43,14 @@ export function LoginPage() {
               <Input value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
             <div className="grid gap-2">
-              <label className="text-sm text-muted-foreground">Password</label>
+              <label className="text-sm text-muted-foreground">Mật khẩu</label>
               <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
             {error ? <p className="text-sm text-red-600">{error}</p> : null}
             <Button disabled={isAuthenticating}>
-              {isAuthenticating ? 'Signing in...' : 'Sign in as Admin'}
+              {isAuthenticating ? 'Đang đăng nhập...' : 'Đăng nhập'}
             </Button>
-            <p className="text-xs text-muted-foreground">Credential: admin@gmail.com / 1</p>
+            <p className="text-xs text-muted-foreground">Thông tin: admin@gmail.com / 1</p>
           </form>
         </CardContent>
       </Card>

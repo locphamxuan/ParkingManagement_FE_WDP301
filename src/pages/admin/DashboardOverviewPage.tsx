@@ -10,13 +10,13 @@ const pieColors = ['#f97316', '#fb923c', '#f59e0b', '#1f2a44'];
 export function DashboardOverviewPage() {
   const { data, isLoading, error } = useAdminDataset();
 
-  if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading dashboard data...</div>;
-  }
+    if (isLoading) {
+      return <div className="text-sm text-muted-foreground">Đang tải dữ liệu tổng quan...</div>;
+    }
 
-  if (error || !data) {
-    return <div className="text-sm text-red-600">{error || 'Failed to load dashboard data.'}</div>;
-  }
+    if (error || !data) {
+      return <div className="text-sm text-red-600">{error || 'Tải dữ liệu thất bại.'}</div>;
+    }
 
   return (
     <div className="grid gap-5">
@@ -31,7 +31,7 @@ export function DashboardOverviewPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Payment Method Distribution</CardTitle>
+              <CardTitle>Phân bổ phương thức thanh toán</CardTitle>
           </CardHeader>
           <CardContent className="h-[320px] pt-0">
             <ResponsiveContainer width="100%" height="100%">
@@ -56,11 +56,11 @@ export function DashboardOverviewPage() {
       </section>
 
       <section className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
-        <ActivityTimeline title="Live Parking Activity" items={data.liveActivities} />
+        <ActivityTimeline title="Hoạt động bãi đỗ trực tiếp" items={data.liveActivities} />
 
         <Card>
           <CardHeader>
-            <CardTitle>Recent Transactions</CardTitle>
+              <CardTitle>Giao dịch gần đây</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2.5">
@@ -86,7 +86,7 @@ export function DashboardOverviewPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Operational Guardrails</CardTitle>
+              <CardTitle>Rào cản vận hành</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2 text-sm text-black">
@@ -102,3 +102,4 @@ export function DashboardOverviewPage() {
     </div>
   );
 }
+ 

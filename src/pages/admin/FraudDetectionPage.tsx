@@ -5,30 +5,30 @@ import { useAdminDataset } from '@/hooks/useAdminDataset';
 import type { FraudAlert } from '@/types';
 
 const fraudKpis = [
-  { label: 'Open Fraud Cases', value: '9', delta: '2 critical' },
-  { label: 'Duplicate Plate Alerts', value: '3', delta: '+1 today' },
-  { label: 'Abnormal Payments', value: '4', delta: 'Needs review' },
-  { label: 'Suspicious Sessions', value: '12', delta: 'Pattern flagged' },
+  { label: 'Vụ gian lận mở', value: '9', delta: '2 nguy cấp' },
+  { label: 'Cảnh báo biển số trùng', value: '3', delta: '+1 hôm nay' },
+  { label: 'Thanh toán bất thường', value: '4', delta: 'Cần xem xét' },
+  { label: 'Phiên đáng ngờ', value: '12', delta: 'Mẫu bị đánh dấu' },
 ];
 
 export function FraudDetectionPage() {
   const { data, isLoading, error } = useAdminDataset();
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading fraud alerts...</div>;
+    return <div className="text-sm text-muted-foreground">Đang tải cảnh báo gian lận...</div>;
   }
 
   if (error || !data) {
-    return <div className="text-sm text-red-600">{error || 'Failed to load fraud alerts.'}</div>;
+    return <div className="text-sm text-red-600">{error || 'Tải cảnh báo gian lận thất bại.'}</div>;
   }
 
   const columns: DataColumn<FraudAlert>[] = [
-    { key: 'id', title: 'Alert ID' },
-    { key: 'type', title: 'Type' },
-    { key: 'building', title: 'Building' },
-    { key: 'timestamp', title: 'Time' },
-    { key: 'note', title: 'Note' },
-    { key: 'severity', title: 'Severity', render: (row) => <StatusBadge status={row.severity} /> },
+    { key: 'id', title: 'Mã cảnh báo' },
+    { key: 'type', title: 'Loại' },
+    { key: 'building', title: 'Tòa nhà' },
+    { key: 'timestamp', title: 'Thời gian' },
+    { key: 'note', title: 'Ghi chú' },
+    { key: 'severity', title: 'Mức độ', render: (row) => <StatusBadge status={row.severity} /> },
   ];
 
   return (
@@ -38,7 +38,7 @@ export function FraudDetectionPage() {
           <AnalyticsCard key={item.label} label={item.label} value={item.value} delta={item.delta} index={index} />
         ))}
       </section>
-      <DataTable title="Suspicious Activity Feed" rows={data.fraudAlerts} columns={columns} />
+      <DataTable title="Dòng hoạt động đáng ngờ" rows={data.fraudAlerts} columns={columns} />
     </div>
   );
 }

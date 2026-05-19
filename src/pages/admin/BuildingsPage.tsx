@@ -32,23 +32,23 @@ export function BuildingsPage() {
   }, [data?.buildings, query, statusFilter]);
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading buildings...</div>;
+    return <div className="text-sm text-muted-foreground">Đang tải danh sách tòa nhà...</div>;
   }
 
   if (error || !data) {
-    return <div className="text-sm text-red-600">{error || 'Failed to load buildings.'}</div>;
+    return <div className="text-sm text-red-600">{error || 'Tải tòa nhà thất bại.'}</div>;
   }
 
   const maxPage = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageRows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const columns: DataColumn<Building>[] = [
-    { key: 'name', title: 'Building Name' },
-    { key: 'address', title: 'Address' },
-    { key: 'floors', title: 'Floors' },
+    { key: 'name', title: 'Tên tòa nhà' },
+    { key: 'address', title: 'Địa chỉ' },
+    { key: 'floors', title: 'Số tầng' },
     {
       key: 'occupancyRate',
-      title: 'Occupancy',
+      title: 'Tỉ lệ chiếm dụng',
       render: (row) => (
         <div className="w-32">
           <div className="mb-1 text-xs text-muted-foreground">{row.occupancyRate}%</div>
@@ -60,13 +60,13 @@ export function BuildingsPage() {
     },
     {
       key: 'status',
-      title: 'Status',
+      title: 'Trạng thái',
       render: (row) => <StatusBadge status={row.status} />,
     },
-    { key: 'manager', title: 'Manager' },
+    { key: 'manager', title: 'Người quản lý' },
     {
       key: 'revenueToday',
-      title: 'Revenue',
+      title: 'Doanh thu',
       render: (row) => `${row.revenueToday.toLocaleString()} VND`,
     },
   ];
@@ -87,34 +87,34 @@ export function BuildingsPage() {
           }}
           filterOptions={['all', 'active', 'inactive', 'maintenance', 'warning']}
         />
-        <Button onClick={() => setIsModalOpen(true)}>Create Building</Button>
+        <Button onClick={() => setIsModalOpen(true)}>Tạo tòa nhà</Button>
       </div>
 
-      <DataTable title="Buildings" rows={pageRows} columns={columns} />
+      <DataTable title="Tòa nhà" rows={pageRows} columns={columns} />
 
       <div className="flex items-center justify-end gap-2">
         <Button variant="secondary" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))}>
-          Prev
+          Trước
         </Button>
         <span className="text-sm text-muted-foreground">
-          Page {page} / {maxPage}
+          Trang {page} / {maxPage}
         </span>
         <Button variant="secondary" size="sm" onClick={() => setPage((p) => Math.min(maxPage, p + 1))}>
-          Next
+          Tiếp
         </Button>
       </div>
 
       <ModalForm
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
-        title="Create / Edit Building"
+        title="Tạo / Sửa tòa nhà"
         onSubmit={() => setIsModalOpen(false)}
       >
         <div className="grid gap-3 md:grid-cols-2">
-          <Input placeholder="Building name" />
-          <Input placeholder="Address" />
-          <Input placeholder="Total floors" />
-          <Input placeholder="Manager" />
+          <Input placeholder="Tên tòa nhà" />
+          <Input placeholder="Địa chỉ" />
+          <Input placeholder="Số tầng" />
+          <Input placeholder="Quản lý" />
         </div>
       </ModalForm>
     </div>

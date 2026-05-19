@@ -24,19 +24,19 @@ interface SidebarProps {
 }
 
 const modules = [
-  { to: '', label: 'Dashboard', icon: LayoutDashboard },
-  { to: 'buildings', label: 'Buildings', icon: Building2 },
-  { to: 'managers', label: 'Managers', icon: Users },
-  { to: 'users', label: 'Users', icon: Users },
-  { to: 'revenue-analytics', label: 'Revenue Analytics', icon: CircleDollarSign },
-  { to: 'wallet-governance', label: 'Wallet Governance', icon: Wallet },
-  { to: 'pricing-policies', label: 'Pricing Policies', icon: NotebookPen },
-  { to: 'policy-push-logs', label: 'Policy Push Logs', icon: FileSearch },
-  { to: 'audit-logs', label: 'Audit Logs', icon: Activity },
-  { to: 'fraud-detection', label: 'Fraud Detection', icon: ShieldAlert },
-  { to: 'system-health', label: 'System Health', icon: Gauge },
-  { to: 'notifications', label: 'Notifications', icon: Bell },
-  { to: 'settings', label: 'Settings', icon: Settings },
+  { to: '', label: 'Tổng quan', icon: LayoutDashboard },
+  { to: 'buildings', label: 'Tòa nhà', icon: Building2 },
+  { to: 'managers', label: 'Quản lý', icon: Users },
+  { to: 'users', label: 'Người dùng', icon: Users },
+  { to: 'revenue-analytics', label: 'Phân tích doanh thu', icon: CircleDollarSign },
+  { to: 'wallet-governance', label: 'Quản lý ví', icon: Wallet },
+  { to: 'pricing-policies', label: 'Chính sách giá', icon: NotebookPen },
+  { to: 'policy-push-logs', label: 'Lịch sử đẩy chính sách', icon: FileSearch },
+  { to: 'audit-logs', label: 'Nhật ký kiểm toán', icon: Activity },
+  { to: 'fraud-detection', label: 'Phát hiện gian lận', icon: ShieldAlert },
+  { to: 'system-health', label: 'Tình trạng hệ thống', icon: Gauge },
+  { to: 'notifications', label: 'Thông báo', icon: Bell },
+  { to: 'settings', label: 'Cài đặt', icon: Settings },
 ] as const;
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
@@ -51,7 +51,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         {!collapsed ? (
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-stone-600">PBMS</p>
-            <p className="text-sm font-semibold text-black">Smart City Control</p>
+            <p className="text-sm font-semibold text-black">Điều phối Thành phố Thông minh</p>
           </div>
         ) : (
           <Fingerprint className="text-primary drop-shadow-[0_0_12px_rgba(249,115,22,0.3)]" />

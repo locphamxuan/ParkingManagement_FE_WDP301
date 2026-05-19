@@ -26,23 +26,23 @@ export function AuditLogsPage() {
   }, [data?.auditLogs, query, severity]);
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading audit logs...</div>;
+    return <div className="text-sm text-muted-foreground">Đang tải nhật ký kiểm toán...</div>;
   }
 
   if (error || !data) {
-    return <div className="text-sm text-red-600">{error || 'Failed to load audit logs.'}</div>;
+    return <div className="text-sm text-red-600">{error || 'Tải nhật ký thất bại.'}</div>;
   }
 
   const columns: DataColumn<AuditLog>[] = [
     { key: 'id', title: 'ID' },
-    { key: 'actor', title: 'Actor' },
-    { key: 'action', title: 'Action' },
-    { key: 'target', title: 'Target Table' },
-    { key: 'details', title: 'Details' },
-    { key: 'timestamp', title: 'Timestamp' },
+    { key: 'actor', title: 'Người thực hiện' },
+    { key: 'action', title: 'Hành động' },
+    { key: 'target', title: 'Bảng mục tiêu' },
+    { key: 'details', title: 'Chi tiết' },
+    { key: 'timestamp', title: 'Thời gian' },
     {
       key: 'severity',
-      title: 'Severity',
+      title: 'Mức độ',
       render: (row) => <StatusBadge status={row.severity} />,
     },
   ];
@@ -57,7 +57,7 @@ export function AuditLogsPage() {
         filterOptions={['all', 'low', 'medium', 'high', 'critical']}
       />
 
-      <DataTable title="Audit Log Timeline" rows={filtered} columns={columns} />
+      <DataTable title="Nhật ký kiểm toán" rows={filtered} columns={columns} />
     </div>
   );
 }

@@ -5,11 +5,11 @@ export function SystemHealthPage() {
   const { data, isLoading, error } = useAdminDataset();
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading system health...</div>;
+    return <div className="text-sm text-muted-foreground">Đang tải tình trạng hệ thống...</div>;
   }
 
   if (error || !data) {
-    return <div className="text-sm text-red-600">{error || 'Failed to load system health.'}</div>;
+    return <div className="text-sm text-red-600">{error || 'Tải tình trạng hệ thống thất bại.'}</div>;
   }
 
   return (

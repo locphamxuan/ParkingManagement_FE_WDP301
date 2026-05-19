@@ -25,6 +25,7 @@ interface HomePageProps {
   onOpenAuth: (mode?: 'login' | 'register') => void;
   onOpenDashboard: () => void;
   onAction: (module: LegacyModule) => void;
+  onOpenAdmin?: () => void;
 }
 
 const navigationLinks = [
@@ -70,7 +71,7 @@ const benefits = [
   },
 ];
 
-export default function HomePage({ modules, onOpenAuth, onOpenDashboard, onAction }: HomePageProps) {
+export default function HomePage({ modules, onOpenAuth, onOpenDashboard, onAction, onOpenAdmin }: HomePageProps) {
   const productModules = modules.slice(0, 4);
   const serviceModules = modules.slice(4);
 
@@ -96,6 +97,9 @@ export default function HomePage({ modules, onOpenAuth, onOpenDashboard, onActio
                 {link.label}
               </a>
             ))}
+            <button className="home-admin-link" type="button" onClick={() => onOpenAdmin?.()}>
+              Quản trị
+            </button>
           </nav>
 
           <div className="home-nav-meta">

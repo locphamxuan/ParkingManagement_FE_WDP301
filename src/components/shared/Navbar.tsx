@@ -1,5 +1,6 @@
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { Bell, ChevronDown, Search } from "lucide-react";
+import { useEffect, useRef, useState } from 'react';
+import { Bell, ChevronDown, Search, User, LogOut } from 'lucide-react';
+import AdminUserDropdown from './AdminUserDropdown';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -37,36 +38,9 @@ export function Navbar({ title, email, onLogout }: NavbarProps) {
             <span className="hidden sm:inline">Thông báo</span>
           </Button>
 
-          <DropdownMenu.Root>
-            <DropdownMenu.Trigger asChild>
-              <Button variant="secondary" className="gap-2">
-                <span className="max-w-[170px] truncate text-xs sm:text-sm">
-                  {email}
-                </span>
-                <ChevronDown size={14} />
-              </Button>
-            </DropdownMenu.Trigger>
-            <DropdownMenu.Portal>
-              <DropdownMenu.Content
-                sideOffset={6}
-                className="z-50 min-w-[180px] rounded-md border border-border/80 bg-[rgba(255,250,243,0.98)] p-1 shadow-[0_20px_45px_rgba(120,83,48,0.16)]"
-              >
-                <DropdownMenu.Item className="rounded px-3 py-2 text-sm text-foreground outline-none hover:bg-primary/10">
-                  Hồ sơ
-                </DropdownMenu.Item>
-                <DropdownMenu.Item
-                  className="rounded px-3 py-2 text-sm text-orange-600 outline-none hover:bg-orange-500/10"
-                  onClick={onLogout}
-                >
-                  Đăng xuất
-                </DropdownMenu.Item>
-              </DropdownMenu.Content>
-            </DropdownMenu.Portal>
-          </DropdownMenu.Root>
-
-          <Button variant="ghost" size="sm" className="ml-2" onClick={onLogout}>
-            Đăng xuất
-          </Button>
+          {/* Custom user dropdown (desktop) */}
+          <AdminUserDropdown email={email} onLogout={onLogout} />
+          
         </div>
       </div>
     </header>

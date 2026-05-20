@@ -3,7 +3,6 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar } from '@/components/shared/Sidebar';
 import { Navbar } from '@/components/shared/Navbar';
 import { useAuth } from '@/hooks/useAuth';
-import { MOCK_ADMIN } from '@/utils/constants';
 
 const titles: Record<string, string> = {
   '/admin/dashboard': 'Bảng điều khiển doanh nghiệp',
@@ -23,7 +22,7 @@ const titles: Record<string, string> = {
 
 export function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false);
-  const { session, logout } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -35,14 +34,14 @@ export function AdminLayout() {
       <div className="relative z-10 flex min-h-screen">
         <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((prev) => !prev)} />
         <div className="flex min-h-screen flex-1 flex-col">
-        <Navbar
-          title={title}
-          email={session?.email ?? MOCK_ADMIN.email}
-          onLogout={() => {
-            logout();
-            navigate('/', { replace: true });
-          }}
-        />
+          <Navbar
+            title={title}
+            email={user?.email ?? ''}
+            onLogout={() => {
+              logout();
+              navigate('/auth/login', { replace: true });
+            }}
+          />
           <main className="flex-1 p-4 md:p-6">
             <Outlet />
           </main>

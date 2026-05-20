@@ -2,7 +2,7 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import { AnalyticsCard } from '@/components/shared/AnalyticsCard';
 import { DataTable } from '@/components/shared/DataTable';
 import { RevenueChart } from '@/components/shared/RevenueChart';
-import { useAdminDataset } from '@/hooks/useAdminDataset';
+import { useAdminDataset } from '@/hooks/admin/useAdminDataset';
 
 const kpis = [
   { label: 'Tổng doanh thu (MTD)', value: '42.1B VND', delta: '+14.2%' },

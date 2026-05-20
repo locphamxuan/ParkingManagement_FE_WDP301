@@ -5,7 +5,7 @@ import { SearchFilterBar } from '@/components/shared/SearchFilterBar';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useAdminDataset } from '@/hooks/useAdminDataset';
+import { useAdminDataset } from '@/hooks/admin/useAdminDataset';
 import type { Building } from '@/types';
 
 const PAGE_SIZE = 3;

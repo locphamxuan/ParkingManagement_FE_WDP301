@@ -14,7 +14,7 @@ interface DataTableProps<T> {
   emptyText?: string;
 }
 
-export function DataTable<T extends Record<string, unknown>>({
+export function DataTable<T extends object>({
   title,
   rows,
   columns,
@@ -46,7 +46,7 @@ export function DataTable<T extends Record<string, unknown>>({
                   <tr key={rowIndex}>
                     {columns.map((column) => (
                       <td key={String(column.key)} className="border-b border-border/60 px-3 py-3 text-sm text-foreground">
-                        {column.render ? column.render(row) : String(row[column.key as keyof T] ?? '-')}
+                        {column.render ? column.render(row) : String((row as Record<string, unknown>)[column.key as string] ?? '-')}
                       </td>
                     ))}
                   </tr>

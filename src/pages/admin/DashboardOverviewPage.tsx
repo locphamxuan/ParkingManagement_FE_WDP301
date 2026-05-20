@@ -3,7 +3,7 @@ import { AnalyticsCard } from '@/components/shared/AnalyticsCard';
 import { ActivityTimeline } from '@/components/shared/ActivityTimeline';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RevenueChart } from '@/components/shared/RevenueChart';
-import { useAdminDataset } from '@/hooks/useAdminDataset';
+import { useAdminDataset } from '@/hooks/admin/useAdminDataset';
 
 const pieColors = ['#f97316', '#fb923c', '#f59e0b', '#1f2a44'];
 

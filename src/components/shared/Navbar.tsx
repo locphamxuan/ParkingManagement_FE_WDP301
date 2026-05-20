@@ -1,7 +1,7 @@
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import { Bell, ChevronDown, Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import { Bell, ChevronDown, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface NavbarProps {
   title: string;
@@ -14,13 +14,18 @@ export function Navbar({ title, email, onLogout }: NavbarProps) {
     <header className="sticky top-0 z-20 border-b border-border/80 bg-[rgba(255,250,243,0.86)] px-4 py-3 backdrop-blur-2xl">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-[0.18em] text-stone-600">Trung Tâm Điều Hành</p>
+          <p className="text-xs uppercase tracking-[0.18em] text-stone-600">
+            Trung Tâm Điều Hành
+          </p>
           <h1 className="text-xl font-semibold text-black">{title}</h1>
         </div>
 
         <div className="flex flex-1 items-center justify-end gap-2">
           <div className="relative hidden w-full max-w-md md:block">
-            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-stone-500" size={16} />
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-stone-500"
+              size={16}
+            />
             <Input
               className="border-border/80 bg-white/92 pl-9 text-black shadow-[0_8px_20px_rgba(120,83,48,0.06)] placeholder:text-stone-500"
               placeholder="Tìm tòa nhà, nhật ký, phiên..."
@@ -35,7 +40,9 @@ export function Navbar({ title, email, onLogout }: NavbarProps) {
           <DropdownMenu.Root>
             <DropdownMenu.Trigger asChild>
               <Button variant="secondary" className="gap-2">
-                <span className="max-w-[170px] truncate text-xs sm:text-sm">{email}</span>
+                <span className="max-w-[170px] truncate text-xs sm:text-sm">
+                  {email}
+                </span>
                 <ChevronDown size={14} />
               </Button>
             </DropdownMenu.Trigger>
@@ -56,6 +63,10 @@ export function Navbar({ title, email, onLogout }: NavbarProps) {
               </DropdownMenu.Content>
             </DropdownMenu.Portal>
           </DropdownMenu.Root>
+
+          <Button variant="ghost" size="sm" className="ml-2" onClick={onLogout}>
+            Đăng xuất
+          </Button>
         </div>
       </div>
     </header>

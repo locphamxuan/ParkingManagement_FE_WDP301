@@ -97,9 +97,9 @@ export default function HomePage({ modules, onOpenAuth, onOpenDashboard, onActio
                 {link.label}
               </a>
             ))}
-            <button className="home-admin-link" type="button" onClick={() => onOpenAdmin?.()}>
+            {/* <button className="home-admin-link" type="button" onClick={() => onOpenAdmin?.()}>
               Quản trị
-            </button>
+            </button> */}
           </nav>
 
           <div className="home-nav-meta">

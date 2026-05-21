@@ -3,7 +3,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar } from '@/components/shared/Sidebar';
 import { Navbar } from '@/components/shared/Navbar';
 import { useAuth } from '@/hooks/useAuth';
-import { MOCK_ADMIN } from '@/utils/constants';
+import { ADMIN_EMAIL_FALLBACK } from '@/utils/constants';
 
 const titles: Record<string, string> = {
   '/admin/dashboard': 'Bảng điều khiển doanh nghiệp',
@@ -18,6 +18,7 @@ const titles: Record<string, string> = {
   '/admin/dashboard/fraud-detection': 'Phát hiện gian lận',
   '/admin/dashboard/system-health': 'Tình trạng hệ thống',
   '/admin/dashboard/notifications': 'Thông báo',
+  '/admin/dashboard/profile': 'Hồ sơ cá nhân',
   '/admin/dashboard/settings': 'Cài đặt',
 };
 
@@ -35,14 +36,14 @@ export function AdminLayout() {
       <div className="relative z-10 flex min-h-screen">
         <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((prev) => !prev)} />
         <div className="flex min-h-screen flex-1 flex-col">
-        <Navbar
-          title={title}
-          email={session?.email ?? MOCK_ADMIN.email}
-          onLogout={() => {
-            logout();
-            navigate('/', { replace: true });
-          }}
-        />
+          <Navbar
+            title={title}
+            email={session?.email ?? ADMIN_EMAIL_FALLBACK}
+            onLogout={() => {
+              logout();
+              navigate('/admin/login', { replace: true });
+            }}
+          />
           <main className="flex-1 p-4 md:p-6">
             <Outlet />
           </main>

@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
 
-export function LoginPage() {
+export function ManagerLoginPage() {
   const navigate = useNavigate();
   const { login, isAuthenticating, error } = useAuth();
   const [email, setEmail] = useState('');
@@ -16,8 +16,8 @@ export function LoginPage() {
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
-      await login(email, password, 'admin');
-      navigate('/admin/dashboard', { replace: true });
+      await login(email, password, 'manager');
+      navigate('/manager/dashboard', { replace: true });
     } catch {
       return;
     }
@@ -25,16 +25,16 @@ export function LoginPage() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 text-foreground">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.16),transparent_24%),linear-gradient(180deg,#fffaf4_0%,#f8f2e8_44%,#fffdf9_100%)]" />
-      <div className="absolute -left-24 top-1/3 h-[300px] w-[300px] rounded-full bg-orange-500/16 blur-3xl" />
-      <div className="absolute -right-24 top-12 h-[320px] w-[320px] rounded-full bg-amber-400/14 blur-3xl" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.16),transparent_24%),linear-gradient(180deg,#eff6ff_0%,#f8fafc_44%,#f1f5f9_100%)]" />
+      <div className="absolute -left-24 top-1/3 h-[300px] w-[300px] rounded-full bg-sky-500/16 blur-3xl" />
+      <div className="absolute -right-24 top-12 h-[320px] w-[320px] rounded-full bg-cyan-400/14 blur-3xl" />
       <Card className="relative w-full max-w-md border-border/80 bg-white/94">
         <CardHeader>
-          <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-md bg-primary/20 text-primary">
+          <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-md bg-sky-100 text-sky-700">
             <LockKeyhole size={18} />
           </div>
-          <CardTitle className="text-2xl">Đăng nhập Admin</CardTitle>
-          <p className="text-sm text-muted-foreground">Đăng nhập bằng tài khoản quản trị đã có trên hệ thống PBMS.</p>
+          <CardTitle className="text-2xl">Đăng nhập Manager</CardTitle>
+          <p className="text-sm text-muted-foreground">Đăng nhập bằng tài khoản quản lý đã được phân quyền trên hệ thống PBMS.</p>
         </CardHeader>
         <CardContent>
           <form className="grid gap-4" onSubmit={onSubmit}>
@@ -50,7 +50,7 @@ export function LoginPage() {
             <Button disabled={isAuthenticating}>
               {isAuthenticating ? 'Đang đăng nhập...' : 'Đăng nhập'}
             </Button>
-            <p className="text-xs text-muted-foreground">Thông tin: admin</p>
+            <p className="text-xs text-muted-foreground">Sử dụng tài khoản manager đã tạo trên MongoDB.</p>
           </form>
         </CardContent>
       </Card>

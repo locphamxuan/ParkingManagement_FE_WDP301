@@ -1,5 +1,4 @@
 import type { LegacyModule } from '../../data/mainFlow';
-import './Header.css';
 
 interface HeaderAction {
   key: string;
@@ -30,49 +29,47 @@ export default function Header({
   const user = session?.user as { fullName?: string; email?: string } | undefined;
 
   return (
-    <header className="topbar">
-      <div className="topbar-main">
-        <div className="brand-lockup">
-          <div className="brand-mark" aria-hidden="true">
-            <span />
-            <span />
-            <span />
+    <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-sm border-b border-gray-200">
+      <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-lg bg-gradient-to-b from-orange-100 to-orange-50 border border-gray-100 grid place-items-center">
+            <span className="w-2 h-2 bg-orange-400 rounded-full" />
           </div>
           <div>
-            <p className="eyebrow">Parking Building Management System</p>
-            <h1>PBMS Control Hub</h1>
+            <p className="text-xs text-gray-500">Parking Building Management System</p>
+            <h1 className="text-lg font-semibold">PBMS Control Hub</h1>
           </div>
         </div>
 
-        <div className="topbar-meta">
-          <div className="status-chip contact">Ho tro 24/7</div>
-          <div className="status-chip soft">
+        <div className="flex items-center gap-3">
+          <div className="px-3 py-1 rounded-full bg-orange-50 text-orange-700 text-sm font-semibold">Ho tro 24/7</div>
+          <div className="px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-sm">
             {session?.token ? `Xin chao, ${user?.fullName || user?.email || 'nguoi dung'}` : 'Chua dang nhap'}
           </div>
-          <div className="status-chip soft">{activeLabel}</div>
-        </div>
+          <div className="px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-sm">{activeLabel}</div>
 
-        <nav className="topbar-actions auth-actions" aria-label="Dieu huong tai khoan">
-          {actions.map((action) => (
-            <button
-              key={action.key}
-              className={`nav-button ${currentView === action.key || (currentView === 'auth' && action.key === 'login') ? 'is-active' : ''}`}
-              type="button"
-              onClick={action.onClick}
-            >
-              {action.label}
-            </button>
-          ))}
-        </nav>
+          <nav className="flex items-center gap-2" aria-label="Dieu huong tai khoan">
+            {actions.map((action) => (
+              <button
+                key={action.key}
+                className={`px-3 py-1 rounded-lg font-semibold ${currentView === action.key || (currentView === 'auth' && action.key === 'login') ? 'bg-blue-600 text-white' : 'text-gray-700 bg-white border'}`}
+                type="button"
+                onClick={action.onClick}
+              >
+                {action.label}
+              </button>
+            ))}
+          </nav>
+        </div>
       </div>
 
-      <div className="topbar-workflows">
-        <div className="workflow-label">Nghiep vu chinh</div>
-        <nav className="workflow-nav" aria-label="Chuc nang nghiep vu">
+      <div className="max-w-6xl mx-auto px-4 py-2">
+        <div className="text-sm text-gray-500 mb-2">Nghiep vu chinh</div>
+        <nav className="flex gap-2" aria-label="Chuc nang nghiep vu">
           {modules.map((module) => (
             <button
               key={module.id}
-              className={`workflow-chip ${module.available ? '' : 'muted'}`}
+              className={`px-3 py-1 rounded-full text-sm ${module.available ? 'bg-white text-gray-800 border' : 'bg-gray-50 text-gray-400'}`}
               type="button"
               onClick={() => onModuleAction(module)}
             >
@@ -82,9 +79,9 @@ export default function Header({
         </nav>
       </div>
 
-      <div className={`notice ${notice?.type ? `is-${notice.type}` : ''}`} aria-live="polite">
-        {notice?.message}
-      </div>
+      {notice?.message ? (
+        <div className="max-w-6xl mx-auto px-4 py-2 text-sm text-gray-700">{notice.message}</div>
+      ) : null}
     </header>
   );
 }

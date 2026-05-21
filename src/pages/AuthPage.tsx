@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
-import './AuthPage.css';
 
 const initialForm = {
   fullName: '',
@@ -35,21 +34,10 @@ const promoPoints = [
   },
 ];
 
-export default function AuthPage({
-  mode,
-  notice,
-  onModeChange,
-  onBackHome,
-  onSubmit,
-  isLoading,
-}: AuthPageProps) {
+export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSubmit, isLoading }: AuthPageProps) {
   const [form, setForm] = useState(initialForm);
 
-  const title = useMemo(
-    () => (mode === 'login' ? 'Đăng nhập vào PBMS' : 'Tạo tài khoản PBMS'),
-    [mode]
-  );
-
+  const title = useMemo(() => (mode === 'login' ? 'Đăng nhập vào PBMS' : 'Tạo tài khoản PBMS'), [mode]);
   const description = useMemo(
     () =>
       mode === 'login'
@@ -58,189 +46,76 @@ export default function AuthPage({
     [mode]
   );
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
-    setForm((current) => ({ ...current, [name]: value }));
-  };
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const { name, value } = e.target;
+    setForm((s) => ({ ...s, [name]: value }));
+  }
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     const payload: Record<string, string> = {
       email: form.email.trim(),
       password: form.password,
-      ...(mode === 'register'
-        ? {
-            fullName: form.fullName.trim(),
-            phone: form.phone.trim(),
-          }
-        : {}),
+      ...(mode === 'register' ? { fullName: form.fullName.trim(), phone: form.phone.trim() } : {}),
     };
-
-    try {
-      await onSubmit({ mode, payload });
-      setForm(initialForm);
-    } catch {
-      return;
-    }
-  };
+    await onSubmit({ mode, payload });
+  }
 
   return (
-    <main className="auth-standalone">
-      <section className="auth-shell">
-        <aside className="auth-promo">
-          <div className="auth-promo-inner">
-            <div className="auth-brand-row">
-              <div className="auth-brand">
-                <div className="auth-brand-mark" aria-hidden="true">
-                  <span />
-                  <span />
-                  <span />
+    <main className="min-h-screen flex items-center justify-center bg-gradient-to-b from-white to-gray-50 py-12">
+      <div className="w-full max-w-4xl bg-white shadow-lg rounded-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2">
+        <div className="p-8 bg-gradient-to-br from-orange-600 to-orange-400 text-white">
+          <h2 className="text-2xl font-bold">{title}</h2>
+          <p className="mt-3 text-sm opacity-90">{description}</p>
+          <div className="mt-6 space-y-4">
+            {promoPoints.map((p) => (
+              <div key={p.title} className="bg-white/10 p-3 rounded-lg">
+                <h4 className="font-semibold">{p.title}</h4>
+                <p className="text-sm mt-1 opacity-90">{p.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="p-8">
+          {notice?.message ? <div className="mb-4 text-sm text-red-600">{notice.message}</div> : null}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {mode === 'register' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Họ và tên</label>
+                  <input name="fullName" value={form.fullName} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-200" placeholder="Nguyễn Văn A" />
                 </div>
                 <div>
-                  <strong>PBMS Parking</strong>
-                  <span>Cloud Parking Platform</span>
+                  <label className="block text-sm font-medium text-gray-700">Số điện thoại</label>
+                  <input name="phone" value={form.phone} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-200" placeholder="0901234567" />
                 </div>
-              </div>
-
-              <button className="auth-button auth-button-ghost auth-home-link" type="button" onClick={onBackHome}>
-                Về trang chủ
-              </button>
-            </div>
-
-            <div className="auth-promo-copy">
-              <p className="auth-kicker">PBMS Account</p>
-              <h1>Đăng nhập và đăng ký cùng một tông màu với trang home.</h1>
-              <p>
-                Giao diện tài khoản được chuyển sang phong cách parking branding: nền bãi đỗ xe, tông màu cam ấm,
-                card sáng và độ tương phản cao hơn để dễ sử dụng.
-              </p>
-            </div>
-
-            <div className="auth-promo-stats">
-              <article>
-                <strong>24/7</strong>
-                <span>Hỗ trợ vận hành liên tục</span>
-              </article>
-              <article>
-                <strong>01</strong>
-                <span>Hệ thống giao diện đồng nhất</span>
-              </article>
-              <article>
-                <strong>PBMS</strong>
-                <span>Nhận diện rõ phần mềm bãi đỗ xe</span>
-              </article>
-            </div>
-
-            <div className="auth-promo-points">
-              {promoPoints.map((point) => (
-                <article key={point.title}>
-                  <strong>{point.title}</strong>
-                  <span>{point.text}</span>
-                </article>
-              ))}
-            </div>
-          </div>
-        </aside>
-
-        <section className="auth-panel">
-          <div className="auth-head">
-            <div>
-              <p className="auth-kicker">Tài khoản người dùng</p>
-              <h2>{title}</h2>
-              <p className="auth-panel-copy">{description}</p>
-            </div>
-          </div>
-
-          <div className="auth-tabs" role="tablist" aria-label="Chuyển chế độ xác thực">
-            <button
-              className={`auth-tab ${mode === 'login' ? 'is-active' : ''}`}
-              type="button"
-              onClick={() => onModeChange('login')}
-            >
-              Đăng nhập
-            </button>
-            <button
-              className={`auth-tab ${mode === 'register' ? 'is-active' : ''}`}
-              type="button"
-              onClick={() => onModeChange('register')}
-            >
-              Đăng ký
-            </button>
-          </div>
-
-          <div className={`auth-notice ${notice?.type ? `is-${notice.type}` : ''}`}>
-            {notice?.message || 'Sử dụng tài khoản của bạn để truy cập hệ thống parking PBMS.'}
-          </div>
-
-          <div className="auth-demo-box">
-            <span>Tài khoản demo</span>
-            <strong>user@pbms.vn</strong>
-            <small>Mật khẩu từ 6 ký tự trở lên</small>
-          </div>
-
-          <form className="auth-form" onSubmit={handleSubmit}>
-            {mode === 'register' && (
-              <div className="auth-grid-two">
-                <label className="auth-field">
-                  <span>Họ và tên</span>
-                  <input
-                    id="fullName"
-                    name="fullName"
-                    type="text"
-                    placeholder="Nguyễn Văn A"
-                    value={form.fullName}
-                    onChange={handleChange}
-                    required
-                  />
-                </label>
-
-                <label className="auth-field">
-                  <span>Số điện thoại</span>
-                  <input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    placeholder="0901234567"
-                    value={form.phone}
-                    onChange={handleChange}
-                  />
-                </label>
-              </div>
+              </>
             )}
 
-            <label className="auth-field">
-              <span>Email</span>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="user@pbms.vn"
-                value={form.email}
-                onChange={handleChange}
-                required
-              />
-            </label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Email</label>
+              <input name="email" value={form.email} onChange={handleChange} type="email" required className="mt-1 block w-full rounded-md border-gray-200" placeholder="user@pbms.vn" />
+            </div>
 
-            <label className="auth-field">
-              <span>Mật khẩu</span>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="Ít nhất 6 ký tự"
-                value={form.password}
-                onChange={handleChange}
-                required
-              />
-            </label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Mật khẩu</label>
+              <input name="password" value={form.password} onChange={handleChange} type="password" required className="mt-1 block w-full rounded-md border-gray-200" placeholder="Ít nhất 6 ký tự" />
+            </div>
 
-            <button className="auth-button auth-button-primary auth-submit" type="submit" disabled={isLoading}>
-              {isLoading ? 'Đang xử lý...' : mode === 'login' ? 'Đăng nhập vào hệ thống' : 'Tạo tài khoản'}
-            </button>
+            <div className="flex items-center justify-between">
+              <button type="submit" disabled={isLoading} className="px-4 py-2 bg-orange-600 text-white rounded-md font-semibold">
+                {isLoading ? 'Đang xử lý...' : mode === 'login' ? 'Đăng nhập' : 'Tạo tài khoản'}
+              </button>
+              <div className="text-sm text-gray-500">
+                <button type="button" onClick={() => onModeChange(mode === 'login' ? 'register' : 'login')} className="underline">
+                  {mode === 'login' ? 'Tạo tài khoản mới' : 'Đã có tài khoản? Đăng nhập'}
+                </button>
+              </div>
+            </div>
           </form>
-        </section>
-      </section>
+        </div>
+      </div>
     </main>
   );
 }

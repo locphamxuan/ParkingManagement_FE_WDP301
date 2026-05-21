@@ -14,5 +14,6 @@ export function useAuth() {
     isAuthenticating,
     error,
     isAdmin: Boolean(session?.token) && session?.role === 'admin',
+    isManager: Boolean(session?.token) && session?.role === 'manager',
   };
 }

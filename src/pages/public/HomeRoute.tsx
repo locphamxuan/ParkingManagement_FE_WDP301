@@ -6,29 +6,31 @@ import { loadSession, clearSession } from '@/services/storage';
 
 export function HomeRoute() {
   const navigate = useNavigate();
+  // read persisted session (if any)
+  const session = loadSession();
+  const user = session?.user ?? null;
 
   const onOpenAuth = useCallback((mode: 'login' | 'register' = 'login') => {
     navigate(`/auth/${mode}`, { replace: false });
   }, [navigate]);
 
-  const onOpenDashboard = useCallback(() => {
-    navigate('/dashboard');
-  }, [navigate]);
+  const onViewProfile = useCallback(() => {
+    if (!user) {
+      return onOpenAuth('login');
+    }
 
-  const onOpenAdmin = useCallback(() => {
-    navigate('/admin/login');
-  }, [navigate]);
+    navigate('/profile', { replace: false });
+  }, [navigate, onOpenAuth, user]);
 
-  const onAction = useCallback((module: any) => {
-    if (module.id === 'auth') return onOpenAuth('login');
-    if (module.id === 'profile') return onOpenDashboard();
-    // fallback: no-op
-    return undefined;
-  }, [onOpenAuth, onOpenDashboard]);
-
-  // read persisted session (if any)
-  const session = loadSession();
-  const user = session?.user ?? null;
+  const onAction = useCallback(
+    (module: any) => {
+      if (module.id === 'auth') return onOpenAuth('login');
+      if (module.id === 'profile') return onViewProfile();
+      // fallback: no-op
+      return undefined;
+    },
+    [onOpenAuth, onViewProfile]
+  );
 
   const onLogout = useCallback(() => {
     clearSession();
@@ -40,10 +42,9 @@ export function HomeRoute() {
     <HomePage
       modules={mainFlowModules}
       onOpenAuth={onOpenAuth}
-      onOpenDashboard={onOpenDashboard}
+      onViewProfile={onViewProfile}
       onAction={onAction}
-      onOpenAdmin={onOpenAdmin}
-      user={user}
+      user={user as { fullName?: string; email?: string; phone?: string; role?: string } | null}
       onLogout={onLogout}
     />
   );

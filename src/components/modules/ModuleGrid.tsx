@@ -1,5 +1,4 @@
 import type { LegacyModule } from '../../data/mainFlow';
-import './ModuleGrid.css';
 
 interface ModuleGridProps {
   modules: LegacyModule[];
@@ -9,22 +8,34 @@ interface ModuleGridProps {
 
 export default function ModuleGrid({ modules, compact = false, onAction }: ModuleGridProps) {
   return (
-    <div className={`module-grid ${compact ? 'compact' : ''}`}>
+    <div className={`grid ${compact ? 'grid-cols-1 gap-4' : 'grid-cols-4 gap-4'} w-full`}> 
       {modules.map((module) => (
-        <article className={`module-card ${module.available ? 'available' : 'locked'}`} key={module.id}>
-          <div className="module-card-head">
+        <article
+          key={module.id}
+          className={`p-5 rounded-lg border ${module.available ? 'bg-white border-gray-200' : 'bg-gray-50 border-gray-100 opacity-80'}`}
+        >
+          <div className="flex justify-between items-start gap-4">
             <div>
-              <p className="module-kicker">{module.available ? 'San sang' : 'Sap ra mat'}</p>
-              <h3>{module.title}</h3>
+              <p className="text-xs uppercase text-gray-500">{module.available ? 'Sẵn sàng' : 'Sắp ra mắt'}</p>
+              <h3 className="mt-1 text-lg font-semibold">{module.title}</h3>
             </div>
-            <span className="module-badge">{module.available ? 'Mo ngay' : 'Cho them'}</span>
+            <span className="px-3 py-1 rounded-full text-sm font-semibold text-orange-700 bg-orange-100">
+              {module.available ? 'Mở ngay' : 'Chờ thêm'}
+            </span>
           </div>
 
-          <p>{module.description}</p>
+          <p className="mt-3 text-sm text-gray-600">{module.description}</p>
 
-          <button className="module-button" type="button" onClick={() => onAction(module)}>
-            {module.actionLabel}
-          </button>
+          <div className="mt-4">
+            <button
+              className={`px-3 py-2 rounded-md font-semibold ${module.available ? 'bg-orange-600 text-white' : 'bg-gray-100 text-gray-400'}`}
+              type="button"
+              onClick={() => onAction(module)}
+              disabled={!module.available}
+            >
+              {module.actionLabel}
+            </button>
+          </div>
         </article>
       ))}
     </div>

@@ -11,7 +11,7 @@ import {
   revenueSnapshots,
   walletSnapshots,
 } from '../data/adminFlow';
-import './AdminDashboardPage.css';
+// Converted to Tailwind utilities; removed CSS module import
 
 const tabConfig = [
   { key: 'overview', title: 'Tong quan', fr: 'FR-ADM-03' },
@@ -45,82 +45,75 @@ export default function AdminDashboardPage({ user, onLogout, onRefresh }: AdminD
   };
 
   return (
-    <main className="workspace admin-view">
-      <section className="panel admin-hero">
+    <main className="min-h-screen bg-gray-50 p-6">
+      <section className="bg-white rounded-xl p-6 flex items-start justify-between gap-4 shadow-md">
         <div>
-          <p className="eyebrow">PBMS Admin Console</p>
-          <h2>Dieu hanh da toa nha cho {displayName}</h2>
-          <p className="hero-text">
-            Giao dien nay tap trung vao 6 nghiep vu Admin: quan ly toa nha, gan manager, bao cao doanh thu,
-            system wallet, audit logs va policy push. Toan bo bloc duoc mo ta theo BRD/schema v0.19.
-          </p>
+          <p className="text-sm text-gray-500">PBMS Admin Console</p>
+          <h2 className="text-2xl font-semibold">Dieu hanh da toa nha cho {displayName}</h2>
+          <p className="mt-2 text-sm text-gray-600">Giao dien nay tap trung vao 6 nghiep vu Admin: quan ly toa nha, gan manager, bao cao doanh thu, system wallet, audit logs va policy push.</p>
         </div>
 
-        <div className="admin-hero-actions">
-          <button className="ghost-button" type="button" onClick={onRefresh}>
-            Lam moi ho so
-          </button>
-          <button className="primary-button danger" type="button" onClick={onLogout}>
-            Dang xuat
-          </button>
+        <div className="flex gap-3">
+          <button className="px-3 py-2 rounded-md bg-gray-100" type="button" onClick={onRefresh}>Lam moi ho so</button>
+          <button className="px-3 py-2 rounded-md bg-red-600 text-white" type="button" onClick={onLogout}>Dang xuat</button>
         </div>
       </section>
 
-      <section className="admin-layout">
-        <aside className="panel admin-sidebar" aria-label="Dieu huong quan tri">
-          <div className="admin-sidebar-head">
-            <p className="eyebrow">Phan he Admin</p>
-            <h3>Role: ADMIN</h3>
+      <section className="mt-6 grid grid-cols-1 md:grid-cols-[280px_1fr] gap-6">
+        <aside className="space-y-4">
+          <div className="bg-white p-4 rounded-lg shadow-sm">
+            <p className="text-xs text-gray-500">Phan he Admin</p>
+            <h3 className="mt-1 font-semibold">Role: ADMIN</h3>
           </div>
 
-          <nav className="admin-tab-nav">
+          <nav className="space-y-2">
             {tabConfig.map((tab) => (
               <button
                 key={tab.key}
                 type="button"
-                className={`admin-tab-btn ${activeTab === tab.key ? 'is-active' : ''}`}
+                className={`w-full text-left px-3 py-2 rounded-lg ${activeTab === tab.key ? 'bg-blue-600 text-white' : 'bg-white border'}`}
                 onClick={() => switchTab(tab.key)}
               >
-                <span>{tab.title}</span>
-                <small>{tab.fr}</small>
+                <div className="flex justify-between items-center">
+                  <span>{tab.title}</span>
+                  <small className="text-xs text-gray-400">{tab.fr}</small>
+                </div>
               </button>
             ))}
           </nav>
 
-          <div className="admin-module-list">
+          <div className="bg-white p-4 rounded-lg shadow-sm space-y-2">
             {adminFlowModules.map((module) => (
               <article key={module.id}>
-                <h4>{module.title}</h4>
-                <p>{module.description}</p>
+                <h4 className="font-semibold">{module.title}</h4>
+                <p className="text-sm text-gray-500">{module.description}</p>
               </article>
             ))}
           </div>
         </aside>
 
-        <div className="admin-content">
+        <div>
           {activeTab === 'overview' && (
-            <section className="panel admin-section">
-              <div className="panel-head">
-                <div>
-                  <p className="eyebrow">Tong quan van hanh</p>
-                  <h2>KPI theo ngay</h2>
-                </div>
+            <section className="bg-white p-6 rounded-lg shadow-sm">
+              <div>
+                <p className="text-xs text-gray-500">Tong quan van hanh</p>
+                <h2 className="text-xl font-semibold">KPI theo ngay</h2>
               </div>
 
-              <div className="kpi-grid">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
                 {adminKpis.map((item) => (
-                  <article className="kpi-card" key={item.id}>
-                    <p>{item.label}</p>
-                    <strong>{item.value}</strong>
-                    <span>{item.trend}</span>
+                  <article key={item.id} className="p-4 rounded-lg bg-gray-50 border">
+                    <p className="text-sm text-gray-500">{item.label}</p>
+                    <strong className="block mt-2 text-lg">{item.value}</strong>
+                    <span className="text-sm text-blue-500 font-semibold">{item.trend}</span>
                   </article>
                 ))}
               </div>
 
-              <article className="guardrail-panel">
-                <p className="eyebrow">Quy uoc card & parking session</p>
-                <h3>Systemization rule for account card and walk-in guest</h3>
-                <ul>
+              <article className="mt-6 p-4 rounded-lg border bg-white">
+                <p className="text-xs text-gray-500">Quy uoc card & parking session</p>
+                <h3 className="font-semibold">Systemization rule for account card and walk-in guest</h3>
+                <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
                   {guardrails.map((rule) => (
                     <li key={rule}>{rule}</li>
                   ))}
@@ -141,7 +134,7 @@ export default function AdminDashboardPage({ user, onLogout, onRefresh }: AdminD
                 </button>
               </div>
 
-              <div className="table-wrap">
+              <div className={styles['table-wrap']}>
                 <table>
                   <thead>
                     <tr>
@@ -186,7 +179,7 @@ export default function AdminDashboardPage({ user, onLogout, onRefresh }: AdminD
                 </button>
               </div>
 
-              <div className="assignment-grid">
+              <div className={styles['assignment-grid']}>
                 {managerAssignments.map((item) => (
                   <article className="assignment-card" key={item.account}>
                     <div>
@@ -212,7 +205,7 @@ export default function AdminDashboardPage({ user, onLogout, onRefresh }: AdminD
                 </div>
               </div>
 
-              <div className="snapshot-grid">
+              <div className={styles['snapshot-grid']}>
                 {revenueSnapshots.map((row) => (
                   <article key={row.period} className="snapshot-card">
                     <h3>{row.period}</h3>

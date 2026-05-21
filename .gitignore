@@ -22,5 +22,9 @@ yarn-error.log*
 .vscode/
 .idea/
 
+# openspec / api docs
+openspec/
+.claude/
+
 # system files
 .DS_Store

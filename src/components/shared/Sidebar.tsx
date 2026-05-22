@@ -26,7 +26,6 @@ interface SidebarProps {
 const modules = [
   { to: '', label: 'Tổng quan', icon: LayoutDashboard },
   { to: 'buildings', label: 'Tòa nhà', icon: Building2 },
-  { to: 'managers', label: 'Quản lý', icon: Users },
   { to: 'users', label: 'Người dùng', icon: Users },
   { to: 'revenue-analytics', label: 'Phân tích doanh thu', icon: CircleDollarSign },
   { to: 'wallet-governance', label: 'Quản lý ví', icon: Wallet },

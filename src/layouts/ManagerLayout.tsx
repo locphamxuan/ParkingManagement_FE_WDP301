@@ -4,6 +4,7 @@ import { Navbar } from '@/components/shared/Navbar';
 import { ManagerSidebar } from '@/components/shared/ManagerSidebar';
 import { useAuth } from '@/hooks/useAuth';
 import { ADMIN_EMAIL_FALLBACK } from '@/utils/constants';
+import { useManagerBuildings } from '@/hooks/useManagerBuildings';
 
 const titles: Record<string, string> = {
   '/manager': 'Bảng điều khiển Manager',
@@ -25,6 +26,7 @@ const titles: Record<string, string> = {
 export function ManagerLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const { session, logout } = useAuth();
+  const { buildings, selectedBuildingId, setSelectedBuildingId, isLoading } = useManagerBuildings();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -45,7 +47,15 @@ export function ManagerLayout() {
             }}
           />
           <main className="flex-1 p-4 md:p-6">
-            <Outlet />
+            {isLoading ? (
+              <div className="text-sm text-muted-foreground">Đang tải...</div>
+            ) : !selectedBuildingId ? (
+              <div className="rounded-md border border-border bg-card p-6 text-sm text-muted-foreground">
+                Tài khoản này chưa được gán tòa nhà nào. Vui lòng liên hệ quản lý.
+              </div>
+            ) : (
+              <Outlet context={{ buildingId: selectedBuildingId }} />
+            )}
           </main>
         </div>
       </div>

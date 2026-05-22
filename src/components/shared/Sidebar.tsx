@@ -43,25 +43,25 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   return (
     <aside
       className={cn(
-        'sticky top-0 hidden h-screen border-r border-border/80 bg-[rgba(255,250,243,0.92)] p-3 shadow-[12px_0_36px_rgba(120,83,48,0.12)] backdrop-blur-2xl lg:block',
-        collapsed ? 'w-[88px]' : 'w-[280px]'
+        'sticky top-0 hidden h-screen border-r border-stone-200/50 bg-stone-50/85 p-4 shadow-[4px_0_30px_rgba(0,0,0,0.02)] backdrop-blur-3xl lg:block transition-all duration-350 ease-in-out',
+        collapsed ? 'w-[84px]' : 'w-[264px]'
       )}
     >
-      <div className="mb-4 flex items-center justify-between rounded-2xl border border-border/80 bg-white/78 p-3 shadow-[0_10px_24px_rgba(120,83,48,0.08)]">
+      <div className="mb-6 flex items-center justify-between rounded-2xl border border-stone-200/40 bg-white/70 p-3 shadow-sm backdrop-blur-md">
         {!collapsed ? (
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-stone-600">PBMS</p>
-            <p className="text-sm font-semibold text-black">Điều phối Thành phố Thông minh</p>
+          <div className="pl-1">
+            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-stone-500">Môi trường</p>
+            <p className="text-xs font-extrabold text-stone-850">ADMIN PORTAL</p>
           </div>
         ) : (
-          <Fingerprint className="text-primary drop-shadow-[0_0_12px_rgba(249,115,22,0.3)]" />
+          <Fingerprint className="text-primary drop-shadow-[0_0_8px_rgba(249,115,22,0.25)] h-5 w-5 mx-auto" />
         )}
-        <Button size="sm" variant="ghost" onClick={onToggle}>
-          <ChevronLeft className={cn('h-4 w-4 transition', collapsed && 'rotate-180')} />
+        <Button size="sm" variant="ghost" onClick={onToggle} className="h-7 w-7 rounded-lg p-0 hover:bg-stone-200/55">
+          <ChevronLeft className={cn('h-3.5 w-3.5 text-stone-500 transition-all duration-300', collapsed && 'rotate-180')} />
         </Button>
       </div>
 
-      <nav className="space-y-1">
+      <nav className="space-y-1.5 overflow-y-auto max-h-[calc(100vh-100px)] pr-1">
         {modules.map((module) => {
           const Icon = module.icon;
           return (
@@ -71,15 +71,15 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
               end={module.to === ''}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition duration-200',
+                  'flex items-center gap-3.5 rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-all duration-300',
                   isActive
-                    ? 'bg-gradient-to-r from-primary to-orange-400 text-primary-foreground shadow-[0_12px_24px_rgba(249,115,22,0.22)]'
-                    : 'text-stone-700 hover:bg-primary/10 hover:text-black'
+                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/20 scale-[1.02]'
+                    : 'text-stone-600 hover:bg-stone-200/40 hover:text-stone-900'
                 )
               }
             >
-              <Icon size={16} />
-              {!collapsed ? <span>{module.label}</span> : null}
+              <Icon size={15} className="shrink-0" />
+              {!collapsed ? <span className="tracking-wide">{module.label}</span> : null}
             </NavLink>
           );
         })}

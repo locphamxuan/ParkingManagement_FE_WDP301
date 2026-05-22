@@ -23,6 +23,13 @@ import { ManagerPlaceholderPage } from '@/pages/manager/ManagerPlaceholderPage';
 import { ManagerProfilePage } from '@/pages/manager/ManagerProfilePage';
 import { ManagerProtectedRoute } from '@/routes/ManagerProtectedRoute';
 import { ManagerVehicleTypesPage } from '@/pages/manager/ManagerVehicleTypesPage';
+import { ManagerFloorsPage } from '@/pages/manager/ManagerFloorsPage';
+import { ManagerGatesPage } from '@/pages/manager/ManagerGatesPage';
+import { ManagerSlotsPage } from '@/pages/manager/ManagerSlotsPage';
+import { ManagerPricingPage } from '@/pages/manager/ManagerPricingPage';
+import { ManagerReservationPolicyPage } from '@/pages/manager/ManagerReservationPolicyPage';
+import { ManagerPackagesPage } from '@/pages/manager/ManagerPackagesPage';
+import { ManagerShiftsPage } from '@/pages/manager/ManagerShiftsPage';
 
 export function AppRouter() {
   return (
@@ -43,69 +50,13 @@ export function AppRouter() {
           <Route path="vehicle-types" element={<ManagerVehicleTypesPage />} />
           <Route path="feedbacks" element={<ManagerFeedbackPage />} />
           <Route path="profile" element={<ManagerProfilePage />} />
-          <Route
-            path="floors"
-            element={
-              <ManagerPlaceholderPage
-                title="Tầng"
-                description="Quản lý tầng có thể điều chỉnh số lượng và thông tin khu vực cho mỗi tòa nhà."
-              />
-            }
-          />
-          <Route
-            path="gates"
-            element={
-              <ManagerPlaceholderPage
-                title="Cổng"
-                description="Quản lý cổng cho phép định cấu hình đầu vào/đầu ra và trạng thái hoạt động."
-              />
-            }
-          />
-          <Route
-            path="slots"
-            element={
-              <ManagerPlaceholderPage
-                title="Chỗ đỗ"
-                description="Quản lý chỗ đỗ cho phép cập nhật trạng thái, phân bổ và theo dõi tình trạng sử dụng."
-              />
-            }
-          />
-          <Route
-            path="price-policies"
-            element={
-              <ManagerPlaceholderPage
-                title="Chính sách giá"
-                description="Cấu hình chính sách giá theo từng tòa nhà, gói và trạng thái khách hàng."
-              />
-            }
-          />
-          <Route
-            path="reservation-policy"
-            element={
-              <ManagerPlaceholderPage
-                title="Chính sách đặt chỗ"
-                description="Quản lý điều kiện và giới hạn đặt chỗ cho từng tòa nhà."
-              />
-            }
-          />
-          <Route
-            path="packages"
-            element={
-              <ManagerPlaceholderPage
-                title="Gói đăng ký"
-                description="Quản lý gói dịch vụ, ưu đãi và trạng thái đăng ký của khách hàng."
-              />
-            }
-          />
-          <Route
-            path="shifts"
-            element={
-              <ManagerPlaceholderPage
-                title="Ca trực"
-                description="Quản lý lịch trực, nhân sự và doanh thu ca trực."
-              />
-            }
-          />
+          <Route path="floors" element={<ManagerFloorsPage />} />
+          <Route path="gates" element={<ManagerGatesPage />} />
+          <Route path="slots" element={<ManagerSlotsPage />} />
+          <Route path="price-policies" element={<ManagerPricingPage />} />
+          <Route path="reservation-policy" element={<ManagerReservationPolicyPage />} />
+          <Route path="packages" element={<ManagerPackagesPage />} />
+          <Route path="shifts" element={<ManagerShiftsPage />} />
           <Route
             path="settings"
             element={

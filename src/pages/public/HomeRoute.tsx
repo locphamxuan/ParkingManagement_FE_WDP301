@@ -11,8 +11,8 @@ export function HomeRoute() {
   const user = session?.user ?? null;
 
   const onOpenAuth = useCallback((mode: 'login' | 'register' = 'login') => {
-    navigate(`/auth/${mode}`, { replace: false });
-  }, [navigate]);
+    window.location.href = `/auth/${mode}`;
+  }, []);
 
   const onViewProfile = useCallback(() => {
     if (!user) {

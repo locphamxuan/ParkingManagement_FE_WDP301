@@ -140,7 +140,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
                 )}
               </div>
             ) : (
-              <button onClick={() => onOpenAuth('login')} className="px-3 py-1 rounded-md bg-white border">Đăng nhập</button>
+              <a href="/auth/login" className="px-3 py-1 rounded-md bg-orange-600 text-white border border-orange-600 text-sm font-semibold text-center">Đăng nhập</a>
             )}
           </div>
         </div>
@@ -154,9 +154,9 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
             <p className="mt-4 text-gray-600">PBMS hỗ trợ quản lý ra vào, kiểm soát phiên gửi xe, theo dõi doanh thu và chăm sóc khách hàng trên một nền tảng duy nhất.</p>
 
             <div className="mt-6 flex gap-3">
-              <button className="px-4 py-2 bg-orange-600 text-white rounded-md" onClick={() => onOpenAuth('login')}>Đăng nhập ngay</button>
-              <button className="px-4 py-2 bg-white border rounded-md" onClick={() => onOpenAuth('register')}>Đăng ký tài khoản</button>
-              {user ? <button className="px-4 py-2 bg-white border rounded-md" onClick={onViewProfile}>Xem hồ sơ</button> : null}
+              <a href="/auth/login" className="px-4 py-2 bg-orange-600 text-white rounded-md inline-flex items-center justify-center">Đăng nhập ngay</a>
+              <a href="/auth/register" className="px-4 py-2 bg-white text-slate-900 border rounded-md inline-flex items-center justify-center">Đăng ký tài khoản</a>
+              {user ? <button className="px-4 py-2 bg-white text-slate-900 border rounded-md" onClick={onViewProfile}>Xem hồ sơ</button> : null}
             </div>
           </div>
 
@@ -269,8 +269,12 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
             <h2 className="text-2xl font-semibold mt-1">Triển khai trải nghiệm giữ xe chỉn chu hơn cho trang user.</h2>
           </div>
           <div className="flex gap-3">
-            <button className="px-4 py-2 bg-orange-600 text-white rounded-md" onClick={() => onOpenAuth('register')}>Tạo tài khoản</button>
-            <button className="px-4 py-2 bg-white border rounded-md" onClick={() => { if (user) { onViewProfile(); } else { onOpenAuth('login'); } }}>{user ? 'Xem hồ sơ' : 'Đăng nhập'}</button>
+            <a href="/auth/register" className="px-4 py-2 bg-orange-600 text-white rounded-md inline-flex items-center justify-center">Tạo tài khoản</a>
+            {user ? (
+              <button className="px-4 py-2 bg-white border rounded-md" onClick={onViewProfile}>Xem hồ sơ</button>
+            ) : (
+              <a href="/auth/login" className="px-4 py-2 bg-white border rounded-md inline-flex items-center justify-center">Đăng nhập</a>
+            )}
           </div>
         </div>
       </section>
@@ -294,15 +298,15 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
 
           <div>
             <h4 className="font-semibold">Tài khoản</h4>
-            <div className="mt-2 flex flex-col gap-2">
-              <button onClick={() => onOpenAuth('login')} className="text-sm">Đăng nhập</button>
-              <button onClick={() => onOpenAuth('register')} className="text-sm">Đăng ký</button>
-              {user ? <button onClick={onViewProfile} className="text-sm">Xem hồ sơ</button> : null}
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <a href="/auth/login" className="px-3 py-2 bg-orange-600 text-white rounded-md text-sm font-semibold inline-flex items-center justify-center">Đăng nhập</a>
+              <a href="/auth/register" className="px-3 py-2 bg-white text-slate-900 border border-gray-200 rounded-md text-sm inline-flex items-center justify-center">Đăng ký</a>
+              {user ? <button onClick={onViewProfile} className="px-3 py-2 bg-white text-slate-900 border border-gray-200 rounded-md text-sm inline-flex items-center justify-center">Xem hồ sơ</button> : null}
             </div>
           </div>
         </div>
         <div className="mt-6 border-t border-white/20 pt-4 text-center">
-          <small>© {new Date().getFullYear()} PBMS Parking. Thiết kế lại landing page theo phong cách website giới thiệu.</small>
+          <small>© {new Date().getFullYear()} PBMS Parking. Thiết kế landing page theo phong cách website giới thiệu.</small>
         </div>
       </footer>
     </main>

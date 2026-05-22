@@ -29,14 +29,7 @@ export interface AuthSession {
   assignedBuildingIds: string[];
 }
 
-interface LoginOptions {
-  requiredRole?: ApiUser['role'];
-}
-
-export async function loginWithBackend(
-  input: LoginInput,
-  options: LoginOptions = {}
-): Promise<AuthSession> {
+export async function loginWithBackend(input: LoginInput): Promise<AuthSession> {
   const payload = await requestJson<ApiAuthResponse>({
     path: '/users/auth/login',
     method: 'POST',
@@ -58,17 +51,6 @@ export async function loginWithBackend(
         .map((item) => (typeof item === 'string' ? item : String(item?._id || '')))
         .filter(Boolean)
     : [];
-
-  const requiredRole = options.requiredRole ?? 'admin';
-  if (user.role !== requiredRole) {
-    throw new Error(
-      requiredRole === 'admin'
-        ? 'Tài khoản này không có quyền truy cập trang quản trị Admin.'
-        : requiredRole === 'manager'
-        ? 'Tài khoản này không có quyền truy cập trang quản lý Manager.'
-        : 'Tài khoản này không có quyền truy cập trang này.'
-    );
-  }
 
   return {
     token,

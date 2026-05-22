@@ -9,15 +9,24 @@ import { useAuth } from '@/hooks/useAuth';
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { login, isAuthenticating, error } = useAuth();
+  const { login, isAuthenticating, error, session } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
-      await login(email, password, 'admin');
-      navigate('/admin/dashboard', { replace: true });
+      const sessionData = await login(email, password);
+      const role = sessionData.role;
+      if (role === 'admin') {
+        navigate('/admin/dashboard', { replace: true });
+      } else if (role === 'manager') {
+        navigate('/manager/dashboard', { replace: true });
+      } else if (role === 'staff') {
+        navigate('/staff', { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
     } catch {
       return;
     }

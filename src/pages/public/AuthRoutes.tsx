@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import AuthPage from '@/pages/AuthPage';
 import { requestJson } from '@/services/pbmsApi';
-import { loadSession, saveSession } from '@/services/storage';
+import { useAuth } from '@/hooks/useAuth';
 
 interface AuthApiResponse {
   success: boolean;
@@ -54,6 +54,8 @@ function usePublicAuthFlow(initialMode: 'login' | 'register') {
     [navigate],
   );
 
+  const { login } = useAuth();
+
   const onSubmit = useCallback(
     async ({
       mode: m,
@@ -64,27 +66,45 @@ function usePublicAuthFlow(initialMode: 'login' | 'register') {
     }) => {
       try {
         setLoading(true);
-        const path = m === 'login' ? '/users/auth/login' : '/users/auth/register';
-        const response = await requestJson<AuthApiResponse>({
-          path,
-          method: 'POST',
-          body: payload,
-        });
 
-        const token = response?.data?.token;
-        const user = response?.data?.user;
+        if (m === 'login') {
+          const session = await login(payload.email, payload.password);
 
-        if (!token || !user) {
-          throw new Error('Phản hồi xác thực không hợp lệ từ máy chủ.');
+          setNotice({
+            message: 'Đăng nhập thành công.',
+            type: 'success',
+          });
+
+          if (session.role === 'admin') {
+            navigate('/admin/dashboard', { replace: true });
+          } else if (session.role === 'manager') {
+            navigate('/manager/dashboard', { replace: true });
+          } else if (session.role === 'staff') {
+            navigate('/staff', { replace: true });
+          } else {
+            navigate('/', { replace: true });
+          }
+        } else {
+          const path = '/users/auth/register';
+          const response = await requestJson<AuthApiResponse>({
+            path,
+            method: 'POST',
+            body: payload,
+          });
+
+          const token = response?.data?.token;
+          const user = response?.data?.user;
+
+          if (!token || !user) {
+            throw new Error('Phản hồi xác thực không hợp lệ từ máy chủ.');
+          }
+
+          setNotice({
+            message: 'Đăng ký thành công.',
+            type: 'success',
+          });
+          navigate('/', { replace: true });
         }
-
-        saveSession({ token, user });
-
-        setNotice({
-          message: m === 'login' ? 'Đăng nhập thành công.' : 'Đăng ký thành công.',
-          type: 'success',
-        });
-        navigate('/', { replace: true });
       } catch (error) {
         const message = error instanceof Error ? mapAuthErrorMessage(error.message) : 'Không thể xử lý yêu cầu';
         setNotice({ message, type: 'error' });
@@ -93,18 +113,21 @@ function usePublicAuthFlow(initialMode: 'login' | 'register') {
         setLoading(false);
       }
     },
-    [navigate],
+    [login, navigate],
   );
 
   return { mode, notice, onModeChange, onBackHome, onSubmit, isLoading };
 }
 
 export function PublicLoginRoute() {
-  const session = loadSession();
-  if (session.token) {
-    return <Navigate to="/" replace />;
-  }
+  const { token, user } = useAuth();
   const flow = usePublicAuthFlow('login');
+
+  if (token && user) {
+    const redirectPath = user.role === 'admin' ? '/admin/dashboard' : user.role === 'manager' ? '/manager/dashboard' : user.role === 'staff' ? '/staff' : '/';
+    return <Navigate to={redirectPath} replace />;
+  }
+
   return <AuthPage {...flow} />;
 }
 

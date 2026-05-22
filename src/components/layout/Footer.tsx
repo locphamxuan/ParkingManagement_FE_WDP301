@@ -1,5 +1,3 @@
-import { Link } from 'react-router-dom';
-
 export default function Footer() {
   return (
     <footer className="bg-gradient-to-r from-orange-500 to-orange-400 text-white py-10">
@@ -12,10 +10,10 @@ export default function Footer() {
         <div className="space-y-3">
           <h4>Liên kết nhanh</h4>
           <ul>
-            <li><Link to="/">Trang chủ</Link></li>
-            <li><Link to="/auth/login">Đăng nhập</Link></li>
-            <li><Link to="/auth/register">Đăng ký</Link></li>
-            <li><Link to="/">Hồ sơ của tôi</Link></li>
+            <li><a href="/">Trang chủ</a></li>
+            <li><a href="/auth/login">Đăng nhập</a></li>
+            <li><a href="/auth/register">Đăng ký</a></li>
+            <li><a href="/">Hồ sơ của tôi</a></li>
           </ul>
         </div>
 

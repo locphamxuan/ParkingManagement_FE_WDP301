@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
+import { Home } from 'lucide-react';
 
 const initialForm = {
   fullName: '',
@@ -62,7 +63,13 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-b from-white to-gray-50 py-12">
+    <main className="relative min-h-screen flex items-center justify-center bg-gradient-to-b from-white to-gray-50 py-12">
+      <div className="absolute top-4 left-4">
+        <a href="/" className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-white/90 px-3 py-2 text-sm font-medium text-orange-600 shadow-sm hover:bg-orange-50">
+          <Home size={16} />
+          Về trang chủ
+        </a>
+      </div>
       <div className="w-full max-w-4xl bg-white shadow-lg rounded-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2">
         <div className="p-8 bg-gradient-to-br from-orange-600 to-orange-400 text-white">
           <h2 className="text-2xl font-bold">{title}</h2>

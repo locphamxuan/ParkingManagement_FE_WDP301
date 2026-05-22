@@ -1,7 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AdminLayout } from '@/layouts/AdminLayout';
 import { DashboardOverviewPage } from '@/pages/admin/DashboardOverviewPage';
-import { LoginPage } from '@/pages/admin/LoginPage';
 import { BuildingsPage } from '@/pages/admin/BuildingsPage';
 import { UsersPage } from '@/pages/admin/UsersPage';
 import { RevenueAnalyticsPage } from '@/pages/admin/RevenueAnalyticsPage';
@@ -18,7 +17,6 @@ import { ManagerLayout } from '@/layouts/ManagerLayout';
 import { ManagerBuildingsPage } from '@/pages/manager/ManagerBuildingsPage';
 import { ManagerDashboardPage } from '@/pages/manager/ManagerDashboardPage';
 import { ManagerFeedbackPage } from '@/pages/manager/ManagerFeedbackPage';
-import { ManagerLoginPage } from '@/pages/manager/ManagerLoginPage';
 import { ManagerPlaceholderPage } from '@/pages/manager/ManagerPlaceholderPage';
 import { ManagerProfilePage } from '@/pages/manager/ManagerProfilePage';
 import { ManagerProtectedRoute } from '@/routes/ManagerProtectedRoute';
@@ -40,7 +38,7 @@ export function AppRouter() {
       <Route path="/auth/register" element={<PublicRegisterRoute />} />
       <Route path="/profile" element={<ProfilePage />} />
 
-      <Route path="/manager/login" element={<ManagerLoginPage />} />
+      <Route path="/manager/login" element={<Navigate to="/auth/login" replace />} />
       <Route path="/manager" element={<Navigate to="/manager/dashboard" replace />} />
       <Route element={<ManagerProtectedRoute />}>
         <Route path="/manager" element={<ManagerLayout />}>
@@ -69,8 +67,8 @@ export function AppRouter() {
         </Route>
       </Route>
 
-      <Route path="/admin/login" element={<LoginPage />} />
-      <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
+      <Route path="/admin/login" element={<Navigate to="/auth/login" replace />} />
+      <Route path="/admin" element={<Navigate to="/auth/login" replace />} />
       <Route path="/admin/direct" element={<AdminLayout />} />
 
       <Route element={<ProtectedRoute role="admin" />}>

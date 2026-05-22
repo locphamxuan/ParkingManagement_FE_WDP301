@@ -8,7 +8,6 @@ import { ADMIN_EMAIL_FALLBACK } from '@/utils/constants';
 const titles: Record<string, string> = {
   '/admin/dashboard': 'Bảng điều khiển doanh nghiệp',
   '/admin/dashboard/buildings': 'Quản lý tòa nhà',
-  '/admin/dashboard/managers': 'Quản lý nhân sự',
   '/admin/dashboard/users': 'Quản lý người dùng',
   '/admin/dashboard/revenue-analytics': 'Phân tích doanh thu',
   '/admin/dashboard/wallet-governance': 'Quản lý ví',

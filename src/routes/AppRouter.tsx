@@ -75,10 +75,6 @@ export function AppRouter() {
         <Route path="/admin/dashboard" element={<AdminLayout />}>
           <Route index element={<DashboardOverviewPage />} />
           <Route path="buildings" element={<BuildingsPage />} />
-          <Route
-            path="managers"
-            element={<ModulePlaceholderPage title="Quản lý" description="Quy trình phân công quản lý và bảng điều khiển quản trị." />}
-          />
           <Route path="users" element={<UsersPage />} />
           <Route path="revenue-analytics" element={<RevenueAnalyticsPage />} />
           <Route

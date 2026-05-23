@@ -87,6 +87,14 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -94,16 +102,19 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
   });
 
   const smoothScroll = useSpring(scrollYProgress, {
-    stiffness: 70,
-    damping: 26,
+    stiffness: 50,
+    damping: 15,
     restDelta: 0.001
   });
 
-  const rotateZ = useTransform(smoothScroll, [0, 0.45, 0.8, 1], [-45, -15, -90, -45]);
-  const rotateX = useTransform(smoothScroll, [0, 0.45, 0.8, 1], [55, 48, 62, 55]);
-  const scale = useTransform(smoothScroll, [0, 0.45, 0.8, 1], [1.0, 1.35, 1.75, 1.0]);
-  const x = useTransform(smoothScroll, [0, 0.45, 0.8, 1], [0, -35, 120, 0]);
-  const y = useTransform(smoothScroll, [0, 0.45, 0.8, 1], [0, 15, -85, 0]);
+  // Stage 1 (Hero: 0% to 25%): Default isometric overview
+  // Stage 2 (Đặc điểm: 25% to 60%): 180deg rotation (Z: -45 -> 135) + zoom details
+  // Stage 3 (Giải pháp: 60% to 100%): Down shift and shrink (scale: 0.85)
+  const rotateZ = useTransform(smoothScroll, [0, 0.25, 0.60, 1.0], [-45, -45, 135, -45]);
+  const rotateX = useTransform(smoothScroll, [0, 0.25, 0.60, 1.0], [55, 55, 48, 55]);
+  const scale = useTransform(smoothScroll, [0, 0.25, 0.60, 1.0], [1.0, 1.0, 1.45, 0.85]);
+  const x = useTransform(smoothScroll, [0, 0.25, 0.60, 1.0], [0, 0, -40, 60]);
+  const y = useTransform(smoothScroll, [0, 0.25, 0.60, 1.0], [0, 0, 20, -50]);
 
   const heroButtonText = useMemo(() => {
     if (!user) return 'Đăng nhập ngay';
@@ -346,11 +357,11 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.05),transparent_70%)] pointer-events-none blur-3xl z-0" />
               
               <AnimatedParkingMap3D 
-                rotateX={rotateX} 
-                rotateZ={rotateZ} 
-                scale={scale} 
-                x={x} 
-                y={y} 
+                rotateX={isMobile ? undefined : rotateX} 
+                rotateZ={isMobile ? undefined : rotateZ} 
+                scale={isMobile ? undefined : scale} 
+                x={isMobile ? undefined : x} 
+                y={isMobile ? undefined : y} 
               />
               
               {/* Floating highlight status badges overlay around the model — stacked on the left side to prevent bottom overlapping */}

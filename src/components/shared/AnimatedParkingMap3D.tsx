@@ -464,7 +464,14 @@ export function AnimatedParkingMap3D({
             {[1, 2, 3, 4, 5].map((id) => (
               <div 
                 key={id}
-                className="w-[66px] h-[46px] rounded-xl border border-white/5 bg-slate-950/60 flex flex-col justify-between p-1.5 relative shadow-2xl transition-all duration-300 hover:border-cyan-500/20"
+                className={`w-[66px] h-[46px] rounded-xl border bg-slate-950/60 flex flex-col justify-between p-1.5 relative shadow-2xl transition-all duration-300 hover:border-cyan-500/20 ${
+                  id === 1 ? 'border-rose-500/80 bg-rose-500/5 shadow-[0_0_15px_rgba(244,63,94,0.45)] animate-pulse' : 
+                  id === 2 ? 'border-rose-500/80 bg-rose-500/5 shadow-[0_0_15px_rgba(244,63,94,0.45)] animate-pulse' : 
+                  id === 3 ? (carAState === 'parked' ? 'border-cyan-500 bg-cyan-500/5 shadow-[0_0_15px_rgba(6,182,212,0.5)] animate-pulse' : 'border-emerald-500 bg-emerald-500/5 shadow-[0_0_15px_rgba(16,185,129,0.45)] animate-pulse') :
+                  id === 4 ? (carBState === 'parked' ? 'border-rose-500/80 bg-rose-500/5 shadow-[0_0_15px_rgba(244,63,94,0.45)] animate-pulse' : 'border-emerald-500 bg-emerald-500/5 shadow-[0_0_15px_rgba(16,185,129,0.45)] animate-pulse') :
+                  id === 5 ? 'border-amber-500/80 bg-amber-500/5 shadow-[0_0_15px_rgba(245,158,11,0.45)] animate-pulse' : 
+                  'border-white/5'
+                }`}
               >
                 {/* EV Slot specific header glow */}
                 {id === 3 && (

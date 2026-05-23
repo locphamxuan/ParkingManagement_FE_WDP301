@@ -208,7 +208,8 @@ export default function ProfilePage() {
   };
 
   const hasMissingInfo =
-    !user.phone || user.phone.trim() === '' || user.licensePlates.length === 0;
+    user.role === 'user' &&
+    (!user.phone || user.phone.trim() === '' || user.licensePlates.length === 0);
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 font-sans relative overflow-hidden selection:bg-orange-500 selection:text-white">
@@ -364,7 +365,8 @@ export default function ProfilePage() {
                 </div>
 
                 {/* ── License Plate Tag Manager ─────────────────── */}
-                <div className="space-y-3">
+                {user.role === 'user' && (
+                  <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">
                       Biển số xe liên kết
@@ -533,7 +535,8 @@ export default function ProfilePage() {
                   <p className="text-[9px] text-slate-500 font-semibold leading-relaxed">
                     * Định dạng hợp lệ: 2 số + 1-2 chữ cái + dấu gạch ngang + 3-5 số. Ví dụ: <span className="font-mono text-slate-400">29A-12345</span>, <span className="font-mono text-slate-400">30AB-1234</span>. Nhấn <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[8px]">Enter</kbd> hoặc nút Thêm để xác nhận.
                   </p>
-                </div>
+                  </div>
+                )}
                 {/* ── End License Plate Tag Manager ────────────── */}
 
                 <div className="flex gap-3 pt-3 border-t border-white/5">
@@ -560,7 +563,7 @@ export default function ProfilePage() {
                   { label: 'Tên', value: user.fullName },
                   { label: 'Email', value: user.email },
                   { label: 'Số điện thoại', value: user.phone },
-                  {
+                  ...(user.role === 'user' ? [{
                     label: 'Biển số xe đã liên kết',
                     value:
                       user.licensePlates.length > 0 ? (
@@ -592,7 +595,7 @@ export default function ProfilePage() {
                         </span>
                       ),
                     isCustom: true,
-                  },
+                  }] : []),
                   { label: 'Vai trò', value: user.role, uppercase: true },
                 ].map((field, idx) => (
                   <motion.div
@@ -652,41 +655,45 @@ export default function ProfilePage() {
                     <p className="text-[10px] font-black uppercase text-slate-500 font-mono">Vai trò</p>
                     <p className="mt-1 font-mono uppercase text-orange-400 font-black">{user.role || 'user'}</p>
                   </div>
-                  <div className="rounded-2xl border border-white/5 bg-slate-950/70 p-4">
-                    <p className="text-[10px] font-black uppercase text-slate-500 font-mono">Biển số đã liên kết</p>
-                    <p className={`mt-1 font-mono font-black text-sm ${user.licensePlates.length > 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
-                      {user.licensePlates.length > 0 ? `${user.licensePlates.length}/${MAX_PLATES} biển số` : 'Chưa có'}
-                    </p>
-                  </div>
+                  {user.role === 'user' && (
+                    <div className="rounded-2xl border border-white/5 bg-slate-950/70 p-4">
+                      <p className="text-[10px] font-black uppercase text-slate-500 font-mono">Biển số đã liên kết</p>
+                      <p className={`mt-1 font-mono font-black text-sm ${user.licensePlates.length > 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
+                        {user.licensePlates.length > 0 ? `${user.licensePlates.length}/${MAX_PLATES} biển số` : 'Chưa có'}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Plate count visual indicator */}
-              <div className="rounded-3xl bg-slate-950/40 border border-white/5 p-6 shadow-md space-y-3">
-                <h2 className="text-xs font-black uppercase tracking-wider text-slate-400 font-mono">Dung lượng biển số</h2>
-                <div className="flex gap-2">
-                  {Array.from({ length: MAX_PLATES }).map((_, idx) => {
-                    const hasPl = idx < user.licensePlates.length;
-                    return (
-                      <div
-                        key={idx}
-                        className={`flex-1 h-2 rounded-full transition-all duration-500 ${
-                          hasPl
-                            ? 'bg-gradient-to-r from-orange-500 to-amber-500 shadow-[0_0_8px_rgba(249,115,22,0.4)]'
-                            : 'bg-slate-800'
-                        }`}
-                      />
-                    );
-                  })}
+              {user.role === 'user' && (
+                <div className="rounded-3xl bg-slate-950/40 border border-white/5 p-6 shadow-md space-y-3">
+                  <h2 className="text-xs font-black uppercase tracking-wider text-slate-400 font-mono">Dung lượng biển số</h2>
+                  <div className="flex gap-2">
+                    {Array.from({ length: MAX_PLATES }).map((_, idx) => {
+                      const hasPl = idx < user.licensePlates.length;
+                      return (
+                        <div
+                          key={idx}
+                          className={`flex-1 h-2 rounded-full transition-all duration-500 ${
+                            hasPl
+                              ? 'bg-gradient-to-r from-orange-500 to-amber-500 shadow-[0_0_8px_rgba(249,115,22,0.4)]'
+                              : 'bg-slate-800'
+                          }`}
+                        />
+                      );
+                    })}
+                  </div>
+                  <p className="text-[9px] text-slate-500 font-semibold">
+                    {user.licensePlates.length === 0
+                      ? 'Chưa có biển số nào được liên kết.'
+                      : user.licensePlates.length < MAX_PLATES
+                      ? `Còn ${MAX_PLATES - user.licensePlates.length} slot trống.`
+                      : 'Đã đạt giới hạn tối đa.'}
+                  </p>
                 </div>
-                <p className="text-[9px] text-slate-500 font-semibold">
-                  {user.licensePlates.length === 0
-                    ? 'Chưa có biển số nào được liên kết.'
-                    : user.licensePlates.length < MAX_PLATES
-                    ? `Còn ${MAX_PLATES - user.licensePlates.length} slot trống.`
-                    : 'Đã đạt giới hạn tối đa.'}
-                </p>
-              </div>
+              )}
 
             </div>
 

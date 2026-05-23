@@ -4,6 +4,7 @@ export function useAuth() {
   const session = useAuthStore((state) => state.session);
   const login = useAuthStore((state) => state.login);
   const logout = useAuthStore((state) => state.logout);
+  const updateProfile = useAuthStore((state) => state.updateProfile);
   const isAuthenticating = useAuthStore((state) => state.isAuthenticating);
   const error = useAuthStore((state) => state.error);
 
@@ -14,6 +15,8 @@ export function useAuth() {
         email: session.email,
         role: session.role,
         fullName: session.displayName,
+        phone: session.phone || '',
+        licensePlates: session.licensePlates || [],
       }
     : null;
 
@@ -29,6 +32,7 @@ export function useAuth() {
     refresh,
     login,
     logout,
+    updateProfile,
     isAuthenticating,
     error,
     isAdmin: Boolean(session?.token) && session?.role === 'admin',

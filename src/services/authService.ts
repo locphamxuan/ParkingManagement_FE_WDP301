@@ -11,6 +11,8 @@ interface ApiUser {
   fullName: string;
   role: 'admin' | 'manager' | 'staff' | 'user';
   assignedBuildings?: Array<{ _id?: string } | string>;
+  phone?: string;
+  licensePlates?: Array<{ plateNumber?: string } | string>;
 }
 
 interface ApiAuthResponse {
@@ -27,6 +29,8 @@ export interface AuthSession {
   email: string;
   displayName: string;
   assignedBuildingIds: string[];
+  phone?: string;
+  licensePlates?: Array<{ plateNumber: string; vehicleType: 'car' | 'motorcycle' }>;
 }
 
 export async function loginWithBackend(input: LoginInput): Promise<AuthSession> {
@@ -52,6 +56,20 @@ export async function loginWithBackend(input: LoginInput): Promise<AuthSession> 
         .filter(Boolean)
     : [];
 
+  const licensePlates = Array.isArray(user.licensePlates)
+    ? user.licensePlates
+        .map((item) => {
+          if (typeof item === 'string') {
+            return { plateNumber: item, vehicleType: 'car' as const };
+          }
+          return {
+            plateNumber: item?.plateNumber || '',
+            vehicleType: (item as any)?.vehicleType === 'motorcycle' ? ('motorcycle' as const) : ('car' as const),
+          };
+        })
+        .filter((item) => Boolean(item.plateNumber))
+    : [];
+
   return {
     token,
     userId: String(user._id),
@@ -59,5 +77,7 @@ export async function loginWithBackend(input: LoginInput): Promise<AuthSession> 
     email: user.email,
     displayName: user.fullName,
     assignedBuildingIds,
+    phone: user.phone || '',
+    licensePlates,
   };
 }

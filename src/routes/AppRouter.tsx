@@ -30,6 +30,12 @@ import { ManagerPricingPage } from '@/pages/manager/ManagerPricingPage';
 import { ManagerReservationPolicyPage } from '@/pages/manager/ManagerReservationPolicyPage';
 import { ManagerPackagesPage } from '@/pages/manager/ManagerPackagesPage';
 import { ManagerShiftsPage } from '@/pages/manager/ManagerShiftsPage';
+import { StaffLayout } from '@/layouts/StaffLayout';
+import { StaffDashboardPage } from '@/pages/staff/StaffDashboardPage';
+import { StaffShiftsPage } from '@/pages/staff/StaffShiftsPage';
+import { StaffSessionsPage } from '@/pages/staff/StaffSessionsPage';
+import { StaffOperationsPage } from '@/pages/staff/StaffOperationsPage';
+import { StaffIncidentsPage } from '@/pages/staff/StaffIncidentsPage';
 
 export function AppRouter() {
   return (
@@ -75,6 +81,20 @@ export function AppRouter() {
       <Route path="/admin/login" element={<Navigate to="/auth/login" replace />} />
       <Route path="/admin" element={<Navigate to="/auth/login" replace />} />
       <Route path="/admin/direct" element={<AdminLayout />} />
+
+      <Route path="/staff/login" element={<Navigate to="/auth/login" replace />} />
+
+      <Route element={<ProtectedRoute role="staff" />}>
+        <Route path="/staff" element={<StaffLayout />}>
+          <Route index element={<StaffDashboardPage />} />
+          <Route path="dashboard" element={<StaffDashboardPage />} />
+          <Route path="operations" element={<StaffOperationsPage />} />
+          <Route path="my-shifts" element={<StaffShiftsPage />} />
+          <Route path="sessions" element={<StaffSessionsPage />} />
+          <Route path="incidents" element={<StaffIncidentsPage />} />
+          <Route path="handover" element={<StaffOperationsPage mode="handover" />} />
+        </Route>
+      </Route>
 
       <Route element={<ProtectedRoute role="admin" />}>
         <Route path="/admin/dashboard" element={<AdminLayout />}>

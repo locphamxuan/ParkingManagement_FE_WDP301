@@ -8,6 +8,7 @@ export interface StaffBuilding {
   operatingHours: { open: string; close: string };
   address?: { fullAddress?: string };
   contactPhone?: string;
+  preview?: boolean;
 }
 
 export interface MyShift {
@@ -34,6 +35,17 @@ export interface ParkingSession {
   status: 'active' | 'completed' | 'cancelled';
 }
 
+export interface StaffIncident {
+  _id: string;
+  code?: string;
+  type?: string;
+  building?: { _id?: string; code?: string; name?: string } | null;
+  severity?: 'medium' | 'high' | 'critical';
+  status?: 'open' | 'investigating' | 'escalated' | 'resolved' | 'closed';
+  createdAt?: string;
+  note?: string;
+}
+
 interface Wrap<T> {
   data: T;
 }
@@ -44,6 +56,13 @@ export const staffApi = {
 
   myShifts: (q?: Record<string, string | undefined>) =>
     api.get<Wrap<{ items: MyShift[] } | MyShift[]>>('/staff/my-shifts', { query: q }),
+
+  incidents: {
+    list: (buildingId?: string) =>
+      api.get<Wrap<{ items: StaffIncident[] } | StaffIncident[]>>('/staff/incidents', {
+        query: buildingId ? { buildingId } : undefined,
+      }),
+  },
 
   sessions: {
     list: (buildingId: string, q?: Record<string, string | undefined>) =>
@@ -79,4 +98,11 @@ export const extractBuildings = (
 ): StaffBuilding[] => {
   if (Array.isArray(payload)) return payload;
   return (payload as { items?: StaffBuilding[] }).items ?? [];
+};
+
+export const extractIncidents = (
+  payload: StaffIncident[] | { items: StaffIncident[] }
+): StaffIncident[] => {
+  if (Array.isArray(payload)) return payload;
+  return (payload as { items?: StaffIncident[] }).items ?? [];
 };

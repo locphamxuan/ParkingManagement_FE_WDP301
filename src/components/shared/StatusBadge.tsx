@@ -12,6 +12,11 @@ export function StatusBadge({ status }: StatusBadgeProps) {
     ok: 'OK',
     success: 'Thành công',
     online: 'Online',
+    open: 'Mở',
+    investigating: 'Đang điều tra',
+    escalated: 'Đã chuyển cấp',
+    resolved: 'Đã xử lý',
+    closed: 'Đã đóng',
     low: 'Thấp',
     warning: 'Cảnh báo',
     pending: 'Đang chờ',
@@ -49,6 +54,15 @@ export function StatusBadge({ status }: StatusBadgeProps) {
     return (
       <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700 border border-amber-200/50 shadow-[0_2px_8px_rgba(245,158,11,0.06)] status-badge-warning">
         <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+        {display}
+      </span>
+    );
+  }
+
+  if (['open', 'investigating', 'escalated', 'resolved', 'closed'].includes(normalized)) {
+    return (
+      <span className="inline-flex items-center rounded-full bg-cyan-50 px-2.5 py-0.5 text-xs font-semibold text-cyan-700 border border-cyan-200/50 shadow-[0_2px_8px_rgba(6,182,212,0.06)]">
+        <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-cyan-500 animate-pulse" />
         {display}
       </span>
     );

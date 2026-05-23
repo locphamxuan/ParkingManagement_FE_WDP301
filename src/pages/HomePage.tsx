@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { motion, useMotionValue, useSpring, useTransform, useScroll } from 'framer-motion';
 import type { LucideIcon } from 'lucide-react';
 import {
   ArrowRight,
@@ -85,6 +85,25 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
   const serviceModules = modules.slice(4);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end end"]
+  });
+
+  const smoothScroll = useSpring(scrollYProgress, {
+    stiffness: 70,
+    damping: 26,
+    restDelta: 0.001
+  });
+
+  const rotateZ = useTransform(smoothScroll, [0, 0.45, 0.8, 1], [-45, -15, -90, -45]);
+  const rotateX = useTransform(smoothScroll, [0, 0.45, 0.8, 1], [55, 48, 62, 55]);
+  const scale = useTransform(smoothScroll, [0, 0.45, 0.8, 1], [1.0, 1.35, 1.75, 1.0]);
+  const x = useTransform(smoothScroll, [0, 0.45, 0.8, 1], [0, -35, 120, 0]);
+  const y = useTransform(smoothScroll, [0, 0.45, 0.8, 1], [0, 15, -85, 0]);
 
   const heroButtonText = useMemo(() => {
     if (!user) return 'Đăng nhập ngay';
@@ -185,128 +204,175 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="py-16 md:py-20 max-w-6xl mx-auto px-4 grid md:grid-cols-2 gap-12 items-center relative z-10">
-        <motion.div
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ type: "spring", stiffness: 100, damping: 18 }}
-        >
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 mb-4">
-            <span className="w-2 h-2 rounded-full bg-orange-500 animate-ping" />
-            <span className="text-[10px] font-black uppercase tracking-wider text-orange-400 font-mono">Platform Quản Trị Tương Lai</span>
-          </div>
-
-          <h1 className="text-4xl md:text-5xl font-black mt-3 leading-[1.12] tracking-tight text-white">
-            Nền tảng kiểm soát <br />
-            <span className="bg-gradient-to-r from-orange-400 via-amber-400 to-purple-400 bg-clip-text text-transparent">Bãi đỗ xe thông minh</span>
-          </h1>
-          <p className="mt-5 text-sm text-slate-400 leading-relaxed max-w-lg font-semibold">
-            PBMS định nghĩa lại hoạt động vận hành tòa nhà. Giám sát ra vào thời gian thực, tự động hóa thanh toán, theo dõi công suất thông minh và cung cấp giải pháp 3D trực quan vượt trội.
-          </p>
-
-          <div className="mt-8 flex flex-wrap gap-4 items-center">
-            {user ? (
-              <>
-                <a 
-                  href={
-                    user.role === 'admin' 
-                      ? '/admin/dashboard' 
-                      : user.role === 'manager' 
-                      ? '/manager/dashboard' 
-                      : user.role === 'staff' 
-                      ? '/staff' 
-                      : '/'
-                  } 
-                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider transition-all duration-300 hover:scale-105 hover:shadow-[0_0_25px_rgba(249,115,22,0.4)] inline-flex items-center gap-2"
-                >
-                  {heroButtonText} <ArrowRight size={14} />
-                </a>
-                <button 
-                  onClick={onViewProfile} 
-                  className="px-6 py-3 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 hover:border-orange-500/30 hover:bg-slate-900/60 inline-flex items-center"
-                >
-                  Xem hồ sơ cá nhân
-                </button>
-              </>
-            ) : (
-              <>
-                <a 
-                  href="/auth/login" 
-                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider transition-all duration-300 hover:scale-105 hover:shadow-[0_0_25px_rgba(249,115,22,0.4)] inline-flex items-center gap-2"
-                >
-                  Đăng nhập ngay <ArrowRight size={14} />
-                </a>
-                <a 
-                  href="/auth/register" 
-                  className="px-6 py-3 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 hover:border-orange-500/30 hover:bg-slate-900/60 inline-flex items-center"
-                >
-                  Đăng ký tài khoản
-                </a>
-              </>
-            )}
-          </div>
-        </motion.div>
-
-        {/* 3D Interactive Model Visual */}
-        <motion.aside
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0.15 }}
-          className="relative preserve-3d"
-        >
-          <AnimatedParkingMap3D />
+      {/* Scroll-Driven Presentation Deck Section */}
+      <div ref={containerRef} className="relative w-full max-w-6xl mx-auto px-4 relative z-20">
+        <div className="grid md:grid-cols-2 gap-12 items-start relative">
           
-          {/* Overlay stats indicators floating around */}
-          <div className="absolute -left-6 -bottom-6 grid grid-cols-2 gap-3 max-w-[280px] pointer-events-none">
-            {heroHighlights.slice(0, 2).map((item, idx) => (
-              <motion.article 
-                key={item.label} 
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 + idx * 0.1 }}
-                className="rounded-2xl border border-white/5 bg-slate-900/80 p-3.5 backdrop-blur-md shadow-2xl"
-              >
-                <strong className="block text-lg font-black text-white font-mono bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">{item.value}</strong>
-                <span className="text-[10px] font-bold text-slate-400 mt-0.5 leading-tight block">{item.label}</span>
-              </motion.article>
-            ))}
-          </div>
-        </motion.aside>
-      </section>
+          {/* LEFT STORY STORY DECK COLUMN */}
+          <div className="space-y-32 py-12 md:py-20 relative z-20">
+            
+            {/* Story Deck Item 1: Hero Intro */}
+            <motion.section 
+              id="hero-intro"
+              className="min-h-[70vh] flex flex-col justify-center animate-fadeIn"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ type: "spring", stiffness: 100, damping: 20 }}
+            >
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 mb-4 w-fit animate-pulse">
+                <span className="w-2 h-2 rounded-full bg-orange-500" />
+                <span className="text-[10px] font-black uppercase tracking-wider text-orange-400 font-mono">Platform Quản Trị Tương Lai</span>
+              </div>
 
-      {/* Benefits Section */}
-      <section id="gioi-thieu" className="py-20 relative z-10 bg-slate-950/40">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center max-w-xl mx-auto mb-12">
-            <span className="text-[10px] font-black uppercase tracking-widest text-orange-400 font-mono">Đặc Điểm Vượt Trội</span>
-            <h2 className="text-2xl md:text-3xl font-black mt-2 text-white">Kiến trúc quản trị tinh chuẩn & tin cậy</h2>
-            <p className="mt-3 text-sm text-slate-400 font-semibold">Tích hợp sâu các công nghệ phần cứng và đám mây để nâng cao trải nghiệm bãi đỗ xe doanh nghiệp.</p>
-          </div>
+              <h1 className="text-4xl md:text-5xl font-black leading-[1.12] tracking-tight text-white">
+                Nền tảng kiểm soát <br />
+                <span className="bg-gradient-to-r from-orange-400 via-amber-400 to-purple-400 bg-clip-text text-transparent">Bãi đỗ xe thông minh</span>
+              </h1>
+              <p className="mt-5 text-sm text-slate-400 leading-relaxed max-w-lg font-semibold">
+                PBMS định nghĩa lại hoạt động vận hành tòa nhà. Giám sát ra vào thời gian thực, tự động hóa thanh toán, theo dõi công suất thông minh và cung cấp giải pháp 3D trực quan vượt trội.
+              </p>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {benefits.map((benefit, index) => {
-              const Icon = benefit.icon;
-              return (
-                <motion.article 
-                  key={benefit.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: index * 0.1 }}
-                  className="p-6 rounded-2xl border border-white/5 bg-slate-900/30 backdrop-blur-md card-3d-hover group"
-                >
-                  <div className="w-12 h-12 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400 shadow-[0_0_10px_rgba(249,115,22,0.1)] group-hover:scale-105 group-hover:bg-orange-500 group-hover:text-slate-950 transition-all duration-300">
-                    <Icon size={20} />
+              <div className="mt-8 flex flex-wrap gap-4 items-center">
+                {user ? (
+                  <>
+                    <a 
+                      href={
+                        user.role === 'admin' 
+                          ? '/admin/dashboard' 
+                          : user.role === 'manager' 
+                          ? '/manager/dashboard' 
+                          : user.role === 'staff' 
+                          ? '/staff' 
+                          : '/'
+                      } 
+                      className="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider transition-all duration-300 hover:scale-105 hover:shadow-[0_0_25px_rgba(249,115,22,0.4)] inline-flex items-center gap-2"
+                    >
+                      {heroButtonText} <ArrowRight size={14} />
+                    </a>
+                    <button 
+                      onClick={onViewProfile} 
+                      className="px-6 py-3 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 hover:border-orange-500/30 hover:bg-slate-900/60 inline-flex items-center"
+                    >
+                      Xem hồ sơ cá nhân
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <a 
+                      href="/auth/login" 
+                      className="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider transition-all duration-300 hover:scale-105 hover:shadow-[0_0_25px_rgba(249,115,22,0.4)] inline-flex items-center gap-2"
+                    >
+                      Đăng nhập ngay <ArrowRight size={14} />
+                    </a>
+                    <a 
+                      href="/auth/register" 
+                      className="px-6 py-3 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 hover:border-orange-500/30 hover:bg-slate-900/60 inline-flex items-center"
+                    >
+                      Đăng ký tài khoản
+                    </a>
+                  </>
+                )}
+              </div>
+            </motion.section>
+
+            {/* Story Deck Item 2: Giới thiệu & Quản lý tầng & slot */}
+            <motion.section 
+              id="gioi-thieu" 
+              className="min-h-[70vh] flex flex-col justify-center scroll-mt-24"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ type: "spring", stiffness: 100, damping: 20 }}
+            >
+              <div className="glass-premium glow-border-pulse p-8 rounded-3xl relative overflow-hidden shadow-2xl">
+                <div className="absolute -right-12 -top-12 h-36 w-36 rounded-full bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.12),transparent_70%)] pointer-events-none blur-2xl" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-cyan-400 font-mono">Đặc Điểm Vượt Trội</span>
+                <h2 className="text-2xl md:text-3xl font-black mt-2 text-white">Quản lý tầng & slot thông minh</h2>
+                <p className="mt-3 text-sm text-slate-400 font-semibold leading-relaxed">
+                  Hệ thống lập bản đồ 3D thời gian thực. Giám sát chính xác từng vị trí đỗ (Slot) theo từng tầng (Floor), hiển thị trực quan trạng thái Trống/Đầy và tự động định tuyến xe thông minh.
+                </p>
+                <div className="mt-6 grid gap-4">
+                  {benefits.map((benefit) => {
+                    const Icon = benefit.icon;
+                    return (
+                      <div key={benefit.title} className="flex gap-4 p-4 rounded-2xl border border-white/5 bg-slate-950/40 hover:border-cyan-500/20 transition-all duration-300">
+                        <div className="p-2 h-fit rounded-lg bg-cyan-500/10 text-cyan-400"><Icon size={16} /></div>
+                        <div>
+                          <h4 className="text-xs font-black text-white">{benefit.title}</h4>
+                          <p className="text-[11px] text-slate-400 mt-1 font-semibold leading-relaxed">{benefit.description}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </motion.section>
+
+            {/* Story Deck Item 3: Check-in/Check-out & Cổng kiểm soát */}
+            <motion.section 
+              id="check-in-gate" 
+              className="min-h-[70vh] flex flex-col justify-center scroll-mt-24"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ type: "spring", stiffness: 100, damping: 20 }}
+            >
+              <div className="glass-premium glow-border-pulse p-8 rounded-3xl relative overflow-hidden shadow-2xl">
+                <div className="absolute -left-12 -bottom-12 h-36 w-36 rounded-full bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.1),transparent_70%)] pointer-events-none blur-2xl" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-orange-400 font-mono">Tự Động Hóa Check-In</span>
+                <h2 className="text-2xl md:text-3xl font-black mt-2 text-white">Kiểm soát ra vào tự động 24/7</h2>
+                <p className="mt-3 text-sm text-slate-400 font-semibold leading-relaxed">
+                  Nhận diện biển số, quét RFID thẻ thông minh và vận hành thanh chắn cổng soát vé (Gate) hoàn toàn tự động. Đẩy nhanh thời gian check-in/out xuống dưới 2 giây, giảm thiểu ùn tắc.
+                </p>
+                
+                {/* Floating highlight block */}
+                <div className="mt-6 p-5 rounded-2xl border border-orange-500/20 bg-orange-500/5 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
+                    <span className="text-xs font-black text-orange-400 font-mono">RFID & PLATE RECOGNITION OK</span>
                   </div>
-                  <h3 className="mt-4 font-black text-white text-base tracking-tight">{benefit.title}</h3>
-                  <p className="mt-2.5 text-xs text-slate-400 leading-relaxed font-semibold">{benefit.description}</p>
-                </motion.article>
-              );
-            })}
+                  <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest font-black">GATEWAY ACTIVE</span>
+                </div>
+              </div>
+            </motion.section>
+
           </div>
+
+          {/* RIGHT VIEWPORT VIEW DECK COLUMN (STICKY) */}
+          <div className="sticky top-24 hidden md:flex h-[calc(100vh-140px)] w-full items-center justify-center overflow-visible z-10">
+            <div className="relative w-full max-w-[480px] preserve-3d">
+              {/* Glowing Ambient Background ring */}
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.05),transparent_70%)] pointer-events-none blur-3xl z-0" />
+              
+              <AnimatedParkingMap3D 
+                rotateX={rotateX} 
+                rotateZ={rotateZ} 
+                scale={scale} 
+                x={x} 
+                y={y} 
+              />
+              
+              {/* Floating highlight status badges overlay around the model */}
+              <div className="absolute -left-6 -bottom-6 grid grid-cols-2 gap-3 max-w-[280px] pointer-events-none z-20">
+                {heroHighlights.slice(0, 2).map((item, idx) => (
+                  <motion.article 
+                    key={item.label} 
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 + idx * 0.1 }}
+                    className="rounded-2xl border border-white/5 bg-slate-950/80 p-3.5 backdrop-blur-md shadow-2xl"
+                  >
+                    <strong className="block text-lg font-black text-white font-mono bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">{item.value}</strong>
+                    <span className="text-[10px] font-bold text-slate-400 mt-0.5 leading-tight block">{item.label}</span>
+                  </motion.article>
+                ))}
+              </div>
+            </div>
+          </div>
+
         </div>
-      </section>
+      </div>
 
       {/* Core Solutions Modules */}
       <section id="giai-phap" className="py-20 relative z-10">

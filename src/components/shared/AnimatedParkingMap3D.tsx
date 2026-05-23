@@ -3,7 +3,21 @@ import { motion, useAnimation } from 'framer-motion';
 import { CartoonCar3D } from './CartoonCar3D';
 import { Activity, Info, Zap } from 'lucide-react';
 
-export function AnimatedParkingMap3D() {
+export interface AnimatedParkingMap3DProps {
+  rotateX?: any;
+  rotateZ?: any;
+  scale?: any;
+  x?: any;
+  y?: any;
+}
+
+export function AnimatedParkingMap3D({
+  rotateX,
+  rotateZ,
+  scale,
+  x,
+  y
+}: AnimatedParkingMap3DProps = {}) {
   const [hudMessage, setHudMessage] = useState('Khởi động hệ thống mô phỏng...');
   const [simPhase, setSimPhase] = useState(0);
 
@@ -227,14 +241,18 @@ export function AnimatedParkingMap3D() {
           </svg>
         )}
 
-        <div 
+        <motion.div 
           style={{
-            transform: 'rotateX(55deg) rotateZ(-45deg)',
             transformStyle: 'preserve-3d',
             width: '450px',
-            height: '240px'
+            height: '240px',
+            rotateX: rotateX ?? 55,
+            rotateZ: rotateZ ?? -45,
+            scale: scale ?? 1.0,
+            x: x ?? 0,
+            y: y ?? 0,
           }}
-          className="relative preserve-3d transition-transform duration-300"
+          className="relative preserve-3d"
         >
           {/* Architectural Asphalt Concrete Platform SVG Base */}
           <svg viewBox="0 0 450 240" className="absolute inset-0 w-full h-full overflow-visible z-0">
@@ -607,7 +625,7 @@ export function AnimatedParkingMap3D() {
             )}
           </motion.div>
 
-        </div>
+        </motion.div>
       </div>
 
       {/* Cyber HUD Status Panel */}

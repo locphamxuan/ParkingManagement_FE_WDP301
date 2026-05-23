@@ -6,31 +6,6 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { staffApi, type ParkingSession } from '@/services/staff/staffApi';
 
-const demoSessions: ParkingSession[] = [
-  {
-    _id: 'demo-session-1',
-    plateNumber: '59A-123.45',
-    vehicleType: { _id: 'vt1', name: 'Ô tô', code: 'CAR' },
-    gate: { _id: 'g1', code: 'IN', name: 'Cổng vào A' },
-    checkIn: new Date(Date.now() - 1000 * 60 * 70).toISOString(),
-    paymentStatus: 'pending',
-    status: 'active',
-  },
-  {
-    _id: 'demo-session-2',
-    plateNumber: '29B1-678.90',
-    vehicleType: { _id: 'vt2', name: 'Xe máy', code: 'MOTO' },
-    gate: { _id: 'g2', code: 'OUT', name: 'Cổng ra B' },
-    checkIn: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
-    checkOut: new Date(Date.now() - 1000 * 60 * 20).toISOString(),
-    duration: 160,
-    fee: 12000,
-    paymentMethod: 'cash',
-    paymentStatus: 'paid',
-    status: 'completed',
-  },
-];
-
 const fmt = (n: number | null | undefined) =>
   n != null ? `${n.toLocaleString('vi-VN')} đ` : '—';
 
@@ -38,7 +13,7 @@ const fmtTime = (s: string | null | undefined) =>
   s ? new Date(s).toLocaleString('vi-VN') : '—';
 
 export function StaffSessionsPage() {
-  const { buildingId, building } = useBuildingContext();
+  const { building } = useBuildingContext();
   const [items, setItems] = useState<ParkingSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -46,23 +21,20 @@ export function StaffSessionsPage() {
   const [query, setQuery] = useState('');
 
   const refresh = useCallback(() => {
-    if (building?.preview) {
-      setItems(demoSessions);
-      setLoading(false);
-      setError(null);
-      return;
-    }
-
     setLoading(true);
-    staffApi.sessions
-      .list(buildingId, { status: statusFilter || undefined })
+    const request = query.trim()
+      ? staffApi.searchSessions(query.trim())
+      : staffApi.getActiveSessions();
+
+    request
       .then((res) => {
-        setItems(res.data.items);
+        const rows = (res as any)?.data?.items ?? (res as any)?.data ?? [];
+        setItems(Array.isArray(rows) ? rows : []);
         setError(null);
       })
       .catch((err) => setError(err instanceof Error ? err.message : 'Tải thất bại'))
       .finally(() => setLoading(false));
-  }, [buildingId, statusFilter]);
+  }, [query]);
 
   const visibleItems = useMemo(
     () =>
@@ -70,9 +42,10 @@ export function StaffSessionsPage() {
         const matchesQuery = `${item.plateNumber} ${item.gate?.name ?? ''} ${item.vehicleType?.name ?? ''}`
           .toLowerCase()
           .includes(query.toLowerCase());
-        return matchesQuery;
+        const matchesStatus = !statusFilter || item.status === statusFilter;
+        return matchesQuery && matchesStatus;
       }),
-    [items, query]
+    [items, query, statusFilter]
   );
 
   const summary = useMemo(
@@ -149,13 +122,6 @@ export function StaffSessionsPage() {
           </Card>
         ))}
       </section>
-
-      {building?.preview ? (
-        <div className="rounded-2xl border border-amber-400/20 bg-amber-500/10 p-4 text-sm text-amber-50">
-          <p className="font-semibold text-white">Đang xem dữ liệu preview</p>
-          <p className="mt-1 leading-6">Đây là dữ liệu mẫu vì staff hiện chưa có building được gán từ BE.</p>
-        </div>
-      ) : null}
 
       <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 md:flex-row md:items-center md:justify-between">
         <div className="relative w-full md:max-w-md">

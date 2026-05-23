@@ -7,24 +7,6 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { staffApi, extractShifts, type MyShift } from '@/services/staff/staffApi';
 
-const demoShifts: MyShift[] = [
-  {
-    _id: 'demo-shift-1',
-    shift: { _id: 's1', code: 'S1', name: 'Ca sáng', startTime: '07:00', endTime: '15:00' },
-    building: { _id: 'demo-staff-building', name: 'Tòa nhà demo staff', code: 'PB-DEMO' },
-    workDate: new Date().toISOString(),
-    status: 'active',
-    note: 'Dữ liệu demo khi staff chưa được gán building.',
-  },
-  {
-    _id: 'demo-shift-2',
-    shift: { _id: 's2', code: 'S2', name: 'Ca chiều', startTime: '15:00', endTime: '23:00' },
-    building: { _id: 'demo-staff-building', name: 'Tòa nhà demo staff', code: 'PB-DEMO' },
-    workDate: new Date().toISOString(),
-    status: 'scheduled',
-  },
-];
-
 export function StaffShiftsPage() {
   const { building } = useBuildingContext();
   const [items, setItems] = useState<MyShift[]>([]);
@@ -44,16 +26,9 @@ export function StaffShiftsPage() {
   );
 
   const refresh = useCallback(() => {
-    if (building?.preview) {
-      setItems(demoShifts);
-      setLoading(false);
-      setError(null);
-      return;
-    }
-
     setLoading(true);
     staffApi
-      .myShifts({ from: from || undefined, to: to || undefined })
+      .getMyShifts({ from: from || undefined, to: to || undefined })
       .then((res) => {
         setItems(extractShifts(res));
         setError(null);
@@ -98,13 +73,6 @@ export function StaffShiftsPage() {
           </Card>
         ))}
       </section>
-
-      {building?.preview ? (
-        <div className="rounded-2xl border border-amber-400/20 bg-amber-500/10 p-4 text-sm text-amber-50">
-          <p className="font-semibold text-white">Đang xem dữ liệu preview</p>
-          <p className="mt-1 leading-6">Ca làm việc đang dùng dữ liệu mẫu để bạn nhìn thấy đầy đủ bố cục UI.</p>
-        </div>
-      ) : null}
 
       <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
         <div className="grid gap-1.5">

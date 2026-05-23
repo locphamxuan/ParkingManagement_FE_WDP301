@@ -19,20 +19,17 @@ interface IncidentRow {
   note: string;
 }
 
-const incidentsSeed: IncidentRow[] = [
-  { id: 'INC-1024', type: 'Lost ticket', building: 'PB-01', severity: 'high', status: 'open', timestamp: '08:14', note: 'Khách cần xác minh giấy tờ và camera cổng.' },
-  { id: 'INC-1021', type: 'Barrier fault', building: 'PB-03', severity: 'critical', status: 'investigating', timestamp: '08:42', note: 'Barrier không đóng/mở đúng chu kỳ.' },
-  { id: 'INC-1018', type: 'Wrong bay', building: 'PB-02', severity: 'medium', status: 'escalated', timestamp: '09:03', note: 'Xe đỗ sai khu vực, cần manager phê duyệt.' },
-  { id: 'INC-1007', type: 'Refund request', building: 'PB-01', severity: 'medium', status: 'resolved', timestamp: '09:41', note: 'Đã hoàn phí và cập nhật audit log.' },
-];
-
 export function StaffIncidentsPage() {
   const { buildingId, building } = useBuildingContext();
   const [query, setQuery] = useState('');
   const [severity, setSeverity] = useState('all');
-  const [items, setItems] = useState<IncidentRow[]>(incidentsSeed);
+  const [items, setItems] = useState<IncidentRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [incidentType, setIncidentType] = useState('');
+  const [incidentTarget, setIncidentTarget] = useState('');
+  const [incidentNote, setIncidentNote] = useState('');
+  const [incidentMessage, setIncidentMessage] = useState<string | null>(null);
 
   const mapIncident = (item: StaffIncident, index: number): IncidentRow => ({
     id: item.code || item._id || `INC-${1000 + index}`,
@@ -45,13 +42,6 @@ export function StaffIncidentsPage() {
   });
 
   const refresh = () => {
-    if (building?.preview) {
-      setItems(incidentsSeed);
-      setLoading(false);
-      setError(null);
-      return;
-    }
-
     setLoading(true);
     setError(null);
 
@@ -60,13 +50,34 @@ export function StaffIncidentsPage() {
       .then((res) => {
         const apiItems = extractIncidents(res.data as StaffIncident[] | { items: StaffIncident[] });
         const mapped = apiItems.map(mapIncident);
-        setItems(mapped.length > 0 ? mapped : incidentsSeed);
+        setItems(mapped);
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : 'Tải sự cố thất bại');
-        setItems(incidentsSeed);
+        setItems([]);
       })
       .finally(() => setLoading(false));
+  };
+
+  const createIncident = async () => {
+    if (!incidentType.trim()) return;
+
+    setIncidentMessage(null);
+    try {
+      await staffApi.createIncident({
+        type: incidentType.trim(),
+        target: incidentTarget.trim() || undefined,
+        note: incidentNote.trim() || undefined,
+        buildingId: buildingId || undefined,
+      });
+      setIncidentMessage('Đã tạo sự cố thành công.');
+      setIncidentType('');
+      setIncidentTarget('');
+      setIncidentNote('');
+      refresh();
+    } catch (err) {
+      setIncidentMessage(err instanceof Error ? err.message : 'Không thể tạo sự cố');
+    }
   };
 
   useEffect(() => {
@@ -120,22 +131,16 @@ export function StaffIncidentsPage() {
             <CardTitle className="text-white">Tạo sự cố nhanh</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3">
-            <Input placeholder="Loại sự cố: mất vé, barrier lỗi, xe quá hạn..." className="border-white/10 bg-white/5 text-white placeholder:text-slate-500" />
-            <Input placeholder="Biển số / cổng / khu vực" className="border-white/10 bg-white/5 text-white placeholder:text-slate-500" />
-            <Input placeholder="Ghi chú xử lý ban đầu" className="border-white/10 bg-white/5 text-white placeholder:text-slate-500" />
-            <Button className="gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-400 text-slate-950 hover:brightness-110">
+            <Input value={incidentType} onChange={(e) => setIncidentType(e.target.value)} placeholder="Loại sự cố: mất vé, barrier lỗi, xe quá hạn..." className="border-white/10 bg-white/5 text-white placeholder:text-slate-500" />
+            <Input value={incidentTarget} onChange={(e) => setIncidentTarget(e.target.value)} placeholder="Biển số / cổng / khu vực" className="border-white/10 bg-white/5 text-white placeholder:text-slate-500" />
+            <Input value={incidentNote} onChange={(e) => setIncidentNote(e.target.value)} placeholder="Ghi chú xử lý ban đầu" className="border-white/10 bg-white/5 text-white placeholder:text-slate-500" />
+            <Button type="button" onClick={createIncident} className="gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-400 text-slate-950 hover:brightness-110">
               <Plus size={14} /> Tạo phiếu
             </Button>
+            {incidentMessage ? <p className="text-xs text-slate-400">{incidentMessage}</p> : null}
           </CardContent>
         </Card>
       </section>
-
-      {building?.preview ? (
-        <div className="rounded-2xl border border-amber-400/20 bg-amber-500/10 p-4 text-sm text-amber-50">
-          <p className="font-semibold text-white">Đang xem dữ liệu preview</p>
-          <p className="mt-1 leading-6">Trang sự cố đang dùng dữ liệu mẫu vì staff chưa có building thật từ BE.</p>
-        </div>
-      ) : null}
 
       {loading ? (
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-400">Đang tải dữ liệu sự cố từ API staff...</div>

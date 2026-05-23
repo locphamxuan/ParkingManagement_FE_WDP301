@@ -8,7 +8,6 @@ export interface StaffBuilding {
   operatingHours: { open: string; close: string };
   address?: { fullAddress?: string };
   contactPhone?: string;
-  preview?: boolean;
 }
 
 export interface MyShift {
@@ -50,19 +49,55 @@ interface Wrap<T> {
   data: T;
 }
 
-export const staffApi = {
-  buildings: () =>
-    api.get<Wrap<StaffBuilding[] | { items: StaffBuilding[] }>>('/staff/buildings'),
+type ApiList<T> = T[] | { items: T[] };
 
-  myShifts: (q?: Record<string, string | undefined>) =>
-    api.get<Wrap<{ items: MyShift[] } | MyShift[]>>('/staff/my-shifts', { query: q }),
+function unwrapList<T>(payload: ApiList<T> | Wrap<ApiList<T>> | null | undefined): T[] {
+  if (!payload) return [];
+  const raw = typeof payload === 'object' && 'data' in payload ? payload.data : payload;
+  if (Array.isArray(raw)) return raw;
+  return (raw as { items?: T[] }).items ?? [];
+}
+
+export const staffApi = {
+  getDashboard: () => api.get('/staff/dashboard'),
+
+  listBuildings: () => api.get<Wrap<ApiList<StaffBuilding>>>('/staff/buildings'),
+
+  getBuilding: (id: string) => api.get<Wrap<StaffBuilding>>(`/staff/buildings/${id}`),
+
+  getActiveSessions: () => api.get<Wrap<ApiList<ParkingSession>>>('/staff/parking-sessions/active'),
+
+  searchSessions: (q: string) =>
+    api.get<Wrap<ApiList<ParkingSession>>>('/staff/parking-sessions/search', { query: { q } }),
+
+  checkIn: (payload: { plateNumber: string; vehicleType?: string; gate?: string; buildingId?: string }) =>
+    api.post<Wrap<{ item: ParkingSession }>>('/staff/parking-sessions/check-in', payload),
+
+  checkOut: (id: string) => api.patch<Wrap<{ item: ParkingSession }>>(`/staff/parking-sessions/${id}/check-out`),
+
+  getSessionById: (id: string) => api.get<Wrap<ParkingSession>>(`/staff/parking-sessions/${id}`),
+
+  getMyShifts: (query?: Record<string, string | undefined>) =>
+    api.get<Wrap<ApiList<MyShift>>>('/staff/my-shifts', { query }),
+
+  createIncident: (payload: unknown) => api.post('/staff/incidents', payload),
+
+  processWallet: (payload: unknown) => api.post('/staff/wallet-transactions', payload),
+
+  checkInReservation: (code: string) => api.post(`/staff/reservations/${code}/check-in`),
 
   incidents: {
     list: (buildingId?: string) =>
-      api.get<Wrap<{ items: StaffIncident[] } | StaffIncident[]>>('/staff/incidents', {
+      api.get<Wrap<ApiList<StaffIncident>>>('/staff/incidents', {
         query: buildingId ? { buildingId } : undefined,
       }),
   },
+
+  // Backward-compatible aliases used by the current UI code
+  buildings: () => api.get<Wrap<ApiList<StaffBuilding>>>('/staff/buildings'),
+
+  myShifts: (q?: Record<string, string | undefined>) =>
+    api.get<Wrap<ApiList<MyShift>>>('/staff/my-shifts', { query: q }),
 
   sessions: {
     list: (buildingId: string, q?: Record<string, string | undefined>) =>
@@ -87,22 +122,17 @@ export const staffApi = {
 };
 
 export const extractShifts = (payload: Wrap<{ items: MyShift[] } | MyShift[]>): MyShift[] => {
-  if (!payload?.data) return [];
-  const d = payload.data;
-  if (Array.isArray(d)) return d;
-  return (d as { items?: MyShift[] }).items ?? [];
+  return unwrapList(payload);
 };
 
 export const extractBuildings = (
   payload: StaffBuilding[] | { items: StaffBuilding[] }
 ): StaffBuilding[] => {
-  if (Array.isArray(payload)) return payload;
-  return (payload as { items?: StaffBuilding[] }).items ?? [];
+  return unwrapList(payload);
 };
 
 export const extractIncidents = (
   payload: StaffIncident[] | { items: StaffIncident[] }
 ): StaffIncident[] => {
-  if (Array.isArray(payload)) return payload;
-  return (payload as { items?: StaffIncident[] }).items ?? [];
+  return unwrapList(payload);
 };

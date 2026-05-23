@@ -21,10 +21,11 @@ export function StaffLayout() {
   const [buildings, setBuildings] = useState<StaffBuilding[]>([]);
   const [collapsed, setCollapsed] = useState(false);
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(user?.assignedBuildingIds?.[0] ?? null);
-  const [bootstrapping, setBootstrapping] = useState(false);
+  const [bootstrapping, setBootstrapping] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const loadBuildings = () => {
+    setBootstrapping(true);
     setLoadError(null);
 
     staffApi
@@ -44,7 +45,6 @@ export function StaffLayout() {
   };
 
   useEffect(() => {
-    setBootstrapping(false);
     loadBuildings();
   }, []);
 
@@ -56,22 +56,7 @@ export function StaffLayout() {
 
   const title = pageTitle[slug] ?? 'Nhân viên';
   const selectedBuilding = buildings.find((b) => b._id === selectedBuildingId);
-  const fallbackBuilding = selectedBuildingId
-    ? selectedBuilding ?? {
-        _id: selectedBuildingId,
-        code: selectedBuildingId.toUpperCase(),
-        name: 'Tòa nhà được gán',
-        status: 'active' as const,
-        operatingHours: { open: '00:00', close: '23:59' },
-      }
-    : {
-        _id: 'demo-staff-building',
-        code: 'PB-DEMO',
-        name: 'Tòa nhà demo staff',
-        status: 'active' as const,
-        operatingHours: { open: '00:00', close: '23:59' },
-        preview: true,
-      };
+  const activeBuilding = selectedBuilding ?? null;
   return (
     <div className="admin-theme relative min-h-screen bg-slate-950 text-foreground">
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
@@ -98,7 +83,7 @@ export function StaffLayout() {
               <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-slate-300">
                 Đang tải khu vực vận hành...
               </div>
-            ) : loadError && !selectedBuildingId ? (
+            ) : loadError && !activeBuilding ? (
               <div className="rounded-2xl border border-amber-400/20 bg-amber-500/10 p-6 text-sm text-amber-100">
                 <p className="font-semibold text-white">Không tải được tòa nhà staff</p>
                 <p className="mt-2 leading-6 text-amber-50/90">{loadError}</p>
@@ -122,15 +107,19 @@ export function StaffLayout() {
                   </button>
                 </div>
               </div>
+            ) : !activeBuilding ? (
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-slate-300">
+                Tài khoản này chưa được gán tòa nhà nào. Vui lòng liên hệ quản lý.
+              </div>
             ) : (
               <>
                 {loadError ? (
                   <div className="mb-4 rounded-2xl border border-amber-400/20 bg-amber-500/10 p-4 text-sm text-amber-50">
-                    <p className="font-semibold text-white">Đang dùng chế độ preview tạm</p>
+                    <p className="font-semibold text-white">Không tải được danh sách tòa nhà</p>
                     <p className="mt-1 leading-6">{loadError}</p>
                   </div>
                 ) : null}
-                <Outlet context={{ buildingId: fallbackBuilding._id, building: fallbackBuilding }} />
+                <Outlet context={{ buildingId: activeBuilding._id, building: activeBuilding }} />
               </>
             )}
           </main>

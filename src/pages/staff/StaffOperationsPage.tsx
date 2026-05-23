@@ -9,31 +9,6 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { staffApi, type ParkingSession } from '@/services/staff/staffApi';
 
-const demoSessions: ParkingSession[] = [
-  {
-    _id: 'demo-session-1',
-    plateNumber: '59A-123.45',
-    vehicleType: { _id: 'vt1', name: 'Ô tô', code: 'CAR' },
-    gate: { _id: 'g1', code: 'IN', name: 'Cổng vào A' },
-    checkIn: new Date(Date.now() - 1000 * 60 * 70).toISOString(),
-    paymentStatus: 'pending',
-    status: 'active',
-  },
-  {
-    _id: 'demo-session-2',
-    plateNumber: '29B1-678.90',
-    vehicleType: { _id: 'vt2', name: 'Xe máy', code: 'MOTO' },
-    gate: { _id: 'g2', code: 'OUT', name: 'Cổng ra B' },
-    checkIn: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
-    checkOut: new Date(Date.now() - 1000 * 60 * 20).toISOString(),
-    duration: 160,
-    fee: 12000,
-    paymentMethod: 'cash',
-    paymentStatus: 'paid',
-    status: 'completed',
-  },
-];
-
 type OperationsMode = 'full' | 'handover';
 
 interface StaffOperationsPageProps {
@@ -72,34 +47,24 @@ export function StaffOperationsPage({ mode = 'full' }: StaffOperationsPageProps)
   const [paymentMethod, setPaymentMethod] = useState<PaymentKind>('cash');
   const [opMessage, setOpMessage] = useState<string | null>(null);
   const [activeForm, setActiveForm] = useState<OperationMode>('check-in');
+  const [reservationCode, setReservationCode] = useState('');
+  const [walletPlate, setWalletPlate] = useState('');
+  const [walletAmount, setWalletAmount] = useState('');
 
   const title = mode === 'handover' ? 'Bàn giao ca & điều phối cuối ca' : 'Trung tâm vận hành Staff';
 
   const refreshSessions = useCallback(() => {
-    if (building?.preview) {
-      setSessions(demoSessions);
-      setLoading(false);
-      setError(null);
-      return;
-    }
-
-    if (!buildingId) {
-      setSessions([]);
-      setLoading(false);
-      return;
-    }
-
     setLoading(true);
-    staffApi.sessions
-      .list(buildingId)
+    staffApi.getActiveSessions()
       .then((res) => {
-        setSessions(res.data.items);
+        const rows = (res as any)?.data?.items ?? (res as any)?.data ?? [];
+        setSessions(Array.isArray(rows) ? rows : []);
         setError(null);
-        setSelectedSessionId((current) => current || res.data.items[0]?._id || '');
+        setSelectedSessionId((current) => current || ((Array.isArray(rows) ? rows : [])[0]?._id || ''));
       })
       .catch((err) => setError(err instanceof Error ? err.message : 'Tải thất bại'))
       .finally(() => setLoading(false));
-  }, [buildingId]);
+  }, [building?.preview]);
 
   useEffect(() => {
     refreshSessions();
@@ -150,30 +115,13 @@ export function StaffOperationsPage({ mode = 'full' }: StaffOperationsPageProps)
   };
 
   const onCheckIn = async () => {
-    if (building?.preview) {
-      setOpMessage('Preview mode: check-in mẫu đã được tạo.');
-      setSessions((current) => [
-        {
-          _id: `demo-session-${Date.now()}`,
-          plateNumber: plateNumber.trim().toUpperCase() || '59A-999.99',
-          vehicleType: vehicleType === 'motorcycle' ? { _id: 'vt2', name: 'Xe máy', code: 'MOTO' } : { _id: 'vt1', name: 'Ô tô', code: 'CAR' },
-          gate: { _id: 'g1', code: 'IN', name: gate.trim() || 'Cổng vào A' },
-          checkIn: new Date().toISOString(),
-          paymentStatus: 'pending',
-          status: 'active',
-        },
-        ...current,
-      ]);
-      return;
-    }
-
-    if (!buildingId) return;
     setOpMessage(null);
     try {
-      await staffApi.sessions.checkIn(buildingId, {
+      await staffApi.checkIn({
         plateNumber: plateNumber.trim().toUpperCase(),
         vehicleType: vehicleType === 'motorcycle' ? 'motorcycle' : 'car',
         gate: gate.trim() || undefined,
+        buildingId: buildingId || undefined,
       });
       setOpMessage('Đã tạo check-in thành công.');
       setPlateNumber('');
@@ -186,21 +134,44 @@ export function StaffOperationsPage({ mode = 'full' }: StaffOperationsPageProps)
   };
 
   const onCheckOut = async () => {
-    if (building?.preview) {
-      setOpMessage('Preview mode: checkout mẫu đã được xử lý.');
-      setSessions((current) => current.map((session) => session._id === selectedSession?._id ? { ...session, status: 'completed', checkOut: new Date().toISOString(), paymentStatus: 'paid', paymentMethod } : session));
-      return;
-    }
-
-    if (!buildingId || !selectedSession) return;
+    if (!selectedSession) return;
     setOpMessage(null);
     try {
-      await staffApi.sessions.checkOut(buildingId, selectedSession._id, { paymentMethod });
+      await staffApi.checkOut(selectedSession._id);
       setOpMessage('Đã checkout thành công.');
       setPaymentMethod('cash');
       setReloadTick((n) => n + 1);
     } catch (err) {
       setOpMessage(err instanceof Error ? err.message : 'Không thể checkout');
+    }
+  };
+
+  const onCheckInReservation = async () => {
+    if (!reservationCode.trim()) return;
+    setOpMessage(null);
+    try {
+      await staffApi.checkInReservation(reservationCode.trim());
+      setOpMessage('Đã check-in reservation thành công.');
+      setReservationCode('');
+      setReloadTick((n) => n + 1);
+    } catch (err) {
+      setOpMessage(err instanceof Error ? err.message : 'Không thể check-in reservation');
+    }
+  };
+
+  const onProcessWallet = async () => {
+    if (!walletPlate.trim() || !walletAmount.trim()) return;
+    setOpMessage(null);
+    try {
+      await staffApi.processWallet({
+        plateNumber: walletPlate.trim().toUpperCase(),
+        amount: Number(walletAmount),
+      });
+      setOpMessage('Đã xử lý giao dịch ví thành công.');
+      setWalletPlate('');
+      setWalletAmount('');
+    } catch (err) {
+      setOpMessage(err instanceof Error ? err.message : 'Không thể xử lý ví');
     }
   };
 
@@ -225,13 +196,6 @@ export function StaffOperationsPage({ mode = 'full' }: StaffOperationsPageProps)
           </div>
         </div>
       </section>
-
-      {building?.preview ? (
-        <div className="rounded-2xl border border-amber-400/20 bg-amber-500/10 p-4 text-sm text-amber-50">
-          <p className="font-semibold text-white">Đang xem dữ liệu preview</p>
-          <p className="mt-1 leading-6">Bạn vẫn có thể test giao diện check-in/check-out bằng dữ liệu mẫu khi BE chưa gán building cho staff.</p>
-        </div>
-      ) : null}
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {metrics.map((metric) => (
@@ -361,6 +325,28 @@ export function StaffOperationsPage({ mode = 'full' }: StaffOperationsPageProps)
                 </div>
                 <p className="mt-3 text-xs leading-5 text-slate-400">Chọn session đang mở, xác nhận thanh toán rồi hoàn tất checkout.</p>
               </button>
+            </div>
+
+            <div className="mt-5 grid gap-4 xl:grid-cols-2">
+              <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-4">
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-orange-300">Reservation check-in</p>
+                <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                  <Input value={reservationCode} onChange={(e) => setReservationCode(e.target.value)} placeholder="Mã reservation" className="border-white/10 bg-white/5 text-white placeholder:text-slate-500" />
+                  <Button type="button" onClick={onCheckInReservation} className="rounded-xl bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110">
+                    Check-in reservation
+                  </Button>
+                </div>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-4">
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-orange-300">Wallet transaction</p>
+                <div className="mt-3 grid gap-2 sm:grid-cols-[1fr,0.7fr]">
+                  <Input value={walletPlate} onChange={(e) => setWalletPlate(e.target.value)} placeholder="Biển số" className="border-white/10 bg-white/5 text-white placeholder:text-slate-500" />
+                  <Input value={walletAmount} onChange={(e) => setWalletAmount(e.target.value)} placeholder="Số tiền" inputMode="numeric" className="border-white/10 bg-white/5 text-white placeholder:text-slate-500" />
+                </div>
+                <Button type="button" onClick={onProcessWallet} className="mt-3 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-400 text-slate-950 hover:brightness-110">
+                  Process wallet
+                </Button>
+              </div>
             </div>
 
             <div className="mt-5 rounded-2xl border border-white/10 bg-slate-950/50 p-4">

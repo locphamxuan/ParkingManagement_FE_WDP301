@@ -6,75 +6,27 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { staffApi, extractShifts, type MyShift, type ParkingSession } from '@/services/staff/staffApi';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 
-const demoShifts: MyShift[] = [
-  {
-    _id: 'demo-shift-1',
-    shift: { _id: 's1', code: 'S1', name: 'Ca sáng', startTime: '07:00', endTime: '15:00' },
-    building: { _id: 'demo-staff-building', name: 'Tòa nhà demo staff', code: 'PB-DEMO' },
-    workDate: new Date().toISOString(),
-    status: 'active',
-    note: 'Dữ liệu demo khi staff chưa được gán building.',
-  },
-  {
-    _id: 'demo-shift-2',
-    shift: { _id: 's2', code: 'S2', name: 'Ca chiều', startTime: '15:00', endTime: '23:00' },
-    building: { _id: 'demo-staff-building', name: 'Tòa nhà demo staff', code: 'PB-DEMO' },
-    workDate: new Date().toISOString(),
-    status: 'scheduled',
-  },
-];
-
-const demoSessions: ParkingSession[] = [
-  {
-    _id: 'demo-session-1',
-    plateNumber: '59A-123.45',
-    vehicleType: { _id: 'vt1', name: 'Ô tô', code: 'CAR' },
-    gate: { _id: 'g1', code: 'IN', name: 'Cổng vào A' },
-    checkIn: new Date(Date.now() - 1000 * 60 * 70).toISOString(),
-    paymentStatus: 'pending',
-    status: 'active',
-  },
-  {
-    _id: 'demo-session-2',
-    plateNumber: '29B1-678.90',
-    vehicleType: { _id: 'vt2', name: 'Xe máy', code: 'MOTO' },
-    gate: { _id: 'g2', code: 'OUT', name: 'Cổng ra B' },
-    checkIn: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
-    checkOut: new Date(Date.now() - 1000 * 60 * 20).toISOString(),
-    duration: 160,
-    fee: 12000,
-    paymentMethod: 'cash',
-    paymentStatus: 'paid',
-    status: 'completed',
-  },
-];
-
 const todayStr = () => new Date().toISOString().slice(0, 10);
 
 export function StaffDashboardPage() {
   const { building } = useBuildingContext();
+  const [dashboard, setDashboard] = useState<any>(null);
   const [shifts, setShifts] = useState<MyShift[]>([]);
   const [sessions, setSessions] = useState<ParkingSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (building?.preview) {
-      setShifts(demoShifts);
-      setSessions(demoSessions);
-      setLoading(false);
-      setError(null);
-      return;
-    }
-
     const d = todayStr();
     Promise.all([
-      staffApi.myShifts({ from: d, to: d }),
-      building ? staffApi.sessions.list(building._id) : Promise.resolve({ data: { items: [] } } as { data: { items: ParkingSession[] } }),
+      staffApi.getDashboard(),
+      staffApi.getMyShifts({ from: d, to: d }),
+      staffApi.getActiveSessions(),
     ])
-      .then(([shiftRes, sessionRes]) => {
-        setShifts(extractShifts(shiftRes));
-        setSessions(sessionRes.data.items);
+      .then(([dashboardRes, shiftRes, sessionRes]) => {
+        setDashboard((dashboardRes as any)?.data ?? dashboardRes);
+        setShifts(extractShifts(shiftRes as any));
+        setSessions(((sessionRes as any)?.data?.items ?? (sessionRes as any)?.data ?? []) as ParkingSession[]);
         setError(null);
       })
       .catch((err) => setError(err instanceof Error ? err.message : 'Tải thất bại'))
@@ -113,10 +65,12 @@ export function StaffDashboardPage() {
         </div>
       </section>
 
-      {building?.preview ? (
-        <div className="rounded-2xl border border-amber-400/20 bg-amber-500/10 p-4 text-sm text-amber-50">
-          <p className="font-semibold text-white">Đang xem dữ liệu preview</p>
-          <p className="mt-1 leading-6">Tài khoản staff chưa được gán tòa nhà từ BE nên màn này dùng dữ liệu demo để bạn kiểm tra giao diện.</p>
+      {dashboard ? (
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-200">
+          <p className="font-semibold text-white">Dashboard staff từ API</p>
+          <p className="mt-1 leading-6 text-slate-400">
+            {dashboard.message || dashboard.title || 'Đã tải dữ liệu dashboard từ backend.'}
+          </p>
         </div>
       ) : null}
 

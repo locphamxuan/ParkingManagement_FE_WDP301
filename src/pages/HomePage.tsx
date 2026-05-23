@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
-import { motion, useMotionValue, useSpring, useTransform, useScroll } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform, useScroll } from 'framer-motion';
 import type { LucideIcon } from 'lucide-react';
 import {
+  AlertTriangle,
   ArrowRight,
   BarChart3,
   BellRing,
@@ -21,6 +22,7 @@ import {
   User,
   ChevronDown,
   LogOut,
+  X,
 } from 'lucide-react';
 import type { LegacyModule } from '../data/mainFlow';
 import { AnimatedParkingMap3D } from '@/components/shared/AnimatedParkingMap3D';
@@ -30,7 +32,7 @@ interface HomePageProps {
   onOpenAuth: (mode?: 'login' | 'register') => void;
   onViewProfile: () => void;
   onAction: (module: LegacyModule) => void;
-  user?: { fullName?: string; email?: string; phone?: string; role?: string } | null;
+  user?: { fullName?: string; email?: string; phone?: string; role?: string; licensePlates?: Array<{ plateNumber: string; vehicleType: 'car' | 'motorcycle' }> } | null;
   onLogout?: () => void;
 }
 
@@ -81,8 +83,14 @@ const benefits = [
 
 
 export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction, user, onLogout }: HomePageProps) {
+  const hasMissingInfo = Boolean(
+    user &&
+    (!user.phone || user.phone.trim() === '' || !user.licensePlates || user.licensePlates.length === 0)
+  );
+
   const productModules = modules.slice(0, 4);
   const serviceModules = modules.slice(4);
+  const [showPlateBanner, setShowPlateBanner] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -95,7 +103,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-  
+
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"]
@@ -138,7 +146,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
 
   return (
     <main id="top" className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-orange-500 selection:text-white relative">
-      
+
       {/* Background Neon Glow Spheres — fixed so they never cause scroll issues */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10" aria-hidden="true">
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[55%] rounded-full bg-[radial-gradient(circle_at_center,hsla(24,95%,53%,0.08),transparent_55%)] blur-3xl" />
@@ -162,9 +170,9 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
 
           <nav className="hidden md:flex gap-6">
             {navigationLinks.map((link) => (
-              <a 
-                key={link.href} 
-                href={link.href} 
+              <a
+                key={link.href}
+                href={link.href}
                 className="text-sm font-semibold text-slate-400 hover:text-orange-400 transition-colors duration-200"
               >
                 {link.label}
@@ -191,14 +199,29 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
                   <ChevronDown size={12} className="text-slate-400" />
                 </button>
 
+                {hasMissingInfo && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 z-30 pointer-events-none">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-4 w-4 bg-rose-600 text-[8px] font-mono font-black text-white items-center justify-center animate-bounce shadow-[0_0_8px_rgba(225,29,72,0.6)]">
+                      1
+                    </span>
+                  </span>
+                )}
+
                 {menuOpen && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="absolute right-0 mt-2 w-48 bg-slate-900/95 border border-white/10 rounded-xl shadow-2xl py-2 backdrop-blur-md z-50"
                   >
-                    <button className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white" onClick={() => { setMenuOpen(false); onViewProfile(); }}>
-                      Hồ sơ của tôi
+                    <button
+                      className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-between"
+                      onClick={() => { setMenuOpen(false); onViewProfile(); }}
+                    >
+                      <span>Hồ sơ của tôi</span>
+                      {hasMissingInfo && (
+                        <span className="flex h-2 w-2 rounded-full bg-rose-500 animate-pulse shadow-[0_0_6px_#f43f5e]" />
+                      )}
                     </button>
                     <button className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-rose-400 hover:text-rose-300 border-t border-white/5 mt-1" onClick={onLogout}>
                       <LogOut size={12} className="inline-block mr-2" /> Đăng xuất
@@ -215,15 +238,57 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
         </div>
       </header>
 
+      {/* Missing License Plate Warning Banner */}
+      <AnimatePresence>
+        {user && (!user.licensePlates || user.licensePlates.length === 0) && showPlateBanner && (
+          <motion.div
+            key="plate-banner"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.25 }}
+            className="sticky top-[57px] z-30 w-full"
+          >
+            <div className="max-w-6xl mx-auto px-4 py-2">
+              <div className="flex items-center gap-3 rounded-2xl border border-amber-500/25 bg-amber-500/10 backdrop-blur-md px-4 py-2.5 shadow-lg">
+                <div className="flex-shrink-0 p-1.5 rounded-lg bg-amber-500/15 text-amber-400">
+                  <CarFront size={15} />
+                </div>
+                <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                  <AlertTriangle size={12} className="text-amber-400 flex-shrink-0" />
+                  <p className="text-[11px] font-semibold text-amber-200/90 truncate">
+                    Tài khoản chưa có biển số xe — Hệ thống không thể tự động check-in/out cho bạn.
+                  </p>
+                </div>
+                <a
+                  href="/profile"
+                  className="flex-shrink-0 px-3 py-1 rounded-lg bg-amber-500/20 border border-amber-500/30 text-amber-300 font-black text-[10px] uppercase tracking-wider hover:bg-amber-500/30 transition-all duration-200 whitespace-nowrap"
+                >
+                  Cập nhật ngay
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setShowPlateBanner(false)}
+                  className="flex-shrink-0 p-1 rounded-lg text-amber-500/50 hover:text-amber-300 hover:bg-amber-500/10 transition-all duration-200"
+                  aria-label="Đóng thông báo"
+                >
+                  <X size={13} className="stroke-[3]" />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Scroll-Driven Presentation Deck Section */}
       <div ref={containerRef} className="relative w-full max-w-6xl mx-auto px-4 relative z-20">
         <div className="grid md:grid-cols-2 gap-12 items-start relative">
-          
+
           {/* LEFT STORY STORY DECK COLUMN */}
           <div className="space-y-32 py-12 md:py-20 relative z-20">
-            
+
             {/* Story Deck Item 1: Hero Intro */}
-            <motion.section 
+            <motion.section
               id="hero-intro"
               className="min-h-[70vh] flex flex-col justify-center animate-fadeIn"
               initial={{ opacity: 0, y: 30 }}
@@ -247,22 +312,22 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
               <div className="mt-8 flex flex-wrap gap-4 items-center">
                 {user ? (
                   <>
-                    <a 
+                    <a
                       href={
-                        user.role === 'admin' 
-                          ? '/admin/dashboard' 
-                          : user.role === 'manager' 
-                          ? '/manager/dashboard' 
-                          : user.role === 'staff' 
-                          ? '/staff' 
-                          : '/'
-                      } 
+                        user.role === 'admin'
+                          ? '/admin/dashboard'
+                          : user.role === 'manager'
+                            ? '/manager/dashboard'
+                            : user.role === 'staff'
+                              ? '/staff'
+                              : '/'
+                      }
                       className="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider transition-all duration-300 hover:scale-105 hover:shadow-[0_0_25px_rgba(249,115,22,0.4)] inline-flex items-center gap-2"
                     >
                       {heroButtonText} <ArrowRight size={14} />
                     </a>
-                    <button 
-                      onClick={onViewProfile} 
+                    <button
+                      onClick={onViewProfile}
                       className="px-6 py-3 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 hover:border-orange-500/30 hover:bg-slate-900/60 inline-flex items-center"
                     >
                       Xem hồ sơ cá nhân
@@ -270,14 +335,14 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
                   </>
                 ) : (
                   <>
-                    <a 
-                      href="/auth/login" 
+                    <a
+                      href="/auth/login"
                       className="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider transition-all duration-300 hover:scale-105 hover:shadow-[0_0_25px_rgba(249,115,22,0.4)] inline-flex items-center gap-2"
                     >
                       Đăng nhập ngay <ArrowRight size={14} />
                     </a>
-                    <a 
-                      href="/auth/register" 
+                    <a
+                      href="/auth/register"
                       className="px-6 py-3 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 hover:border-orange-500/30 hover:bg-slate-900/60 inline-flex items-center"
                     >
                       Đăng ký tài khoản
@@ -288,8 +353,8 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
             </motion.section>
 
             {/* Story Deck Item 2: Giới thiệu & Quản lý tầng & slot */}
-            <motion.section 
-              id="gioi-thieu" 
+            <motion.section
+              id="gioi-thieu"
               className="min-h-[70vh] flex flex-col justify-center scroll-mt-24"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -321,8 +386,8 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
             </motion.section>
 
             {/* Story Deck Item 3: Check-in/Check-out & Cổng kiểm soát */}
-            <motion.section 
-              id="check-in-gate" 
+            <motion.section
+              id="check-in-gate"
               className="min-h-[70vh] flex flex-col justify-center scroll-mt-24"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -336,7 +401,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
                 <p className="mt-3 text-sm text-slate-400 font-semibold leading-relaxed">
                   Nhận diện biển số, quét RFID thẻ thông minh và vận hành thanh chắn cổng soát vé (Gate) hoàn toàn tự động. Đẩy nhanh thời gian check-in/out xuống dưới 2 giây, giảm thiểu ùn tắc.
                 </p>
-                
+
                 {/* Floating highlight block */}
                 <div className="mt-6 p-5 rounded-2xl border border-orange-500/20 bg-orange-500/5 flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -355,27 +420,27 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
             <div className="relative w-full max-w-[480px] preserve-3d">
               {/* Glowing Ambient Background ring */}
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.05),transparent_70%)] pointer-events-none blur-3xl z-0" />
-              
-              <AnimatedParkingMap3D 
-                rotateX={isMobile ? undefined : rotateX} 
-                rotateZ={isMobile ? undefined : rotateZ} 
-                scale={isMobile ? undefined : scale} 
-                x={isMobile ? undefined : x} 
-                y={isMobile ? undefined : y} 
+
+              <AnimatedParkingMap3D
+                rotateX={isMobile ? undefined : rotateX}
+                rotateZ={isMobile ? undefined : rotateZ}
+                scale={isMobile ? undefined : scale}
+                x={isMobile ? undefined : x}
+                y={isMobile ? undefined : y}
               />
-              
+
               {/* Floating highlight status badges overlay around the model — stacked on the left side to prevent bottom overlapping */}
-              <div className="absolute -left-12 top-[15%] flex flex-col gap-3.5 max-w-[170px] pointer-events-none z-20">
-                {heroHighlights.slice(0, 2).map((item, idx) => (
-                  <motion.article 
-                    key={item.label} 
+              <div className="absolute -left-28 md:-left-36 lg:-left-44 top-[10%] flex flex-col gap-4 max-w-[140px] pointer-events-none z-20">
+                {heroHighlights.slice(0, 1).map((item, idx) => (
+                  <motion.article
+                    key={item.label}
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 + idx * 0.1 }}
-                    className="rounded-2xl border border-white/5 bg-slate-950/80 p-3.5 backdrop-blur-md shadow-2xl"
+                    className="rounded-2xl border border-white/5 bg-slate-950/80 p-3 backdrop-blur-md shadow-2xl"
                   >
                     <strong className="block text-lg font-black text-white font-mono bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">{item.value}</strong>
-                    <span className="text-[10px] font-bold text-slate-400 mt-0.5 leading-tight block">{item.label}</span>
+                    <span className="text-[9px] font-bold text-slate-400 mt-0.5 leading-relaxed block">{item.label}</span>
                   </motion.article>
                 ))}
               </div>
@@ -400,17 +465,16 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
             {productModules.map((module, index) => {
               const Icon = moduleIcons[module.id] || CarFront;
               return (
-                <motion.article 
+                <motion.article
                   key={module.id}
                   initial={{ opacity: 0, y: 16 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: index * 0.08 }}
-                  className={`p-5 rounded-2xl border backdrop-blur-md flex flex-col justify-between h-[230px] transition-all duration-300 ${
-                    module.available 
-                      ? 'border-white/5 bg-slate-900/40 hover:border-orange-500/20 hover:shadow-[0_0_20px_rgba(249,115,22,0.06)]' 
+                  className={`p-5 rounded-2xl border backdrop-blur-md flex flex-col justify-between h-[230px] transition-all duration-300 ${module.available
+                      ? 'border-white/5 bg-slate-900/40 hover:border-orange-500/20 hover:shadow-[0_0_20px_rgba(249,115,22,0.06)]'
                       : 'border-white/5 bg-slate-900/10 opacity-75'
-                  }`}
+                    }`}
                 >
                   <div>
                     <div className="flex items-center gap-3">
@@ -419,23 +483,21 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
                       </div>
                       <div>
                         <h3 className="font-black text-xs text-white tracking-tight uppercase">{module.title}</h3>
-                        <span className={`text-[8px] font-black uppercase tracking-wider font-mono px-2 py-0.5 rounded ${
-                          module.available ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-800 text-slate-500'
-                        }`}>
+                        <span className={`text-[8px] font-black uppercase tracking-wider font-mono px-2 py-0.5 rounded ${module.available ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-800 text-slate-500'
+                          }`}>
                           {module.available ? 'AVAILABLE' : 'ROADMAPPED'}
                         </span>
                       </div>
                     </div>
                     <p className="mt-3 text-xs text-slate-400 leading-relaxed font-semibold">{module.description}</p>
                   </div>
-                  
+
                   <div className="mt-4">
                     <button
-                      className={`w-full py-2.5 px-4 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-1.5 ${
-                        module.available 
-                          ? 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-slate-950 hover:shadow-[0_0_15px_rgba(249,115,22,0.2)]' 
+                      className={`w-full py-2.5 px-4 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-1.5 ${module.available
+                          ? 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-slate-950 hover:shadow-[0_0_15px_rgba(249,115,22,0.2)]'
                           : 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                      }`}
+                        }`}
                       onClick={() => { if (module.id === 'profile') return onViewProfile(); onAction(module); }}
                       disabled={!module.available}
                     >
@@ -462,7 +524,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
             {serviceModules.map((module, index) => {
               const Icon = moduleIcons[module.id] || Ticket;
               return (
-                <motion.article 
+                <motion.article
                   key={module.id}
                   initial={{ opacity: 0, scale: 0.98 }}
                   whileInView={{ opacity: 1, scale: 1 }}

@@ -1,42 +1,49 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HomePage from '@/pages/HomePage';
 import { mainFlowModules } from '@/data/mainFlow';
-import { loadSession, clearSession } from '@/services/storage';
+import { useAuth } from '@/hooks/useAuth';
 
 export function HomeRoute() {
   const navigate = useNavigate();
-  // read persisted session (if any)
-  const session = loadSession();
-  const user = session?.user ?? null;
+  
+  // Use reactive Zustand store instead of direct localStorage to prevent sync lag
+  const { session, logout } = useAuth();
+
+  const userMapped = useMemo(() => {
+    if (!session) return null;
+    return {
+      fullName: session.displayName,
+      email: session.email,
+      role: session.role
+    };
+  }, [session]);
 
   const onOpenAuth = useCallback((mode: 'login' | 'register' = 'login') => {
-    window.location.href = `/auth/${mode}`;
-  }, []);
+    navigate(`/auth/${mode}`, { replace: false });
+  }, [navigate]);
 
   const onViewProfile = useCallback(() => {
-    if (!user) {
+    if (!session) {
       return onOpenAuth('login');
     }
-
     navigate('/profile', { replace: false });
-  }, [navigate, onOpenAuth, user]);
+  }, [navigate, onOpenAuth, session]);
 
   const onAction = useCallback(
     (module: any) => {
       if (module.id === 'auth') return onOpenAuth('login');
       if (module.id === 'profile') return onViewProfile();
-      // fallback: no-op
       return undefined;
     },
     [onOpenAuth, onViewProfile]
   );
 
   const onLogout = useCallback(() => {
-    clearSession();
-    // stay on home and ensure header re-renders (navigate to same path)
+    // Correctly clear Zustand store session alongside legacy localStorage session
+    logout();
     navigate('/', { replace: true });
-  }, [navigate]);
+  }, [logout, navigate]);
 
   return (
     <HomePage
@@ -44,7 +51,7 @@ export function HomeRoute() {
       onOpenAuth={onOpenAuth}
       onViewProfile={onViewProfile}
       onAction={onAction}
-      user={user as { fullName?: string; email?: string; phone?: string; role?: string } | null}
+      user={userMapped}
       onLogout={onLogout}
     />
   );

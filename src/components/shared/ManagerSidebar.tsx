@@ -41,21 +41,21 @@ export function ManagerSidebar({ collapsed, onToggle }: ManagerSidebarProps) {
   return (
     <aside
       className={cn(
-        'sticky top-0 hidden h-screen border-r border-stone-200/50 bg-stone-50/85 p-4 shadow-[4px_0_30px_rgba(0,0,0,0.02)] backdrop-blur-3xl lg:block transition-all duration-350 ease-in-out',
+        'sticky top-0 hidden h-screen border-r border-white/8 bg-slate-900/95 p-4 shadow-[4px_0_30px_rgba(0,0,0,0.25)] backdrop-blur-xl lg:block transition-all duration-350 ease-in-out',
         collapsed ? 'w-[84px]' : 'w-[264px]',
       )}
     >
-      <div className="mb-6 flex items-center justify-between rounded-2xl border border-stone-200/40 bg-white/70 p-3 shadow-sm backdrop-blur-md">
+      <div className="mb-6 flex items-center justify-between rounded-2xl border border-white/8 bg-slate-800/60 p-3 shadow-sm backdrop-blur-md">
         {!collapsed ? (
           <div className="pl-1">
-            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-stone-500">Môi trường</p>
-            <p className="text-xs font-extrabold text-stone-850">MANAGER PORTAL</p>
+            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">Môi trường</p>
+            <p className="text-xs font-extrabold text-slate-100">MANAGER PORTAL</p>
           </div>
         ) : (
           <User className="text-primary drop-shadow-[0_0_8px_rgba(249,115,22,0.25)] h-5 w-5 mx-auto" />
         )}
-        <Button size="sm" variant="ghost" onClick={onToggle} className="h-7 w-7 rounded-lg p-0 hover:bg-stone-200/55">
-          <MapPin className={cn('h-3.5 w-3.5 text-stone-500 transition-all duration-300', collapsed && 'rotate-180')} />
+        <Button size="sm" variant="ghost" onClick={onToggle} className="h-7 w-7 rounded-lg p-0 hover:bg-white/8 text-slate-400 hover:text-white">
+          <MapPin className={cn('h-3.5 w-3.5 transition-all duration-300', collapsed && 'rotate-180')} />
         </Button>
       </div>
 
@@ -71,8 +71,8 @@ export function ManagerSidebar({ collapsed, onToggle }: ManagerSidebarProps) {
                 cn(
                   'flex items-center gap-3.5 rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-all duration-300',
                   isActive
-                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/20 scale-[1.02]'
-                    : 'text-stone-600 hover:bg-stone-200/40 hover:text-stone-900',
+                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/25 scale-[1.02]'
+                    : 'text-slate-400 hover:bg-white/6 hover:text-slate-100',
                 )
               }
             >

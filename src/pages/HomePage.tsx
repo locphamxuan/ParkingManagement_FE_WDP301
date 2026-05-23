@@ -353,8 +353,8 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
                 y={y} 
               />
               
-              {/* Floating highlight status badges overlay around the model */}
-              <div className="absolute -left-6 -bottom-6 grid grid-cols-2 gap-3 max-w-[280px] pointer-events-none z-20">
+              {/* Floating highlight status badges overlay around the model — stacked on the left side to prevent bottom overlapping */}
+              <div className="absolute -left-12 top-[15%] flex flex-col gap-3.5 max-w-[170px] pointer-events-none z-20">
                 {heroHighlights.slice(0, 2).map((item, idx) => (
                   <motion.article 
                     key={item.label} 

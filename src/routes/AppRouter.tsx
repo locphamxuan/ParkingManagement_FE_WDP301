@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { ScrollToTop } from '@/components/shared/ScrollToTop';
 import { AdminLayout } from '@/layouts/AdminLayout';
 import { DashboardOverviewPage } from '@/pages/admin/DashboardOverviewPage';
 import { BuildingsPage } from '@/pages/admin/BuildingsPage';
@@ -31,7 +32,9 @@ import { ManagerShiftsPage } from '@/pages/manager/ManagerShiftsPage';
 
 export function AppRouter() {
   return (
-    <Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
       <Route path="/" element={<HomeRoute />} />
       <Route path="/dashboard" element={<Navigate to="/" replace />} />
       <Route path="/auth/login" element={<PublicLoginRoute />} />
@@ -105,6 +108,7 @@ export function AppRouter() {
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+      </Routes>
+    </>
   );
 }

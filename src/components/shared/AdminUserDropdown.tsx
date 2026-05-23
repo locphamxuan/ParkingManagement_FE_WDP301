@@ -37,7 +37,7 @@ export function AdminUserDropdown({ email, onLogout }: Props) {
     <div className="relative inline-block" ref={ref}>
       <button
         type="button"
-        className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/95 px-3 py-2 text-xs font-medium text-slate-900 shadow-sm transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 sm:text-sm"
+        className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-slate-800/80 px-3 py-2 text-xs font-medium text-slate-200 shadow-sm transition hover:bg-slate-700/80 focus:outline-none focus:ring-2 focus:ring-orange-500/50 sm:text-sm"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         onKeyDown={(e) => {
@@ -52,30 +52,30 @@ export function AdminUserDropdown({ email, onLogout }: Props) {
           if (e.key === 'Escape') setOpen(false);
         }}
       >
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-sky-100 text-sky-700">
+        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-500/15 text-orange-400 border border-orange-500/20">
           <User size={16} />
         </span>
-        <span className="max-w-[170px] truncate text-xs font-medium uppercase tracking-[0.06em] text-slate-700 sm:text-sm">
+        <span className="max-w-[170px] truncate text-xs font-medium uppercase tracking-[0.06em] text-slate-300 sm:text-sm">
           {email}
         </span>
         <ChevronDown size={14} className="text-slate-500" />
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-48 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl ring-1 ring-black/5">
+        <div className="absolute right-0 z-50 mt-2 w-48 overflow-hidden rounded-2xl border border-white/10 bg-slate-900 shadow-xl shadow-black/40">
           <button
             type="button"
-            className="user-dropdown-item w-full px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
+            className="user-dropdown-item w-full px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
             onClick={handleViewProfile}
           >
             Hồ sơ
           </button>
           <button
             type="button"
-            className="user-dropdown-item w-full px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
+            className="user-dropdown-item w-full px-4 py-3 text-left text-sm text-rose-400 transition hover:bg-slate-800 border-t border-white/5"
             onClick={onLogout}
           >
-            <LogOut size={14} className="inline-block align-middle text-slate-500" />
+            <LogOut size={14} className="inline-block align-middle" />
             <span className="ml-2 align-middle">Đăng xuất</span>
           </button>
         </div>

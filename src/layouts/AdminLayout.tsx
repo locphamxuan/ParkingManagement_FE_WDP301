@@ -30,8 +30,12 @@ export function AdminLayout() {
   const title = useMemo(() => titles[location.pathname] ?? 'Admin Dashboard', [location.pathname]);
 
   return (
-    <div className="admin-theme relative min-h-screen overflow-hidden bg-background text-foreground">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_8%,rgba(249,115,22,0.18),transparent_24%),radial-gradient(circle_at_86%_10%,rgba(251,191,36,0.12),transparent_22%),linear-gradient(180deg,rgba(255,255,255,0.55),rgba(255,247,237,0.16))]" />
+    <div className="admin-theme relative min-h-screen bg-slate-950 text-foreground">
+      {/* Subtle ambient glow for depth — kept low opacity so cards stand out */}
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.06),transparent_65%)] blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.04),transparent_60%)] blur-3xl" />
+      </div>
       <div className="relative z-10 flex min-h-screen">
         <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((prev) => !prev)} />
         <div className="flex min-h-screen flex-1 flex-col">

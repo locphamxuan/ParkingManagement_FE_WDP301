@@ -1,5 +1,37 @@
 import { api } from '@/services/apiClient';
 
+const USE_MOCK = (import.meta.env.VITE_USE_MOCK_DATA as string | undefined) !== 'false';
+
+// Simple mock data for offline preview when VITE_USE_MOCK_DATA is not set to 'false'
+const mockBuilding: StaffBuilding = {
+  _id: 'bldg-demo-1',
+  name: 'Tòa nhà Demo',
+  code: 'DEMO-1',
+  status: 'active',
+  operatingHours: { open: '07:00', close: '22:00' },
+  address: { fullAddress: '123 Demo Street' },
+  contactPhone: '+84901234567',
+};
+
+const mockShift = {
+  _id: 'shift-demo-1',
+  shift: { _id: 's1', code: 'S1', name: 'Ca sáng', startTime: '07:00', endTime: '15:00' },
+  building: { _id: mockBuilding._id, name: mockBuilding.name, code: mockBuilding.code },
+  workDate: new Date().toISOString().slice(0, 10),
+  status: 'active' as const,
+};
+
+const mockSession: ParkingSession = {
+  _id: 'ps-1',
+  plateNumber: '30A-12345',
+  vehicleType: null,
+  slot: { _id: 'slot-1', code: 'A1' },
+  gate: { _id: 'gate-1', code: 'G1', name: 'Cổng chính' },
+  checkIn: new Date().toISOString(),
+  paymentStatus: 'pending',
+  status: 'active',
+};
+
 export interface StaffBuilding {
   _id: string;
   name: string;
@@ -59,65 +91,52 @@ function unwrapList<T>(payload: ApiList<T> | Wrap<ApiList<T>> | null | undefined
 }
 
 export const staffApi = {
-  getDashboard: () => api.get('/staff/dashboard'),
+  getDashboard: () => (USE_MOCK ? Promise.resolve({ data: { totalActive: 1, totalShifts: 1 } }) : api.get('/staff/dashboard')),
 
-  listBuildings: () => api.get<Wrap<ApiList<StaffBuilding>>>('/staff/buildings'),
+  listBuildings: () =>
+    USE_MOCK ? Promise.resolve({ data: { items: [mockBuilding] } }) : api.get<Wrap<ApiList<StaffBuilding>>>('/staff/buildings'),
 
-  getBuilding: (id: string) => api.get<Wrap<StaffBuilding>>(`/staff/buildings/${id}`),
+  getBuilding: (id: string) => (USE_MOCK ? Promise.resolve({ data: mockBuilding }) : api.get<Wrap<StaffBuilding>>(`/staff/buildings/${id}`)),
 
-  getActiveSessions: () => api.get<Wrap<ApiList<ParkingSession>>>('/staff/parking-sessions/active'),
+  getActiveSessions: () =>
+    USE_MOCK ? Promise.resolve({ data: { items: [mockSession] } }) : api.get<Wrap<ApiList<ParkingSession>>>('/staff/parking-sessions/active'),
 
   searchSessions: (q: string) =>
-    api.get<Wrap<ApiList<ParkingSession>>>('/staff/parking-sessions/search', { query: { q } }),
+    USE_MOCK ? Promise.resolve({ data: { items: [mockSession] } }) : api.get<Wrap<ApiList<ParkingSession>>>('/staff/parking-sessions/search', { query: { q } }),
 
   checkIn: (payload: { plateNumber: string; vehicleType?: string; gate?: string; buildingId?: string }) =>
-    api.post<Wrap<{ item: ParkingSession }>>('/staff/parking-sessions/check-in', payload),
+    USE_MOCK ? Promise.resolve({ data: { item: mockSession } }) : api.post<Wrap<{ item: ParkingSession }>>('/staff/parking-sessions/check-in', payload),
 
-  checkOut: (id: string) => api.patch<Wrap<{ item: ParkingSession }>>(`/staff/parking-sessions/${id}/check-out`),
+  checkOut: (id: string) => (USE_MOCK ? Promise.resolve({ data: { item: mockSession } }) : api.patch<Wrap<{ item: ParkingSession }>>(`/staff/parking-sessions/${id}/check-out`)),
 
-  getSessionById: (id: string) => api.get<Wrap<ParkingSession>>(`/staff/parking-sessions/${id}`),
+  getSessionById: (id: string) => (USE_MOCK ? Promise.resolve({ data: mockSession }) : api.get<Wrap<ParkingSession>>(`/staff/parking-sessions/${id}`)),
 
   getMyShifts: (query?: Record<string, string | undefined>) =>
-    api.get<Wrap<ApiList<MyShift>>>('/staff/my-shifts', { query }),
+    USE_MOCK ? Promise.resolve({ data: { items: [mockShift] } }) : api.get<Wrap<ApiList<MyShift>>>('/staff/my-shifts', { query }),
 
-  createIncident: (payload: unknown) => api.post('/staff/incidents', payload),
+  createIncident: (payload: unknown) => (USE_MOCK ? Promise.resolve({ data: { item: payload } }) : api.post('/staff/incidents', payload)),
 
-  processWallet: (payload: unknown) => api.post('/staff/wallet-transactions', payload),
+  processWallet: (payload: unknown) => (USE_MOCK ? Promise.resolve({ data: { success: true } }) : api.post('/staff/wallet-transactions', payload)),
 
-  checkInReservation: (code: string) => api.post(`/staff/reservations/${code}/check-in`),
+  checkInReservation: (code: string) => (USE_MOCK ? Promise.resolve({ data: { success: true } }) : api.post(`/staff/reservations/${code}/check-in`)),
 
   incidents: {
     list: (buildingId?: string) =>
-      api.get<Wrap<ApiList<StaffIncident>>>('/staff/incidents', {
-        query: buildingId ? { buildingId } : undefined,
-      }),
+      USE_MOCK ? Promise.resolve({ data: { items: [] } }) : api.get<Wrap<ApiList<StaffIncident>>>('/staff/incidents', { query: buildingId ? { buildingId } : undefined }),
   },
 
   // Backward-compatible aliases used by the current UI code
-  buildings: () => api.get<Wrap<ApiList<StaffBuilding>>>('/staff/buildings'),
+  buildings: () => (USE_MOCK ? Promise.resolve({ data: { items: [mockBuilding] } }) : api.get<Wrap<ApiList<StaffBuilding>>>('/staff/buildings')),
 
-  myShifts: (q?: Record<string, string | undefined>) =>
-    api.get<Wrap<ApiList<MyShift>>>('/staff/my-shifts', { query: q }),
+  myShifts: (q?: Record<string, string | undefined>) => (USE_MOCK ? Promise.resolve({ data: { items: [mockShift] } }) : api.get<Wrap<ApiList<MyShift>>>('/staff/my-shifts', { query: q })),
 
   sessions: {
     list: (buildingId: string, q?: Record<string, string | undefined>) =>
-      api.get<Wrap<{ items: ParkingSession[] }>>(
-        `/staff/buildings/${buildingId}/sessions`,
-        { query: q }
-      ),
-    checkIn: (
-      buildingId: string,
-      body: { plateNumber: string; vehicleType?: string; gate?: string }
-    ) =>
-      api.post<Wrap<{ item: ParkingSession }>>(
-        `/staff/buildings/${buildingId}/sessions/check-in`,
-        body
-      ),
+      USE_MOCK ? Promise.resolve({ data: { items: [mockSession] } }) : api.get<Wrap<{ items: ParkingSession[] }>>(`/staff/buildings/${buildingId}/sessions`, { query: q }),
+    checkIn: (buildingId: string, body: { plateNumber: string; vehicleType?: string; gate?: string }) =>
+      USE_MOCK ? Promise.resolve({ data: { item: mockSession } }) : api.post<Wrap<{ item: ParkingSession }>>(`/staff/buildings/${buildingId}/sessions/check-in`, body),
     checkOut: (buildingId: string, sessionId: string, body: { paymentMethod: string }) =>
-      api.patch<Wrap<{ item: ParkingSession }>>(
-        `/staff/buildings/${buildingId}/sessions/${sessionId}/check-out`,
-        body
-      ),
+      USE_MOCK ? Promise.resolve({ data: { item: mockSession } }) : api.patch<Wrap<{ item: ParkingSession }>>(`/staff/buildings/${buildingId}/sessions/${sessionId}/check-out`, body),
   },
 };
 

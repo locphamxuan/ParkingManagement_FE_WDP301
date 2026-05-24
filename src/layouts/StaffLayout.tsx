@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { StaffNavbar } from '@/components/shared/StaffNavbar';
+import { Navbar } from '@/components/shared/Navbar';
 import { StaffSidebar } from '@/components/shared/StaffSidebar';
 import { useAuth } from '@/hooks/useAuth';
 import { staffApi, extractBuildings, type StaffBuilding } from '@/services/staff/staffApi';
@@ -24,7 +24,12 @@ export function StaffLayout() {
   const [bootstrapping, setBootstrapping] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const loadBuildings = () => {
+  const handleLogout = useCallback(() => {
+    logout();
+    navigate('/auth/login', { replace: true });
+  }, [logout, navigate]);
+
+  const loadBuildings = useCallback(() => {
     setBootstrapping(true);
     setLoadError(null);
 
@@ -42,11 +47,11 @@ export function StaffLayout() {
         }
       })
       .finally(() => setBootstrapping(false));
-  };
+  }, [selectedBuildingId, user?.assignedBuildingIds, logout]);
 
   useEffect(() => {
     loadBuildings();
-  }, []);
+  }, [loadBuildings]);
 
   const slug = useMemo(() => {
     const tail = location.pathname.replace(/^\/staff\/?/, '');
@@ -67,16 +72,12 @@ export function StaffLayout() {
       <div className="relative z-10 flex min-h-screen">
         <StaffSidebar collapsed={collapsed} onToggle={() => setCollapsed((prev) => !prev)} />
         <div className="flex min-h-screen flex-1 flex-col">
-          <StaffNavbar
+          <Navbar
             title={title}
             email={user?.email ?? 'staff@pbms.local'}
-            buildings={buildings}
-            selectedBuildingId={selectedBuildingId}
-            onBuildingChange={setSelectedBuildingId}
-            onLogout={() => {
-              logout();
-              navigate('/auth/login', { replace: true });
-            }}
+            onLogout={handleLogout}
+            hideSearch={true}
+            compactProfile={true}
           />
           <main className="flex-1 p-4 md:p-6">
             {bootstrapping ? (
@@ -97,10 +98,7 @@ export function StaffLayout() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
-                      logout();
-                      navigate('/auth/login', { replace: true });
-                    }}
+                    onClick={handleLogout}
                     className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10"
                   >
                     Đăng xuất

@@ -101,7 +101,7 @@ export function AppRouter() {
           element={<Navigate to="/auth/login" replace />}
         />
 
-        <Route element={<ProtectedRoute role="staff" />}>
+        { (import.meta.env.VITE_USE_MOCK_DATA as string | undefined) !== 'false' ? (
           <Route path="/staff" element={<StaffLayout />}>
             <Route index element={<StaffDashboardPage />} />
             <Route path="dashboard" element={<StaffDashboardPage />} />
@@ -109,12 +109,21 @@ export function AppRouter() {
             <Route path="my-shifts" element={<StaffShiftsPage />} />
             <Route path="sessions" element={<StaffSessionsPage />} />
             <Route path="incidents" element={<StaffIncidentsPage />} />
-            <Route
-              path="handover"
-              element={<StaffOperationsPage mode="handover" />}
-            />
+            <Route path="handover" element={<StaffOperationsPage mode="handover" />} />
           </Route>
-        </Route>
+        ) : (
+          <Route element={<ProtectedRoute role="staff" />}>
+            <Route path="/staff" element={<StaffLayout />}>
+              <Route index element={<StaffDashboardPage />} />
+              <Route path="dashboard" element={<StaffDashboardPage />} />
+              <Route path="operations" element={<StaffOperationsPage />} />
+              <Route path="my-shifts" element={<StaffShiftsPage />} />
+              <Route path="sessions" element={<StaffSessionsPage />} />
+              <Route path="incidents" element={<StaffIncidentsPage />} />
+              <Route path="handover" element={<StaffOperationsPage mode="handover" />} />
+            </Route>
+          </Route>
+        ) }
 
         <Route element={<ProtectedRoute role="admin" />}>
           <Route path="/admin/dashboard" element={<AdminLayout />}>

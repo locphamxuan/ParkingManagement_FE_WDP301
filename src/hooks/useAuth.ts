@@ -17,6 +17,7 @@ export function useAuth() {
         role: session.role,
         fullName: session.displayName,
         phone: session.phone || '',
+        assignedBuildingIds: session.assignedBuildingIds || [],
         licensePlates: session.licensePlates || [],
       }
     : null;

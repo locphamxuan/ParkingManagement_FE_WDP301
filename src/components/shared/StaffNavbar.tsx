@@ -7,19 +7,23 @@ import type { StaffBuilding } from '@/services/staff/staffApi';
 interface StaffNavbarProps {
   title: string;
   email: string;
+  fullName?: string | null;
   buildings: StaffBuilding[];
   selectedBuildingId: string | null;
   onBuildingChange: (buildingId: string) => void;
   onLogout: () => void;
+  onProfile?: () => void;
 }
 
 export function StaffNavbar({
   title,
   email,
+  fullName,
   buildings,
   selectedBuildingId,
   onBuildingChange,
   onLogout,
+  onProfile,
 }: StaffNavbarProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
@@ -58,10 +62,7 @@ export function StaffNavbar({
             </select>
           ) : null}
 
-          <div className="relative hidden w-full max-w-md md:block">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" size={15} />
-            <Input className="border-white/10 bg-slate-800/70 pl-10 text-slate-200 shadow-none placeholder:text-slate-500 rounded-full h-9.5 focus:border-orange-500/40" placeholder="Tìm kiếm nhanh..." />
-          </div>
+          {/* removed search input per request; showing nothing here */}
 
           <Button variant="secondary" size="sm" className="gap-2 rounded-full border border-white/10 bg-slate-800/70 hover:bg-slate-700/80 text-slate-300 hover:text-white shadow-sm h-9.5 px-4 transition-all">
             <Bell size={14} className="text-slate-400" />
@@ -78,12 +79,20 @@ export function StaffNavbar({
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-500/15 text-orange-400 border border-orange-500/20">
                 <User size={16} />
               </span>
-              <span className="max-w-[170px] truncate text-xs font-medium uppercase tracking-[0.06em] text-slate-300 sm:text-sm">{email}</span>
+              <span className="max-w-[170px] truncate text-xs font-medium tracking-[0.06em] text-slate-300 sm:text-sm">{fullName ?? email}</span>
               <ChevronDown size={14} className="text-slate-500" />
             </button>
 
             {open ? (
               <div className="absolute right-0 z-50 mt-2 w-48 overflow-hidden rounded-2xl border border-white/10 bg-slate-900 shadow-xl shadow-black/40">
+                <button
+                  type="button"
+                  className="w-full px-4 py-3 text-left text-sm text-slate-200 transition hover:bg-slate-800 border-b border-white/5"
+                  onClick={() => onProfile?.()}
+                >
+                  <User size={14} className="inline-block align-middle text-slate-300" />
+                  <span className="ml-2 align-middle">Hồ sơ</span>
+                </button>
                 <button
                   type="button"
                   className="w-full px-4 py-3 text-left text-sm text-rose-400 transition hover:bg-slate-800 border-t border-white/5"

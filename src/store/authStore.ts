@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { loginWithBackend, type AuthSession } from '@/services/authService';
 import { saveSession, clearSession, loadSession } from '@/services/storage';
 import { AUTH_STORAGE_KEY } from '@/utils/constants';
+import { requestJson } from '@/services/pbmsApi';
 
 interface AuthState {
   session: AuthSession | null;
@@ -10,7 +11,8 @@ interface AuthState {
   error: string | null;
   login: (email: string, password: string) => Promise<AuthSession>;
   logout: () => void;
-  updateProfile: (profile: { fullName: string; phone: string; licensePlates: Array<{ _id?: string; plateNumber: string; vehicleType: 'car' | 'motorcycle' }> }) => void;
+  updateProfile: (profile: { fullName: string; phone: string; licensePlates: Array<{ _id?: string; plateNumber: string; vehicleType: 'car' | 'motorcycle'; isDefault?: boolean }> }) => void;
+  setDefaultLicensePlate: (plateId: string) => Promise<void>;
 }
 
 function mapLegacySession(): AuthSession | null {
@@ -50,7 +52,7 @@ function mapLegacySession(): AuthSession | null {
         if (!item) return null;
         if (typeof item === 'string') {
           const plate = item.toUpperCase().trim();
-          return plate ? { plateNumber: plate, vehicleType: 'car' as const } : null;
+          return plate ? { plateNumber: plate, vehicleType: 'car' as const, isDefault: false } : null;
         }
         if (typeof item === 'object') {
           const p = item as Record<string, unknown>;
@@ -60,18 +62,19 @@ function mapLegacySession(): AuthSession | null {
                 _id: p._id ? String(p._id) : undefined,
                 plateNumber: plate,
                 vehicleType: p.vehicleType === 'motorcycle' ? ('motorcycle' as const) : ('car' as const),
+                isDefault: p.isDefault === true || p.isDefault === 'true',
               }
             : null;
         }
         return null;
       })
-      .filter((p): p is { _id?: string; plateNumber: string; vehicleType: 'car' | 'motorcycle' } => Boolean(p && p.plateNumber)),
+      .filter((p): p is { _id?: string; plateNumber: string; vehicleType: 'car' | 'motorcycle'; isDefault?: boolean } => Boolean(p && p.plateNumber)),
   };
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       session: mapLegacySession(),
       isAuthenticating: false,
       error: null,
@@ -89,10 +92,11 @@ export const useAuthStore = create<AuthState>()(
 
           if (localData) {
             // Merge local profile data on top of fresh backend session
-            const localPlates: Array<{ plateNumber: string; vehicleType: 'car' | 'motorcycle' }> =
+            const localPlates: Array<{ plateNumber: string; vehicleType: 'car' | 'motorcycle'; isDefault?: boolean }> =
               (localData.licensePlates || []).map((p: any) => ({
                 plateNumber: String(p?.plateNumber || p || '').toUpperCase().trim(),
                 vehicleType: p?.vehicleType === 'motorcycle' ? ('motorcycle' as const) : ('car' as const),
+                isDefault: p?.isDefault === true || p?.isDefault === 'true',
               })).filter((p: any) => p.plateNumber);
 
             // Merge uniquely: prefer local type info, include backend plates too
@@ -171,6 +175,53 @@ export const useAuthStore = create<AuthState>()(
 
           return { session: updatedSession };
         });
+      },
+      async setDefaultLicensePlate(plateId: string) {
+        const current = get().session;
+        if (!current) return;
+
+        // Gửi request PATCH lên Backend
+        const response = await requestJson<any>({
+          path: `/users/license-plates/${plateId}/default`,
+          method: 'PATCH',
+          token: current.token,
+        });
+
+        // API BE sẽ trả về mảng biển số xe mới đã cập nhật trạng thái isDefault
+        const updatedPlates = Array.isArray(response?.data?.licensePlates)
+          ? response.data.licensePlates.map((item: any) => ({
+              _id: item._id,
+              plateNumber: item.plateNumber,
+              vehicleType: item.vehicleType,
+              isDefault: item.isDefault,
+            }))
+          : [];
+
+        const updatedSession = { ...current, licensePlates: updatedPlates };
+        set({ session: updatedSession });
+
+        // Lưu đè vào localStorage cá nhân
+        saveSession({
+          token: current.token,
+          user: {
+            _id: current.userId,
+            email: current.email,
+            fullName: current.displayName,
+            role: current.role,
+            assignedBuildings: current.assignedBuildingIds,
+            phone: current.phone || '',
+            licensePlates: updatedPlates,
+          },
+        });
+
+        // Đồng bộ với cơ sở dữ liệu dùng chung toàn hệ thống
+        const locallyUpdated = JSON.parse(localStorage.getItem('pbms.locallyUpdatedUsers') || '{}');
+        locallyUpdated[current.email] = {
+          fullName: current.displayName,
+          phone: current.phone,
+          licensePlates: updatedPlates,
+        };
+        localStorage.setItem('pbms.locallyUpdatedUsers', JSON.stringify(locallyUpdated));
       },
     }),
     {

@@ -34,7 +34,7 @@ const modules = [
   { to: 'packages', label: 'Gói', icon: Package },
   { to: 'shifts', label: 'Ca trực', icon: Users },
   { to: 'feedbacks', label: 'Phản hồi', icon: MessageSquare },
-  { to: 'settings', label: 'Cài đặt', icon: ShieldAlert },
+  { to: 'fraud-detection', label: 'Phát hiện gian lận', icon: ShieldAlert },
 ] as const;
 
 export function ManagerSidebar({ collapsed, onToggle }: ManagerSidebarProps) {

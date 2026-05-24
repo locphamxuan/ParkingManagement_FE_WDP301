@@ -9,7 +9,6 @@ import {
   Fingerprint,
   LayoutDashboard,
   NotebookPen,
-  Settings,
   ShieldAlert,
   Users,
   Wallet,
@@ -37,7 +36,6 @@ const modules = [
   { to: "audit-logs", label: "Audit logs", icon: Activity },
   { to: "fraud-detection", label: "Phát hiện gian lận", icon: ShieldAlert },
   { to: "notifications", label: "Thông báo", icon: Bell },
-  { to: "settings", label: "Cài đặt", icon: Settings },
 ] as const;
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {

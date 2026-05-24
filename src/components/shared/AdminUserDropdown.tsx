@@ -38,8 +38,6 @@ export function AdminUserDropdown({ email, onLogout, compact = false }: Props) {
 
   const displayEmail = email ?? user?.email ?? '';
   const role = user?.role ?? 'user';
-  const phone = user?.phone ?? '';
-
   return (
     <div className="relative inline-block" ref={ref}>
       <button
@@ -82,7 +80,6 @@ export function AdminUserDropdown({ email, onLogout, compact = false }: Props) {
           <div className="px-4 py-3 text-sm text-slate-300">
             <div className="font-semibold text-white truncate">{user?.fullName ?? displayEmail}</div>
             <div className="mt-1 text-xs text-slate-400">{role.toUpperCase()}</div>
-            {phone ? <div className="mt-2 text-xs text-slate-300">Sđt: {phone}</div> : null}
           </div>
           <div className="border-t border-white/5">
             <button

@@ -182,6 +182,18 @@ export function ManagerSlotsPage() {
   // Interactive cockpit rotation state values for 3D stacks
   const [rx, setRx] = useState(60);
   const [rz, setRz] = useState(-45);
+  const [zoom, setZoom] = useState(1);
+
+  const clampZoom = useCallback((value: number) => Math.min(3, Math.max(0.5, value)), []);
+
+  const handleViewportWheel = useCallback(
+    (event: React.WheelEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      const delta = event.deltaY > 0 ? -0.08 : 0.08;
+      setZoom((current) => clampZoom(Number((current + delta).toFixed(2))));
+    },
+    [clampZoom],
+  );
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -453,11 +465,15 @@ export function ManagerSlotsPage() {
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(249,115,22,0.07),rgba(168,85,247,0.035)_50%,transparent_75%)] pointer-events-none" />
                 
                 {/* 3D Render Stack Container */}
-                <div className="perspective-1000 w-full h-full flex items-center justify-center preserve-3d">
+                <div
+                  className="perspective-1000 w-full h-full flex items-center justify-center preserve-3d"
+                  onWheel={handleViewportWheel}
+                >
                   <motion.div
                     style={{
                       rotateX: rx,
                       rotateZ: rz,
+                      scale: zoom,
                       transformStyle: 'preserve-3d',
                     }}
                     className="isometric-mesh relative w-[500px] h-[400px] preserve-3d transition-transform duration-200"
@@ -572,8 +588,24 @@ export function ManagerSlotsPage() {
                       />
                     </div>
 
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400 font-mono">
+                        <span>Độ Phóng To (Zoom)</span>
+                        <span className="text-orange-400 font-mono">{zoom.toFixed(2)}x</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0.5"
+                        max="3"
+                        step="0.05"
+                        value={zoom}
+                        onChange={(e) => setZoom(clampZoom(Number(e.target.value)))}
+                        className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-orange-500 border border-white/5"
+                      />
+                    </div>
+
                     <button 
-                      onClick={() => { setRx(60); setRz(-45); }}
+                      onClick={() => { setRx(60); setRz(-45); setZoom(1); }}
                       className="w-full py-2.5 rounded-xl border border-white/10 hover:border-orange-500/30 text-white font-mono text-[9px] font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 hover:bg-slate-950/50"
                     >
                       <RotateCcw size={12} /> Reset View

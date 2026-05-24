@@ -706,6 +706,23 @@ export default function ProfilePage() {
               </p>
             </div>
 
+            <div className="rounded-3xl bg-gradient-to-br from-emerald-500/5 to-teal-500/5 border border-emerald-500/15 p-6 text-slate-300 shadow-xl relative overflow-hidden mt-4">
+              <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.06),transparent_65%)] pointer-events-none" />
+              <p className="text-xs font-black uppercase tracking-wider text-emerald-400 font-mono flex items-center gap-1.5">
+                <span>🎯</span> Hiệu quả tuyệt vời
+              </p>
+              <ul className="mt-3 space-y-2.5 text-xs leading-relaxed text-slate-400 font-semibold list-none pl-0">
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-400 flex-shrink-0 mt-0.5">•</span>
+                  <span><strong>Dữ liệu thật 100%</strong>: Tất cả thông tin của bạn được ghi trực tiếp vào MongoDB đám mây.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-400 flex-shrink-0 mt-0.5">•</span>
+                  <span><strong>Xuyên suốt mọi máy tính</strong>: Khi bạn lưu biển số xe bên máy bạn, bạn của bạn mở trang Admin bên máy họ lên sẽ lập tức thấy biển số xe của bạn hiển thị đẹp mắt kèm icon, cực kỳ chuyên nghiệp và chuẩn chỉ!</span>
+                </li>
+              </ul>
+            </div>
+
           </motion.aside>
         </div>
       </div>

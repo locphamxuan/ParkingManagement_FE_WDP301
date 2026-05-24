@@ -85,6 +85,7 @@ const benefits = [
 export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction, user, onLogout }: HomePageProps) {
   const hasMissingInfo = Boolean(
     user &&
+    user.role === 'user' &&
     (!user.phone || user.phone.trim() === '' || !user.licensePlates || user.licensePlates.length === 0)
   );
 
@@ -240,7 +241,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
 
       {/* Missing License Plate Warning Banner */}
       <AnimatePresence>
-        {user && (!user.licensePlates || user.licensePlates.length === 0) && showPlateBanner && (
+        {user && user.role === 'user' && (!user.licensePlates || user.licensePlates.length === 0) && showPlateBanner && (
           <motion.div
             key="plate-banner"
             initial={{ opacity: 0, y: -8 }}

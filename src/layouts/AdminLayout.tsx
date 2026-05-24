@@ -1,24 +1,23 @@
-import { useMemo, useState } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Sidebar } from '@/components/shared/Sidebar';
-import { Navbar } from '@/components/shared/Navbar';
-import { useAuth } from '@/hooks/useAuth';
-import { ADMIN_EMAIL_FALLBACK } from '@/utils/constants';
+import { useMemo, useState } from "react";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Sidebar } from "@/components/shared/Sidebar";
+import { Navbar } from "@/components/shared/Navbar";
+import { useAuth } from "@/hooks/useAuth";
+import { ADMIN_EMAIL_FALLBACK } from "@/utils/constants";
 
 const titles: Record<string, string> = {
-  '/admin/dashboard': 'Bảng điều khiển doanh nghiệp',
-  '/admin/dashboard/buildings': 'Quản lý tòa nhà',
-  '/admin/dashboard/users': 'Quản lý người dùng',
-  '/admin/dashboard/revenue-analytics': 'Phân tích doanh thu',
-  '/admin/dashboard/wallet-governance': 'Quản lý ví',
-  '/admin/dashboard/pricing-policies': 'Chính sách giá',
-  '/admin/dashboard/policy-push-logs': 'Lịch sử đẩy chính sách',
-  '/admin/dashboard/audit-logs': 'Nhật ký kiểm toán',
-  '/admin/dashboard/fraud-detection': 'Phát hiện gian lận',
-  '/admin/dashboard/system-health': 'Tình trạng hệ thống',
-  '/admin/dashboard/notifications': 'Thông báo',
-  '/admin/dashboard/profile': 'Hồ sơ cá nhân',
-  '/admin/dashboard/settings': 'Cài đặt',
+  "/admin/dashboard": "Bảng điều khiển doanh nghiệp",
+  "/admin/dashboard/buildings": "Quản lý tòa nhà",
+  "/admin/dashboard/users": "Quản lý người dùng",
+  "/admin/dashboard/revenue-analytics": "Phân tích doanh thu",
+  "/admin/dashboard/wallet-governance": "Quản lý ví",
+  "/admin/dashboard/pricing-policies": "Chính sách giá",
+  "/admin/dashboard/policy-push-logs": "Lịch sử đẩy chính sách",
+  "/admin/dashboard/audit-logs": "Audit logs",
+  "/admin/dashboard/fraud-detection": "Phát hiện gian lận",
+  "/admin/dashboard/notifications": "Thông báo",
+  "/admin/dashboard/profile": "Hồ sơ cá nhân",
+  "/admin/dashboard/settings": "Cài đặt",
 };
 
 export function AdminLayout() {
@@ -27,7 +26,10 @@ export function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const title = useMemo(() => titles[location.pathname] ?? 'Admin Dashboard', [location.pathname]);
+  const title = useMemo(
+    () => titles[location.pathname] ?? "Admin Dashboard",
+    [location.pathname],
+  );
 
   return (
     <div className="admin-theme relative min-h-screen bg-slate-950 text-foreground">
@@ -37,14 +39,17 @@ export function AdminLayout() {
         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.04),transparent_60%)] blur-3xl" />
       </div>
       <div className="relative z-10 flex min-h-screen">
-        <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((prev) => !prev)} />
+        <Sidebar
+          collapsed={collapsed}
+          onToggle={() => setCollapsed((prev) => !prev)}
+        />
         <div className="flex min-h-screen flex-1 flex-col">
           <Navbar
             title={title}
             email={session?.email ?? ADMIN_EMAIL_FALLBACK}
             onLogout={() => {
               logout();
-              navigate('/admin/login', { replace: true });
+              navigate("/admin/login", { replace: true });
             }}
           />
           <main className="flex-1 p-4 md:p-6">

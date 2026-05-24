@@ -275,7 +275,7 @@ export default function ProfilePage() {
       }
 
       setIsEditing(false);
-      setSuccessMessage('Cập nhật thông tin & biển số xe thành công! Dữ liệu đã được lưu vào MongoDB ☁️');
+      setSuccessMessage('Cập nhật thông tin & biển số xe thành công!');
       setTimeout(() => setSuccessMessage(null), 5000);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Lưu thông tin thất bại. Vui lòng thử lại.';
@@ -485,10 +485,10 @@ export default function ProfilePage() {
                             exit={{ opacity: 0, scale: 0.8, x: -8 }}
                             transition={{ type: 'spring', stiffness: 200, damping: 18 }}
                             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono font-black text-xs tracking-wider shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] transition-all duration-200 ${item.isDefault
-                                ? 'border border-amber-500/40 bg-amber-500/10 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.15)]'
-                                : item.vehicleType === 'car'
-                                  ? 'bg-blue-500/15 border border-blue-500/30 text-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.1)]'
-                                  : 'bg-purple-500/15 border border-purple-500/30 text-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.1)]'
+                              ? 'border border-amber-500/40 bg-amber-500/10 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.15)]'
+                              : item.vehicleType === 'car'
+                                ? 'bg-blue-500/15 border border-blue-500/30 text-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.1)]'
+                                : 'bg-purple-500/15 border border-purple-500/30 text-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.1)]'
                               }`}
                           >
                             {item.isDefault ? (
@@ -500,10 +500,10 @@ export default function ProfilePage() {
                             )}
                             <span>{item.plateNumber}</span>
                             <span className={`text-[8px] px-1.5 py-0.5 rounded font-sans font-extrabold tracking-normal uppercase ${item.isDefault
-                                ? 'bg-amber-500/25 text-amber-300'
-                                : item.vehicleType === 'car'
-                                  ? 'bg-blue-500/25 text-blue-300'
-                                  : 'bg-purple-500/25 text-purple-300'
+                              ? 'bg-amber-500/25 text-amber-300'
+                              : item.vehicleType === 'car'
+                                ? 'bg-blue-500/25 text-blue-300'
+                                : 'bg-purple-500/25 text-purple-300'
                               }`}>
                               {item.isDefault ? 'Mặc định' : item.vehicleType === 'car' ? 'Ô tô' : 'Xe máy'}
                             </span>
@@ -521,10 +521,10 @@ export default function ProfilePage() {
                               type="button"
                               onClick={() => handleRemovePlate(item.plateNumber)}
                               className={`ml-1 rounded p-0.5 transition-all duration-150 ${item.isDefault
-                                  ? 'text-amber-400/60 hover:text-rose-400 hover:bg-rose-500/10'
-                                  : item.vehicleType === 'car'
-                                    ? 'text-blue-400/60 hover:text-rose-400 hover:bg-rose-500/10'
-                                    : 'text-purple-400/60 hover:text-rose-400 hover:bg-rose-500/10'
+                                ? 'text-amber-400/60 hover:text-rose-400 hover:bg-rose-500/10'
+                                : item.vehicleType === 'car'
+                                  ? 'text-blue-400/60 hover:text-rose-400 hover:bg-rose-500/10'
+                                  : 'text-purple-400/60 hover:text-rose-400 hover:bg-rose-500/10'
                                 }`}
                               title={`Xóa biển số ${item.plateNumber}`}
                             >
@@ -685,10 +685,10 @@ export default function ProfilePage() {
                             <div
                               key={item.plateNumber}
                               className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl font-mono font-black text-xs tracking-wider shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] animate-fadeIn border ${item.isDefault
-                                  ? 'border border-amber-500/40 bg-amber-500/10 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.15)]'
-                                  : item.vehicleType === 'car'
-                                    ? 'bg-blue-500/5 border border-blue-500/20 text-blue-400/80'
-                                    : 'bg-purple-500/5 border border-purple-500/20 text-purple-400/80'
+                                ? 'border border-amber-500/40 bg-amber-500/10 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.15)]'
+                                : item.vehicleType === 'car'
+                                  ? 'bg-blue-500/5 border border-blue-500/20 text-blue-400/80'
+                                  : 'bg-purple-500/5 border border-purple-500/20 text-purple-400/80'
                                 }`}
                             >
                               {item.isDefault ? (
@@ -700,10 +700,10 @@ export default function ProfilePage() {
                               )}
                               <span>{item.plateNumber}</span>
                               <span className={`text-[8px] px-1.5 py-0.2 rounded font-sans font-extrabold tracking-normal uppercase ${item.isDefault
-                                  ? 'bg-amber-500/20 text-amber-300'
-                                  : item.vehicleType === 'car'
-                                    ? 'bg-blue-500/20 text-blue-300'
-                                    : 'bg-purple-500/20 text-purple-300'
+                                ? 'bg-amber-500/20 text-amber-300'
+                                : item.vehicleType === 'car'
+                                  ? 'bg-blue-500/20 text-blue-300'
+                                  : 'bg-purple-500/20 text-purple-300'
                                 }`}>
                                 {item.isDefault
                                   ? 'Mặc định'

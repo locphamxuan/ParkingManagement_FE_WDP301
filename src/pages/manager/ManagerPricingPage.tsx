@@ -8,6 +8,8 @@ import { ModalForm } from '@/components/shared/ModalForm';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { managerApi, type PricePolicy, type VehicleType } from '@/services/manager/managerApi';
 
+type ApprovalStatus = 'pending' | 'approved' | 'rejected';
+
 interface FormState {
   name: string;
   vehicleType: string;
@@ -123,6 +125,20 @@ export function ManagerPricingPage() {
     }
   };
 
+  const getApprovalStatus = (row: PricePolicy): ApprovalStatus => {
+    const explicit = row.status;
+    if (explicit === 'pending' || explicit === 'approved' || explicit === 'rejected') {
+      return explicit;
+    }
+
+    const effectiveFrom = new Date(row.effectiveFrom).getTime();
+    if (Number.isFinite(effectiveFrom) && effectiveFrom > Date.now()) {
+      return 'pending';
+    }
+
+    return row.isActive ? 'approved' : 'rejected';
+  };
+
   const columns: DataColumn<PricePolicy>[] = [
     { key: 'name', title: 'Tên chính sách' },
     {
@@ -150,7 +166,7 @@ export function ManagerPricingPage() {
     {
       key: 'isActive',
       title: 'Trạng thái',
-      render: (row) => <StatusBadge status={row.isActive ? 'active' : 'inactive'} />,
+      render: (row) => <StatusBadge status={getApprovalStatus(row)} />,
     },
     {
       key: 'actions',

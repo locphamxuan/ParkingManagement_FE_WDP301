@@ -45,6 +45,7 @@ export function ManagerLayout() {
           <Navbar
             title={title}
             email={session?.email ?? ADMIN_EMAIL_FALLBACK}
+            hideSearch={true}
             onLogout={() => {
               logout();
               navigate('/manager/login', { replace: true });

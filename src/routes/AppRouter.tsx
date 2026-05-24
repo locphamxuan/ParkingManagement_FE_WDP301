@@ -20,8 +20,8 @@ import { ProtectedRoute } from "@/routes/ProtectedRoute";
 import { ManagerLayout } from "@/layouts/ManagerLayout";
 import { ManagerBuildingsPage } from "@/pages/manager/ManagerBuildingsPage";
 import { ManagerDashboardPage } from "@/pages/manager/ManagerDashboardPage";
+import { ManagerFraudDetectionPage } from "@/pages/manager/ManagerFraudDetectionPage";
 import { ManagerFeedbackPage } from "@/pages/manager/ManagerFeedbackPage";
-import { ManagerPlaceholderPage } from "@/pages/manager/ManagerPlaceholderPage";
 import { ManagerProfilePage } from "@/pages/manager/ManagerProfilePage";
 import { ManagerProtectedRoute } from "@/routes/ManagerProtectedRoute";
 import { ManagerVehicleTypesPage } from "@/pages/manager/ManagerVehicleTypesPage";
@@ -67,6 +67,7 @@ export function AppRouter() {
             <Route path="vehicle-types" element={<ManagerVehicleTypesPage />} />
             <Route path="feedbacks" element={<ManagerFeedbackPage />} />
             <Route path="profile" element={<ManagerProfilePage />} />
+            <Route path="fraud-detection" element={<ManagerFraudDetectionPage />} />
             <Route path="floors" element={<ManagerFloorsPage />} />
             <Route path="gates" element={<ManagerGatesPage />} />
             <Route path="slots" element={<ManagerSlotsPage />} />
@@ -77,15 +78,6 @@ export function AppRouter() {
             />
             <Route path="packages" element={<ManagerPackagesPage />} />
             <Route path="shifts" element={<ManagerShiftsPage />} />
-            <Route
-              path="settings"
-              element={
-                <ManagerPlaceholderPage
-                  title="Cài đặt"
-                  description="Cấu hình bảo mật, thông báo và tham số vận hành cho manager."
-                />
-              }
-            />
           </Route>
         </Route>
 

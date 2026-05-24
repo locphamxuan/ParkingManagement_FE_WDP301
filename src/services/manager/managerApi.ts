@@ -66,6 +66,7 @@ export interface PricePolicy {
   effectiveFrom: string;
   effectiveTo?: string | null;
   isActive: boolean;
+  status?: 'pending' | 'approved' | 'rejected';
 }
 
 export interface PolicyPushLog {

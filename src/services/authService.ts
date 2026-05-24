@@ -12,7 +12,7 @@ interface ApiUser {
   role: 'admin' | 'manager' | 'staff' | 'user';
   assignedBuildings?: Array<{ _id?: string } | string>;
   phone?: string;
-  licensePlates?: Array<{ plateNumber?: string } | string>;
+  licensePlates?: Array<{ _id?: string; plateNumber?: string; vehicleType?: string } | string>;
 }
 
 interface ApiAuthResponse {
@@ -30,7 +30,7 @@ export interface AuthSession {
   displayName: string;
   assignedBuildingIds: string[];
   phone?: string;
-  licensePlates?: Array<{ plateNumber: string; vehicleType: 'car' | 'motorcycle' }>;
+  licensePlates?: Array<{ _id?: string; plateNumber: string; vehicleType: 'car' | 'motorcycle' }>;
 }
 
 export async function loginWithBackend(input: LoginInput): Promise<AuthSession> {
@@ -63,6 +63,7 @@ export async function loginWithBackend(input: LoginInput): Promise<AuthSession> 
             return { plateNumber: item, vehicleType: 'car' as const };
           }
           return {
+            _id: (item as any)?._id ? String((item as any)._id) : undefined,
             plateNumber: item?.plateNumber || '',
             vehicleType: (item as any)?.vehicleType === 'motorcycle' ? ('motorcycle' as const) : ('car' as const),
           };

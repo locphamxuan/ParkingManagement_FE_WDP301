@@ -35,7 +35,6 @@ export function Navbar({ title, email, onLogout }: NavbarProps) {
 
           <Button variant="secondary" size="sm" className="gap-2 rounded-full border border-white/10 bg-slate-800/70 hover:bg-slate-700/80 text-slate-300 hover:text-white shadow-sm h-9.5 px-4 transition-all">
             <Bell size={14} className="text-slate-400" />
-            <span className="hidden sm:inline font-medium text-xs">Thông báo</span>
           </Button>
 
           {/* Custom user dropdown (desktop) */}

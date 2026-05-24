@@ -3,7 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { loginWithBackend, type AuthSession } from '@/services/authService';
 import { saveSession, clearSession, loadSession } from '@/services/storage';
 import { AUTH_STORAGE_KEY } from '@/utils/constants';
-import { requestJson } from '@/services/pbmsApi';
+import { api } from '@/services/apiClient';
 
 interface AuthState {
   session: AuthSession | null;
@@ -92,8 +92,9 @@ export const useAuthStore = create<AuthState>()(
 
           if (localData) {
             // Merge local profile data on top of fresh backend session
-            const localPlates: Array<{ plateNumber: string; vehicleType: 'car' | 'motorcycle'; isDefault?: boolean }> =
+            const localPlates: Array<{ _id?: string; plateNumber: string; vehicleType: 'car' | 'motorcycle'; isDefault?: boolean }> =
               (localData.licensePlates || []).map((p: any) => ({
+                _id: p?._id ? String(p._id) : undefined,
                 plateNumber: String(p?.plateNumber || p || '').toUpperCase().trim(),
                 vehicleType: p?.vehicleType === 'motorcycle' ? ('motorcycle' as const) : ('car' as const),
                 isDefault: p?.isDefault === true || p?.isDefault === 'true',
@@ -102,8 +103,13 @@ export const useAuthStore = create<AuthState>()(
             // Merge uniquely: prefer local type info, include backend plates too
             const mergedPlates = [...localPlates];
             (session.licensePlates || []).forEach((p) => {
-              if (!mergedPlates.some((lp) => lp.plateNumber === p.plateNumber.toUpperCase())) {
+              const matched = mergedPlates.find((lp) => lp.plateNumber === p.plateNumber.toUpperCase());
+              if (!matched) {
                 mergedPlates.push(p);
+              } else {
+                if (!matched._id && p._id) {
+                  matched._id = p._id;
+                }
               }
             });
 
@@ -176,52 +182,49 @@ export const useAuthStore = create<AuthState>()(
           return { session: updatedSession };
         });
       },
-      async setDefaultLicensePlate(plateId: string) {
-        const current = get().session;
-        if (!current) return;
-
-        // Gửi request PATCH lên Backend
-        const response = await requestJson<any>({
-          path: `/users/license-plates/${plateId}/default`,
-          method: 'PATCH',
-          token: current.token,
-        });
-
-        // API BE sẽ trả về mảng biển số xe mới đã cập nhật trạng thái isDefault
-        const updatedPlates = Array.isArray(response?.data?.licensePlates)
-          ? response.data.licensePlates.map((item: any) => ({
-              _id: item._id,
-              plateNumber: item.plateNumber,
-              vehicleType: item.vehicleType,
-              isDefault: item.isDefault,
+      async setDefaultLicensePlate(plateId) {
+        const res = await api.patch<{ data?: { licensePlates?: any[] } }>(`/users/license-plates/${plateId}/default`);
+        const updatedPlates = Array.isArray(res?.data?.licensePlates)
+          ? res.data.licensePlates.map((item: any) => ({
+              _id: item._id ? String(item._id) : undefined,
+              plateNumber: String(item.plateNumber || '').toUpperCase().trim(),
+              vehicleType: item.vehicleType === 'motorcycle' ? ('motorcycle' as const) : ('car' as const),
+              isDefault: item.isDefault === true || item.isDefault === 'true',
             }))
           : [];
 
-        const updatedSession = { ...current, licensePlates: updatedPlates };
-        set({ session: updatedSession });
-
-        // Lưu đè vào localStorage cá nhân
-        saveSession({
-          token: current.token,
-          user: {
-            _id: current.userId,
-            email: current.email,
-            fullName: current.displayName,
-            role: current.role,
-            assignedBuildings: current.assignedBuildingIds,
-            phone: current.phone || '',
+        set((state) => {
+          if (!state.session) return {};
+          const updatedSession: AuthSession = {
+            ...state.session,
             licensePlates: updatedPlates,
-          },
-        });
+          };
 
-        // Đồng bộ với cơ sở dữ liệu dùng chung toàn hệ thống
-        const locallyUpdated = JSON.parse(localStorage.getItem('pbms.locallyUpdatedUsers') || '{}');
-        locallyUpdated[current.email] = {
-          fullName: current.displayName,
-          phone: current.phone,
-          licensePlates: updatedPlates,
-        };
-        localStorage.setItem('pbms.locallyUpdatedUsers', JSON.stringify(locallyUpdated));
+          saveSession({
+            token: updatedSession.token,
+            user: {
+              _id: updatedSession.userId,
+              email: updatedSession.email,
+              fullName: updatedSession.displayName,
+              role: updatedSession.role,
+              assignedBuildings: updatedSession.assignedBuildingIds,
+              phone: updatedSession.phone,
+              licensePlates: updatedSession.licensePlates,
+            },
+          });
+
+          const locallyUpdated = JSON.parse(localStorage.getItem('pbms.locallyUpdatedUsers') || '{}');
+          const data = {
+            fullName: updatedSession.displayName,
+            phone: updatedSession.phone,
+            licensePlates: updatedSession.licensePlates,
+          };
+          locallyUpdated[updatedSession.email] = data;
+          locallyUpdated[updatedSession.email.trim().toLowerCase()] = data;
+          localStorage.setItem('pbms.locallyUpdatedUsers', JSON.stringify(locallyUpdated));
+
+          return { session: updatedSession };
+        });
       },
     }),
     {

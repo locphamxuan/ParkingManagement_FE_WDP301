@@ -10,7 +10,7 @@ interface AuthState {
   error: string | null;
   login: (email: string, password: string) => Promise<AuthSession>;
   logout: () => void;
-  updateProfile: (profile: { fullName: string; phone: string; licensePlates: Array<{ plateNumber: string; vehicleType: 'car' | 'motorcycle' }> }) => void;
+  updateProfile: (profile: { fullName: string; phone: string; licensePlates: Array<{ _id?: string; plateNumber: string; vehicleType: 'car' | 'motorcycle' }> }) => void;
 }
 
 function mapLegacySession(): AuthSession | null {
@@ -57,6 +57,7 @@ function mapLegacySession(): AuthSession | null {
           const plate = String(p.plateNumber ?? '').toUpperCase().trim();
           return plate
             ? {
+                _id: p._id ? String(p._id) : undefined,
                 plateNumber: plate,
                 vehicleType: p.vehicleType === 'motorcycle' ? ('motorcycle' as const) : ('car' as const),
               }
@@ -64,7 +65,7 @@ function mapLegacySession(): AuthSession | null {
         }
         return null;
       })
-      .filter((p): p is { plateNumber: string; vehicleType: 'car' | 'motorcycle' } => Boolean(p && p.plateNumber)),
+      .filter((p): p is { _id?: string; plateNumber: string; vehicleType: 'car' | 'motorcycle' } => Boolean(p && p.plateNumber)),
   };
 }
 
@@ -152,11 +153,12 @@ export const useAuthStore = create<AuthState>()(
               role: updatedSession.role,
               assignedBuildings: updatedSession.assignedBuildingIds,
               phone: updatedSession.phone,
+              // Persist full plate objects including _id so DELETE by ID works across page reloads
               licensePlates: updatedSession.licensePlates,
             },
           });
 
-          // Save profile details to simulated global user registry
+          // Mirror in shared registry so Admin / UsersPage can read updated info
           const locallyUpdated = JSON.parse(localStorage.getItem('pbms.locallyUpdatedUsers') || '{}');
           const data = {
             fullName: profile.fullName,

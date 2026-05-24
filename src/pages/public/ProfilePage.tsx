@@ -2,7 +2,8 @@ import { useMemo, useState, useRef, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
-import { ArrowLeft, LogOut, User, Edit, Save, X, ShieldAlert, Plus, AlertCircle, CheckCircle2, Car, Bike } from 'lucide-react';
+import { ArrowLeft, LogOut, User, Edit, Save, X, ShieldAlert, Plus, AlertCircle, CheckCircle2, Car, Bike, Loader2 } from 'lucide-react';
+import { syncPlates } from '@/services/licensePlateService';
 
 // ─── Vietnamese license plate 4-step strict validation ───────────────────────
 // Step 1: Not empty
@@ -72,6 +73,8 @@ export default function ProfilePage() {
 
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const user = useMemo(() => {
     if (!session) return null;
@@ -164,9 +167,10 @@ export default function ProfilePage() {
     }
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setProfileError(null);
+    setApiError(null);
 
     const newPhone = form.phone.trim();
     const oldPhone = user.phone.trim();
@@ -196,15 +200,42 @@ export default function ProfilePage() {
     allRegisteredPhones.push(newPhone);
     localStorage.setItem('pbms.allRegisteredPhones', JSON.stringify(allRegisteredPhones));
 
-    updateProfile({
-      fullName: form.fullName.trim(),
-      phone: newPhone,
-      licensePlates: editPlates,
-    });
+    setIsSaving(true);
 
-    setIsEditing(false);
-    setSuccessMessage('Cập nhật thông tin thành công!');
-    setTimeout(() => setSuccessMessage(null), 4000);
+    try {
+      // Sync license plates with MongoDB backend
+      // Current server-side plates (with _id) come from the session
+      const currentServerPlates = (user.licensePlates || []).map((p) => ({
+        _id: (p as any)._id as string | undefined,
+        plateNumber: p.plateNumber,
+        vehicleType: p.vehicleType,
+      }));
+
+      // syncPlates handles add/remove API calls and returns the fresh plate list from server
+      const freshPlates = await syncPlates(currentServerPlates, editPlates);
+
+      // Map to the session format (with _id preserved)
+      const sessionPlates = freshPlates.map((p) => ({
+        _id: p._id,
+        plateNumber: p.plateNumber,
+        vehicleType: (p.vehicleType === 'motorcycle' ? 'motorcycle' : 'car') as 'car' | 'motorcycle',
+      }));
+
+      updateProfile({
+        fullName: form.fullName.trim(),
+        phone: newPhone,
+        licensePlates: sessionPlates,
+      });
+
+      setIsEditing(false);
+      setSuccessMessage('Cập nhật thông tin & biển số xe thành công! Dữ liệu đã được lưu vào MongoDB ☁️');
+      setTimeout(() => setSuccessMessage(null), 5000);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Lưu thông tin thất bại. Vui lòng thử lại.';
+      setApiError(message);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const hasMissingInfo =
@@ -335,6 +366,22 @@ export default function ProfilePage() {
                     >
                       <AlertCircle size={16} />
                       {profileError}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* API / Network Error Box */}
+                <AnimatePresence>
+                  {apiError && (
+                    <motion.div
+                      key="api-error"
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      className="rounded-2xl border border-rose-500/25 bg-rose-950/20 p-4 text-xs font-semibold font-mono text-rose-300 shadow-[0_0_15px_rgba(244,63,94,0.1)] backdrop-blur-md flex items-center gap-3"
+                    >
+                      <AlertCircle size={16} className="shrink-0" />
+                      <span>Lỗi kết nối: {apiError}</span>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -542,15 +589,20 @@ export default function ProfilePage() {
                 <div className="flex gap-3 pt-3 border-t border-white/5">
                   <button
                     type="submit"
-                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(249,115,22,0.35)] inline-flex items-center gap-1.5"
+                    disabled={isSaving}
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(249,115,22,0.35)] inline-flex items-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
-                    <Save size={13} className="stroke-[2.5]" />
-                    Lưu thay đổi
+                    {isSaving ? (
+                      <><Loader2 size={13} className="animate-spin stroke-[2.5]" />Đang lưu...</>
+                    ) : (
+                      <><Save size={13} className="stroke-[2.5]" />Lưu thay đổi</>
+                    )}
                   </button>
                   <button
                     type="button"
                     onClick={handleCancel}
-                    className="px-5 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 hover:border-white/20 inline-flex items-center gap-1.5"
+                    disabled={isSaving}
+                    className="px-5 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 hover:border-white/20 inline-flex items-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     <X size={13} className="stroke-[2.5]" />
                     Hủy

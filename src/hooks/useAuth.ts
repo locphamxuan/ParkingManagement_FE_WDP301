@@ -5,6 +5,7 @@ export function useAuth() {
   const login = useAuthStore((state) => state.login);
   const logout = useAuthStore((state) => state.logout);
   const updateProfile = useAuthStore((state) => state.updateProfile);
+  const setDefaultLicensePlate = useAuthStore((state) => state.setDefaultLicensePlate);
   const isAuthenticating = useAuthStore((state) => state.isAuthenticating);
   const error = useAuthStore((state) => state.error);
 
@@ -33,6 +34,7 @@ export function useAuth() {
     login,
     logout,
     updateProfile,
+    setDefaultLicensePlate,
     isAuthenticating,
     error,
     isAdmin: Boolean(session?.token) && session?.role === 'admin',

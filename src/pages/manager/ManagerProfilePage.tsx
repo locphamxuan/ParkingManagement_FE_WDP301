@@ -274,29 +274,7 @@ export function ManagerProfilePage() {
                   </div>
                 </div>
               </div>
-
-              <div className="rounded-3xl bg-slate-900/95 p-6 text-white shadow-xl">
-                <p className="text-sm uppercase tracking-[0.24em] text-sky-300">Ghi chú</p>
-                <p className="mt-3 text-sm leading-6 text-slate-100">
-                  Thông tin này được lấy trực tiếp từ phiên đăng nhập hiện tại. Để thay đổi tên hoặc số điện thoại, vui lòng nhấn nút Chỉnh sửa phía trên.
-                </p>
-              </div>
-
-              <div className="rounded-3xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 p-6 text-slate-800 shadow-lg shadow-emerald-500/5">
-                <p className="text-xs font-black uppercase tracking-wider text-emerald-600 font-mono flex items-center gap-1.5">
-                  <span>🎯</span> Hiệu quả tuyệt vời
-                </p>
-                <ul className="mt-3 space-y-2.5 text-xs leading-relaxed text-slate-600 font-semibold list-none pl-0">
-                  <li className="flex items-start gap-2">
-                    <span className="text-emerald-500 flex-shrink-0 mt-0.5">•</span>
-                    <span><strong>Dữ liệu thật 100%</strong>: Tất cả thông tin của bạn được ghi trực tiếp vào MongoDB đám mây.</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-emerald-500 flex-shrink-0 mt-0.5">•</span>
-                    <span><strong>Xuyên suốt mọi máy tính</strong>: Khi bạn lưu biển số xe bên máy bạn, bạn của bạn mở trang Admin bên máy họ lên sẽ lập tức thấy biển số xe của bạn hiển thị đẹp mắt kèm icon, cực kỳ chuyên nghiệp và chuẩn chỉ!</span>
-                  </li>
-                </ul>
-              </div>
+              {/* Removed note and highlight panels */}
             </div>
           </aside>
         </div>

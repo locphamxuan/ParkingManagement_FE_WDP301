@@ -2,7 +2,7 @@ import { useMemo, useState, useRef, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
-import { ArrowLeft, LogOut, User, Edit, Save, X, ShieldAlert, Plus, AlertCircle, CheckCircle2, Car, Bike, Loader2 } from 'lucide-react';
+import { ArrowLeft, LogOut, User, Edit, Save, X, ShieldAlert, Plus, AlertCircle, CheckCircle2, Car, Bike, Loader2, Star } from 'lucide-react';
 import { syncPlates } from '@/services/licensePlateService';
 
 // ─── Vietnamese license plate 4-step strict validation ───────────────────────
@@ -57,14 +57,14 @@ const MAX_PLATES = 3;
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const { session, logout, updateProfile } = useAuth();
+  const { session, logout, updateProfile, setDefaultLicensePlate } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [form, setForm] = useState({
     fullName: '',
     phone: '',
   });
   // License plate tag state (while editing)
-  const [editPlates, setEditPlates] = useState<Array<{ plateNumber: string; vehicleType: 'car' | 'motorcycle' }>>([]);
+  const [editPlates, setEditPlates] = useState<Array<{ _id?: string; plateNumber: string; vehicleType: 'car' | 'motorcycle'; isDefault?: boolean }>>([]);
   const [vehicleType, setVehicleType] = useState<'car' | 'motorcycle'>('car');
   const [plateInput, setPlateInput] = useState('');
   const [plateError, setPlateError] = useState<string | null>(null);
@@ -74,6 +74,7 @@ export default function ProfilePage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSettingDefaultId, setIsSettingDefaultId] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
 
   const user = useMemo(() => {
@@ -156,6 +157,27 @@ export default function ProfilePage() {
     setPlateSuccess(null);
   };
 
+  const handleSetDefaultEditPlate = async (plate: typeof editPlates[0]) => {
+    // 1. Cập nhật state editPlates ngay lập tức để hiển thị trên giao diện
+    setEditPlates((prev) =>
+      prev.map((p) => ({
+        ...p,
+        isDefault: p.plateNumber === plate.plateNumber,
+      }))
+    );
+
+    // 2. Nếu đã có _id trên Backend, gọi API setDefaultLicensePlate để lưu thay đổi
+    if (plate._id) {
+      try {
+        await setDefaultLicensePlate(plate._id);
+        setPlateSuccess(`Đã đặt biển số "${plate.plateNumber}" làm mặc định! 🌟`);
+        setTimeout(() => setPlateSuccess(null), 2500);
+      } catch (err) {
+        setPlateError(err instanceof Error ? err.message : 'Không thể thiết lập mặc định.');
+      }
+    }
+  };
+
   const handlePlateKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -214,18 +236,43 @@ export default function ProfilePage() {
       // syncPlates handles add/remove API calls and returns the fresh plate list from server
       const freshPlates = await syncPlates(currentServerPlates, editPlates);
 
-      // Map to the session format (with _id preserved)
-      const sessionPlates = freshPlates.map((p) => ({
-        _id: p._id,
-        plateNumber: p.plateNumber,
-        vehicleType: (p.vehicleType === 'motorcycle' ? 'motorcycle' : 'car') as 'car' | 'motorcycle',
-      }));
+      // Tìm kiếm biển số xe có isDefault === true từ danh sách đã chỉnh sửa
+      const defaultPlateInEdit = editPlates.find((ep) => ep.isDefault === true);
+
+      // Nếu có biển số mặc định, đối chiếu với freshPlates để lấy _id thật từ server MongoDB và kích hoạt API setDefaultLicensePlate
+      if (defaultPlateInEdit) {
+        const matchingFresh = freshPlates.find(
+          (fp) => fp.plateNumber.toUpperCase() === defaultPlateInEdit.plateNumber.toUpperCase()
+        );
+        if (matchingFresh && matchingFresh._id) {
+          await setDefaultLicensePlate(matchingFresh._id);
+        }
+      }
+
+      // Map to the session format (with _id preserved and isDefault status copied from editPlates)
+      const sessionPlates = freshPlates.map((p) => {
+        const matchingEdit = editPlates.find(
+          (ep) => ep.plateNumber.toUpperCase() === p.plateNumber.toUpperCase()
+        );
+        return {
+          _id: p._id,
+          plateNumber: p.plateNumber,
+          vehicleType: (p.vehicleType === 'motorcycle' ? 'motorcycle' : 'car') as 'car' | 'motorcycle',
+          isDefault: matchingEdit?.isDefault === true,
+        };
+      });
 
       updateProfile({
         fullName: form.fullName.trim(),
         phone: newPhone,
         licensePlates: sessionPlates,
       });
+
+      // Nếu có biển số xe mặc định, gọi API setDefaultLicensePlate để đồng bộ database MongoDB
+      const defaultPlate = sessionPlates.find((p) => p.isDefault);
+      if (defaultPlate && defaultPlate._id) {
+        await setDefaultLicensePlate(defaultPlate._id);
+      }
 
       setIsEditing(false);
       setSuccessMessage('Cập nhật thông tin & biển số xe thành công! Dữ liệu đã được lưu vào MongoDB ☁️');
@@ -414,174 +461,188 @@ export default function ProfilePage() {
                 {/* ── License Plate Tag Manager ─────────────────── */}
                 {user.role === 'user' && (
                   <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">
-                      Biển số xe liên kết
-                    </label>
-                    <span className={`text-[9px] font-black font-mono px-2 py-0.5 rounded-full ${
-                      editPlates.length >= MAX_PLATES
+                    <div className="flex items-center justify-between">
+                      <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">
+                        Biển số xe liên kết
+                      </label>
+                      <span className={`text-[9px] font-black font-mono px-2 py-0.5 rounded-full ${editPlates.length >= MAX_PLATES
                         ? 'bg-rose-500/15 text-rose-400'
                         : 'bg-slate-800 text-slate-500'
-                    }`}>
-                      {editPlates.length}/{MAX_PLATES} biển số
-                    </span>
-                  </div>
+                        }`}>
+                        {editPlates.length}/{MAX_PLATES} biển số
+                      </span>
+                    </div>
 
-                  {/* Current Plate Tags */}
-                  <div className="min-h-[44px] flex flex-wrap gap-2 rounded-xl border border-white/10 bg-slate-950/80 p-2.5">
-                    <AnimatePresence>
-                      {editPlates.map((item) => (
-                        <motion.span
-                          key={item.plateNumber}
-                          layout
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.8, x: -8 }}
-                          transition={{ type: 'spring', stiffness: 200, damping: 18 }}
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono font-black text-xs tracking-wider shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] transition-all duration-200 ${
-                            item.vehicleType === 'car'
-                              ? 'bg-blue-500/15 border border-blue-500/30 text-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.1)]'
-                              : 'bg-purple-500/15 border border-purple-500/30 text-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.1)]'
-                          }`}
-                        >
-                          {item.vehicleType === 'car' ? <Car size={11} /> : <Bike size={11} />}
-                          <span>{item.plateNumber}</span>
-                          <span className={`text-[8px] px-1.5 py-0.5 rounded font-sans font-extrabold tracking-normal uppercase ${
-                            item.vehicleType === 'car'
-                              ? 'bg-blue-500/25 text-blue-300'
-                              : 'bg-purple-500/25 text-purple-300'
-                          }`}>
-                            {item.vehicleType === 'car' ? 'Ô tô' : 'Xe máy'}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemovePlate(item.plateNumber)}
-                            className={`ml-1 rounded p-0.5 transition-all duration-150 ${
-                              item.vehicleType === 'car'
-                                ? 'text-blue-400/60 hover:text-rose-400 hover:bg-rose-500/10'
-                                : 'text-purple-400/60 hover:text-rose-400 hover:bg-rose-500/10'
-                            }`}
-                            title={`Xóa biển số ${item.plateNumber}`}
+                    {/* Current Plate Tags */}
+                    <div className="min-h-[44px] flex flex-wrap gap-2 rounded-xl border border-white/10 bg-slate-950/80 p-2.5">
+                      <AnimatePresence>
+                        {editPlates.map((item) => (
+                          <motion.span
+                            key={item.plateNumber}
+                            layout
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8, x: -8 }}
+                            transition={{ type: 'spring', stiffness: 200, damping: 18 }}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono font-black text-xs tracking-wider shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] transition-all duration-200 ${item.isDefault
+                                ? 'border border-amber-500/40 bg-amber-500/10 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.15)]'
+                                : item.vehicleType === 'car'
+                                  ? 'bg-blue-500/15 border border-blue-500/30 text-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.1)]'
+                                  : 'bg-purple-500/15 border border-purple-500/30 text-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.1)]'
+                              }`}
                           >
-                            <X size={11} className="stroke-[3]" />
-                          </button>
-                        </motion.span>
-                      ))}
-                    </AnimatePresence>
-                    {editPlates.length === 0 && (
-                      <span className="text-[11px] text-slate-600 font-semibold italic self-center pl-1">Chưa có biển số nào…</span>
-                    )}
-                  </div>
+                            {item.isDefault ? (
+                              <span className="text-xs">⭐</span>
+                            ) : item.vehicleType === 'car' ? (
+                              <Car size={11} />
+                            ) : (
+                              <Bike size={11} />
+                            )}
+                            <span>{item.plateNumber}</span>
+                            <span className={`text-[8px] px-1.5 py-0.5 rounded font-sans font-extrabold tracking-normal uppercase ${item.isDefault
+                                ? 'bg-amber-500/25 text-amber-300'
+                                : item.vehicleType === 'car'
+                                  ? 'bg-blue-500/25 text-blue-300'
+                                  : 'bg-purple-500/25 text-purple-300'
+                              }`}>
+                              {item.isDefault ? 'Mặc định' : item.vehicleType === 'car' ? 'Ô tô' : 'Xe máy'}
+                            </span>
+                            {!item.isDefault && (
+                              <button
+                                type="button"
+                                onClick={() => handleSetDefaultEditPlate(item)}
+                                className="ml-1.5 rounded p-0.5 transition-all duration-150 hover:bg-amber-500/10 text-slate-400 hover:text-amber-400 animate-fadeIn"
+                                title="Đặt làm mặc định"
+                              >
+                                <span className="text-xs font-black">☆</span>
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleRemovePlate(item.plateNumber)}
+                              className={`ml-1 rounded p-0.5 transition-all duration-150 ${item.isDefault
+                                  ? 'text-amber-400/60 hover:text-rose-400 hover:bg-rose-500/10'
+                                  : item.vehicleType === 'car'
+                                    ? 'text-blue-400/60 hover:text-rose-400 hover:bg-rose-500/10'
+                                    : 'text-purple-400/60 hover:text-rose-400 hover:bg-rose-500/10'
+                                }`}
+                              title={`Xóa biển số ${item.plateNumber}`}
+                            >
+                              <X size={11} className="stroke-[3]" />
+                            </button>
+                          </motion.span>
+                        ))}
+                      </AnimatePresence>
+                      {editPlates.length === 0 && (
+                        <span className="text-[11px] text-slate-600 font-semibold italic self-center pl-1">Chưa có biển số nào…</span>
+                      )}
+                    </div>
 
-                  {/* Add Plate Row */}
-                  {editPlates.length < MAX_PLATES ? (
-                    <div className="space-y-3 p-4 rounded-2xl border border-white/5 bg-slate-900/20 shadow-inner">
-                      <div className="flex items-center gap-3">
-                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Loại xe:</span>
-                        <div className="flex gap-1.5 p-1 rounded-xl bg-slate-950 border border-white/10 w-fit">
-                          <button
-                            type="button"
-                            onClick={() => setVehicleType('car')}
-                            className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-200 flex items-center gap-1.5 ${
-                              vehicleType === 'car'
+                    {/* Add Plate Row */}
+                    {editPlates.length < MAX_PLATES ? (
+                      <div className="space-y-3 p-4 rounded-2xl border border-white/5 bg-slate-900/20 shadow-inner">
+                        <div className="flex items-center gap-3">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Loại xe:</span>
+                          <div className="flex gap-1.5 p-1 rounded-xl bg-slate-950 border border-white/10 w-fit">
+                            <button
+                              type="button"
+                              onClick={() => setVehicleType('car')}
+                              className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-200 flex items-center gap-1.5 ${vehicleType === 'car'
                                 ? 'bg-blue-600 text-white shadow-[0_0_12px_rgba(59,130,246,0.3)]'
                                 : 'text-slate-400 hover:text-slate-200'
-                            }`}
-                          >
-                            <Car size={12} />
-                            Ô tô
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setVehicleType('motorcycle')}
-                            className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-200 flex items-center gap-1.5 ${
-                              vehicleType === 'motorcycle'
+                                }`}
+                            >
+                              <Car size={12} />
+                              Ô tô
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setVehicleType('motorcycle')}
+                              className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-200 flex items-center gap-1.5 ${vehicleType === 'motorcycle'
                                 ? 'bg-purple-600 text-white shadow-[0_0_12px_rgba(168,85,247,0.3)]'
                                 : 'text-slate-400 hover:text-slate-200'
-                            }`}
+                                }`}
+                            >
+                              <Bike size={12} />
+                              Xe máy
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <input
+                            ref={plateInputRef}
+                            type="text"
+                            value={plateInput}
+                            onChange={(e) => {
+                              setPlateInput(e.target.value.toUpperCase());
+                              setPlateError(null);
+                            }}
+                            onKeyDown={handlePlateKeyDown}
+                            className={`flex-1 rounded-xl border bg-slate-950/80 text-white placeholder-slate-600 text-sm h-10 px-4 transition-all duration-300 outline-none font-mono tracking-wider ${vehicleType === 'car'
+                              ? 'focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20'
+                              : 'focus:border-purple-500 focus:ring-1 focus:ring-purple-500/20'
+                              }`}
+                            placeholder="Ví dụ: 29A-12345"
+                            maxLength={12}
+                            autoComplete="off"
+                            spellCheck={false}
+                          />
+                          <button
+                            type="button"
+                            onClick={handleAddPlate}
+                            className={`px-4 h-10 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-200 inline-flex items-center gap-1.5 shrink-0 ${vehicleType === 'car'
+                              ? 'bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 shadow-[0_0_10px_rgba(59,130,246,0.15)]'
+                              : 'bg-purple-500/20 border border-purple-500/30 text-purple-400 hover:bg-purple-500/30 shadow-[0_0_10px_rgba(168,85,247,0.15)]'
+                              }`}
                           >
-                            <Bike size={12} />
-                            Xe máy
+                            <Plus size={14} className="stroke-[3]" />
+                            Thêm
                           </button>
                         </div>
                       </div>
-
-                      <div className="flex gap-2">
-                        <input
-                          ref={plateInputRef}
-                          type="text"
-                          value={plateInput}
-                          onChange={(e) => {
-                            setPlateInput(e.target.value.toUpperCase());
-                            setPlateError(null);
-                          }}
-                          onKeyDown={handlePlateKeyDown}
-                          className={`flex-1 rounded-xl border bg-slate-950/80 text-white placeholder-slate-600 text-sm h-10 px-4 transition-all duration-300 outline-none font-mono tracking-wider ${
-                            vehicleType === 'car'
-                              ? 'focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20'
-                              : 'focus:border-purple-500 focus:ring-1 focus:ring-purple-500/20'
-                          }`}
-                          placeholder="Ví dụ: 29A-12345"
-                          maxLength={12}
-                          autoComplete="off"
-                          spellCheck={false}
-                        />
-                        <button
-                          type="button"
-                          onClick={handleAddPlate}
-                          className={`px-4 h-10 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-200 inline-flex items-center gap-1.5 shrink-0 ${
-                            vehicleType === 'car'
-                              ? 'bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 shadow-[0_0_10px_rgba(59,130,246,0.15)]'
-                              : 'bg-purple-500/20 border border-purple-500/30 text-purple-400 hover:bg-purple-500/30 shadow-[0_0_10px_rgba(168,85,247,0.15)]'
-                          }`}
-                        >
-                          <Plus size={14} className="stroke-[3]" />
-                          Thêm
-                        </button>
+                    ) : (
+                      <div className="flex items-center gap-2 rounded-xl border border-rose-500/20 bg-rose-500/5 px-4 py-2.5">
+                        <AlertCircle size={14} className="text-rose-400 shrink-0" />
+                        <span className="text-[11px] text-rose-300 font-semibold">Đã đạt giới hạn tối đa {MAX_PLATES} biển số xe. Xóa một biển số để thêm biển mới.</span>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2 rounded-xl border border-rose-500/20 bg-rose-500/5 px-4 py-2.5">
-                      <AlertCircle size={14} className="text-rose-400 shrink-0" />
-                      <span className="text-[11px] text-rose-300 font-semibold">Đã đạt giới hạn tối đa {MAX_PLATES} biển số xe. Xóa một biển số để thêm biển mới.</span>
-                    </div>
-                  )}
-
-                  {/* Validation error */}
-                  <AnimatePresence>
-                    {plateError && (
-                      <motion.div
-                        key="plate-error"
-                        initial={{ opacity: 0, y: -4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -4 }}
-                        className="flex items-center gap-2 rounded-xl border border-rose-500/25 bg-rose-950/20 px-3.5 py-2.5 text-[11px] font-semibold text-rose-400"
-                      >
-                        <AlertCircle size={13} className="shrink-0" />
-                        {plateError}
-                      </motion.div>
                     )}
-                  </AnimatePresence>
 
-                  {/* Success feedback */}
-                  <AnimatePresence>
-                    {plateSuccess && (
-                      <motion.div
-                        key="plate-success"
-                        initial={{ opacity: 0, y: -4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -4 }}
-                        className="flex items-center gap-2 rounded-xl border border-emerald-500/25 bg-emerald-950/20 px-3.5 py-2.5 text-[11px] font-semibold text-emerald-400"
-                      >
-                        <CheckCircle2 size={13} className="shrink-0" />
-                        {plateSuccess}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                    {/* Validation error */}
+                    <AnimatePresence>
+                      {plateError && (
+                        <motion.div
+                          key="plate-error"
+                          initial={{ opacity: 0, y: -4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -4 }}
+                          className="flex items-center gap-2 rounded-xl border border-rose-500/25 bg-rose-950/20 px-3.5 py-2.5 text-[11px] font-semibold text-rose-400"
+                        >
+                          <AlertCircle size={13} className="shrink-0" />
+                          {plateError}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
 
-                  <p className="text-[9px] text-slate-500 font-semibold leading-relaxed">
-                    * Định dạng hợp lệ: 2 số + 1-2 chữ cái + dấu gạch ngang + 3-5 số. Ví dụ: <span className="font-mono text-slate-400">29A-12345</span>, <span className="font-mono text-slate-400">30AB-1234</span>. Nhấn <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[8px]">Enter</kbd> hoặc nút Thêm để xác nhận.
-                  </p>
+                    {/* Success feedback */}
+                    <AnimatePresence>
+                      {plateSuccess && (
+                        <motion.div
+                          key="plate-success"
+                          initial={{ opacity: 0, y: -4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -4 }}
+                          className="flex items-center gap-2 rounded-xl border border-emerald-500/25 bg-emerald-950/20 px-3.5 py-2.5 text-[11px] font-semibold text-emerald-400"
+                        >
+                          <CheckCircle2 size={13} className="shrink-0" />
+                          {plateSuccess}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    <p className="text-[9px] text-slate-500 font-semibold leading-relaxed">
+                      * Định dạng hợp lệ: 2 số + 1-2 chữ cái + dấu gạch ngang + 3-5 số. Ví dụ: <span className="font-mono text-slate-400">29A-12345</span>, <span className="font-mono text-slate-400">30AB-1234</span>. Nhấn <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[8px]">Enter</kbd> hoặc nút Thêm để xác nhận.
+                    </p>
                   </div>
                 )}
                 {/* ── End License Plate Tag Manager ────────────── */}
@@ -619,26 +680,38 @@ export default function ProfilePage() {
                     label: 'Biển số xe đã liên kết',
                     value:
                       user.licensePlates.length > 0 ? (
-                        <div className="flex flex-wrap gap-2 mt-1.5">
+                        <div className="flex flex-wrap gap-2.5 mt-1.5">
                           {user.licensePlates.map((item) => (
-                            <span
+                            <div
                               key={item.plateNumber}
-                              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl font-mono font-black text-xs tracking-wider shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] animate-fadeIn ${
-                                item.vehicleType === 'car'
-                                  ? 'bg-blue-500/10 border border-blue-500/20 text-blue-400'
-                                  : 'bg-purple-500/10 border border-purple-500/20 text-purple-400'
-                              }`}
+                              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl font-mono font-black text-xs tracking-wider shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] animate-fadeIn border ${item.isDefault
+                                  ? 'border border-amber-500/40 bg-amber-500/10 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.15)]'
+                                  : item.vehicleType === 'car'
+                                    ? 'bg-blue-500/5 border border-blue-500/20 text-blue-400/80'
+                                    : 'bg-purple-500/5 border border-purple-500/20 text-purple-400/80'
+                                }`}
                             >
-                              {item.vehicleType === 'car' ? <Car size={11} /> : <Bike size={11} />}
+                              {item.isDefault ? (
+                                <span className="text-xs">⭐</span>
+                              ) : item.vehicleType === 'car' ? (
+                                <Car size={11} />
+                              ) : (
+                                <Bike size={11} />
+                              )}
                               <span>{item.plateNumber}</span>
-                              <span className={`text-[8px] px-1.5 py-0.2 rounded font-sans font-extrabold tracking-normal uppercase ${
-                                item.vehicleType === 'car'
-                                  ? 'bg-blue-500/20 text-blue-300'
-                                  : 'bg-purple-500/20 text-purple-300'
-                              }`}>
-                                {item.vehicleType === 'car' ? 'Ô tô' : 'Xe máy'}
+                              <span className={`text-[8px] px-1.5 py-0.2 rounded font-sans font-extrabold tracking-normal uppercase ${item.isDefault
+                                  ? 'bg-amber-500/20 text-amber-300'
+                                  : item.vehicleType === 'car'
+                                    ? 'bg-blue-500/20 text-blue-300'
+                                    : 'bg-purple-500/20 text-purple-300'
+                                }`}>
+                                {item.isDefault
+                                  ? 'Mặc định'
+                                  : item.vehicleType === 'car'
+                                    ? 'Ô tô'
+                                    : 'Xe máy'}
                               </span>
-                            </span>
+                            </div>
                           ))}
                         </div>
                       ) : (
@@ -728,11 +801,10 @@ export default function ProfilePage() {
                       return (
                         <div
                           key={idx}
-                          className={`flex-1 h-2 rounded-full transition-all duration-500 ${
-                            hasPl
-                              ? 'bg-gradient-to-r from-orange-500 to-amber-500 shadow-[0_0_8px_rgba(249,115,22,0.4)]'
-                              : 'bg-slate-800'
-                          }`}
+                          className={`flex-1 h-2 rounded-full transition-all duration-500 ${hasPl
+                            ? 'bg-gradient-to-r from-orange-500 to-amber-500 shadow-[0_0_8px_rgba(249,115,22,0.4)]'
+                            : 'bg-slate-800'
+                            }`}
                         />
                       );
                     })}
@@ -741,38 +813,12 @@ export default function ProfilePage() {
                     {user.licensePlates.length === 0
                       ? 'Chưa có biển số nào được liên kết.'
                       : user.licensePlates.length < MAX_PLATES
-                      ? `Còn ${MAX_PLATES - user.licensePlates.length} slot trống.`
-                      : 'Đã đạt giới hạn tối đa.'}
+                        ? `Còn ${MAX_PLATES - user.licensePlates.length} slot trống.`
+                        : 'Đã đạt giới hạn tối đa.'}
                   </p>
                 </div>
               )}
 
-            </div>
-
-            {/* Note text panel */}
-            <div className="rounded-3xl border border-blue-500/20 bg-slate-950/80 p-6 text-slate-300 shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.06),transparent_65%)] pointer-events-none" />
-              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-blue-400 font-mono">Lưu ý bảo mật</p>
-              <p className="mt-3 text-xs leading-relaxed text-slate-400 font-semibold">
-                Thông tin này được lưu trữ trực tiếp trên thiết bị của bạn. Để thay đổi họ tên, số điện thoại hoặc biển số xe liên kết, vui lòng sử dụng biểu mẫu cập nhật.
-              </p>
-            </div>
-
-            <div className="rounded-3xl bg-gradient-to-br from-emerald-500/5 to-teal-500/5 border border-emerald-500/15 p-6 text-slate-300 shadow-xl relative overflow-hidden mt-4">
-              <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.06),transparent_65%)] pointer-events-none" />
-              <p className="text-xs font-black uppercase tracking-wider text-emerald-400 font-mono flex items-center gap-1.5">
-                <span>🎯</span> Hiệu quả tuyệt vời
-              </p>
-              <ul className="mt-3 space-y-2.5 text-xs leading-relaxed text-slate-400 font-semibold list-none pl-0">
-                <li className="flex items-start gap-2">
-                  <span className="text-emerald-400 flex-shrink-0 mt-0.5">•</span>
-                  <span><strong>Dữ liệu thật 100%</strong>: Tất cả thông tin của bạn được ghi trực tiếp vào MongoDB đám mây.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-emerald-400 flex-shrink-0 mt-0.5">•</span>
-                  <span><strong>Xuyên suốt mọi máy tính</strong>: Khi bạn lưu biển số xe bên máy bạn, bạn của bạn mở trang Admin bên máy họ lên sẽ lập tức thấy biển số xe của bạn hiển thị đẹp mắt kèm icon, cực kỳ chuyên nghiệp và chuẩn chỉ!</span>
-                </li>
-              </ul>
             </div>
 
           </motion.aside>

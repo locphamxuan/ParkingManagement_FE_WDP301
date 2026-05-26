@@ -13,7 +13,7 @@ import { ModulePlaceholderPage } from '@/pages/admin/ModulePlaceholderPage';
 import { HomeRoute } from '@/pages/public/HomeRoute';
 import ProfilePage from '@/pages/public/ProfilePage';
 import ReservationsPage from '@/pages/public/ReservationsPage';
-import { PublicLoginRoute, PublicRegisterRoute } from '@/pages/public/AuthRoutes';
+import { PublicLoginRoute, PublicRegisterRoute, PublicResetPasswordRoute } from '@/pages/public/AuthRoutes';
 import { ProtectedRoute } from '@/routes/ProtectedRoute';
 import { ManagerLayout } from '@/layouts/ManagerLayout';
 import { ManagerBuildingsPage } from '@/pages/manager/ManagerBuildingsPage';
@@ -40,6 +40,7 @@ export function AppRouter() {
       <Route path="/dashboard" element={<Navigate to="/" replace />} />
       <Route path="/auth/login" element={<PublicLoginRoute />} />
       <Route path="/auth/register" element={<PublicRegisterRoute />} />
+      <Route path="/auth/reset-password" element={<PublicResetPasswordRoute />} />
       <Route path="/profile" element={<ProfilePage />} />
       <Route path="/reservations" element={<ReservationsPage />} />
 

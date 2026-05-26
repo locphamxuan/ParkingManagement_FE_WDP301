@@ -28,7 +28,7 @@ export function DashboardOverviewPage() {
     return (
       <div className="flex flex-col items-center justify-center p-24 text-sm text-slate-400 font-semibold bg-slate-950/40 rounded-3xl border border-white/5 backdrop-blur-md">
         <div className="h-6 w-6 animate-spin rounded-full border-2 border-orange-500 border-t-transparent mb-3" />
-        Đang tải dữ liệu tổng quan bãi đỗ...
+        Loading parking overview data...
       </div>
     );
   }
@@ -36,7 +36,7 @@ export function DashboardOverviewPage() {
   if (error || !data) {
     return (
       <div className="rounded-2xl border border-rose-500/20 bg-rose-950/20 p-5 text-sm font-semibold text-rose-400 backdrop-blur-md">
-        {error || "Tải dữ liệu thất bại."}
+        {error || "Failed to load data."}
       </div>
     );
   }
@@ -62,23 +62,23 @@ export function DashboardOverviewPage() {
         <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-orange-500/10 border border-orange-500/20 text-[9px] font-black uppercase tracking-widest text-orange-400 font-mono">
-              Cổng Quản Trị Trung Tâm
+              Central Admin Portal
             </div>
             <h1 className="mt-2.5 text-3xl font-black tracking-tight text-white sm:text-4xl">
-              Tổng quan{" "}
+              Overview{" "}
               <span className="bg-gradient-to-r from-orange-400 via-amber-400 to-purple-400 bg-clip-text text-transparent">
-                Hệ Thống PBMS
+                Parking Management
               </span>
             </h1>
             <p className="mt-3.5 max-w-2xl text-xs font-semibold text-slate-300 leading-relaxed">
-              Trung tâm giám sát toàn diện bãi đỗ xe nhiều tầng. Theo dõi doanh
-              thu thời gian thực, rà soát giao dịch gần đây và giám sát hoạt
-              động bãi đỗ trực tiếp.
+              A central monitoring hub for the multi-storey parking system.
+              Track revenue in real time, review recent transactions, and watch
+              live parking activity.
             </p>
           </div>
           <div className="inline-flex items-center gap-2.5 rounded-full bg-slate-950/80 border border-emerald-500/20 px-4 py-2.5 text-xs font-black text-emerald-400 uppercase font-mono shadow-xl self-start sm:self-auto backdrop-blur-md neon-glow-emerald">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]" />
-            <span>Hệ thống Live</span>
+            <span>Live System</span>
           </div>
         </div>
       </motion.section>
@@ -126,7 +126,7 @@ export function DashboardOverviewPage() {
         {/* Activity logs */}
         <div className="relative overflow-hidden rounded-3xl glass-premium glow-border-pulse p-6 shadow-2xl">
           <ActivityTimeline
-            title="Hoạt động bãi đỗ trực tiếp"
+            title="Live parking activity"
             items={data.liveActivities}
           />
         </div>
@@ -135,7 +135,7 @@ export function DashboardOverviewPage() {
         <div className="relative overflow-hidden rounded-3xl glass-premium glow-border-pulse p-6 shadow-2xl">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="text-sm font-black uppercase tracking-wider text-slate-300 font-mono">
-              Giao dịch gần đây
+              Recent transactions
             </h3>
             <span className="px-2 py-0.5 rounded-md bg-orange-500/10 border border-orange-500/20 text-[9px] font-black text-orange-400 font-mono uppercase tracking-wider">
               {data.transactions.length} tx

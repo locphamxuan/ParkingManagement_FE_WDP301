@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink } from "react-router-dom";
 import {
   AlertTriangle,
   CalendarClock,
@@ -8,9 +8,9 @@ import {
   Gauge,
   LayoutDashboard,
   ScanLine,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/utils/cn';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/utils/cn";
 
 interface StaffSidebarProps {
   collapsed: boolean;
@@ -18,33 +18,47 @@ interface StaffSidebarProps {
 }
 
 const modules = [
-  { to: '', label: 'Tổng quan', icon: LayoutDashboard },
-  { to: 'operations', label: 'Trung tâm vận hành', icon: Gauge },
-  { to: 'my-shifts', label: 'Ca làm việc', icon: CalendarClock },
-  { to: 'sessions', label: 'Phiên gửi xe', icon: CarFront },
-  { to: 'incidents', label: 'Sự cố', icon: AlertTriangle },
-  { to: 'handover', label: 'Bàn giao ca', icon: ClipboardList },
+  { to: "", label: "Overview", icon: LayoutDashboard },
+  { to: "operations", label: "Operations center", icon: Gauge },
+  { to: "my-shifts", label: "My shifts", icon: CalendarClock },
+  { to: "sessions", label: "Parking sessions", icon: CarFront },
+  { to: "incidents", label: "Incidents", icon: AlertTriangle },
+  { to: "handover", label: "Shift handover", icon: ClipboardList },
 ] as const;
 
 export function StaffSidebar({ collapsed, onToggle }: StaffSidebarProps) {
   return (
     <aside
       className={cn(
-        'sticky top-0 hidden h-screen border-r border-white/8 bg-slate-900/95 p-4 shadow-[4px_0_30px_rgba(0,0,0,0.25)] backdrop-blur-xl lg:block transition-all duration-350 ease-in-out',
-        collapsed ? 'w-[84px]' : 'w-[264px]'
+        "sticky top-0 hidden h-screen border-r border-white/8 bg-slate-900/95 p-4 shadow-[4px_0_30px_rgba(0,0,0,0.25)] backdrop-blur-xl lg:block transition-all duration-350 ease-in-out",
+        collapsed ? "w-[84px]" : "w-[264px]",
       )}
     >
       <div className="mb-6 flex items-center justify-between rounded-2xl border border-white/8 bg-slate-800/60 p-3 shadow-sm backdrop-blur-md">
         {!collapsed ? (
           <div className="pl-1">
-            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">Môi trường</p>
-            <p className="text-xs font-extrabold text-slate-100">STAFF PORTAL</p>
+            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">
+              Environment
+            </p>
+            <p className="text-xs font-extrabold text-slate-100">
+              STAFF PORTAL
+            </p>
           </div>
         ) : (
           <ScanLine className="text-primary drop-shadow-[0_0_8px_rgba(249,115,22,0.25)] h-5 w-5 mx-auto" />
         )}
-        <Button size="sm" variant="ghost" onClick={onToggle} className="h-7 w-7 rounded-lg p-0 hover:bg-white/8 text-slate-400 hover:text-white">
-          <ChevronLeft className={cn('h-3.5 w-3.5 transition-all duration-300', collapsed && 'rotate-180')} />
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={onToggle}
+          className="h-7 w-7 rounded-lg p-0 hover:bg-white/8 text-slate-400 hover:text-white"
+        >
+          <ChevronLeft
+            className={cn(
+              "h-3.5 w-3.5 transition-all duration-300",
+              collapsed && "rotate-180",
+            )}
+          />
         </Button>
       </div>
 
@@ -55,18 +69,20 @@ export function StaffSidebar({ collapsed, onToggle }: StaffSidebarProps) {
             <NavLink
               key={module.label}
               to={module.to}
-              end={module.to === ''}
+              end={module.to === ""}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-3.5 rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-all duration-300',
+                  "flex items-center gap-3.5 rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-all duration-300",
                   isActive
-                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/25 scale-[1.02]'
-                    : 'text-slate-400 hover:bg-white/6 hover:text-slate-100'
+                    ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/25 scale-[1.02]"
+                    : "text-slate-400 hover:bg-white/6 hover:text-slate-100",
                 )
               }
             >
               <Icon size={15} className="shrink-0" />
-              {!collapsed ? <span className="tracking-wide">{module.label}</span> : null}
+              {!collapsed ? (
+                <span className="tracking-wide">{module.label}</span>
+              ) : null}
             </NavLink>
           );
         })}

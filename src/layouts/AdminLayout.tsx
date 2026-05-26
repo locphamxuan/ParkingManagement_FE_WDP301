@@ -6,18 +6,18 @@ import { useAuth } from "@/hooks/useAuth";
 import { ADMIN_EMAIL_FALLBACK } from "@/utils/constants";
 
 const titles: Record<string, string> = {
-  "/admin/dashboard": "Bảng điều khiển doanh nghiệp",
-  "/admin/dashboard/buildings": "Quản lý tòa nhà",
-  "/admin/dashboard/users": "Quản lý người dùng",
-  "/admin/dashboard/revenue-analytics": "Phân tích doanh thu",
-  "/admin/dashboard/wallet-governance": "Quản lý ví",
-  "/admin/dashboard/pricing-policies": "Chính sách giá",
-  "/admin/dashboard/policy-push-logs": "Lịch sử đẩy chính sách",
+  "/admin/dashboard": "Executive dashboard",
+  "/admin/dashboard/buildings": "Building management",
+  "/admin/dashboard/users": "User management",
+  "/admin/dashboard/revenue-analytics": "Revenue analytics",
+  "/admin/dashboard/wallet-governance": "Wallet governance",
+  "/admin/dashboard/pricing-policies": "Pricing policies",
+  "/admin/dashboard/policy-push-logs": "Policy push history",
   "/admin/dashboard/audit-logs": "Audit logs",
-  "/admin/dashboard/fraud-detection": "Phát hiện gian lận",
-  "/admin/dashboard/notifications": "Thông báo",
-  "/admin/dashboard/profile": "Hồ sơ cá nhân",
-  "/admin/dashboard/settings": "Cài đặt",
+  "/admin/dashboard/fraud-detection": "Fraud detection",
+  "/admin/dashboard/notifications": "Notifications",
+  "/admin/dashboard/profile": "Profile",
+  "/admin/dashboard/settings": "Settings",
 };
 
 export function AdminLayout() {

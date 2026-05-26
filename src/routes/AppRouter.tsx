@@ -49,7 +49,10 @@ export function AppRouter() {
         <Route path="/dashboard" element={<Navigate to="/" replace />} />
         <Route path="/auth/login" element={<PublicLoginRoute />} />
         <Route path="/auth/register" element={<PublicRegisterRoute />} />
-        <Route path="/auth/reset-password" element={<PublicResetPasswordRoute />} />
+        <Route
+          path="/auth/reset-password"
+          element={<PublicResetPasswordRoute />}
+        />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/reservations" element={<ReservationsPage />} />
 
@@ -69,7 +72,10 @@ export function AppRouter() {
             <Route path="vehicle-types" element={<ManagerVehicleTypesPage />} />
             <Route path="feedbacks" element={<ManagerFeedbackPage />} />
             <Route path="profile" element={<ManagerProfilePage />} />
-            <Route path="fraud-detection" element={<ManagerFraudDetectionPage />} />
+            <Route
+              path="fraud-detection"
+              element={<ManagerFraudDetectionPage />}
+            />
             <Route path="floors" element={<ManagerFloorsPage />} />
             <Route path="gates" element={<ManagerGatesPage />} />
             <Route path="slots" element={<ManagerSlotsPage />} />
@@ -95,7 +101,8 @@ export function AppRouter() {
           element={<Navigate to="/auth/login" replace />}
         />
 
-        { (import.meta.env.VITE_USE_MOCK_DATA as string | undefined) !== 'false' ? (
+        {(import.meta.env.VITE_USE_MOCK_DATA as string | undefined) !==
+        "false" ? (
           <Route path="/staff" element={<StaffLayout />}>
             <Route index element={<StaffDashboardPage />} />
             <Route path="dashboard" element={<StaffDashboardPage />} />
@@ -103,7 +110,10 @@ export function AppRouter() {
             <Route path="my-shifts" element={<StaffShiftsPage />} />
             <Route path="sessions" element={<StaffSessionsPage />} />
             <Route path="incidents" element={<StaffIncidentsPage />} />
-            <Route path="handover" element={<StaffOperationsPage mode="handover" />} />
+            <Route
+              path="handover"
+              element={<StaffOperationsPage mode="handover" />}
+            />
           </Route>
         ) : (
           <Route element={<ProtectedRoute role="staff" />}>
@@ -114,10 +124,13 @@ export function AppRouter() {
               <Route path="my-shifts" element={<StaffShiftsPage />} />
               <Route path="sessions" element={<StaffSessionsPage />} />
               <Route path="incidents" element={<StaffIncidentsPage />} />
-              <Route path="handover" element={<StaffOperationsPage mode="handover" />} />
+              <Route
+                path="handover"
+                element={<StaffOperationsPage mode="handover" />}
+              />
             </Route>
           </Route>
-        ) }
+        )}
 
         <Route element={<ProtectedRoute role="admin" />}>
           <Route path="/admin/dashboard" element={<AdminLayout />}>
@@ -132,8 +145,8 @@ export function AppRouter() {
               path="wallet-governance"
               element={
                 <ModulePlaceholderPage
-                  title="Quản lý ví"
-                  description="Điều khiển ví hệ thống, khung phân phối và phê duyệt."
+                  title="Wallet governance"
+                  description="System wallet controls, allocation rules, and approval flows."
                 />
               }
             />
@@ -141,8 +154,8 @@ export function AppRouter() {
               path="pricing-policies"
               element={
                 <ModulePlaceholderPage
-                  title="Chính sách giá"
-                  description="Phạm vi chính sách, mẫu chính sách và ràng buộc theo vai trò."
+                  title="Pricing policies"
+                  description="Policy scope, policy templates, and role-based constraints."
                 />
               }
             />
@@ -150,8 +163,8 @@ export function AppRouter() {
               path="policy-push-logs"
               element={
                 <ModulePlaceholderPage
-                  title="Lịch sử đẩy chính sách"
-                  description="Lịch sử đẩy chính sách giữa tòa nhà và thao tác hoàn tác."
+                  title="Policy push history"
+                  description="Policy push history between buildings and rollback actions."
                 />
               }
             />
@@ -165,8 +178,8 @@ export function AppRouter() {
               path="notifications"
               element={
                 <ModulePlaceholderPage
-                  title="Thông báo"
-                  description="Mẫu thông báo, giám sát hàng đợi và kênh gửi."
+                  title="Notifications"
+                  description="Notification templates, queue monitoring, and delivery channels."
                 />
               }
             />
@@ -175,8 +188,8 @@ export function AppRouter() {
               path="settings"
               element={
                 <ModulePlaceholderPage
-                  title="Cài đặt"
-                  description="Cấu hình nền tảng, chính sách truy cập và tùy chọn vận hành."
+                  title="Settings"
+                  description="Platform configuration, access policies, and operational preferences."
                 />
               }
             />

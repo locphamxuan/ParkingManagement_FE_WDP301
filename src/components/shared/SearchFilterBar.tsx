@@ -1,5 +1,5 @@
-import { Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 interface SearchFilterBarProps {
   query: string;
@@ -19,11 +19,14 @@ export function SearchFilterBar({
   return (
     <div className="flex flex-col gap-3 rounded-lg border border-border bg-card/80 p-3 md:flex-row md:items-center md:justify-between">
       <div className="relative w-full md:max-w-md">
-        <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-stone-500" size={16} />
+        <Search
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-stone-500"
+          size={16}
+        />
         <Input
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
-          placeholder="Tìm kiếm..."
+          placeholder="Search..."
           className="pl-9"
         />
       </div>
@@ -35,19 +38,19 @@ export function SearchFilterBar({
         >
           {filterOptions.map((option) => {
             const map: Record<string, string> = {
-              all: 'Tất cả',
-              active: 'Hoạt động',
-              inactive: 'Không hoạt động',
-              maintenance: 'Bảo trì',
-              warning: 'Cảnh báo',
-              admin: 'Quản trị viên',
-              manager: 'Quản lý',
-              staff: 'Nhân viên',
-              user: 'Người dùng',
-              low: 'Thấp',
-              medium: 'Trung bình',
-              high: 'Cao',
-              critical: 'Nguy cấp',
+              all: "All",
+              active: "Active",
+              inactive: "Inactive",
+              maintenance: "Maintenance",
+              warning: "Warning",
+              admin: "Administrator",
+              manager: "Manager",
+              staff: "Staff",
+              user: "User",
+              low: "Low",
+              medium: "Medium",
+              high: "High",
+              critical: "Critical",
             };
             return (
               <option key={option} value={option}>

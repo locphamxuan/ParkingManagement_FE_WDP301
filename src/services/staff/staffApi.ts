@@ -1,5 +1,37 @@
 import { api } from '@/services/apiClient';
 
+const USE_MOCK = (import.meta.env.VITE_USE_MOCK_DATA as string | undefined) !== 'false';
+
+// Simple mock data for offline preview when VITE_USE_MOCK_DATA is not set to 'false'
+const mockBuilding: StaffBuilding = {
+  _id: 'bldg-demo-1',
+  name: 'Tòa nhà Demo',
+  code: 'DEMO-1',
+  status: 'active',
+  operatingHours: { open: '07:00', close: '22:00' },
+  address: { fullAddress: '123 Demo Street' },
+  contactPhone: '+84901234567',
+};
+
+const mockShift = {
+  _id: 'shift-demo-1',
+  shift: { _id: 's1', code: 'S1', name: 'Ca sáng', startTime: '07:00', endTime: '15:00' },
+  building: { _id: mockBuilding._id, name: mockBuilding.name, code: mockBuilding.code },
+  workDate: new Date().toISOString().slice(0, 10),
+  status: 'active' as const,
+};
+
+const mockSession: ParkingSession = {
+  _id: 'ps-1',
+  plateNumber: '30A-12345',
+  vehicleType: null,
+  slot: { _id: 'slot-1', code: 'A1' },
+  gate: { _id: 'gate-1', code: 'G1', name: 'Cổng chính' },
+  checkIn: new Date().toISOString(),
+  paymentStatus: 'pending',
+  status: 'active',
+};
+
 export interface StaffBuilding {
   _id: string;
   name: string;
@@ -34,49 +66,92 @@ export interface ParkingSession {
   status: 'active' | 'completed' | 'cancelled';
 }
 
+export interface StaffIncident {
+  _id: string;
+  code?: string;
+  type?: string;
+  building?: { _id?: string; code?: string; name?: string } | null;
+  severity?: 'medium' | 'high' | 'critical';
+  status?: 'open' | 'investigating' | 'escalated' | 'resolved' | 'closed';
+  createdAt?: string;
+  note?: string;
+}
+
 interface Wrap<T> {
   data: T;
 }
 
-export const staffApi = {
-  buildings: () =>
-    api.get<Wrap<StaffBuilding[] | { items: StaffBuilding[] }>>('/staff/buildings'),
+type ApiList<T> = T[] | { items: T[] };
 
-  myShifts: (q?: Record<string, string | undefined>) =>
-    api.get<Wrap<{ items: MyShift[] } | MyShift[]>>('/staff/my-shifts', { query: q }),
+function unwrapList<T>(payload: ApiList<T> | Wrap<ApiList<T>> | null | undefined): T[] {
+  if (!payload) return [];
+  const raw = typeof payload === 'object' && 'data' in payload ? payload.data : payload;
+  if (Array.isArray(raw)) return raw;
+  return (raw as { items?: T[] }).items ?? [];
+}
+
+export const staffApi = {
+  getDashboard: () => (USE_MOCK ? Promise.resolve({ data: { totalActive: 1, totalShifts: 1 } }) : api.get('/staff/dashboard')),
+
+  listBuildings: () =>
+    USE_MOCK ? Promise.resolve({ data: { items: [mockBuilding] } }) : api.get<Wrap<ApiList<StaffBuilding>>>('/staff/buildings'),
+
+  getBuilding: (id: string) => (USE_MOCK ? Promise.resolve({ data: mockBuilding }) : api.get<Wrap<StaffBuilding>>(`/staff/buildings/${id}`)),
+
+  getActiveSessions: () =>
+    USE_MOCK ? Promise.resolve({ data: { items: [mockSession] } }) : api.get<Wrap<ApiList<ParkingSession>>>('/staff/parking-sessions/active'),
+
+  searchSessions: (q: string) =>
+    USE_MOCK ? Promise.resolve({ data: { items: [mockSession] } }) : api.get<Wrap<ApiList<ParkingSession>>>('/staff/parking-sessions/search', { query: { q } }),
+
+  checkIn: (payload: { plateNumber: string; vehicleType?: string; gate?: string; buildingId?: string }) =>
+    USE_MOCK ? Promise.resolve({ data: { item: mockSession } }) : api.post<Wrap<{ item: ParkingSession }>>('/staff/parking-sessions/check-in', payload),
+
+  checkOut: (id: string) => (USE_MOCK ? Promise.resolve({ data: { item: mockSession } }) : api.patch<Wrap<{ item: ParkingSession }>>(`/staff/parking-sessions/${id}/check-out`)),
+
+  getSessionById: (id: string) => (USE_MOCK ? Promise.resolve({ data: mockSession }) : api.get<Wrap<ParkingSession>>(`/staff/parking-sessions/${id}`)),
+
+  getMyShifts: (query?: Record<string, string | undefined>) =>
+    USE_MOCK ? Promise.resolve({ data: { items: [mockShift] } }) : api.get<Wrap<ApiList<MyShift>>>('/staff/my-shifts', { query }),
+
+  createIncident: (payload: unknown) => (USE_MOCK ? Promise.resolve({ data: { item: payload } }) : api.post('/staff/incidents', payload)),
+
+  processWallet: (payload: unknown) => (USE_MOCK ? Promise.resolve({ data: { success: true } }) : api.post('/staff/wallet-transactions', payload)),
+
+  checkInReservation: (code: string) => (USE_MOCK ? Promise.resolve({ data: { success: true } }) : api.post(`/staff/reservations/${code}/check-in`)),
+
+  incidents: {
+    list: (buildingId?: string) =>
+      USE_MOCK ? Promise.resolve({ data: { items: [] } }) : api.get<Wrap<ApiList<StaffIncident>>>('/staff/incidents', { query: buildingId ? { buildingId } : undefined }),
+  },
+
+  // Backward-compatible aliases used by the current UI code
+  buildings: () => (USE_MOCK ? Promise.resolve({ data: { items: [mockBuilding] } }) : api.get<Wrap<ApiList<StaffBuilding>>>('/staff/buildings')),
+
+  myShifts: (q?: Record<string, string | undefined>) => (USE_MOCK ? Promise.resolve({ data: { items: [mockShift] } }) : api.get<Wrap<ApiList<MyShift>>>('/staff/my-shifts', { query: q })),
 
   sessions: {
     list: (buildingId: string, q?: Record<string, string | undefined>) =>
-      api.get<Wrap<{ items: ParkingSession[] }>>(
-        `/staff/buildings/${buildingId}/sessions`,
-        { query: q }
-      ),
-    checkIn: (
-      buildingId: string,
-      body: { plateNumber: string; vehicleType?: string; gate?: string }
-    ) =>
-      api.post<Wrap<{ item: ParkingSession }>>(
-        `/staff/buildings/${buildingId}/sessions/check-in`,
-        body
-      ),
+      USE_MOCK ? Promise.resolve({ data: { items: [mockSession] } }) : api.get<Wrap<{ items: ParkingSession[] }>>(`/staff/buildings/${buildingId}/sessions`, { query: q }),
+    checkIn: (buildingId: string, body: { plateNumber: string; vehicleType?: string; gate?: string }) =>
+      USE_MOCK ? Promise.resolve({ data: { item: mockSession } }) : api.post<Wrap<{ item: ParkingSession }>>(`/staff/buildings/${buildingId}/sessions/check-in`, body),
     checkOut: (buildingId: string, sessionId: string, body: { paymentMethod: string }) =>
-      api.patch<Wrap<{ item: ParkingSession }>>(
-        `/staff/buildings/${buildingId}/sessions/${sessionId}/check-out`,
-        body
-      ),
+      USE_MOCK ? Promise.resolve({ data: { item: mockSession } }) : api.patch<Wrap<{ item: ParkingSession }>>(`/staff/buildings/${buildingId}/sessions/${sessionId}/check-out`, body),
   },
 };
 
 export const extractShifts = (payload: Wrap<{ items: MyShift[] } | MyShift[]>): MyShift[] => {
-  if (!payload?.data) return [];
-  const d = payload.data;
-  if (Array.isArray(d)) return d;
-  return (d as { items?: MyShift[] }).items ?? [];
+  return unwrapList(payload);
 };
 
 export const extractBuildings = (
   payload: StaffBuilding[] | { items: StaffBuilding[] }
 ): StaffBuilding[] => {
-  if (Array.isArray(payload)) return payload;
-  return (payload as { items?: StaffBuilding[] }).items ?? [];
+  return unwrapList(payload);
+};
+
+export const extractIncidents = (
+  payload: StaffIncident[] | { items: StaffIncident[] }
+): StaffIncident[] => {
+  return unwrapList(payload);
 };

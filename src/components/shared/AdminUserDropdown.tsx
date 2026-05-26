@@ -1,17 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ChevronDown, User, LogOut } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Props {
-  email: string;
+  email?: string;
   onLogout: () => void;
+  compact?: boolean;
 }
 
-export function AdminUserDropdown({ email, onLogout }: Props) {
+export function AdminUserDropdown({ email, onLogout, compact = false }: Props) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
 
   const handleViewProfile = () => {
     setOpen(false);
@@ -33,11 +36,17 @@ export function AdminUserDropdown({ email, onLogout }: Props) {
     return () => document.removeEventListener('click', onDoc);
   }, []);
 
+  const displayEmail = email ?? user?.email ?? '';
+  const role = user?.role ?? 'user';
   return (
     <div className="relative inline-block" ref={ref}>
       <button
         type="button"
-        className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-slate-800/80 px-3 py-2 text-xs font-medium text-slate-200 shadow-sm transition hover:bg-slate-700/80 focus:outline-none focus:ring-2 focus:ring-orange-500/50 sm:text-sm"
+        className={
+          compact
+            ? 'inline-flex items-center justify-center rounded-full bg-transparent h-9 w-9 text-slate-200 hover:bg-slate-800/60 hover:shadow-md hover:ring-1 hover:ring-orange-500/20 focus:outline-none transition'
+            : 'inline-flex items-center gap-2 rounded-full border border-white/10 bg-slate-800/80 px-3 py-2 text-xs font-medium text-slate-200 shadow-sm transition hover:bg-slate-700/80 focus:outline-none focus:ring-2 focus:ring-orange-500/50 sm:text-sm'
+        }
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         onKeyDown={(e) => {
@@ -51,33 +60,44 @@ export function AdminUserDropdown({ email, onLogout }: Props) {
           }
           if (e.key === 'Escape') setOpen(false);
         }}
+        title={displayEmail}
       >
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-500/15 text-orange-400 border border-orange-500/20">
-          <User size={16} />
+        <span className={compact ? 'flex h-9 w-9 items-center justify-center rounded-full bg-orange-500/15 text-orange-400' : 'flex h-8 w-8 items-center justify-center rounded-full bg-orange-500/15 text-orange-400'}>
+          <User size={compact ? 16 : 16} />
         </span>
-        <span className="max-w-[170px] truncate text-xs font-medium uppercase tracking-[0.06em] text-slate-300 sm:text-sm">
-          {email}
-        </span>
-        <ChevronDown size={14} className="text-slate-500" />
+        {!compact && (
+          <>
+            <span className="max-w-[170px] truncate text-xs font-medium uppercase tracking-[0.06em] text-slate-300 sm:text-sm">
+              {displayEmail}
+            </span>
+            <ChevronDown size={14} className="text-slate-500" />
+          </>
+        )}
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-48 overflow-hidden rounded-2xl border border-white/10 bg-slate-900 shadow-xl shadow-black/40">
-          <button
-            type="button"
-            className="user-dropdown-item w-full px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-            onClick={handleViewProfile}
-          >
-            Hồ sơ
-          </button>
-          <button
-            type="button"
-            className="user-dropdown-item w-full px-4 py-3 text-left text-sm text-rose-400 transition hover:bg-slate-800 border-t border-white/5"
-            onClick={onLogout}
-          >
-            <LogOut size={14} className="inline-block align-middle" />
-            <span className="ml-2 align-middle">Đăng xuất</span>
-          </button>
+        <div className="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-2xl border border-white/10 bg-slate-900 shadow-xl shadow-black/40">
+          <div className="px-4 py-3 text-sm text-slate-300">
+            <div className="font-semibold text-white truncate">{user?.fullName ?? displayEmail}</div>
+            <div className="mt-1 text-xs text-slate-400">{role.toUpperCase()}</div>
+          </div>
+          <div className="border-t border-white/5">
+            <button
+              type="button"
+              className="user-dropdown-item w-full px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
+              onClick={handleViewProfile}
+            >
+              Hồ sơ
+            </button>
+            <button
+              type="button"
+              className="user-dropdown-item w-full px-4 py-3 text-left text-sm text-rose-400 transition hover:bg-slate-800 border-t border-white/5"
+              onClick={onLogout}
+            >
+              <LogOut size={14} className="inline-block align-middle" />
+              <span className="ml-2 align-middle">Đăng xuất</span>
+            </button>
+          </div>
         </div>
       )}
     </div>

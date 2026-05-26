@@ -24,6 +24,7 @@ import {
   LogOut,
   X,
 } from 'lucide-react';
+import AdminUserDropdown from '@/components/shared/AdminUserDropdown';
 import type { LegacyModule } from '../data/mainFlow';
 import { AnimatedParkingMap3D } from '@/components/shared/AnimatedParkingMap3D';
 
@@ -83,14 +84,15 @@ const benefits = [
 
 
 export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction, user, onLogout }: HomePageProps) {
+  const isStaffUser = user?.role === 'staff';
   const hasMissingInfo = Boolean(
     user &&
     user.role === 'user' &&
     (!user.phone || user.phone.trim() === '' || !user.licensePlates || user.licensePlates.length === 0)
   );
 
-  const productModules = modules.slice(0, 4);
-  const serviceModules = modules.slice(4);
+  const productModules = isStaffUser ? [] : modules.slice(0, 4);
+  const serviceModules = isStaffUser ? [] : modules.slice(4);
   const [showPlateBanner, setShowPlateBanner] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -189,46 +191,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
 
             {user ? (
               <div className="relative animate-fadeIn" ref={menuRef}>
-                <button
-                  type="button"
-                  aria-expanded={menuOpen}
-                  onClick={() => setMenuOpen((v) => !v)}
-                  className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl bg-slate-900 border border-white/10 hover:border-orange-500/30 text-white transition-all shadow-md"
-                >
-                  <User size={14} className="text-orange-400" />
-                  <span className="text-xs font-bold">{user.fullName ?? user.email}</span>
-                  <ChevronDown size={12} className="text-slate-400" />
-                </button>
-
-                {hasMissingInfo && (
-                  <span className="absolute -top-1 -right-1 flex h-4 w-4 z-30 pointer-events-none">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-4 w-4 bg-rose-600 text-[8px] font-mono font-black text-white items-center justify-center animate-bounce shadow-[0_0_8px_rgba(225,29,72,0.6)]">
-                      1
-                    </span>
-                  </span>
-                )}
-
-                {menuOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="absolute right-0 mt-2 w-48 bg-slate-900/95 border border-white/10 rounded-xl shadow-2xl py-2 backdrop-blur-md z-50"
-                  >
-                    <button
-                      className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-between"
-                      onClick={() => { setMenuOpen(false); onViewProfile(); }}
-                    >
-                      <span>Hồ sơ của tôi</span>
-                      {hasMissingInfo && (
-                        <span className="flex h-2 w-2 rounded-full bg-rose-500 animate-pulse shadow-[0_0_6px_#f43f5e]" />
-                      )}
-                    </button>
-                    <button className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-rose-400 hover:text-rose-300 border-t border-white/5 mt-1" onClick={onLogout}>
-                      <LogOut size={12} className="inline-block mr-2" /> Đăng xuất
-                    </button>
-                  </motion.div>
-                )}
+                <AdminUserDropdown email={user.email} onLogout={onLogout ?? (() => { localStorage.removeItem('pbms.token'); localStorage.removeItem('pbms.user'); window.location.href = '/auth/login'; })} />
               </div>
             ) : (
               <a href="/auth/login" className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-xs transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(249,115,22,0.4)]">
@@ -452,6 +415,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
       </div>
 
       {/* Core Solutions Modules */}
+      {!isStaffUser ? (
       <section id="giai-phap" className="py-20 relative z-10">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
@@ -511,8 +475,9 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
           </div>
         </div>
       </section>
+      ) : null}
 
-      {/* Services Roadmap Section */}
+      {!isStaffUser ? (
       <section id="dich-vu" className="py-20 relative z-10 bg-slate-950/40">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center max-w-xl mx-auto mb-12">
@@ -551,6 +516,23 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
           </div>
         </div>
       </section>
+      ) : (
+      <section className="py-20 relative z-10 bg-slate-950/40">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-8 md:p-10">
+            <span className="text-[10px] font-black uppercase tracking-widest text-orange-400 font-mono">Chế độ staff</span>
+            <h2 className="mt-2 text-2xl md:text-3xl font-black text-white">Lối vào nhanh cho ca trực</h2>
+            <p className="mt-2 max-w-2xl text-sm text-slate-400 font-semibold">
+              Tài khoản staff được chuyển thẳng tới khu vực vận hành để tránh các module giới thiệu và dịch vụ dành cho người dùng công khai.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <a href="/staff" className="px-5 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider hover:shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all duration-200">Vào portal staff</a>
+              <a href="/staff/operations" className="px-5 py-3 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-xs uppercase tracking-wider hover:border-orange-500/25 transition-all duration-200">Trung tâm vận hành</a>
+            </div>
+          </div>
+        </div>
+      </section>
+      )}
 
       {/* CTA Footer banner */}
       <section className="py-16 relative z-10 border-t border-white/5 bg-gradient-to-b from-slate-950 to-slate-900">

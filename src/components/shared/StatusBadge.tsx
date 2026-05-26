@@ -12,9 +12,16 @@ export function StatusBadge({ status }: StatusBadgeProps) {
     ok: 'OK',
     success: 'Thành công',
     online: 'Online',
+    open: 'Mở',
+    investigating: 'Đang điều tra',
+    escalated: 'Đã chuyển cấp',
+    resolved: 'Đã xử lý',
+    closed: 'Đã đóng',
     low: 'Thấp',
     warning: 'Cảnh báo',
     pending: 'Đang chờ',
+    approved: 'Đã duyệt',
+    rejected: 'Từ chối',
     review: 'Đang xem xét',
     maintenance: 'Bảo trì',
     medium: 'Trung bình',
@@ -54,6 +61,24 @@ export function StatusBadge({ status }: StatusBadgeProps) {
     );
   }
 
+  if (['approved'].includes(normalized)) {
+    return (
+      <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 border border-emerald-200/50 shadow-[0_2px_8px_rgba(16,185,129,0.06)] status-badge-success">
+        <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+        {display}
+      </span>
+    );
+  }
+
+  if (['open', 'investigating', 'escalated', 'resolved', 'closed'].includes(normalized)) {
+    return (
+      <span className="inline-flex items-center rounded-full bg-cyan-50 px-2.5 py-0.5 text-xs font-semibold text-cyan-700 border border-cyan-200/50 shadow-[0_2px_8px_rgba(6,182,212,0.06)]">
+        <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-cyan-500 animate-pulse" />
+        {display}
+      </span>
+    );
+  }
+
   if (['occupied'].includes(normalized)) {
     return (
       <span className="inline-flex items-center rounded-full bg-sky-50 px-2.5 py-0.5 text-xs font-semibold text-sky-700 border border-sky-200/50 shadow-[0_2px_8px_rgba(14,165,233,0.06)] status-badge-info">
@@ -72,7 +97,7 @@ export function StatusBadge({ status }: StatusBadgeProps) {
     );
   }
 
-  if (['critical', 'danger', 'blocked', 'offline', 'high', 'inactive'].includes(normalized)) {
+  if (['critical', 'danger', 'blocked', 'offline', 'high', 'inactive', 'rejected'].includes(normalized)) {
     return (
       <span className="inline-flex items-center rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-semibold text-rose-700 border border-rose-200/50 shadow-[0_2px_8px_rgba(244,63,94,0.06)] status-badge-danger">
         <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-rose-500" />

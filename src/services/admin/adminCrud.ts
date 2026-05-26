@@ -36,6 +36,29 @@ export interface UpdateBuildingInput {
   fullAddress?: string;
 }
 
+export type BuildingAssignmentRole = 'manager' | 'staff';
+
+export interface BuildingMemberRecord {
+  _id: string;
+  fullName: string;
+  email: string;
+  role: 'admin' | 'manager' | 'staff' | 'user';
+  phone?: string;
+  isActive?: boolean;
+  assignedAt?: string;
+  revokedAt?: string | null;
+}
+
+export interface BuildingMembersPayload {
+  manager: BuildingMemberRecord | null;
+  staff: BuildingMemberRecord[];
+}
+
+export interface AssignBuildingMemberInput {
+  userId: string;
+  role: BuildingAssignmentRole;
+}
+
 export async function createAdminUser(token: string, payload: CreateAdminUserInput): Promise<void> {
   await requestJson<ApiEnvelope<{ user: unknown }>>({
     path: '/admin/users',
@@ -132,5 +155,33 @@ export async function deleteBuilding(token: string, buildingId: string): Promise
     path: `/admin/buildings/${buildingId}`,
     method: 'DELETE',
     token,
+  });
+}
+
+export async function getBuildingMembers(token: string, buildingId: string): Promise<BuildingMembersPayload> {
+  const response = await requestJson<ApiEnvelope<BuildingMembersPayload>>({
+    path: `/admin/buildings/${buildingId}/members`,
+    method: 'GET',
+    token,
+  });
+
+  return response.data;
+}
+
+export async function assignBuildingMember(
+  token: string,
+  buildingId: string,
+  payload: AssignBuildingMemberInput,
+): Promise<void> {
+  const path =
+    payload.role === 'manager'
+      ? `/admin/buildings/${buildingId}/assign-manager`
+      : `/admin/buildings/${buildingId}/assign-staff`;
+
+  await requestJson<ApiEnvelope<{ assignment: unknown }>>({
+    path,
+    method: 'POST',
+    token,
+    body: { userId: payload.userId },
   });
 }

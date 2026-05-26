@@ -158,17 +158,6 @@ export function UsersPage() {
 
   const token = session?.token || "";
 
-  const openCreateModal = () => {
-    setActionError(null);
-    setForm({
-      fullName: "",
-      email: "",
-      password: "",
-      phone: "",
-      role: "user",
-    });
-    setIsCreating(true);
-  };
 
   const openEditModal = (user: UserRecord) => {
     setActionError(null);
@@ -415,10 +404,6 @@ export function UsersPage() {
       {actionError ? (
         <div className="text-sm text-red-600">{actionError}</div>
       ) : null}
-
-      <div className="flex items-center justify-end">
-        <Button onClick={openCreateModal}>Create user</Button>
-      </div>
 
       <SearchFilterBar
         query={query}

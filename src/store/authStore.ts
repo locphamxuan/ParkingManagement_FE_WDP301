@@ -89,32 +89,47 @@ export const useAuthStore = create<AuthState>()(
           const emailNormalized = email.trim().toLowerCase();
           const hasReset = locallyReset[emailNormalized] !== undefined;
 
-          if (hasReset) {
-            const expectedResetPassword = locallyReset[emailNormalized];
-            if (password === expectedResetPassword) {
-              // Try to find the old password in saved accounts to attempt a real backend login
-              const stored = localStorage.getItem('pbms_saved_accounts');
-              const saved = stored ? JSON.parse(stored) : [];
-              const savedAccount = saved.find((acc: any) => acc.email.trim().toLowerCase() === emailNormalized);
-              const oldPassword = savedAccount?.oldPassword || savedAccount?.password;
+          try {
+            // Luôn ưu tiên đăng nhập trực tiếp bằng email & mật khẩu mới nhập
+            session = await loginWithBackend({ email, password });
+            
+            // Nếu đăng nhập thành công và tài khoản này từng reset mật khẩu, dọn dẹp cờ reset
+            if (hasReset) {
+              const expectedResetPassword = locallyReset[emailNormalized];
+              if (password === expectedResetPassword) {
+                delete locallyReset[emailNormalized];
+                localStorage.setItem('pbms.locallyResetPasswords', JSON.stringify(locallyReset));
+              }
+            }
+          } catch (backendErr) {
+            // Nếu đăng nhập bằng mật khẩu mới thất bại, kiểm tra cơ chế fallback/giả lập
+            if (hasReset) {
+              const expectedResetPassword = locallyReset[emailNormalized];
+              if (password === expectedResetPassword) {
+                // Thử dùng mật khẩu cũ từ danh sách tài khoản đã lưu (chỉ dành cho giả lập / local dev)
+                const stored = localStorage.getItem('pbms_saved_accounts');
+                const saved = stored ? JSON.parse(stored) : [];
+                const savedAccount = saved.find((acc: any) => acc.email.trim().toLowerCase() === emailNormalized);
+                const oldPassword = savedAccount?.oldPassword || savedAccount?.password;
 
-              if (oldPassword) {
-                try {
-                  session = await loginWithBackend({ email, password: oldPassword });
-                } catch (err) {
-                  console.warn('Backend login with old password failed, falling back to mock session:', err);
+                if (oldPassword) {
+                  try {
+                    session = await loginWithBackend({ email, password: oldPassword });
+                  } catch (err) {
+                    console.warn('Backend login with old password failed, falling back to mock session:', err);
+                    useMock = true;
+                  }
+                } else {
                   useMock = true;
                 }
               } else {
-                useMock = true;
+                // Wrong password for the reset password account
+                throw new Error('Mật khẩu hoặc Email không đúng.');
               }
             } else {
-              // Wrong password for the reset password account
-              throw new Error('Mật khẩu hoặc Email không đúng.');
+              // Nếu không phải tài khoản reset, trả về lỗi đăng nhập thật của backend
+              throw backendErr;
             }
-          } else {
-            // Standard login path
-            session = await loginWithBackend({ email, password });
           }
 
           if (useMock) {

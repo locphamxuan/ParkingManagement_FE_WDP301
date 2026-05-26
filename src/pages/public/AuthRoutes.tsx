@@ -53,7 +53,7 @@ function mapAuthErrorMessage(message: string): string {
   return message || 'Không thể xử lý yêu cầu, vui lòng thử lại.';
 }
 
-export type AuthMode = 'login' | 'register' | 'forgot_email' | 'forgot_otp' | 'forgot_reset';
+export type AuthMode = 'login' | 'register' | 'forgot_email' | 'forgot_reset';
 
 function usePublicAuthFlow(initialMode: AuthMode) {
   const navigate = useNavigate();

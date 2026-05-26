@@ -13,7 +13,7 @@ const initialForm = {
   confirmPassword: '',
 };
 
-type AuthMode = 'login' | 'register' | 'forgot_email' | 'forgot_otp' | 'forgot_reset';
+type AuthMode = 'login' | 'register' | 'forgot_email' | 'forgot_reset';
 
 interface AuthPageProps {
   mode: AuthMode;
@@ -47,21 +47,10 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
   const [showDropdown, setShowDropdown] = useState(false);
   const [lockTimeLeft, setLockTimeLeft] = useState<number>(0);
 
-  const [otpCode, setOtpCode] = useState<string>('');
-  const [otpInput, setOtpInput] = useState<string>('');
-  const [otpCountdown, setOtpCountdown] = useState<number>(0);
   const [forgotEmail, setForgotEmail] = useState<string>('');
   const [resetToken, setResetToken] = useState<string>('');
   const [newPassword, setNewPassword] = useState<string>('');
   const [confirmNewPassword, setConfirmNewPassword] = useState<string>('');
-
-  useEffect(() => {
-    if (otpCountdown <= 0) return;
-    const timer = setTimeout(() => {
-      setOtpCountdown((prev) => prev - 1);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [otpCountdown]);
 
   useEffect(() => {
     const checkLock = () => {
@@ -186,7 +175,6 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
     if (mode === 'login') return 'Đăng nhập vào PBMS';
     if (mode === 'register') return 'Tạo tài khoản PBMS';
     if (mode === 'forgot_email') return 'Quên mật khẩu';
-    if (mode === 'forgot_otp') return 'Xác minh OTP';
     if (mode === 'forgot_reset') return 'Đặt lại mật khẩu';
     return 'PBMS';
   }, [mode]);
@@ -201,35 +189,16 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
     if (mode === 'forgot_email') {
       return 'Nhập email đã đăng ký của bạn để nhận liên kết khôi phục mật khẩu tài khoản.';
     }
-    if (mode === 'forgot_otp') {
-      return `Hệ thống đã gửi một mã OTP gồm 6 chữ số đến email: ${forgotEmail || 'của bạn'}. Vui lòng nhập mã để tiếp tục.`;
-    }
     if (mode === 'forgot_reset') {
       return 'Tạo mật khẩu mới cho tài khoản của bạn. Mật khẩu phải có độ dài ít nhất 6 ký tự.';
     }
     return '';
-  }, [mode, forgotEmail]);
+  }, [mode]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
     setForm((s) => ({ ...s, [name]: value }));
   }
-
-  const handleResendOtp = async () => {
-    setLocalNotice({ message: 'Đang gửi lại mã OTP...', type: 'success' });
-    try {
-      const generatedOtp = String(Math.floor(100000 + Math.random() * 900000));
-      setOtpCode(generatedOtp);
-      setOtpCountdown(60);
-      setLocalNotice({
-        message: `Mã OTP khôi phục mật khẩu mới đã được gửi lại vào hòm thư ${forgotEmail} thành công! 🌟`,
-        type: 'success',
-      });
-    } catch (err: any) {
-      const msg = err?.message || 'Không thể gửi lại mã OTP.';
-      setLocalNotice({ message: msg, type: 'error' });
-    }
-  };
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -256,22 +225,6 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
       } catch (err: any) {
         const msg = err?.message || 'Email không tồn tại trên hệ thống hoặc lỗi gửi mail.';
         setLocalNotice({ message: msg, type: 'error' });
-      }
-      return;
-    }
-
-    if (mode === 'forgot_otp') {
-      // Bypassed in Backend link-based flow, kept for compatibility
-      const otpVal = otpInput.trim();
-      if (!otpVal) {
-        setLocalNotice({ message: 'Vui lòng nhập mã OTP!', type: 'error' });
-        return;
-      }
-      if (otpVal === otpCode || otpVal === '123456') {
-        setLocalNotice(null);
-        onModeChange('forgot_reset');
-      } else {
-        setLocalNotice({ message: 'Mã OTP không chính xác!', type: 'error' });
       }
       return;
     }
@@ -335,8 +288,6 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
         localStorage.removeItem('pbms.forgotEmail_pending'); // Clean up pending flag
         setNewPassword('');
         setConfirmNewPassword('');
-        setOtpInput('');
-        setOtpCode('');
         onModeChange('login');
       } catch (err: any) {
         const msg = err?.message || 'Đặt lại mật khẩu thất bại. Token có thể đã hết hạn hoặc không hợp lệ.';
@@ -815,34 +766,6 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
               </div>
             )}
 
-            {mode === 'forgot_otp' && (
-              <div className="space-y-3">
-                <div className="space-y-1.5">
-                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Mã xác nhận OTP</label>
-                  <input 
-                    name="otpInput" 
-                    value={otpInput} 
-                    onChange={(e) => setOtpInput(e.target.value)} 
-                    type="text" 
-                    required 
-                    maxLength={6}
-                    className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-center tracking-[0.5em] text-lg font-black text-orange-400 placeholder-slate-700 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 h-12 px-4 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)]"
-                    placeholder="******" 
-                  />
-                </div>
-                <div className="flex justify-between items-center text-xs font-semibold px-1">
-                  <span className="text-slate-400">Không nhận được mã?</span>
-                  <button
-                    type="button"
-                    disabled={otpCountdown > 0}
-                    onClick={handleResendOtp}
-                    className={`transition-colors ${otpCountdown > 0 ? 'text-slate-600 cursor-not-allowed' : 'text-orange-400 hover:text-orange-300 underline'}`}
-                  >
-                    {otpCountdown > 0 ? `Gửi lại mã (${otpCountdown}s)` : 'Gửi lại mã'}
-                  </button>
-                </div>
-              </div>
-            )}
 
             {mode === 'forgot_reset' && (
               <>
@@ -953,13 +876,11 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                   ? 'Tạo tài khoản'
                   : mode === 'forgot_email'
                   ? 'Gửi link khôi phục'
-                  : mode === 'forgot_otp'
-                  ? 'Xác nhận mã OTP'
                   : 'Đặt lại mật khẩu'}
               </motion.button>
               
               <div className="text-center">
-                {['forgot_email', 'forgot_otp', 'forgot_reset'].includes(mode) ? (
+                {['forgot_email', 'forgot_reset'].includes(mode) ? (
                   <button 
                     type="button" 
                     onClick={() => {

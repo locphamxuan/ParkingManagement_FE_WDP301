@@ -37,59 +37,7 @@ const promoPoints = [
     title: 'An tâm truy cập',
     text: 'Thông tin tài khoản và các luồng đăng nhập, đăng ký được trình bày ngắn gọn, dễ theo dõi.',
   },
-];async function sendOtpEmail(toEmail: string, otpCode: string): Promise<boolean> {
-  const fromEmail = "locpxse184345@fpt.edu.vn";
-  const password = "godwdnvsdcjpfdmq";
-  const host = "smtp.gmail.com";
-  const subject = "Mã xác thực OTP khôi phục mật khẩu PBMS";
-  const body = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff; color: #1e293b;">
-      <h2 style="color: #ea580c; font-size: 22px; font-weight: 800; margin-bottom: 20px; text-align: center;">Mã xác thực khôi phục mật khẩu</h2>
-      <p style="font-size: 15px; line-height: 1.5; color: #334155;">Xin chào,</p>
-      <p style="font-size: 15px; line-height: 1.5; color: #334155;">Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản PBMS liên kết với email này. Vui lòng sử dụng mã OTP dưới đây để hoàn tất quá trình:</p>
-      <div style="font-size: 32px; font-weight: bold; text-align: center; margin: 30px 0; color: #ea580c; letter-spacing: 5px; background-color: #fef3c7; padding: 15px; border-radius: 10px;">
-        ${otpCode}
-      </div>
-      <p style="color: #64748b; font-size: 13px; text-align: center;">Mã OTP này có hiệu lực trong vòng 5 phút. Vui lòng không chia sẻ mã này với bất kỳ ai.</p>
-      <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 25px 0;" />
-      <p style="font-size: 11px; color: #94a3b8; text-align: center;">Đây là email tự động từ hệ thống quản lý bãi đỗ xe PBMS.</p>
-    </div>
-  `;
-
-  const formData = new URLSearchParams();
-  formData.append("Host", host);
-  formData.append("Username", fromEmail);
-  formData.append("Password", password);
-  formData.append("To", toEmail);
-  formData.append("From", fromEmail);
-  formData.append("Subject", subject);
-  formData.append("Body", body);
-  formData.append("Action", "Send");
-
-  try {
-    // Định tuyến qua corsproxy.io để vượt qua hoàn toàn bộ lọc 403 Forbidden của SMTPJS đối với localhost
-    const response = await fetch("https://corsproxy.io/?https://smtpjs.com/v3/smtpjs.aspx", {
-      method: "POST",
-      body: formData,
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error ${response.status}`);
-    }
-
-    const result = await response.text();
-    console.log("SMTPJS proxy response text:", result);
-
-    if (result !== "OK") {
-      throw new Error(result || "Không thể gửi OTP.");
-    }
-    
-    return true;
-  } catch (e: any) {
-    console.error("Failed to send OTP email", e);
-    throw new Error(e.message || "Lỗi kết nối khi gửi mã OTP qua SMTPJS.");
-  }
-}
+];
 
 
 export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSubmit, isLoading }: AuthPageProps) {
@@ -271,7 +219,6 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
     setLocalNotice({ message: 'Đang gửi lại mã OTP...', type: 'success' });
     try {
       const generatedOtp = String(Math.floor(100000 + Math.random() * 900000));
-      await sendOtpEmail(forgotEmail, generatedOtp);
       setOtpCode(generatedOtp);
       setOtpCountdown(60);
       setLocalNotice({

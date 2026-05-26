@@ -45,7 +45,7 @@ export function ManagerGatesPage() {
       setVehicleTypes(vts.data.items);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Tải thất bại');
+      setError(err instanceof Error ? err.message : 'Failed to load');
     } finally {
       setLoading(false);
     }
@@ -92,33 +92,33 @@ export function ManagerGatesPage() {
       setModalOpen(false);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Lưu thất bại');
+      alert(err instanceof Error ? err.message : 'Save failed');
     }
   };
 
   const onDelete = async (row: Gate) => {
-    if (!window.confirm(`Xóa cổng ${row.code}?`)) return;
+    if (!window.confirm(`Delete gate ${row.code}?`)) return;
     try {
       await managerApi.gates.remove(buildingId, row._id);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Xóa thất bại');
+      alert(err instanceof Error ? err.message : 'Delete failed');
     }
   };
 
   const directionLabel: Record<Gate['direction'], string> = {
-    in: 'Vào',
-    out: 'Ra',
-    both: 'Hai chiều',
+    in: 'In',
+    out: 'Out',
+    both: 'Both',
   };
 
   const columns: DataColumn<Gate>[] = [
-    { key: 'code', title: 'Mã' },
-    { key: 'name', title: 'Tên' },
-    { key: 'direction', title: 'Hướng', render: (row) => directionLabel[row.direction] },
+    { key: 'code', title: 'Code' },
+    { key: 'name', title: 'Name' },
+    { key: 'direction', title: 'Direction', render: (row) => directionLabel[row.direction] },
     {
       key: 'allowedVehicleTypes',
-      title: 'Loại xe',
+      title: 'Vehicle types',
       render: (row) =>
         row.allowedVehicleTypes
           .map((v) => (typeof v === 'string' ? v : v.code))
@@ -126,7 +126,7 @@ export function ManagerGatesPage() {
     },
     {
       key: 'status',
-      title: 'Trạng thái',
+      title: 'Status',
       render: (row) => <StatusBadge status={row.status} />,
     },
     {
@@ -158,41 +158,41 @@ export function ManagerGatesPage() {
     <div className="grid gap-4">
       <div className="flex justify-end">
         <Button onClick={openCreate} className="gap-2">
-          <Plus size={14} /> Thêm cổng
+          <Plus size={14} /> Add gate
         </Button>
       </div>
       {loading ? (
-        <div className="text-sm text-muted-foreground">Đang tải...</div>
+        <div className="text-sm text-muted-foreground">Loading...</div>
       ) : error ? (
         <div className="text-sm text-red-600">{error}</div>
       ) : (
-        <DataTable title="Cổng" rows={items} columns={columns} />
+        <DataTable title="Gates" rows={items} columns={columns} />
       )}
       <ModalForm
         open={modalOpen}
         onOpenChange={setModalOpen}
-        title={editing ? 'Sửa cổng' : 'Thêm cổng'}
+        title={editing ? 'Edit gate' : 'Add gate'}
         onSubmit={onSubmit}
       >
         <div className="grid gap-3 md:grid-cols-2">
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Mã</label>
+            <label className="text-xs uppercase text-muted-foreground">Code</label>
             <Input value={form.code} onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))} />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Tên</label>
+            <label className="text-xs uppercase text-muted-foreground">Name</label>
             <Input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Hướng</label>
+            <label className="text-xs uppercase text-muted-foreground">Direction</label>
             <select
               className="h-10 rounded-md border border-border bg-card px-3 text-sm"
               value={form.direction}
               onChange={(e) => setForm((f) => ({ ...f, direction: e.target.value as Gate['direction'] }))}
             >
-              <option value="both">Hai chiều</option>
-              <option value="in">Chỉ vào</option>
-              <option value="out">Chỉ ra</option>
+              <option value="both">Both</option>
+              <option value="in">In only</option>
+              <option value="out">Out only</option>
             </select>
           </div>
           <div className="grid gap-1.5">
@@ -202,16 +202,16 @@ export function ManagerGatesPage() {
               value={form.status}
               onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as Gate['status'] }))}
             >
-              <option value="active">Hoạt động</option>
-              <option value="inactive">Không hoạt động</option>
-              <option value="maintenance">Bảo trì</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="maintenance">Maintenance</option>
             </select>
           </div>
           <div className="grid gap-1.5 md:col-span-2">
-            <label className="text-xs uppercase text-muted-foreground">Loại xe được phép qua</label>
+            <label className="text-xs uppercase text-muted-foreground">Allowed vehicle types</label>
             <div className="flex flex-wrap gap-2">
               {vehicleTypes.length === 0 ? (
-                <p className="text-xs text-muted-foreground">Chưa có loại xe.</p>
+                <p className="text-xs text-muted-foreground">No vehicle types.</p>
               ) : (
                 vehicleTypes.map((vt) => {
                   const active = form.allowedVehicleTypes.includes(vt._id);

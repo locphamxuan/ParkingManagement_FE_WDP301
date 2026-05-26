@@ -51,7 +51,7 @@ export function ManagerPackagesPage() {
       setVts(vtList.data.items);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Tải thất bại');
+      setError(err instanceof Error ? err.message : 'Failed to load');
     } finally {
       setLoading(false);
     }
@@ -84,7 +84,7 @@ export function ManagerPackagesPage() {
 
   const onSubmit = async () => {
     if (!form.vehicleType) {
-      alert('Chọn loại xe trước');
+      alert('Please select a vehicle type first');
       return;
     }
     const payload = {
@@ -106,38 +106,38 @@ export function ManagerPackagesPage() {
       setModalOpen(false);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Lưu thất bại');
+      alert(err instanceof Error ? err.message : 'Save failed');
     }
   };
 
   const onDelete = async (row: LongTermPackage) => {
-    if (!window.confirm(`Xóa gói "${row.name}"?`)) return;
+    if (!window.confirm(`Delete package "${row.name}"?`)) return;
     try {
       await managerApi.packages.remove(buildingId, row._id);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Xóa thất bại');
+      alert(err instanceof Error ? err.message : 'Delete failed');
     }
   };
 
   const columns: DataColumn<LongTermPackage>[] = [
-    { key: 'code', title: 'Mã' },
-    { key: 'name', title: 'Tên' },
+    { key: 'code', title: 'Code' },
+    { key: 'name', title: 'Name' },
     {
       key: 'vehicleType',
-      title: 'Loại xe',
+      title: 'Vehicle Type',
       render: (row) => (typeof row.vehicleType === 'string' ? row.vehicleType : row.vehicleType.code),
     },
-    { key: 'durationDays', title: 'Thời hạn (ngày)' },
+    { key: 'durationDays', title: 'Duration (Days)' },
     {
       key: 'price',
-      title: 'Giá',
+      title: 'Price',
       render: (row) => `${row.price.toLocaleString('vi-VN')} đ`,
     },
-    { key: 'reservedSlots', title: 'Slot dành riêng' },
+    { key: 'reservedSlots', title: 'Dedicated Slot' },
     {
       key: 'isActive',
-      title: 'Trạng thái',
+      title: 'Status',
       render: (row) => <StatusBadge status={row.isActive ? 'active' : 'inactive'} />,
     },
     {
@@ -160,46 +160,46 @@ export function ManagerPackagesPage() {
     <div className="grid gap-4">
       <div className="flex justify-end">
         <Button onClick={openCreate} className="gap-2">
-          <Plus size={14} /> Thêm gói
+          <Plus size={14} /> Add package
         </Button>
       </div>
       {loading ? (
-        <div className="text-sm text-muted-foreground">Đang tải...</div>
+        <div className="text-sm text-muted-foreground">Loading...</div>
       ) : error ? (
         <div className="text-sm text-red-600">{error}</div>
       ) : (
-        <DataTable title="Gói dài hạn" rows={items} columns={columns} />
+        <DataTable title="Long-term packages" rows={items} columns={columns} />
       )}
 
       <ModalForm
         open={modalOpen}
         onOpenChange={setModalOpen}
-        title={editing ? 'Sửa gói dài hạn' : 'Thêm gói dài hạn'}
+        title={editing ? 'Edit package' : 'Add package'}
         onSubmit={onSubmit}
       >
         <div className="grid gap-3 md:grid-cols-2">
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Mã</label>
+            <label className="text-xs uppercase text-muted-foreground">Code</label>
             <Input
               value={form.code}
               onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Tên</label>
+            <label className="text-xs uppercase text-muted-foreground">Name</label>
             <Input
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Loại xe</label>
+            <label className="text-xs uppercase text-muted-foreground">Vehicle type</label>
             <select
               className="h-10 rounded-md border border-border bg-card px-3 text-sm"
               value={form.vehicleType}
               onChange={(e) => setForm((f) => ({ ...f, vehicleType: e.target.value }))}
             >
-              <option value="">Chọn</option>
+              <option value="">Select</option>
               {vts.map((vt) => (
                 <option key={vt._id} value={vt._id}>
                   {vt.code} - {vt.name}
@@ -208,7 +208,7 @@ export function ManagerPackagesPage() {
             </select>
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Thời hạn (ngày)</label>
+            <label className="text-xs uppercase text-muted-foreground">Duration (days)</label>
             <Input
               type="number"
               min={1}
@@ -217,7 +217,7 @@ export function ManagerPackagesPage() {
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Giá (VND)</label>
+            <label className="text-xs uppercase text-muted-foreground">Price (VND)</label>
             <Input
               type="number"
               min={0}
@@ -226,7 +226,7 @@ export function ManagerPackagesPage() {
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Số slot dành riêng</label>
+            <label className="text-xs uppercase text-muted-foreground">Reserved slots</label>
             <Input
               type="number"
               min={0}
@@ -235,7 +235,7 @@ export function ManagerPackagesPage() {
             />
           </div>
           <div className="grid gap-1.5 md:col-span-2">
-            <label className="text-xs uppercase text-muted-foreground">Mô tả</label>
+            <label className="text-xs uppercase text-muted-foreground">Description</label>
             <Input
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
@@ -247,7 +247,7 @@ export function ManagerPackagesPage() {
               checked={form.isActive}
               onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))}
             />
-            <span>Đang mở bán</span>
+            <span>Active</span>
           </label>
         </div>
       </ModalForm>

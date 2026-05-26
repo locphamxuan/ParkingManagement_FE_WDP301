@@ -31,8 +31,8 @@ export function ManagerDashboardPage() {
   const [overviewError, setOverviewError] = useState<string | null>(null);
 
   const userName = useMemo(() => {
-    if (!session) return 'Người quản lý';
-    return session.displayName || session.email || 'Người quản lý';
+    if (!session) return 'Manager';
+    return session.displayName || session.email || 'Manager';
   }, [session]);
 
   const fetchOverview = useCallback(async () => {
@@ -48,7 +48,7 @@ export function ManagerDashboardPage() {
       const data = await managerApi.getBuildingDashboard(selectedBuildingId, session.token);
       setOverview(data);
     } catch (error) {
-      setOverviewError(error instanceof Error ? error.message : 'Không thể tải báo cáo.');
+      setOverviewError(error instanceof Error ? error.message : 'Unable to load overview.');
       setOverview(null);
     } finally {
       setIsLoadingOverview(false);
@@ -62,28 +62,28 @@ export function ManagerDashboardPage() {
   const cards = useMemo(
     () => [
       {
-        label: 'Số tầng',
+        label: 'Floors',
         value: overview?.floors ?? 0,
         icon: Layers,
         color: 'text-cyan-400',
         bg: 'bg-cyan-500/10 border-cyan-500/20'
       },
       {
-        label: 'Số cổng',
+        label: 'Gates',
         value: overview?.gates ?? 0,
         icon: Building2,
         color: 'text-purple-400',
         bg: 'bg-purple-500/10 border-purple-500/20'
       },
       {
-        label: 'Chỗ đỗ',
+        label: 'Parking slots',
         value: overview?.slots?.total ?? 0,
         icon: Square,
         color: 'text-orange-400',
         bg: 'bg-orange-500/10 border-orange-500/20'
       },
       {
-        label: 'Phiên đang hoạt động',
+        label: 'Active sessions',
         value: overview?.sessions?.active ?? 0,
         icon: MessageSquare,
         color: 'text-emerald-400',
@@ -116,18 +116,18 @@ export function ManagerDashboardPage() {
         <div className="relative z-10 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-orange-500/10 border border-orange-500/20 text-[9px] font-black uppercase tracking-widest text-orange-400 font-mono">
-              Cổng Quản Trị Viên
+              Manager Console
             </div>
             <h1 className="mt-2.5 text-3xl font-black tracking-tight text-white sm:text-4xl">
-              Chào ngày mới, <span className="bg-gradient-to-r from-orange-400 via-amber-400 to-cyan-400 bg-clip-text text-transparent">{userName}</span>
+              Good morning, <span className="bg-gradient-to-r from-orange-400 via-amber-400 to-cyan-400 bg-clip-text text-transparent">{userName}</span>
             </h1>
             <p className="mt-3.5 max-w-2xl text-xs font-semibold text-slate-300 leading-relaxed">
-              Trung tâm điều khiển tòa nhà giúp bạn kiểm tra tình hình chỗ đỗ đỗ xe, phê duyệt các ca trực của nhân viên, cập nhật bảng giá franchise và phản hồi thắc mắc của khách hàng theo thời gian thực.
+              The building control center helps you monitor parking availability, approve staff shifts, update pricing, and respond to customer inquiries in real time.
             </p>
           </div>
-          <div className="inline-flex items-center gap-2.5 rounded-full bg-slate-950/80 border border-orange-500/20 px-4.5 py-2.5 text-xs font-black text-orange-400 uppercase font-mono shadow-xl self-start sm:self-auto backdrop-blur-md">
+            <div className="inline-flex items-center gap-2.5 rounded-full bg-slate-950/80 border border-orange-500/20 px-4.5 py-2.5 text-xs font-black text-orange-400 uppercase font-mono shadow-xl self-start sm:self-auto backdrop-blur-md">
             <Building2 size={14} className="text-orange-400" />
-            <span>{selectedBuilding?.name ?? 'Chưa chọn tòa nhà'}</span>
+            <span>{selectedBuilding?.name ?? 'No building selected'}</span>
           </div>
         </div>
       </motion.section>
@@ -137,19 +137,19 @@ export function ManagerDashboardPage() {
           {/* Building Selection Card */}
           <motion.div variants={itemVariants}>
             <Card className="border border-white/5 bg-slate-900/40 shadow-2xl backdrop-blur-md overflow-hidden rounded-3xl">
-              <CardHeader className="border-b border-white/5 bg-slate-950/30 p-5">
-                <CardTitle className="text-xs font-black uppercase tracking-wider text-slate-300 font-mono">Tòa nhà phụ trách</CardTitle>
+                <CardHeader className="border-b border-white/5 bg-slate-950/30 p-5">
+                <CardTitle className="text-xs font-black uppercase tracking-wider text-slate-300 font-mono">Managed buildings</CardTitle>
               </CardHeader>
               <CardContent className="p-5">
                 {isBuildingsLoading ? (
-                  <div className="flex items-center gap-2 text-slate-400 text-xs font-semibold">
+                    <div className="flex items-center gap-2 text-slate-400 text-xs font-semibold">
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
-                    <span>Đang tải danh sách tòa nhà phụ trách...</span>
+                    <span>Loading managed buildings...</span>
                   </div>
                 ) : buildingsError ? (
                   <p className="text-xs font-semibold text-rose-400 bg-rose-950/20 border border-rose-500/20 p-3.5 rounded-2xl">{buildingsError}</p>
                 ) : buildings.length === 0 ? (
-                  <p className="text-xs text-slate-500 italic">Tài khoản này chưa được phân quyền quản lý bãi xe nào.</p>
+                  <p className="text-xs text-slate-500 italic">This account has not been assigned to any parking lots.</p>
                 ) : (
                   <div className="grid gap-3 sm:grid-cols-2">
                     {buildings.map((building) => {
@@ -165,12 +165,12 @@ export function ManagerDashboardPage() {
                               : 'border-white/5 bg-slate-950/40 text-slate-300 hover:border-white/10 hover:bg-slate-900/40'
                           }`}
                         >
-                          <p className={`font-black text-sm ${isSelected ? 'text-orange-400' : 'text-slate-200'}`}>
-                            {building.name || building.code || 'Tòa nhà'}
+                            <p className={`font-black text-sm ${isSelected ? 'text-orange-400' : 'text-slate-200'}`}>
+                            {building.name || building.code || 'Building'}
                           </p>
                           <p className="mt-2.5 text-[10px] font-bold text-slate-400 flex items-center gap-1.5 font-mono uppercase tracking-wide">
                             <span className={`h-1.5 w-1.5 rounded-full ${building.status === 'active' ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
-                            Trạng thái: {building.status === 'active' ? 'Hoạt động' : 'Tạm dừng'}
+                            Status: {building.status === 'active' ? 'Active' : 'Paused'}
                           </p>
                         </button>
                       );
@@ -184,14 +184,14 @@ export function ManagerDashboardPage() {
           {/* Quick Reports Stats */}
           <motion.div variants={itemVariants}>
             <Card className="border border-white/5 bg-slate-900/40 shadow-2xl backdrop-blur-md overflow-hidden rounded-3xl">
-              <CardHeader className="border-b border-white/5 bg-slate-950/30 p-5">
-                <CardTitle className="text-xs font-black uppercase tracking-wider text-slate-300 font-mono">Báo cáo nhanh hôm nay</CardTitle>
+                <CardHeader className="border-b border-white/5 bg-slate-950/30 p-5">
+                <CardTitle className="text-xs font-black uppercase tracking-wider text-slate-300 font-mono">Quick reports (Today)</CardTitle>
               </CardHeader>
               <CardContent className="p-5">
                 {isLoadingOverview ? (
-                  <div className="flex items-center gap-2 text-slate-400 text-xs font-semibold">
+                    <div className="flex items-center gap-2 text-slate-400 text-xs font-semibold">
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
-                    <span>Đang tổng hợp dữ liệu bãi xe...</span>
+                    <span>Aggregating parking data...</span>
                   </div>
                 ) : overviewError ? (
                   <p className="text-xs font-semibold text-rose-400 bg-rose-950/20 border border-rose-500/20 p-3.5 rounded-2xl">{overviewError}</p>
@@ -213,7 +213,7 @@ export function ManagerDashboardPage() {
                     })}
                   </div>
                 ) : (
-                  <p className="text-xs text-slate-400 font-semibold italic text-center py-4">Vui lòng chọn một tòa nhà cụ thể ở trên để xem số liệu chi tiết.</p>
+                  <p className="text-xs text-slate-400 font-semibold italic text-center py-4">Please select a building above to view detailed metrics.</p>
                 )}
               </CardContent>
             </Card>
@@ -226,14 +226,14 @@ export function ManagerDashboardPage() {
           <motion.div variants={itemVariants}>
             <Card className="border border-white/5 bg-slate-900/40 shadow-2xl backdrop-blur-md overflow-hidden rounded-3xl">
               <CardHeader className="border-b border-white/5 bg-slate-950/30 p-5">
-                <CardTitle className="text-xs font-black uppercase tracking-wider text-slate-300 font-mono">Hiệu suất bãi đỗ</CardTitle>
+                <CardTitle className="text-xs font-black uppercase tracking-wider text-slate-300 font-mono">Parking Performance</CardTitle>
               </CardHeader>
               <CardContent className="p-5 space-y-4">
                 <div className="rounded-2xl border border-white/5 bg-slate-950/40 p-4">
                   <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">Số ô đang có xe</p>
                   <div className="mt-2 flex items-baseline justify-between">
-                    <p className="text-2xl font-black text-white font-mono">{overview?.slots?.occupied ?? 0}</p>
-                    <p className="text-xs font-bold text-slate-500 font-mono">/ {overview?.slots?.total ?? 0} ô đỗ</p>
+                      <p className="text-2xl font-black text-white font-mono">{overview?.slots?.occupied ?? 0}</p>
+                      <p className="text-xs font-bold text-slate-500 font-mono">/ {overview?.slots?.total ?? 0} slots</p>
                   </div>
                   {/* Visual Progress Bar */}
                   <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-800">
@@ -245,12 +245,12 @@ export function ManagerDashboardPage() {
                 </div>
 
                 <div className="rounded-2xl border border-white/5 bg-slate-950/40 p-4">
-                  <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">Tỉ lệ lấp đầy</p>
+                  <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">Occupancy rate</p>
                   <p className="mt-2 text-2xl font-black text-orange-400 font-mono">{overview?.slots?.occupancyRate ?? 0}%</p>
                 </div>
 
                 <div className="rounded-2xl border border-white/5 bg-slate-950/60 p-4 border-l-4 border-l-orange-500 shadow-xl">
-                  <p className="text-[9px] font-black uppercase tracking-wider text-orange-400 font-mono">Doanh thu ghi nhận ca ngày</p>
+                  <p className="text-[9px] font-black uppercase tracking-wider text-orange-400 font-mono">Revenue (today)</p>
                   <p className="mt-2.5 text-2xl font-black text-white font-mono">{overview?.revenue?.today?.toLocaleString() ?? 0} <span className="text-xs font-black text-slate-400">VND</span></p>
                 </div>
               </CardContent>
@@ -261,12 +261,12 @@ export function ManagerDashboardPage() {
           <motion.div variants={itemVariants}>
             <Card className="border border-white/5 bg-slate-900/40 shadow-2xl backdrop-blur-md overflow-hidden rounded-3xl">
               <CardHeader className="border-b border-white/5 bg-slate-950/30 p-5">
-                <CardTitle className="text-xs font-black uppercase tracking-wider text-slate-300 font-mono">Yêu cầu & Gói dài hạn</CardTitle>
+                <CardTitle className="text-xs font-black uppercase tracking-wider text-slate-300 font-mono">Requests & Subscriptions</CardTitle>
               </CardHeader>
               <CardContent className="p-5 space-y-3">
                 <div className="rounded-2xl border border-white/5 bg-slate-950/40 p-4 flex items-center justify-between">
                   <div>
-                    <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">Phản hồi cần xử lý</p>
+                    <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">Pending feedback</p>
                     <p className="mt-1 text-xl font-black text-white font-mono">{overview?.feedbacks?.pending ?? 0}</p>
                   </div>
                   {overview?.feedbacks?.pending && overview.feedbacks.pending > 0 ? (
@@ -275,8 +275,8 @@ export function ManagerDashboardPage() {
                 </div>
 
                 <div className="rounded-2xl border border-white/5 bg-slate-950/40 p-4">
-                  <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">Đăng ký gói tháng đang hoạt động</p>
-                  <p className="mt-1.5 text-xl font-black text-white font-mono">{overview?.subscriptions?.active ?? 0} <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">thuê bao</span></p>
+                  <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">Active monthly subscriptions</p>
+                  <p className="mt-1.5 text-xl font-black text-white font-mono">{overview?.subscriptions?.active ?? 0} <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">subscriptions</span></p>
                 </div>
               </CardContent>
             </Card>

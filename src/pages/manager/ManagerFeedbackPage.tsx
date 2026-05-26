@@ -28,7 +28,7 @@ export function ManagerFeedbackPage() {
         setSelectedFeedbackId(items[0]._id);
       }
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : 'Không thể tải phản hồi.');
+      setNotice(error instanceof Error ? error.message : 'Unable to load feedbacks.');
     }
   }, [selectedBuildingId, session?.token, selectedFeedbackId]);
 
@@ -40,7 +40,7 @@ export function ManagerFeedbackPage() {
 
   const sendResponse = useCallback(async () => {
     if (!selectedBuildingId || !selectedFeedbackId || !session?.token || !responseText.trim()) {
-      setNotice('Vui lòng chọn phản hồi và điền nội dung trả lời.');
+      setNotice('Please select feedback and enter a reply.');
       return;
     }
     setIsSaving(true);
@@ -49,10 +49,10 @@ export function ManagerFeedbackPage() {
     try {
       await managerApi.respondFeedback(selectedBuildingId, selectedFeedbackId, { response: responseText.trim() }, session.token);
       setResponseText('');
-      setNotice('Đã gửi phản hồi thành công.');
+      setNotice('Response sent successfully.');
       await loadFeedbacks();
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : 'Gửi phản hồi thất bại.');
+      setNotice(error instanceof Error ? error.message : 'Failed to send response.');
     } finally {
       setIsSaving(false);
     }
@@ -62,19 +62,19 @@ export function ManagerFeedbackPage() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Phản hồi</CardTitle>
+          <CardTitle>Feedback</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <p>Đang tải tòa nhà...</p>
+            <p>Loading buildings...</p>
           ) : error ? (
             <p className="text-sm text-red-600">{error}</p>
           ) : buildings.length === 0 ? (
-            <p>Không có tòa nhà để xem phản hồi.</p>
+            <p>No buildings to view feedback.</p>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="block text-sm text-slate-700">Tòa nhà</label>
+                <label className="block text-sm text-slate-700">Building</label>
                 <select
                   className="mt-2 w-full rounded-2xl border border-border bg-white px-3 py-2 text-sm text-slate-900 outline-none transition hover:border-slate-400"
                   value={selectedBuildingId}
@@ -82,13 +82,13 @@ export function ManagerFeedbackPage() {
                 >
                   {buildings.map((building) => (
                     <option key={building._id} value={building._id}>
-                      {building.name || building.code || 'Tòa nhà không tên'}
+                      {building.name || building.code || 'Unnamed building'}
                     </option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="block text-sm text-slate-700">Phản hồi đang chọn</label>
+                <label className="block text-sm text-slate-700">Selected feedback</label>
                 <select
                   className="mt-2 w-full rounded-2xl border border-border bg-white px-3 py-2 text-sm text-slate-900 outline-none transition hover:border-slate-400"
                   value={selectedFeedbackId}
@@ -109,29 +109,29 @@ export function ManagerFeedbackPage() {
       {selectedFeedback ? (
         <Card>
           <CardHeader>
-            <CardTitle>Chi tiết phản hồi</CardTitle>
+            <CardTitle>Feedback details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <p className="font-semibold text-slate-900">Tiêu đề</p>
-              <p className="text-sm text-slate-600">{selectedFeedback.subject || 'Không có tiêu đề'}</p>
+              <p className="font-semibold text-slate-900">Subject</p>
+              <p className="text-sm text-slate-600">{selectedFeedback.subject || 'No subject'}</p>
             </div>
             <div>
-              <p className="font-semibold text-slate-900">Nội dung</p>
-              <p className="text-sm text-slate-600">{selectedFeedback.comment || 'Không có nội dung'}</p>
+              <p className="font-semibold text-slate-900">Content</p>
+              <p className="text-sm text-slate-600">{selectedFeedback.comment || 'No content'}</p>
             </div>
             <div className="grid gap-2">
-              <label className="text-sm text-slate-600">Phản hồi của quản lý</label>
+              <label className="text-sm text-slate-600">Manager response</label>
               <textarea
                 value={responseText}
                 onChange={(event) => setResponseText(event.target.value)}
                 className="min-h-[120px] w-full rounded-2xl border border-border bg-white px-3 py-2 text-sm text-slate-900 outline-none transition hover:border-slate-400"
-                placeholder="Nhập câu trả lời cho khách hàng..."
+                placeholder="Enter response to customer..."
               />
             </div>
             {notice ? <p className="text-sm text-slate-700">{notice}</p> : null}
             <Button onClick={sendResponse} disabled={isSaving || !responseText.trim()}>
-              {isSaving ? 'Đang gửi...' : 'Gửi phản hồi'}
+              {isSaving ? 'Sending...' : 'Send response'}
             </Button>
           </CardContent>
         </Card>

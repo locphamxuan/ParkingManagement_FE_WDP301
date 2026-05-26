@@ -55,13 +55,13 @@ export function ManagerProfilePage() {
     const oldPhone = (session.phone || '').trim();
 
     if (!trimmedName) {
-      setNameError('Vui lòng nhập họ tên!');
+      setNameError('Please enter your full name!');
       return;
     }
 
     const phoneRegex = /^0[0-9]{9}$/;
     if (!phoneRegex.test(newPhone)) {
-      setPhoneError('Số điện thoại phải bắt đầu bằng số 0 và có đúng 10 chữ số!');
+      setPhoneError('Phone number must start with 0 and be exactly 10 digits!');
       return;
     }
 
@@ -71,7 +71,7 @@ export function ManagerProfilePage() {
       : ['0911111111', '0922222222'];
 
     if (newPhone !== oldPhone && allRegisteredPhones.includes(newPhone)) {
-      setPhoneError('Số điện thoại này đã được đăng ký bởi một tài khoản khác!');
+      setPhoneError('This phone number is already registered to another account!');
       return;
     }
 
@@ -88,7 +88,7 @@ export function ManagerProfilePage() {
     });
 
     setIsEditing(false);
-    setSuccess('Cập nhật thông tin thành công!');
+    setSuccess('Profile updated successfully!');
     setTimeout(() => setSuccess(null), 4000);
   };
 
@@ -111,7 +111,7 @@ export function ManagerProfilePage() {
                 </div>
 
                 <div className="mt-5 space-y-1">
-                  <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Hồ sơ Manager</p>
+                  <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Manager Profile</p>
                   <h1 className="text-2xl font-semibold text-white">{displayName}</h1>
                   <p className="text-sm uppercase tracking-[0.16em] text-slate-300">{session.role}</p>
                 </div>
@@ -124,7 +124,7 @@ export function ManagerProfilePage() {
 
                   <div className="grid gap-2 pt-2">
                     <Button type="button" onClick={startEdit} className="w-full justify-center gap-2">
-                      <Edit size={15} /> Chỉnh sửa hồ sơ
+                      <Edit size={15} /> Edit Profile
                     </Button>
                     <Button type="button" variant="secondary" className="w-full justify-center gap-2" onClick={() => navigate('/manager/dashboard')}>
                       <ArrowLeft size={15} /> Dashboard
@@ -138,7 +138,7 @@ export function ManagerProfilePage() {
                         navigate('/manager/login', { replace: true });
                       }}
                     >
-                      <LogOut size={15} /> Đăng xuất
+                      <LogOut size={15} /> Sign out
                     </Button>
                   </div>
                 </div>
@@ -148,14 +148,14 @@ export function ManagerProfilePage() {
 
           <div className="grid gap-6">
             <Card className="border-slate-700 bg-slate-900/95 shadow-[0_16px_36px_rgba(0,0,0,0.35)]">
-              <CardHeader>
-                <CardTitle>Chi tiết hồ sơ</CardTitle>
+                <CardHeader>
+                <CardTitle>Profile Details</CardTitle>
               </CardHeader>
               <CardContent className="p-6 pt-0">
                 {isEditing ? (
                   <form onSubmit={handleSave} className="grid gap-4">
                     <div className="grid gap-2">
-                      <label className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Tên</label>
+                      <label className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Name</label>
                       <input
                         type="text"
                         value={fullName}
@@ -164,7 +164,7 @@ export function ManagerProfilePage() {
                           setNameError(null);
                         }}
                         className="h-11 rounded-lg border border-slate-700 bg-slate-950 px-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-sky-500/50 focus:ring-2 focus:ring-sky-500/10"
-                        placeholder="Nguyễn Văn A"
+                        placeholder="e.g. John Doe"
                       />
                       {nameError ? (
                         <p className="flex items-center gap-1.5 text-xs font-medium text-rose-300">
@@ -184,7 +184,7 @@ export function ManagerProfilePage() {
                     </div>
 
                     <div className="grid gap-2">
-                      <label className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Vai trò</label>
+                      <label className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Role</label>
                       <input
                         type="text"
                         value={session.role}
@@ -194,7 +194,7 @@ export function ManagerProfilePage() {
                     </div>
 
                     <div className="grid gap-2">
-                      <label className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Số điện thoại</label>
+                      <label className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Phone number</label>
                       <input
                         type="text"
                         value={phone}
@@ -205,7 +205,7 @@ export function ManagerProfilePage() {
                         }}
                         maxLength={10}
                         className="h-11 rounded-lg border border-slate-700 bg-slate-950 px-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-sky-500/50 focus:ring-2 focus:ring-sky-500/10"
-                        placeholder="Ví dụ: 0901234567"
+                        placeholder="e.g. 0901234567"
                       />
                       {phoneError ? (
                         <p className="flex items-center gap-1.5 text-xs font-medium text-rose-300">
@@ -216,18 +216,18 @@ export function ManagerProfilePage() {
 
                     <div className="flex flex-wrap gap-3 pt-2">
                       <Button type="submit" className="gap-2">
-                        <Save size={15} /> Lưu thay đổi
+                        <Save size={15} /> Save changes
                       </Button>
                       <Button type="button" variant="secondary" className="gap-2" onClick={cancelEdit}>
-                        <X size={15} /> Hủy
+                        <X size={15} /> Cancel
                       </Button>
                     </div>
                   </form>
                 ) : (
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="rounded-lg border border-slate-700 bg-slate-950/60 p-4 sm:col-span-2">
-                      <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Tên</p>
-                      <p className="mt-1 text-base font-medium text-white">{displayName || 'Chưa cập nhật'}</p>
+                      <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Name</p>
+                      <p className="mt-1 text-base font-medium text-white">{displayName || 'Not set'}</p>
                     </div>
 
                     <div className="rounded-lg border border-slate-700 bg-slate-950/60 p-4">
@@ -236,13 +236,13 @@ export function ManagerProfilePage() {
                     </div>
 
                     <div className="rounded-lg border border-slate-700 bg-slate-950/60 p-4">
-                      <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Vai trò</p>
+                      <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Role</p>
                       <p className="mt-1 text-sm font-semibold uppercase tracking-[0.16em] text-slate-100">{session.role}</p>
                     </div>
 
                     <div className="rounded-lg border border-slate-700 bg-slate-950/60 p-4 sm:col-span-2">
-                      <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Số điện thoại</p>
-                      <p className="mt-1 text-base font-medium text-white">{session.phone || 'Chưa cập nhật'}</p>
+                      <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Phone number</p>
+                      <p className="mt-1 text-base font-medium text-white">{session.phone || 'Not set'}</p>
                     </div>
                   </div>
                 )}
@@ -250,30 +250,30 @@ export function ManagerProfilePage() {
             </Card>
 
             <Card className="border-slate-700 bg-slate-900/95 shadow-[0_16px_36px_rgba(0,0,0,0.35)]">
-              <CardHeader>
-                <CardTitle>Cài đặt tài khoản</CardTitle>
+                <CardHeader>
+                <CardTitle>Account settings</CardTitle>
               </CardHeader>
               <CardContent className="p-6 pt-0">
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="rounded-lg border border-slate-700 bg-slate-950/60 p-4">
-                    <p className="text-sm font-semibold text-white">Thông báo vận hành</p>
-                    <p className="mt-1 text-sm text-slate-300">Nhận cảnh báo hoạt động ca trực</p>
+                    <p className="text-sm font-semibold text-white">Operational notifications</p>
+                    <p className="mt-1 text-sm text-slate-300">Receive shift operation alerts</p>
                     <div className="mt-4 inline-flex rounded-full border border-slate-700 bg-slate-950 px-3 py-1 text-xs font-medium text-slate-300">
-                      Sẵn sàng
+                      Ready
                     </div>
                   </div>
 
                   <div className="rounded-lg border border-slate-700 bg-slate-950/60 p-4">
-                    <p className="text-sm font-semibold text-white">Xác thực 2 lớp</p>
-                    <p className="mt-1 text-sm text-slate-300">Tăng cường bảo mật tài khoản</p>
+                    <p className="text-sm font-semibold text-white">Two-factor authentication</p>
+                    <p className="mt-1 text-sm text-slate-300">Improve account security</p>
                     <div className="mt-4 inline-flex rounded-full border border-slate-700 bg-slate-950 px-3 py-1 text-xs font-medium text-slate-300">
-                      Chưa bật
+                      Disabled
                     </div>
                   </div>
 
                   <div className="rounded-lg border border-slate-700 bg-slate-950/60 p-4 md:col-span-2">
-                    <p className="text-sm font-semibold text-white">Ngôn ngữ giao diện</p>
-                    <p className="mt-1 text-sm text-slate-300">Tiếng Việt</p>
+                    <p className="text-sm font-semibold text-white">Interface language</p>
+                    <p className="mt-1 text-sm text-slate-300">English</p>
                   </div>
                 </div>
               </CardContent>

@@ -483,7 +483,7 @@ export function AnimatedParkingMap3D({
               const isEV = id === 3;
               
               // If interactive mode, check if slot is reserved in activeReservations
-              const reservation = interactive && activeReservations?.find((r) => r.slotCode === slotCode);
+              const reservation = interactive ? activeReservations?.find((r) => r.slotCode === slotCode) : undefined;
               const isOccupied = interactive 
                 ? Boolean(reservation || id === 1 || id === 5) // slots A-01 and A-05 are occupied by default to look realistic
                 : (id === 1 || id === 2 || (id === 3 && carAState === 'parked') || (id === 4 && carBState === 'parked') || id === 5);

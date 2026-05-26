@@ -51,22 +51,22 @@ function Slot3DBox({
   const config = {
     available: {
       faceColor: 'bg-emerald-500/25 border-emerald-500/40 text-emerald-300',
-      label: 'Trống',
+      label: 'Available',
       glow: 'shadow-[0_0_14px_rgba(16,185,129,0.25),0_0_4px_rgba(16,185,129,0.1)] hover:shadow-[0_0_28px_rgba(16,185,129,0.6),0_0_8px_rgba(16,185,129,0.3)]'
     },
     occupied: {
       faceColor: 'bg-red-500/25 border-red-500/45 text-red-300',
-      label: 'Có xe',
+      label: 'Occupied',
       glow: 'shadow-[0_0_14px_rgba(239,68,68,0.35),0_0_4px_rgba(239,68,68,0.15)] hover:shadow-[0_0_28px_rgba(239,68,68,0.65),0_0_8px_rgba(239,68,68,0.3)]'
     },
     reserved: {
       faceColor: 'bg-purple-500/25 border-purple-500/45 text-purple-300',
-      label: 'Đã đặt',
+      label: 'Reserved',
       glow: 'shadow-[0_0_14px_rgba(168,85,247,0.35),0_0_4px_rgba(168,85,247,0.15)] hover:shadow-[0_0_28px_rgba(168,85,247,0.65),0_0_8px_rgba(168,85,247,0.3)]'
     },
     maintenance: {
       faceColor: 'bg-amber-500/20 border-amber-500/35 text-amber-300 bg-[repeating-linear-gradient(45deg,rgba(245,158,11,0.12),rgba(245,158,11,0.12)_6px,rgba(0,0,0,0.4)_6px,rgba(0,0,0,0.4)_12px)]',
-      label: 'Bảo trì',
+      label: 'Maintenance',
       glow: 'shadow-[0_0_14px_rgba(245,158,11,0.2),0_0_4px_rgba(245,158,11,0.1)] hover:shadow-[0_0_28px_rgba(245,158,11,0.55),0_0_8px_rgba(245,158,11,0.25)]'
     }
   }[slot.status];
@@ -76,10 +76,10 @@ function Slot3DBox({
 
   // Resolve vehicle type name
   const vtName = useMemo(() => {
-    if (!slot.vehicleType) return '— Không cố định —';
+    if (!slot.vehicleType) return '— Not fixed —';
     if (typeof slot.vehicleType === 'object') return slot.vehicleType.name;
     const found = vehicleTypes.find(v => v._id === slot.vehicleType);
-    return found ? found.name : 'Loại xe';
+    return found ? found.name : 'Vehicle type';
   }, [slot.vehicleType, vehicleTypes]);
 
   return (
@@ -152,8 +152,8 @@ function Slot3DBox({
               </span>
             </div>
             <div className="space-y-1 text-[9px] text-slate-400 font-semibold leading-relaxed">
-              <p>Loại: <span className="text-white font-black">{vtName}</span></p>
-              <p>Đặt chỗ: <span className="text-white font-black">{slot.reservable ? 'Có' : 'Khóa'}</span></p>
+              <p>Type: <span className="text-white font-black">{vtName}</span></p>
+              <p>Reservable: <span className="text-white font-black">{slot.reservable ? 'Yes' : 'Locked'}</span></p>
               {slot.note && <p className="border-t border-white/5 pt-1 mt-1 text-slate-500 italic">Note: {slot.note}</p>}
             </div>
           </motion.div>
@@ -211,7 +211,7 @@ export function ManagerSlotsPage() {
       setVehicleTypes(vtRes.data.items);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Tải thất bại');
+      setError(err instanceof Error ? err.message : 'Failed to load');
     } finally {
       setLoading(false);
     }
@@ -271,7 +271,7 @@ export function ManagerSlotsPage() {
 
   const onSubmit = async () => {
     if (!form.floor) {
-      alert('Chọn tầng trước');
+      alert('Please select a floor first');
       return;
     }
     const payload = {
@@ -291,17 +291,17 @@ export function ManagerSlotsPage() {
       setModalOpen(false);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Lưu thất bại');
+      alert(err instanceof Error ? err.message : 'Save failed');
     }
   };
 
   const onDelete = async (row: ParkingSlot) => {
-    if (!window.confirm(`Xóa ô ${row.code}?`)) return;
+    if (!window.confirm(`Delete slot ${row.code}?`)) return;
     try {
       await managerApi.slots.remove(buildingId, row._id);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Xóa thất bại');
+      alert(err instanceof Error ? err.message : 'Delete failed');
     }
   };
 
@@ -310,15 +310,15 @@ export function ManagerSlotsPage() {
       await managerApi.slots.updateStatus(buildingId, row._id, status);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Cập nhật thất bại');
+      alert(err instanceof Error ? err.message : 'Update failed');
     }
   };
 
   const columns: DataColumn<ParkingSlot>[] = [
-    { key: 'code', title: 'Mã ô' },
+    { key: 'code', title: 'Code' },
     {
       key: 'floor',
-      title: 'Tầng',
+      title: 'Floor',
       render: (row) => {
         const id = typeof row.floor === 'string' ? row.floor : row.floor._id;
         const fl = floorMap.get(id);
@@ -327,7 +327,7 @@ export function ManagerSlotsPage() {
     },
     {
       key: 'vehicleType',
-      title: 'Loại xe',
+      title: 'Vehicle type',
       render: (row) =>
         !row.vehicleType
           ? '—'
@@ -337,7 +337,7 @@ export function ManagerSlotsPage() {
     },
     {
       key: 'status',
-      title: 'Trạng thái',
+      title: 'Status',
       render: (row) => (
         <select
           className="h-8 rounded-lg border border-white/10 bg-slate-900 text-white px-2 text-xs"
@@ -346,7 +346,7 @@ export function ManagerSlotsPage() {
         >
           {SLOT_STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s === 'available' ? 'Trống' : s === 'occupied' ? 'Đầy' : s === 'reserved' ? 'Đặt chỗ' : 'Bảo trì'}
+              {s === 'available' ? 'Available' : s === 'occupied' ? 'Occupied' : s === 'reserved' ? 'Reserved' : 'Maintenance'}
             </option>
           ))}
         </select>
@@ -354,8 +354,8 @@ export function ManagerSlotsPage() {
     },
     {
       key: 'reservable',
-      title: 'Cho đặt',
-      render: (row) => (row.reservable ? 'Có' : 'Không'),
+      title: 'Reservable',
+      render: (row) => (row.reservable ? 'Yes' : 'No'),
     },
     {
       key: 'actions',
@@ -384,7 +384,7 @@ export function ManagerSlotsPage() {
             value={floorFilter}
             onChange={(e) => setFloorFilter(e.target.value)}
           >
-            <option value="">Tất cả tầng</option>
+            <option value="">All floors</option>
             {floors.map((f) => (
               <option key={f._id} value={f._id}>
                 {f.code} - {f.name}
@@ -397,10 +397,10 @@ export function ManagerSlotsPage() {
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
-            <option value="">Tất cả trạng thái</option>
+            <option value="">All statuses</option>
             {SLOT_STATUSES.map((s) => (
               <option key={s} value={s}>
-                {s === 'available' ? 'Trống (Green)' : s === 'occupied' ? 'Đầy (Orange)' : s === 'reserved' ? 'Đặt chỗ (Blue)' : 'Bảo trì (Amber)'}
+                {s === 'available' ? 'Available (Green)' : s === 'occupied' ? 'Occupied (Orange)' : s === 'reserved' ? 'Reserved (Blue)' : 'Maintenance (Amber)'}
               </option>
             ))}
           </select>
@@ -416,7 +416,7 @@ export function ManagerSlotsPage() {
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            Danh sách bảng
+            List view
           </button>
           <button
             onClick={() => setViewMode('3d')}
@@ -426,13 +426,13 @@ export function ManagerSlotsPage() {
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            Bản đồ 3D Hologram
+            3D Hologram map
           </button>
         </div>
 
         <div className="flex items-center gap-3">
           <Button onClick={openCreate} className="rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider hover:shadow-[0_0_15px_rgba(249,115,22,0.3)] gap-2">
-            <Plus size={14} className="stroke-[3]" /> Thêm ô đỗ
+            <Plus size={14} className="stroke-[3]" /> Add parking slot
           </Button>
         </div>
       </div>
@@ -440,7 +440,7 @@ export function ManagerSlotsPage() {
       {loading ? (
         <div className="text-sm text-slate-400 flex items-center justify-center p-24 glass-panel-dark rounded-3xl border border-white/5">
           <div className="h-4 w-4 animate-spin rounded-full border-2 border-orange-500 border-t-transparent mr-2" />
-          Đang tải dữ liệu ô đỗ...
+          Loading parking slot data...
         </div>
       ) : error ? (
         <div className="text-sm text-rose-400 glass-panel-dark p-6 rounded-3xl border border-rose-500/10 bg-rose-950/15">{error}</div>
@@ -448,7 +448,7 @@ export function ManagerSlotsPage() {
         <div>
           {viewMode === 'list' ? (
             <div className="glass-panel-dark rounded-3xl border border-white/5 p-6 backdrop-blur-md shadow-2xl">
-              <DataTable title={`Ô đỗ (${items.length})`} rows={items} columns={columns} />
+                <DataTable title={`Parking slots (${items.length})`} rows={items} columns={columns} />
             </div>
           ) : (
             /* Sci-Fi 3D Visual Map Mode */
@@ -506,17 +506,17 @@ export function ManagerSlotsPage() {
                           {/* Floor label badge */}
                           <div className="flex justify-between items-center mb-4 z-10 preserve-3d" style={{ transform: 'translateZ(15px)' }}>
                             <span className="text-[10px] font-black tracking-widest text-orange-400 uppercase font-mono bg-slate-950/80 px-2.5 py-1 rounded-lg border border-white/5">
-                              TẦNG {floor.code} - {floor.name}
+                              FLOOR {floor.code} - {floor.name}
                             </span>
                             <span className="text-[9px] font-bold text-slate-500 font-mono">
-                              CÔNG SUẤT: {floorSlots.filter(s => s.status === 'occupied').length}/{floorSlots.length} SLOT
+                              CAPACITY: {floorSlots.filter(s => s.status === 'occupied').length}/{floorSlots.length} SLOTS
                             </span>
                           </div>
 
                           {/* Grid Layout of Slot blocks */}
                           <div className="grid grid-cols-4 sm:grid-cols-5 gap-6 my-auto items-center justify-items-center preserve-3d" style={{ transform: 'translateZ(10px)' }}>
                             {floorSlots.length === 0 ? (
-                              <div className="col-span-full text-center text-slate-600 text-xs py-10 uppercase tracking-widest font-mono">Chưa cấu hình ô đỗ</div>
+                              <div className="col-span-full text-center text-slate-600 text-xs py-10 uppercase tracking-widest font-mono">No parking slots configured</div>
                             ) : (
                               floorSlots.map((slot) => (
                                 <Slot3DBox 
@@ -543,7 +543,7 @@ export function ManagerSlotsPage() {
                 <div className="absolute left-6 top-6 flex flex-col gap-1.5 z-20 pointer-events-none">
                   <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-slate-400">
                     <Layers size={12} className="text-orange-400" />
-                    <span>Sơ đồ 3D Phân Khu ({items.length} Ô đỗ)</span>
+                    <span>3D Zone Map ({items.length} slots)</span>
                   </div>
                 </div>
               </div>
@@ -553,14 +553,14 @@ export function ManagerSlotsPage() {
                 <div>
                   <h3 className="text-xs font-black uppercase tracking-widest text-white font-mono mb-4 flex items-center gap-1.5 pb-2.5 border-b border-white/5">
                     <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-ping" />
-                    Góc nhìn Không Gian
+                    Spatial View
                   </h3>
                   
                   {/* Cockpit Angle Tilt Controls */}
                   <div className="space-y-6">
                     <div className="space-y-2">
                       <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400 font-mono">
-                        <span>Độ Nghiêng X</span>
+                        <span>Tilt X</span>
                         <span className="text-orange-400 font-mono">{rx}°</span>
                       </div>
                       <input 
@@ -575,7 +575,7 @@ export function ManagerSlotsPage() {
 
                     <div className="space-y-2">
                       <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400 font-mono">
-                        <span>Góc Xoay Z</span>
+                        <span>Rotation Z</span>
                         <span className="text-orange-400 font-mono">{rz}°</span>
                       </div>
                       <input 
@@ -590,7 +590,7 @@ export function ManagerSlotsPage() {
 
                     <div className="space-y-2">
                       <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400 font-mono">
-                        <span>Độ Phóng To (Zoom)</span>
+                        <span>Zoom</span>
                         <span className="text-orange-400 font-mono">{zoom.toFixed(2)}x</span>
                       </div>
                       <input
@@ -614,27 +614,27 @@ export function ManagerSlotsPage() {
                 </div>
 
                 <div className="mt-8 pt-4 border-t border-white/5 space-y-3">
-                  <div className="text-[9px] font-black uppercase tracking-widest text-slate-500 font-mono mb-2">Chú thích trạng thái</div>
+                  <div className="text-[9px] font-black uppercase tracking-widest text-slate-500 font-mono mb-2">Status legend</div>
                   <div className="flex items-center justify-between text-[10px] font-bold text-slate-300 bg-slate-950/40 p-2.5 rounded-xl border border-white/5">
-                    <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-emerald-500/20 border border-emerald-500/40" /> Trống</span>
+                    <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-emerald-500/20 border border-emerald-500/40" /> Available</span>
                     <span className="font-mono text-emerald-400 font-black">
                       {items.filter(s => s.status === 'available').length}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-[10px] font-bold text-slate-300 bg-slate-950/40 p-2.5 rounded-xl border border-white/5">
-                    <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-red-500/20 border border-red-500/40" /> Có xe đỗ</span>
+                    <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-red-500/20 border border-red-500/40" /> Occupied</span>
                     <span className="font-mono text-red-400 font-black">
                       {items.filter(s => s.status === 'occupied').length}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-[10px] font-bold text-slate-300 bg-slate-950/40 p-2.5 rounded-xl border border-white/5">
-                    <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-purple-500/20 border border-purple-500/40" /> Đã đặt</span>
+                    <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-purple-500/20 border border-purple-500/40" /> Reserved</span>
                     <span className="font-mono text-purple-400 font-black">
                       {items.filter(s => s.status === 'reserved').length}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-[10px] font-bold text-slate-300 bg-slate-950/40 p-2.5 rounded-xl border border-white/5">
-                    <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-amber-500/20 border border-amber-500/30" /> Bảo trì</span>
+                    <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-amber-500/20 border border-amber-500/30" /> Maintenance</span>
                     <span className="font-mono text-amber-400 font-black">
                       {items.filter(s => s.status === 'maintenance').length}
                     </span>
@@ -652,12 +652,12 @@ export function ManagerSlotsPage() {
       <ModalForm
         open={modalOpen}
         onOpenChange={setModalOpen}
-        title={editing ? 'Sửa ô đỗ' : 'Thêm ô đỗ'}
+        title={editing ? 'Edit slot' : 'Add slot'}
         onSubmit={onSubmit}
       >
         <div className="grid gap-4 md:grid-cols-2 text-slate-100">
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Mã ô</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Slot code</label>
             <Input
               value={form.code}
               onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
@@ -665,13 +665,13 @@ export function ManagerSlotsPage() {
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Tầng</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Floor</label>
             <select
               className="h-10 rounded-xl border border-white/10 bg-slate-950 text-white px-3 text-sm focus:border-orange-500/40"
               value={form.floor}
               onChange={(e) => setForm((f) => ({ ...f, floor: e.target.value }))}
             >
-              <option value="">Chọn tầng</option>
+              <option value="">Select floor</option>
               {floors.map((fl) => (
                 <option key={fl._id} value={fl._id}>
                   {fl.code} - {fl.name}
@@ -680,13 +680,13 @@ export function ManagerSlotsPage() {
             </select>
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Loại xe (tùy chọn)</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Vehicle type (optional)</label>
             <select
               className="h-10 rounded-xl border border-white/10 bg-slate-950 text-white px-3 text-sm focus:border-orange-500/40"
               value={form.vehicleType}
               onChange={(e) => setForm((f) => ({ ...f, vehicleType: e.target.value }))}
             >
-              <option value="">— Không cố định —</option>
+              <option value="">— Not fixed —</option>
               {vehicleTypes.map((vt) => (
                 <option key={vt._id} value={vt._id}>
                   {vt.code} - {vt.name}
@@ -695,7 +695,7 @@ export function ManagerSlotsPage() {
             </select>
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Trạng thái</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Status</label>
             <select
               className="h-10 rounded-xl border border-white/10 bg-slate-950 text-white px-3 text-sm focus:border-orange-500/40"
               value={form.status}
@@ -705,7 +705,7 @@ export function ManagerSlotsPage() {
             >
               {SLOT_STATUSES.map((s) => (
                 <option key={s} value={s}>
-                  {s === 'available' ? 'Trống' : s === 'occupied' ? 'Đầy' : s === 'reserved' ? 'Đặt chỗ' : 'Bảo trì'}
+                  {s === 'available' ? 'Available' : s === 'occupied' ? 'Occupied' : s === 'reserved' ? 'Reserved' : 'Maintenance'}
                 </option>
               ))}
             </select>
@@ -717,10 +717,10 @@ export function ManagerSlotsPage() {
               onChange={(e) => setForm((f) => ({ ...f, reservable: e.target.checked }))}
               className="w-4 h-4 rounded border-white/10 bg-slate-950 text-orange-500 focus:ring-0 focus:ring-offset-0 cursor-pointer"
             />
-            <span>Cho phép đặt chỗ trước</span>
+            <span>Allow reservations</span>
           </label>
           <div className="grid gap-1.5 md:col-span-2">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Ghi chú</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Note</label>
             <Input
               value={form.note}
               onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}

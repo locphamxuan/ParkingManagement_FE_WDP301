@@ -40,7 +40,7 @@ export function ManagerReservationPolicyPage() {
         setPolicy(res.data.item);
         setForm(toForm(res.data.item));
       })
-      .catch((err) => setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Lỗi' }))
+      .catch((err) => setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Error' }))
       .finally(() => setLoading(false));
   }, [buildingId]);
 
@@ -58,30 +58,30 @@ export function ManagerReservationPolicyPage() {
         isActive: form.isActive,
       });
       setPolicy(res.data.item);
-      setMessage({ type: 'success', text: 'Lưu chính sách đặt chỗ thành công.' });
+      setMessage({ type: 'success', text: 'Reservation policy saved successfully.' });
     } catch (err) {
       setMessage({
         type: 'error',
-        text: err instanceof Error ? err.message : 'Lưu thất bại',
+        text: err instanceof Error ? err.message : 'Save failed',
       });
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <div className="text-sm text-muted-foreground">Đang tải...</div>;
+  if (loading) return <div className="text-sm text-muted-foreground">Loading...</div>;
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Chính sách đặt chỗ trước</CardTitle>
+        <CardTitle>Reservation policy</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={onSubmit} className="grid gap-4">
           <div className="grid gap-3 md:grid-cols-2">
             <div className="grid gap-1.5">
               <label className="text-xs uppercase text-muted-foreground">
-                Tỉ lệ slot cho đặt (0–1)
+                Reservable slot ratio (0–1)
               </label>
               <Input
                 type="number"
@@ -96,7 +96,7 @@ export function ManagerReservationPolicyPage() {
             </div>
             <div className="grid gap-1.5">
               <label className="text-xs uppercase text-muted-foreground">
-                Thời gian giữ tối đa (phút)
+                Max hold time (minutes)
               </label>
               <Input
                 type="number"
@@ -109,7 +109,7 @@ export function ManagerReservationPolicyPage() {
             </div>
             <div className="grid gap-1.5">
               <label className="text-xs uppercase text-muted-foreground">
-                % Hoàn tiền khi hủy
+                Refund % on cancellation
               </label>
               <Input
                 type="number"
@@ -123,7 +123,7 @@ export function ManagerReservationPolicyPage() {
             </div>
             <div className="grid gap-1.5">
               <label className="text-xs uppercase text-muted-foreground">
-                Đặt trước tối thiểu (phút)
+                Min advance (minutes)
               </label>
               <Input
                 type="number"
@@ -136,7 +136,7 @@ export function ManagerReservationPolicyPage() {
             </div>
             <div className="grid gap-1.5">
               <label className="text-xs uppercase text-muted-foreground">
-                Đặt trước tối đa (giờ)
+                Max advance (hours)
               </label>
               <Input
                 type="number"
@@ -155,13 +155,13 @@ export function ManagerReservationPolicyPage() {
                   setForm((f) => ({ ...f, isActive: e.target.checked }))
                 }
               />
-              <span>Cho phép khách đặt chỗ trước</span>
+              <span>Allow reservations</span>
             </label>
           </div>
 
           {policy?._id ? (
             <p className="text-xs text-muted-foreground">
-              Đang chỉnh sửa chính sách hiện hành ({policy._id.slice(-6)}).
+              Editing current policy ({policy._id.slice(-6)}).
             </p>
           ) : null}
 
@@ -175,8 +175,8 @@ export function ManagerReservationPolicyPage() {
             </p>
           ) : null}
 
-          <div className="flex justify-end">
-            <Button disabled={saving}>{saving ? 'Đang lưu...' : 'Lưu chính sách'}</Button>
+            <div className="flex justify-end">
+            <Button disabled={saving}>{saving ? 'Saving...' : 'Save policy'}</Button>
           </div>
         </form>
       </CardContent>

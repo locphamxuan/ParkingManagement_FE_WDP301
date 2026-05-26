@@ -14,20 +14,20 @@ export function ModalForm({ open, onOpenChange, title, children, onSubmit }: Mod
   return (
     <Modal open={open} onOpenChange={onOpenChange} title={title}>
       <div className="grid gap-5">
-        <div className="text-stone-700 text-sm leading-relaxed">{children}</div>
-        <div className="flex justify-end gap-2.5 border-t border-stone-100 pt-4 mt-2">
-          <Button 
-            variant="secondary" 
+        <div className="text-white text-sm leading-relaxed [&_input]:bg-slate-800 [&_input]:text-white [&_input]:border-slate-700 [&_select]:bg-slate-800 [&_select]:text-white [&_select]:border-slate-700 [&_textarea]:bg-slate-800 [&_textarea]:text-white">{children}</div>
+        <div className="flex justify-end gap-3 border-t border-slate-800 pt-4 mt-2">
+          <Button
+            variant="ghost"
             onClick={() => onOpenChange(false)}
-            className="rounded-xl px-5 py-2 font-bold text-xs transition-all duration-200"
+            className="rounded-xl px-5 py-2 text-xs text-gray-400 hover:text-white transition-all duration-200"
           >
-            Hủy
+            Cancel
           </Button>
-          <Button 
+          <Button
             onClick={onSubmit}
             className="rounded-xl px-5 py-2 font-bold text-xs bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-md shadow-orange-500/10 transition-all duration-200 hover:scale-[1.01]"
           >
-            Lưu
+            Save
           </Button>
         </div>
       </div>

@@ -23,18 +23,18 @@ interface ManagerSidebarProps {
 }
 
 const modules = [
-  { to: '', label: 'Tổng quan', icon: LayoutDashboard },
-  { to: 'buildings', label: 'Tòa nhà', icon: Building2 },
-  { to: 'vehicle-types', label: 'Loại xe', icon: Truck },
-  { to: 'floors', label: 'Tầng', icon: ClipboardList },
-  { to: 'gates', label: 'Cổng', icon: Flag },
-  { to: 'slots', label: 'Chỗ đỗ', icon: Square },
-  { to: 'price-policies', label: 'Giá', icon: SlidersHorizontal },
-  { to: 'reservation-policy', label: 'Đặt chỗ', icon: MapPin },
-  { to: 'packages', label: 'Gói', icon: Package },
-  { to: 'shifts', label: 'Ca trực', icon: Users },
-  { to: 'feedbacks', label: 'Phản hồi', icon: MessageSquare },
-  { to: 'fraud-detection', label: 'Phát hiện gian lận', icon: ShieldAlert },
+  { to: '', label: 'Dashboard', icon: LayoutDashboard },
+  { to: 'buildings', label: 'Buildings', icon: Building2 },
+  { to: 'vehicle-types', label: 'Vehicle Types', icon: Truck },
+  { to: 'floors', label: 'Floors', icon: ClipboardList },
+  { to: 'gates', label: 'Gates', icon: Flag },
+  { to: 'slots', label: 'Slots', icon: Square },
+  { to: 'price-policies', label: 'Pricing', icon: SlidersHorizontal },
+  { to: 'reservation-policy', label: 'Reservations', icon: MapPin },
+  { to: 'packages', label: 'Packages', icon: Package },
+  { to: 'shifts', label: 'Shifts', icon: Users },
+  { to: 'feedbacks', label: 'Feedback', icon: MessageSquare },
+  { to: 'fraud-detection', label: 'Fraud Detection', icon: ShieldAlert },
 ] as const;
 
 export function ManagerSidebar({ collapsed, onToggle }: ManagerSidebarProps) {

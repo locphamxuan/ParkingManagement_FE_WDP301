@@ -32,13 +32,13 @@ export function ManagerBuildingsPage() {
   }, [selectedBuilding]);
 
   const buildingOptions = useMemo(
-    () => buildings.map((building) => ({ id: building._id, name: building.name || building.code || 'Tòa nhà' })),
+    () => buildings.map((building) => ({ id: building._id, name: building.name || building.code || 'Building' })),
     [buildings],
   );
 
   const handleSave = useCallback(async () => {
     if (!selectedBuildingId || !session?.token) {
-      setSaveError('Chưa chọn tòa nhà hoặc phiên hết hạn.');
+      setSaveError('No building selected or session expired.');
       return;
     }
 
@@ -58,7 +58,7 @@ export function ManagerBuildingsPage() {
       );
       await refreshBuildings();
     } catch (error) {
-      setSaveError(error instanceof Error ? error.message : 'Cập nhật tòa nhà thất bại.');
+      setSaveError(error instanceof Error ? error.message : 'Failed to update building.');
     } finally {
       setIsSaving(false);
     }
@@ -68,15 +68,15 @@ export function ManagerBuildingsPage() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Danh sách tòa nhà</CardTitle>
+          <CardTitle>Buildings</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <p>Đang tải danh sách tòa nhà...</p>
+            <p>Loading buildings...</p>
           ) : error ? (
             <p className="text-sm text-red-600">{error}</p>
           ) : buildings.length === 0 ? (
-            <p>Không có tòa nhà nào được phân quyền.</p>
+            <p>No buildings assigned.</p>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {buildings.map((building) => (
@@ -88,9 +88,9 @@ export function ManagerBuildingsPage() {
                     selectedBuildingId === building._id ? 'border-primary bg-primary/5' : 'border-border'
                   }`}
                 >
-                  <p className="font-semibold text-slate-900">{building.name || 'Tòa nhà chưa đặt tên'}</p>
-                  <p className="mt-2 text-sm text-slate-600">Mã: {building.code || '---'}</p>
-                  <p className="mt-1 text-sm text-slate-600">Trạng thái: {building.status || 'Chưa xác định'}</p>
+                  <p className="font-semibold text-slate-900">{building.name || 'Unnamed building'}</p>
+                  <p className="mt-2 text-sm text-slate-600">Code: {building.code || '---'}</p>
+                  <p className="mt-1 text-sm text-slate-600">Status: {building.status || 'Unknown'}</p>
                 </button>
               ))}
             </div>
@@ -101,28 +101,28 @@ export function ManagerBuildingsPage() {
       {selectedBuilding ? (
         <Card>
           <CardHeader>
-            <CardTitle>Cập nhật thông tin tòa nhà</CardTitle>
+            <CardTitle>Update building</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
             <div className="grid gap-2">
-              <label className="text-sm text-slate-600">Tên tòa nhà</label>
+              <label className="text-sm text-slate-600">Building name</label>
               <Input value={name} onChange={(event) => setName(event.target.value)} />
             </div>
             <div className="grid gap-2">
-              <label className="text-sm text-slate-600">Mã tòa nhà</label>
+              <label className="text-sm text-slate-600">Building code</label>
               <Input value={code} onChange={(event) => setCode(event.target.value)} />
             </div>
             <div className="grid gap-2">
-              <label className="text-sm text-slate-600">Số tầng</label>
+              <label className="text-sm text-slate-600">Floors</label>
               <Input value={totalFloors} onChange={(event) => setTotalFloors(event.target.value)} />
             </div>
             <div className="grid gap-2">
-              <label className="text-sm text-slate-600">Trạng thái</label>
+              <label className="text-sm text-slate-600">Status</label>
               <Input value={status} onChange={(event) => setStatus(event.target.value)} placeholder="active | inactive | maintenance" />
             </div>
             {saveError ? <p className="text-sm text-red-600">{saveError}</p> : null}
             <Button onClick={handleSave} disabled={isSaving}>
-              {isSaving ? 'Đang lưu...' : 'Lưu thay đổi'}
+              {isSaving ? 'Saving...' : 'Save changes'}
             </Button>
           </CardContent>
         </Card>

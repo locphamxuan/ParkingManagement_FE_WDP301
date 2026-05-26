@@ -7,20 +7,20 @@ import { ADMIN_EMAIL_FALLBACK } from '@/utils/constants';
 import { useManagerBuildings } from '@/hooks/useManagerBuildings';
 
 const titles: Record<string, string> = {
-  '/manager': 'Bảng điều khiển Manager',
-  '/manager/dashboard': 'Báo cáo quản lý',
-  '/manager/buildings': 'Quản lý tòa nhà',
-  '/manager/vehicle-types': 'Loại xe',
-  '/manager/floors': 'Tầng',
-  '/manager/gates': 'Cổng',
-  '/manager/slots': 'Chỗ đỗ',
-  '/manager/price-policies': 'Chính sách giá',
-  '/manager/reservation-policy': 'Chính sách đặt chỗ',
-  '/manager/packages': 'Gói đăng ký',
-  '/manager/shifts': 'Ca trực',
-  '/manager/feedbacks': 'Phản hồi',
-  '/manager/profile': 'Xem hồ sơ',
-  '/manager/settings': 'Cài đặt',
+  '/manager': 'Manager Dashboard',
+  '/manager/dashboard': 'Dashboard',
+  '/manager/buildings': 'Manage Buildings',
+  '/manager/vehicle-types': 'Vehicle Types',
+  '/manager/floors': 'Floors',
+  '/manager/gates': 'Gates',
+  '/manager/slots': 'Slots',
+  '/manager/price-policies': 'Pricing Policies',
+  '/manager/reservation-policy': 'Reservation Policy',
+  '/manager/packages': 'Packages',
+  '/manager/shifts': 'Shifts',
+  '/manager/feedbacks': 'Feedback',
+  '/manager/profile': 'Profile',
+  '/manager/settings': 'Settings',
 };
 
 export function ManagerLayout() {

@@ -59,7 +59,7 @@ export function Navbar({ title, email, onLogout, hideSearch = false, compactProf
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-slate-500">
-            HỆ THỐNG ĐIỀU HÀNH
+            MANAGEMENT SYSTEM
           </p>
           <h1 className="text-xl font-bold tracking-tight text-white mt-0.5">{title}</h1>
         </div>
@@ -71,9 +71,9 @@ export function Navbar({ title, email, onLogout, hideSearch = false, compactProf
                 className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"
                 size={15}
               />
-              <Input
+                <Input
                 className="border-white/10 bg-slate-800/70 pl-10 text-slate-200 shadow-none placeholder:text-slate-500 rounded-full h-9.5 focus:border-orange-500/40"
-                placeholder="Tìm kiếm nhanh..."
+                placeholder="Quick search..."
               />
             </div>
           )}

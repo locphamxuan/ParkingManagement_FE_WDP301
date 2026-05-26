@@ -55,7 +55,7 @@ export function ManagerPricingPage() {
       setVts(vtList.data.items);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Tải thất bại');
+      setError(err instanceof Error ? err.message : 'Failed to load');
     } finally {
       setLoading(false);
     }
@@ -89,7 +89,7 @@ export function ManagerPricingPage() {
 
   const onSubmit = async () => {
     if (!form.vehicleType) {
-      alert('Chọn loại xe trước');
+      alert('Please select a vehicle type first');
       return;
     }
     const payload = {
@@ -111,17 +111,17 @@ export function ManagerPricingPage() {
       setModalOpen(false);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Lưu thất bại');
+      alert(err instanceof Error ? err.message : 'Save failed');
     }
   };
 
   const deactivate = async (row: PricePolicy) => {
-    if (!window.confirm(`Vô hiệu hóa chính sách "${row.name}"?`)) return;
+    if (!window.confirm(`Deactivate policy "${row.name}"?`)) return;
     try {
       await managerApi.pricePolicies.deactivate(buildingId, row._id);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Thất bại');
+      alert(err instanceof Error ? err.message : 'Failed');
     }
   };
 
@@ -140,32 +140,32 @@ export function ManagerPricingPage() {
   };
 
   const columns: DataColumn<PricePolicy>[] = [
-    { key: 'name', title: 'Tên chính sách' },
+    { key: 'name', title: 'Policy name' },
     {
       key: 'vehicleType',
-      title: 'Loại xe',
+      title: 'Vehicle type',
       render: (row) => (typeof row.vehicleType === 'string' ? row.vehicleType : row.vehicleType.code),
     },
     {
       key: 'hourlyRate',
-      title: 'Giá/giờ',
+      title: 'Price/hour',
       render: (row) => `${row.hourlyRate.toLocaleString('vi-VN')} đ`,
     },
     {
       key: 'dailyCap',
-      title: 'Tối đa/ngày',
+      title: 'Daily cap',
       render: (row) =>
         row.dailyCap != null ? `${row.dailyCap.toLocaleString('vi-VN')} đ` : '—',
     },
     {
       key: 'timeWindow',
-      title: 'Khung giờ',
+      title: 'Time window',
       render: (row) =>
         row.timeWindow ? `${row.timeWindow.from} – ${row.timeWindow.to}` : '—',
     },
     {
       key: 'isActive',
-      title: 'Trạng thái',
+      title: 'Status',
       render: (row) => <StatusBadge status={getApprovalStatus(row)} />,
     },
     {
@@ -188,11 +188,11 @@ export function ManagerPricingPage() {
     <div className="grid gap-4">
       <div className="flex justify-end">
         <Button onClick={openCreate} className="gap-2">
-          <Plus size={14} /> Tạo chính sách giá
+          <Plus size={14} /> Create price policy
         </Button>
       </div>
       {loading ? (
-        <div className="text-sm text-muted-foreground">Đang tải...</div>
+        <div className="text-sm text-muted-foreground">Loading...</div>
       ) : error ? (
         <div className="text-sm text-red-600">{error}</div>
       ) : (
@@ -202,7 +202,7 @@ export function ManagerPricingPage() {
       <ModalForm
         open={modalOpen}
         onOpenChange={setModalOpen}
-        title={editing ? 'Sửa chính sách giá' : 'Tạo chính sách giá'}
+        title={editing ? 'Edit price policy' : 'Create price policy'}
         onSubmit={onSubmit}
       >
         <div className="grid gap-3 md:grid-cols-2">
@@ -214,13 +214,13 @@ export function ManagerPricingPage() {
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Loại xe</label>
+            <label className="text-xs uppercase text-muted-foreground">Vehicle type</label>
             <select
               className="h-10 rounded-md border border-border bg-card px-3 text-sm"
               value={form.vehicleType}
               onChange={(e) => setForm((f) => ({ ...f, vehicleType: e.target.value }))}
             >
-              <option value="">Chọn loại xe</option>
+              <option value="">Select vehicle type</option>
               {vts.map((vt) => (
                 <option key={vt._id} value={vt._id}>
                   {vt.code} - {vt.name}
@@ -229,7 +229,7 @@ export function ManagerPricingPage() {
             </select>
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Giá/giờ (VND)</label>
+            <label className="text-xs uppercase text-muted-foreground">Hourly rate (VND)</label>
             <Input
               type="number"
               min={0}
@@ -238,7 +238,7 @@ export function ManagerPricingPage() {
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Tối đa/ngày (tùy chọn)</label>
+            <label className="text-xs uppercase text-muted-foreground">Daily cap (optional)</label>
             <Input
               type="number"
               min={0}
@@ -247,7 +247,7 @@ export function ManagerPricingPage() {
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Giá sàn</label>
+            <label className="text-xs uppercase text-muted-foreground">Min rate</label>
             <Input
               type="number"
               min={0}
@@ -256,7 +256,7 @@ export function ManagerPricingPage() {
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Giá trần</label>
+            <label className="text-xs uppercase text-muted-foreground">Max rate</label>
             <Input
               type="number"
               min={0}
@@ -265,7 +265,7 @@ export function ManagerPricingPage() {
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Từ</label>
+            <label className="text-xs uppercase text-muted-foreground">From</label>
             <Input
               type="time"
               value={form.fromTime}
@@ -273,7 +273,7 @@ export function ManagerPricingPage() {
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Đến</label>
+            <label className="text-xs uppercase text-muted-foreground">To</label>
             <Input
               type="time"
               value={form.toTime}
@@ -286,7 +286,7 @@ export function ManagerPricingPage() {
               checked={form.isActive}
               onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))}
             />
-            <span>Đang áp dụng</span>
+            <span>Active</span>
           </label>
         </div>
       </ModalForm>

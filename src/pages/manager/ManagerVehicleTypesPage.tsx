@@ -25,7 +25,7 @@ export function ManagerVehicleTypesPage() {
       const types = await managerApi.listVehicleTypes(selectedBuildingId, session.token);
       setVehicleTypes(types);
     } catch (error) {
-      setFeedback(error instanceof Error ? error.message : 'Không thể tải loại xe.');
+      setFeedback(error instanceof Error ? error.message : 'Unable to load vehicle types.');
     }
   }, [selectedBuildingId, session?.token]);
 
@@ -35,7 +35,7 @@ export function ManagerVehicleTypesPage() {
 
   const createVehicleType = useCallback(async () => {
     if (!selectedBuildingId || !session?.token || !newTypeName.trim()) {
-      setFeedback('Vui lòng chọn tòa nhà và điền tên loại xe.');
+      setFeedback('Please select a building and enter the vehicle type name.');
       return;
     }
 
@@ -51,9 +51,9 @@ export function ManagerVehicleTypesPage() {
       setNewTypeName('');
       setNewTypeDescription('');
       await loadVehicleTypes();
-      setFeedback('Loại xe đã được tạo.');
+      setFeedback('Vehicle type created.');
     } catch (error) {
-      setFeedback(error instanceof Error ? error.message : 'Lỗi khi tạo loại xe.');
+      setFeedback(error instanceof Error ? error.message : 'Error creating vehicle type.');
     } finally {
       setIsSaving(false);
     }
@@ -65,9 +65,9 @@ export function ManagerVehicleTypesPage() {
       try {
         await managerApi.removeVehicleType(selectedBuildingId, typeId, session.token);
         await loadVehicleTypes();
-        setFeedback('Đã xóa loại xe.');
+        setFeedback('Vehicle type deleted.');
       } catch (error) {
-        setFeedback(error instanceof Error ? error.message : 'Lỗi khi xóa loại xe.');
+        setFeedback(error instanceof Error ? error.message : 'Error deleting vehicle type.');
       }
     },
     [selectedBuildingId, session?.token, loadVehicleTypes],
@@ -77,15 +77,15 @@ export function ManagerVehicleTypesPage() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Loại xe</CardTitle>
+          <CardTitle>Vehicle types</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <p>Đang tải tòa nhà...</p>
+            <p>Loading buildings...</p>
           ) : error ? (
             <p className="text-sm text-red-600">{error}</p>
           ) : buildings.length === 0 ? (
-            <p>Không tìm thấy tòa nhà để quản lý loại xe.</p>
+            <p>No building found to manage vehicle types.</p>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="block text-sm text-slate-700">Tòa nhà</label>
@@ -96,7 +96,7 @@ export function ManagerVehicleTypesPage() {
               >
                 {buildings.map((building) => (
                   <option key={building._id} value={building._id}>
-                    {building.name || building.code || 'Tòa nhà không tên'}
+                    {building.name || building.code || 'Unnamed building'}
                   </option>
                 ))}
               </select>
@@ -107,11 +107,11 @@ export function ManagerVehicleTypesPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Danh sách loại xe</CardTitle>
+          <CardTitle>Vehicle types list</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {vehicleTypes.length === 0 ? (
-            <p className="text-sm text-slate-600">Chưa có loại xe nào. Hãy thêm loại mới.</p>
+            {vehicleTypes.length === 0 ? (
+              <p className="text-sm text-slate-600">No vehicle types yet. Add a new one.</p>
           ) : (
             <div className="space-y-3">
               {vehicleTypes.map((type) => (
@@ -119,40 +119,40 @@ export function ManagerVehicleTypesPage() {
                   <div className="flex items-center justify-between gap-4">
                     <div>
                       <p className="font-semibold text-slate-900">{type.name}</p>
-                      {type.description ? <p className="text-sm text-slate-600">{type.description}</p> : null}
+                        {type.description ? <p className="text-sm text-slate-600">{type.description}</p> : null}
                     </div>
-                    <Button variant="outline" size="sm" onClick={() => void removeType(type._id)}>
-                      Xóa
-                    </Button>
+                      <Button variant="ghost" size="sm" onClick={() => void removeType(type._id)}>
+                        Delete
+                      </Button>
                   </div>
                 </div>
               ))}
             </div>
           )}
-          {feedback ? <p className="text-sm text-slate-700">{feedback}</p> : null}
+            {feedback ? <p className="text-sm text-slate-700">{feedback}</p> : null}
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Thêm loại xe mới</CardTitle>
+          <CardTitle>Add new vehicle type</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4">
           <div className="grid gap-2">
-            <label className="text-sm text-slate-600">Tên loại xe</label>
-            <Input value={newTypeName} onChange={(event) => setNewTypeName(event.target.value)} placeholder="Ví dụ: Xe máy, Ô tô" />
+            <label className="text-sm text-slate-600">Type name</label>
+            <Input value={newTypeName} onChange={(event) => setNewTypeName(event.target.value)} placeholder="e.g. Motorcycle, Car" />
           </div>
           <div className="grid gap-2">
-            <label className="text-sm text-slate-600">Mô tả ngắn</label>
+            <label className="text-sm text-slate-600">Short description</label>
             <textarea
               value={newTypeDescription}
               onChange={(event) => setNewTypeDescription(event.target.value)}
               className="min-h-[120px] w-full rounded-2xl border border-border bg-white px-3 py-2 text-sm text-slate-900 outline-none transition hover:border-slate-400"
-              placeholder="Có thể ghi khoảng giá, đặc điểm loại xe..."
+              placeholder="You can note price range or vehicle characteristics..."
             />
           </div>
           <Button onClick={createVehicleType} disabled={isSaving || !selectedBuildingId}>
-            {isSaving ? 'Đang tạo...' : 'Tạo loại xe'}
+            {isSaving ? 'Creating...' : 'Create vehicle type'}
           </Button>
         </CardContent>
       </Card>

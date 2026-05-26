@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { loginWithBackend, type AuthSession } from '@/services/authService';
+export type UserRole = AuthSession['role'];
 import { saveSession, clearSession, loadSession } from '@/services/storage';
 import { AUTH_STORAGE_KEY } from '@/utils/constants';
 import { api } from '@/services/apiClient';
@@ -34,8 +35,7 @@ function mapLegacySession(): AuthSession | null {
 
   const finalName = localData?.fullName || String(user.fullName ?? user.displayName ?? '');
   const finalPhone = localData?.phone || String(user.phone ?? '');
-  const rawPlates = localData?.licensePlates
-    || (Array.isArray(user.licensePlates) ? user.licensePlates : []);
+  const rawPlates = localData?.licensePlates || (Array.isArray(user.licensePlates) ? user.licensePlates : []);
 
   return {
     token: legacy.token,
@@ -47,15 +47,15 @@ function mapLegacySession(): AuthSession | null {
       ? user.assignedBuildings.map((item) => String(typeof item === 'string' ? item : (item as { _id?: string })._id ?? '')).filter(Boolean)
       : [],
     phone: finalPhone,
-    licensePlates: (rawPlates as unknown[])
-      .map((item) => {
+    licensePlates: (() => {
+      const mapped = (rawPlates as unknown[]).map((item) => {
         if (!item) return null;
         if (typeof item === 'string') {
           const plate = item.toUpperCase().trim();
           return plate ? { plateNumber: plate, vehicleType: 'car' as const, isDefault: false } : null;
         }
         if (typeof item === 'object') {
-          const p = item as Record<string, unknown>;
+          const p = item as Record<string, any>;
           const plate = String(p.plateNumber ?? '').toUpperCase().trim();
           return plate
             ? {
@@ -67,8 +67,9 @@ function mapLegacySession(): AuthSession | null {
             : null;
         }
         return null;
-      })
-      .filter((p): p is { _id?: string; plateNumber: string; vehicleType: 'car' | 'motorcycle'; isDefault?: boolean } => Boolean(p && p.plateNumber)),
+      }).filter(Boolean) as { _id?: string; plateNumber: string; vehicleType: 'car' | 'motorcycle'; isDefault?: boolean }[];
+      return mapped;
+    })(),
   };
 }
 

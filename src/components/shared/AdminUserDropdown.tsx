@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { ChevronDown, User, LogOut } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { ChevronDown, User, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Props {
   email?: string;
@@ -18,12 +18,12 @@ export function AdminUserDropdown({ email, onLogout, compact = false }: Props) {
 
   const handleViewProfile = () => {
     setOpen(false);
-    if (location.pathname.startsWith('/manager')) {
-      navigate('/manager/profile');
-    } else if (location.pathname.startsWith('/admin')) {
-      navigate('/admin/dashboard/profile');
+    if (location.pathname.startsWith("/manager")) {
+      navigate("/manager/profile");
+    } else if (location.pathname.startsWith("/admin")) {
+      navigate("/admin/dashboard/profile");
     } else {
-      navigate('/profile');
+      navigate("/profile");
     }
   };
 
@@ -32,37 +32,45 @@ export function AdminUserDropdown({ email, onLogout, compact = false }: Props) {
       if (!ref.current) return;
       if (!ref.current.contains(e.target as Node)) setOpen(false);
     }
-    document.addEventListener('click', onDoc);
-    return () => document.removeEventListener('click', onDoc);
+    document.addEventListener("click", onDoc);
+    return () => document.removeEventListener("click", onDoc);
   }, []);
 
-  const displayEmail = email ?? user?.email ?? '';
-  const role = user?.role ?? 'user';
+  const displayEmail = email ?? user?.email ?? "";
+  const role = user?.role ?? "user";
   return (
     <div className="relative inline-block" ref={ref}>
       <button
         type="button"
         className={
           compact
-            ? 'inline-flex items-center justify-center rounded-full bg-transparent h-9 w-9 text-slate-200 hover:bg-slate-800/60 hover:shadow-md hover:ring-1 hover:ring-orange-500/20 focus:outline-none transition'
-            : 'inline-flex items-center gap-2 rounded-full border border-white/10 bg-slate-800/80 px-3 py-2 text-xs font-medium text-slate-200 shadow-sm transition hover:bg-slate-700/80 focus:outline-none focus:ring-2 focus:ring-orange-500/50 sm:text-sm'
+            ? "inline-flex items-center justify-center rounded-full bg-transparent h-9 w-9 text-slate-200 hover:bg-slate-800/60 hover:shadow-md hover:ring-1 hover:ring-orange-500/20 focus:outline-none transition"
+            : "inline-flex items-center gap-2 rounded-full border border-white/10 bg-slate-800/80 px-3 py-2 text-xs font-medium text-slate-200 shadow-sm transition hover:bg-slate-700/80 focus:outline-none focus:ring-2 focus:ring-orange-500/50 sm:text-sm"
         }
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         onKeyDown={(e) => {
-          if (e.key === 'ArrowDown') {
+          if (e.key === "ArrowDown") {
             e.preventDefault();
             setOpen(true);
             setTimeout(() => {
-              const first = ref.current?.querySelector<HTMLButtonElement>('.user-dropdown-item');
+              const first = ref.current?.querySelector<HTMLButtonElement>(
+                ".user-dropdown-item",
+              );
               first?.focus();
             }, 0);
           }
-          if (e.key === 'Escape') setOpen(false);
+          if (e.key === "Escape") setOpen(false);
         }}
         title={displayEmail}
       >
-        <span className={compact ? 'flex h-9 w-9 items-center justify-center rounded-full bg-orange-500/15 text-orange-400' : 'flex h-8 w-8 items-center justify-center rounded-full bg-orange-500/15 text-orange-400'}>
+        <span
+          className={
+            compact
+              ? "flex h-9 w-9 items-center justify-center rounded-full bg-orange-500/15 text-orange-400"
+              : "flex h-8 w-8 items-center justify-center rounded-full bg-orange-500/15 text-orange-400"
+          }
+        >
           <User size={compact ? 16 : 16} />
         </span>
         {!compact && (
@@ -78,8 +86,12 @@ export function AdminUserDropdown({ email, onLogout, compact = false }: Props) {
       {open && (
         <div className="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-2xl border border-white/10 bg-slate-900 shadow-xl shadow-black/40">
           <div className="px-4 py-3 text-sm text-slate-300">
-            <div className="font-semibold text-white truncate">{user?.fullName ?? displayEmail}</div>
-            <div className="mt-1 text-xs text-slate-400">{role.toUpperCase()}</div>
+            <div className="font-semibold text-white truncate">
+              {user?.fullName ?? displayEmail}
+            </div>
+            <div className="mt-1 text-xs text-slate-400">
+              {role.toUpperCase()}
+            </div>
           </div>
           <div className="border-t border-white/5">
             <button
@@ -95,7 +107,7 @@ export function AdminUserDropdown({ email, onLogout, compact = false }: Props) {
               onClick={onLogout}
             >
               <LogOut size={14} className="inline-block align-middle" />
-              <span className="ml-2 align-middle">Logout</span>
+              <span className="ml-2 align-middle">Sign out</span>
             </button>
           </div>
         </div>

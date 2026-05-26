@@ -116,7 +116,7 @@ const toBuilding = (
   overview?: ManagerOverviewData,
 ): Building => {
   const managerId = item.manager ? String(item.manager) : '';
-  const managerName = managerNameById.get(managerId) || (managerId ? `ID: ${managerId.slice(0, 8)}` : 'Chưa gán');
+  const managerName = managerNameById.get(managerId) || (managerId ? `ID: ${managerId.slice(0, 8)}` : 'Not assigned');
 
   return {
     id: item.code || item._id,
@@ -274,50 +274,50 @@ export async function getApiAdminDataset(token: string): Promise<AdminDataset> {
   const dashboardStats = [
     {
       key: 'buildings',
-      label: 'Tổng số tòa nhà',
+      label: 'Total buildings',
       value: String(overviewRes.data.counts.buildings),
-      delta: `${buildings.filter((b) => b.status === 'active').length} đang hoạt động`,
+      delta: `${buildings.filter((b) => b.status === 'active').length} active`,
     },
     {
       key: 'sessions',
-      label: 'Phiên đỗ đang hoạt động',
+      label: 'Parking sessions active',
       value: overviewRes.data.counts.activeSessions.toLocaleString('vi-VN'),
-      delta: `${overviewRes.data.counts.staff} nhân sự vận hành`,
+      delta: `${overviewRes.data.counts.staff}  operators on duty`,
     },
     {
       key: 'revenue',
-      label: 'Doanh thu hôm nay',
+      label: 'Today revenue',
       value: formatCompactCurrency(overviewRes.data.revenue.today),
-      delta: `${paymentMethodDistribution.length} phương thức thanh toán`,
+      delta: `${paymentMethodDistribution.length} payment methods`,
     },
     {
       key: 'users',
-      label: 'Người dùng toàn hệ thống',
+      label: 'Total users',
       value: overviewRes.data.counts.users.toLocaleString('vi-VN'),
-      delta: `${overviewRes.data.counts.managers} quản lý / ${overviewRes.data.counts.staff} nhân viên`,
+      delta: `${overviewRes.data.counts.managers} managers / ${overviewRes.data.counts.staff} staff`,
     },
   ];
 
   const monitoringMetrics: MonitoringMetric[] = [
     {
       id: 'active-buildings',
-      label: 'Tòa nhà hoạt động',
+      label: 'Total active buildings',
       value: `${buildings.filter((b) => b.status === 'active').length}/${buildings.length}`,
-      trend: 'Theo trạng thái hiện tại',
+      trend: 'Based on current status',
       status: buildings.some((b) => b.status === 'maintenance') ? 'warning' : 'ok',
     },
     {
       id: 'active-sessions',
-      label: 'Phiên đang hoạt động',
+      label: 'Parking sessions active',
       value: overviewRes.data.counts.activeSessions.toLocaleString('vi-VN'),
-      trend: 'Cập nhật theo thời gian thực',
+      trend: 'Updated in real-time',
       status: overviewRes.data.counts.activeSessions > 0 ? 'ok' : 'warning',
     },
     {
       id: 'ops-staff',
-      label: 'Nhân sự vận hành',
+      label: 'Operating staff',
       value: overviewRes.data.counts.staff.toLocaleString('vi-VN'),
-      trend: `${overviewRes.data.counts.managers} quản lý`,
+      trend: `${overviewRes.data.counts.managers} managers`,
       status: overviewRes.data.counts.staff > 0 ? 'ok' : 'critical',
     },
   ];

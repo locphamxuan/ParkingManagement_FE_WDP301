@@ -58,16 +58,14 @@ export function BuildingsPage() {
 
   if (isLoading) {
     return (
-      <div className="text-sm text-muted-foreground">
-        Đang tải danh sách tòa nhà...
-      </div>
+      <div className="text-sm text-muted-foreground">Loading buildings...</div>
     );
   }
 
   if (error || !data) {
     return (
       <div className="text-sm text-red-600">
-        {error || "Tải tòa nhà thất bại."}
+        {error || "Failed to load buildings."}
       </div>
     );
   }
@@ -136,7 +134,7 @@ export function BuildingsPage() {
       closeModal();
     } catch (err) {
       setActionError(
-        err instanceof Error ? err.message : "Không thể lưu tòa nhà",
+        err instanceof Error ? err.message : "Unable to save building",
       );
       setIsSaving(false);
     }
@@ -155,7 +153,7 @@ export function BuildingsPage() {
       await refresh();
     } catch (err) {
       setActionError(
-        err instanceof Error ? err.message : "Không thể đổi trạng thái tòa nhà",
+        err instanceof Error ? err.message : "Unable to change building status",
       );
     }
   };
@@ -178,7 +176,7 @@ export function BuildingsPage() {
       setPendingDeleteBuilding(null);
     } catch (err) {
       setActionError(
-        err instanceof Error ? err.message : "Không thể xóa tòa nhà",
+        err instanceof Error ? err.message : "Unable to delete building",
       );
     } finally {
       setIsDeleting(false);
@@ -189,12 +187,12 @@ export function BuildingsPage() {
   const pageRows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const columns: DataColumn<Building>[] = [
-    { key: "name", title: "Tên tòa nhà" },
-    { key: "address", title: "Địa chỉ" },
-    { key: "floors", title: "Số tầng" },
+    { key: "name", title: "Building name" },
+    { key: "address", title: "Address" },
+    { key: "floors", title: "Floors" },
     {
       key: "occupancyRate",
-      title: "Tỉ lệ chiếm dụng",
+      title: "Occupancy rate",
       render: (row) => (
         <div className="w-32">
           <div className="mb-1 text-xs text-muted-foreground">
@@ -211,36 +209,36 @@ export function BuildingsPage() {
     },
     {
       key: "status",
-      title: "Trạng thái",
+      title: "Status",
       render: (row) => <StatusBadge status={row.status} />,
     },
-    { key: "manager", title: "Người quản lý" },
+    { key: "manager", title: "Manager" },
     {
       key: "revenueToday",
-      title: "Doanh thu",
+      title: "Revenue today",
       render: (row) => `${row.revenueToday.toLocaleString()} VND`,
     },
     {
       key: "actions",
-      title: "Hành động",
+      title: "Actions",
       render: (row) => (
         <div className="flex flex-wrap gap-2">
           <Button variant="ghost" size="sm" onClick={() => openEditModal(row)}>
-            Sửa
+            Edit
           </Button>
           <Button
             variant="secondary"
             size="sm"
             onClick={() => toggleBuildingStatus(row)}
           >
-            {row.status === "active" ? "Ngưng" : "Kích hoạt"}
+            {row.status === "active" ? "Deactivate" : "Activate"}
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => removeBuildingById(row)}
           >
-            Xóa
+            Delete
           </Button>
         </div>
       ),
@@ -273,10 +271,10 @@ export function BuildingsPage() {
             "warning",
           ]}
         />
-        <Button onClick={openCreateModal}>Tạo tòa nhà</Button>
+        <Button onClick={openCreateModal}>Create building</Button>
       </div>
 
-      <DataTable title="Tòa nhà" rows={pageRows} columns={columns} />
+      <DataTable title="Buildings" rows={pageRows} columns={columns} />
 
       <div className="flex items-center justify-end gap-2">
         <Button
@@ -284,17 +282,17 @@ export function BuildingsPage() {
           size="sm"
           onClick={() => setPage((p) => Math.max(1, p - 1))}
         >
-          Trước
+          Previous
         </Button>
         <span className="text-sm text-muted-foreground">
-          Trang {page} / {maxPage}
+          Page {page} / {maxPage}
         </span>
         <Button
           variant="secondary"
           size="sm"
           onClick={() => setPage((p) => Math.min(maxPage, p + 1))}
         >
-          Tiếp
+          Next
         </Button>
       </div>
 
@@ -303,33 +301,33 @@ export function BuildingsPage() {
         onOpenChange={(open) => {
           if (!open) closeModal();
         }}
-        title={selectedBuilding ? "Sửa tòa nhà" : "Tạo tòa nhà"}
+        title={selectedBuilding ? "Edit building" : "Create building"}
         onSubmit={saveBuilding}
       >
         <div className="grid gap-3 md:grid-cols-2">
           <Input
-            placeholder="Tên tòa nhà"
+            placeholder="Building name"
             value={form.name}
             onChange={(e) =>
               setForm((prev) => ({ ...prev, name: e.target.value }))
             }
           />
           <Input
-            placeholder="Mã tòa nhà"
+            placeholder="Building code"
             value={form.code}
             onChange={(e) =>
               setForm((prev) => ({ ...prev, code: e.target.value }))
             }
           />
           <Input
-            placeholder="Địa chỉ"
+            placeholder="Address"
             value={form.address}
             onChange={(e) =>
               setForm((prev) => ({ ...prev, address: e.target.value }))
             }
           />
           <Input
-            placeholder="Số tầng"
+            placeholder="Floors"
             value={form.floors}
             onChange={(e) =>
               setForm((prev) => ({ ...prev, floors: e.target.value }))
@@ -337,7 +335,7 @@ export function BuildingsPage() {
           />
           {!selectedBuilding ? (
             <Input
-              placeholder="Giá giờ (VND)"
+              placeholder="Hourly rate (VND)"
               value={form.hourlyRate}
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, hourlyRate: e.target.value }))
@@ -346,15 +344,15 @@ export function BuildingsPage() {
           ) : null}
         </div>
         {isSaving ? (
-          <p className="text-xs text-muted-foreground">Đang lưu...</p>
+          <p className="text-xs text-muted-foreground">Saving...</p>
         ) : null}
       </ModalForm>
 
       <ConfirmModal
         open={Boolean(pendingDeleteBuilding)}
-        title="Xác nhận xóa tòa nhà"
-        description={`Bạn có chắc muốn xóa tòa nhà ${pendingDeleteBuilding?.name || ""}? Hành động này không thể hoàn tác.`}
-        confirmLabel="Xóa"
+        title="Confirm building deletion"
+        description={`Are you sure you want to delete building ${pendingDeleteBuilding?.name || ""}? This action cannot be undone.`}
+        confirmLabel="Delete"
         isConfirming={isDeleting}
         onOpenChange={(open) => {
           if (!open) setPendingDeleteBuilding(null);

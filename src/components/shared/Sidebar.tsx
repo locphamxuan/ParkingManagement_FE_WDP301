@@ -22,20 +22,20 @@ interface SidebarProps {
 }
 
 const modules = [
-  { to: "", label: "Tổng quan", icon: LayoutDashboard },
-  { to: "buildings", label: "Tòa nhà", icon: Building2 },
-  { to: "users", label: "Người dùng", icon: Users },
+  { to: "", label: "Overview", icon: LayoutDashboard },
+  { to: "buildings", label: "Buildings", icon: Building2 },
+  { to: "users", label: "Users", icon: Users },
   {
     to: "revenue-analytics",
-    label: "Phân tích doanh thu",
+    label: "Revenue analytics",
     icon: CircleDollarSign,
   },
-  { to: "wallet-governance", label: "Quản lý ví", icon: Wallet },
-  { to: "pricing-policies", label: "Chính sách giá", icon: NotebookPen },
-  { to: "policy-push-logs", label: "Lịch sử đẩy chính sách", icon: FileSearch },
+  { to: "wallet-governance", label: "Wallet governance", icon: Wallet },
+  { to: "pricing-policies", label: "Pricing policies", icon: NotebookPen },
+  { to: "policy-push-logs", label: "Policy push history", icon: FileSearch },
   { to: "audit-logs", label: "Audit logs", icon: Activity },
-  { to: "fraud-detection", label: "Phát hiện gian lận", icon: ShieldAlert },
-  { to: "notifications", label: "Thông báo", icon: Bell },
+  { to: "fraud-detection", label: "Fraud detection", icon: ShieldAlert },
+  { to: "notifications", label: "Notifications", icon: Bell },
 ] as const;
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
@@ -50,7 +50,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         {!collapsed ? (
           <div className="pl-1">
             <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">
-              Môi trường
+              Environment
             </p>
             <p className="text-xs font-extrabold text-slate-100">
               ADMIN PORTAL

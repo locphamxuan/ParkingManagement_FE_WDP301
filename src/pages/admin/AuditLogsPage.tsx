@@ -27,30 +27,28 @@ export function AuditLogsPage() {
 
   if (isLoading) {
     return (
-      <div className="text-sm text-muted-foreground">
-        Đang tải Audit logs...
-      </div>
+      <div className="text-sm text-muted-foreground">Loading audit logs...</div>
     );
   }
 
   if (error || !data) {
     return (
       <div className="text-sm text-red-600">
-        {error || "Tải nhật ký thất bại."}
+        {error || "Failed to load audit logs."}
       </div>
     );
   }
 
   const columns: DataColumn<AuditLog>[] = [
     { key: "id", title: "ID" },
-    { key: "actor", title: "Người thực hiện" },
-    { key: "action", title: "Hành động" },
-    { key: "target", title: "Bảng mục tiêu" },
-    { key: "details", title: "Chi tiết" },
-    { key: "timestamp", title: "Thời gian" },
+    { key: "actor", title: "Actor" },
+    { key: "action", title: "Action" },
+    { key: "target", title: "Target" },
+    { key: "details", title: "Details" },
+    { key: "timestamp", title: "Timestamp" },
     {
       key: "severity",
-      title: "Mức độ",
+      title: "Severity",
       render: (row) => <StatusBadge status={row.severity} />,
     },
   ];

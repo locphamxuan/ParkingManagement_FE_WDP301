@@ -26,7 +26,7 @@ export function AnimatedParkingMap3D({
   activeReservations = [],
   onSlotClick
 }: AnimatedParkingMap3DProps = {}) {
-  const [hudMessage, setHudMessage] = useState('Khởi động hệ thống mô phỏng...');
+  const [hudMessage, setHudMessage] = useState('Initializing simulation system...');
   const [simPhase, setSimPhase] = useState(0);
 
   // Animation controllers for Car A (Cyan Sedan) and Car B (Fuchsia SUV)
@@ -50,7 +50,7 @@ export function AnimatedParkingMap3D({
       setCarBState('parked');
       setGateAOpen(false);
       setGateBOpen(false);
-      setHudMessage('Vui lòng chọn một ô đỗ trống màu xanh trên sơ đồ.');
+      setHudMessage('Please select an available green slot on the map.');
       return;
     }
 
@@ -61,7 +61,7 @@ export function AnimatedParkingMap3D({
 
       // Phase 0: Reset states
       setSimPhase(0);
-      setHudMessage('Hệ thống hoạt động ổn định. 3 ô trống khả dụng.');
+      setHudMessage('System running smoothly. 3 slots available.');
       setCarAState('driving');
       setCarBState('parked');
       setGateAOpen(false);
@@ -76,7 +76,7 @@ export function AnimatedParkingMap3D({
 
       // PHASE 1: Car A (Cyan Sedan) Enters
       setSimPhase(1);
-      setHudMessage('Cổng số 1: Nhận diện xe điện Cyan đang đi vào...');
+      setHudMessage('Gate 1: Cyan EV Sedan detected entering...');
       setGateAOpen(true);
       
       await new Promise((resolve) => setTimeout(resolve, 800));
@@ -92,7 +92,7 @@ export function AnimatedParkingMap3D({
       if (!active) return;
       
       setGateAOpen(false);
-      setHudMessage('Cyan Sedan đang di chuyển dọc làn xe...');
+      setHudMessage('Cyan Sedan moving along the parking lane...');
 
       // Drive to Slot 3 alignment
       await controlsCarA.start({
@@ -102,7 +102,7 @@ export function AnimatedParkingMap3D({
       });
       if (!active) return;
 
-      setHudMessage('Căn chỉnh góc đỗ. Kích hoạt cảm biến lùi...');
+      setHudMessage('Aligning slot angle. Activating reverse sensors...');
       setCarAState('parking');
 
       // Turn 90 degrees to face away from slot
@@ -113,7 +113,7 @@ export function AnimatedParkingMap3D({
       if (!active) return;
 
       // Reverse Park into Slot 3
-      setHudMessage('Đang lùi đỗ vào ô số 3...');
+      setHudMessage('Reversing into slot A-03...');
       await controlsCarA.start({
         y: 30,
         transition: { type: 'spring', stiffness: 40, damping: 12 }
@@ -121,21 +121,21 @@ export function AnimatedParkingMap3D({
       if (!active) return;
 
       setCarAState('parked');
-      setHudMessage('Cyan Sedan đã đỗ hoàn tất tại ô số 3. Bắt đầu sạc EV.');
+      setHudMessage('Cyan Sedan successfully parked at slot A-03. EV charging started.');
 
       await new Promise((resolve) => setTimeout(resolve, 3000));
       if (!active) return;
 
       // PHASE 2: Car B (Fuchsia SUV) Exits
       setSimPhase(2);
-      setHudMessage('Hệ thống nhận lệnh: SUV Fuchsia ô số 4 chuẩn bị xuất bãi...');
+      setHudMessage('System command: Fuchsia SUV at slot A-04 preparing to exit...');
       setCarBState('driving');
 
       await new Promise((resolve) => setTimeout(resolve, 1000));
       if (!active) return;
 
       // Turn on headlights and drive out of slot 4
-      setHudMessage('Fuchsia SUV đang rời ô đỗ số 4...');
+      setHudMessage('Fuchsia SUV leaving slot A-04...');
       await controlsCarB.start({
         y: 160,
         transition: { type: 'spring', stiffness: 45, damping: 12 }
@@ -149,7 +149,7 @@ export function AnimatedParkingMap3D({
       });
       if (!active) return;
 
-      setHudMessage('Di chuyển ra phía cổng soát vé số 2...');
+      setHudMessage('Moving towards ticket gate 2...');
       setGateBOpen(true);
 
       // Drive to exit gate
@@ -160,7 +160,7 @@ export function AnimatedParkingMap3D({
       });
       if (!active) return;
 
-      setHudMessage('Quét thẻ RFID thành công. Cổng soát vé số 2 mở.');
+      setHudMessage('RFID tag scanned successfully. Ticket gate 2 opened.');
 
       // Exit screen
       await controlsCarB.start({
@@ -170,7 +170,7 @@ export function AnimatedParkingMap3D({
       if (!active) return;
 
       setGateBOpen(false);
-      setHudMessage('Fuchsia SUV đã rời bãi. Giao dịch thành công.');
+      setHudMessage('Fuchsia SUV has exited. Transaction successful.');
 
       await new Promise((resolve) => setTimeout(resolve, 3000));
       if (!active) return;
@@ -220,11 +220,11 @@ export function AnimatedParkingMap3D({
           <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse shadow-[0_0_8px_#f97316]" />
           <span className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono flex items-center gap-1.5">
             <Activity size={12} className="text-orange-400" />
-            {interactive ? 'SƠ ĐỒ TƯƠNG TÁC ĐẶT CHỖ 3D' : 'LIVE SIMULATION V3.0'}
+            {interactive ? '3D INTERACTIVE PARKING MAP' : 'LIVE SIMULATION V3.0'}
           </span>
         </div>
         <span className="text-[9px] font-mono font-black text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20 uppercase tracking-widest">
-          {interactive ? 'CHỌN Ô ĐỖ' : 'ACTIVE MAP'}
+          {interactive ? 'CHOOSE SPOT' : 'ACTIVE MAP'}
         </span>
       </div>
 
@@ -672,7 +672,7 @@ export function AnimatedParkingMap3D({
         <Info size={14} className="text-orange-400 shrink-0 mt-0.5 animate-pulse" />
         <div className="space-y-0.5">
           <p className="text-[8px] font-black uppercase text-slate-400 font-mono tracking-wider flex items-center gap-1.5">
-            Trạng thái hoạt động
+            Operating Status
             <span className="relative flex h-1.5 w-1.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>

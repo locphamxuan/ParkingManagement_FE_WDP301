@@ -99,7 +99,7 @@ export function StaffNavbar({
                   onClick={onLogout}
                 >
                   <LogOut size={14} className="inline-block align-middle" />
-                  <span className="ml-2 align-middle">Đăng xuất</span>
+                  <span className="ml-2 align-middle">Logout</span>
                 </button>
               </div>
             ) : null}

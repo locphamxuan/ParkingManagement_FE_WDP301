@@ -17,40 +17,40 @@ function mapAuthErrorMessage(message: string): string {
   const normalized = message.trim().toLowerCase();
 
   if (normalized.includes('invalid email or password')) {
-    return 'Email hoặc mật khẩu không đúng.';
+    return 'Invalid email or password.';
   }
   if (normalized.includes('account is deactivated')) {
-    return 'Tài khoản đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.';
+    return 'Account is deactivated. Please contact the administrator.';
   }
   if (normalized.includes('email already registered')) {
-    return 'Email đã được đăng ký.';
+    return 'Email already registered.';
   }
   if (normalized.includes('password must be at least 6 characters') || normalized.includes('mật khẩu phải có ít nhất 6 ký tự')) {
-    return 'Mật khẩu phải có ít nhất 6 ký tự.';
+    return 'Password must be at least 6 characters long.';
   }
   if (normalized.includes('valid email is required')) {
-    return 'Email không hợp lệ.';
+    return 'Invalid email address.';
   }
   if (normalized.includes('full name is required')) {
-    return 'Vui lòng nhập họ và tên.';
+    return 'Full name is required.';
   }
   if (normalized.includes('invalid phone number')) {
-    return 'Số điện thoại không hợp lệ.';
+    return 'Invalid phone number.';
   }
-  if (normalized.includes('email không tồn tại')) {
-    return 'Email không tồn tại trên hệ thống.';
+  if (normalized.includes('email không tồn tại') || normalized.includes('email does not exist')) {
+    return 'Email address does not exist on our system.';
   }
-  if (normalized.includes('mã otp không hợp lệ') || normalized.includes('mã otp không chính xác')) {
-    return 'Mã OTP không chính xác hoặc đã hết hạn.';
+  if (normalized.includes('mã otp không hợp lệ') || normalized.includes('mã otp không chính xác') || normalized.includes('invalid otp')) {
+    return 'Invalid or expired OTP code.';
   }
-  if (normalized.includes('mã otp đã hết hạn')) {
-    return 'Mã OTP đã hết hạn.';
+  if (normalized.includes('mã otp đã hết hạn') || normalized.includes('otp has expired')) {
+    return 'OTP code has expired.';
   }
-  if (normalized.includes('người dùng không tồn tại')) {
-    return 'Người dùng không tồn tại.';
+  if (normalized.includes('người dùng không tồn tại') || normalized.includes('user does not exist')) {
+    return 'User does not exist.';
   }
 
-  return message || 'Không thể xử lý yêu cầu, vui lòng thử lại.';
+  return message || 'Unable to process request, please try again.';
 }
 
 export type AuthMode = 'login' | 'register' | 'forgot_email' | 'forgot_reset';
@@ -81,11 +81,11 @@ function usePublicAuthFlow(initialMode: AuthMode) {
       try {
         setLoading(true);
 
-        if (m === 'login') {
+         if (m === 'login') {
           const session = await login(payload.email, payload.password);
 
           setNotice({
-            message: 'Đăng nhập thành công.',
+            message: 'Logged in successfully.',
             type: 'success',
           });
 
@@ -98,7 +98,7 @@ function usePublicAuthFlow(initialMode: AuthMode) {
           } else {
             navigate('/', { replace: true });
           }
-        } else if (m === 'register') {
+         } else if (m === 'register') {
           const path = '/users/auth/register';
           const response = await requestJson<AuthApiResponse>({
             path,
@@ -110,11 +110,11 @@ function usePublicAuthFlow(initialMode: AuthMode) {
           const user = response?.data?.user;
 
           if (!token || !user) {
-            throw new Error('Phản hồi xác thực không hợp lệ từ máy chủ.');
+            throw new Error('Invalid authentication response from server.');
           }
 
           setNotice({
-            message: 'Đăng ký thành công.',
+            message: 'Registered successfully.',
             type: 'success',
           });
           navigate('/', { replace: true });
@@ -137,7 +137,7 @@ function usePublicAuthFlow(initialMode: AuthMode) {
           });
         }
       } catch (error) {
-        const message = error instanceof Error ? mapAuthErrorMessage(error.message) : 'Không thể xử lý yêu cầu';
+        const message = error instanceof Error ? mapAuthErrorMessage(error.message) : 'Unable to process request';
         setNotice({ message, type: 'error' });
         throw error;
       } finally {

@@ -87,7 +87,7 @@ export function AdminUserDropdown({ email, onLogout, compact = false }: Props) {
               className="user-dropdown-item w-full px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
               onClick={handleViewProfile}
             >
-              Hồ sơ
+              Profile
             </button>
             <button
               type="button"
@@ -95,7 +95,7 @@ export function AdminUserDropdown({ email, onLogout, compact = false }: Props) {
               onClick={onLogout}
             >
               <LogOut size={14} className="inline-block align-middle" />
-              <span className="ml-2 align-middle">Đăng xuất</span>
+              <span className="ml-2 align-middle">Logout</span>
             </button>
           </div>
         </div>

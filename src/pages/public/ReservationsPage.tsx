@@ -34,7 +34,7 @@ const MAX_RED_REDIRECT_SECONDS = 3;
 export default function ReservationsPage() {
   const navigate = useNavigate();
   const { session } = useAuth();
-  
+
   // Simulated database of system-wide reservations
   const [reservations, setReservations] = useState<Reservation[]>(() => {
     const stored = localStorage.getItem('pbms.reservations');
@@ -106,14 +106,14 @@ export default function ReservationsPage() {
     // Guard: Check active reservation limits
     if (activeReservations.length >= user.licensePlates.length) {
       setBookingError(
-        `Bạn đã đạt giới hạn đặt chỗ tối đa! (Giới hạn tối đa bằng số xe đã liên kết: ${user.licensePlates.length} ô đỗ). Hãy hoàn thành hoặc hủy các lượt đặt chỗ trước để đặt lượt mới.`
+        `You have reached the maximum booking limit! (Max limit equals number of linked vehicles: ${user.licensePlates.length} spots). Please complete or cancel existing bookings to reserve a new slot.`
       );
       setSelectedSlot(null);
       return;
     }
 
     setSelectedSlot(slotCode);
-    
+
     // Auto-select first available plate that is not currently in an active reservation
     const unusedPlate = user.licensePlates.find(
       (p) => !activeReservations.some((ar) => ar.plateNumber === p.plateNumber)
@@ -129,7 +129,7 @@ export default function ReservationsPage() {
     if (!selectedSlot) return;
 
     if (!selectedPlate) {
-      setBookingError('Vui lòng chọn biển số xe để liên kết với ô đỗ này!');
+      setBookingError('Please select a license plate to link with this slot!');
       return;
     }
 
@@ -138,7 +138,7 @@ export default function ReservationsPage() {
       (ar) => ar.plateNumber === selectedPlate
     );
     if (isPlateDoubleBooked) {
-      setBookingError('Biển số xe này đã được sử dụng cho một lượt đặt chỗ khác đang diễn ra!');
+      setBookingError('This license plate is already in use for another active booking!');
       return;
     }
 
@@ -151,22 +151,22 @@ export default function ReservationsPage() {
       slotCode: selectedSlot,
       plateNumber: plateInfo.plateNumber,
       vehicleType: plateInfo.vehicleType,
-      startTime: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString('vi-VN'),
+      startTime: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString('en-US'),
       status: 'active',
     };
 
     const updated = [newReservation, ...reservations];
     saveReservations(updated);
 
-    setBookingSuccess(`Đặt chỗ thành công ô đỗ ${selectedSlot} cho xe ${selectedPlate}!`);
+    setBookingSuccess(`Successfully booked slot ${selectedSlot} for vehicle ${selectedPlate}!`);
     setSelectedSlot(null);
     setSelectedPlate('');
     setTimeout(() => setBookingSuccess(null), 4000);
   };
 
   const handleCancelReservation = (resId: string) => {
-    if (!window.confirm('Bạn có chắc chắn muốn hủy lượt đặt chỗ này?')) return;
-    
+    if (!window.confirm('Are you sure you want to cancel this booking?')) return;
+
     const updated = reservations.map((r) => {
       if (r.id === resId) {
         return { ...r, status: 'cancelled' as const };
@@ -198,20 +198,20 @@ export default function ReservationsPage() {
                 <ShieldAlert size={36} className="stroke-[2.5]" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-xl font-black uppercase tracking-wider text-rose-400 font-mono">Chưa liên kết biển số</h3>
+                <h3 className="text-xl font-black uppercase tracking-wider text-rose-400 font-mono">No License Plate Linked</h3>
                 <p className="text-sm text-slate-300 font-semibold leading-relaxed">
-                  Bạn chưa liên kết biển số xe nào vào tài khoản! Vui lòng liên kết ít nhất 1 biển số xe trước khi thực hiện đặt chỗ.
+                  You have not linked any license plate to your account! Please link at least 1 license plate before making a booking.
                 </p>
               </div>
               <div className="bg-slate-950/60 rounded-xl p-3.5 border border-white/5 font-mono text-xs text-slate-400">
-                Hệ thống tự động chuyển hướng sau <span className="text-rose-400 font-black text-sm">{redirectSeconds}</span> giây...
+                Redirecting automatically in <span className="text-rose-400 font-black text-sm">{redirectSeconds}</span> seconds...
               </div>
               <button
                 type="button"
                 onClick={() => navigate('/profile')}
                 className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-widest hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(249,115,22,0.35)] transition-all duration-300"
               >
-                Cập nhật ngay
+                Update Now
               </button>
             </motion.div>
           </div>
@@ -232,7 +232,7 @@ export default function ReservationsPage() {
             onClick={() => navigate('/', { replace: true })}
           >
             <ArrowLeft size={14} className="stroke-[3]" />
-            Về trang chủ
+            Home
           </button>
 
           <button
@@ -241,7 +241,7 @@ export default function ReservationsPage() {
             onClick={() => navigate('/profile')}
           >
             <User size={14} className="stroke-[3]" />
-            Hồ sơ cá nhân
+            My Profile
           </button>
         </motion.div>
 
@@ -272,9 +272,9 @@ export default function ReservationsPage() {
                 <AlertTriangle size={18} className="stroke-[2.5]" />
               </div>
               <div>
-                <h4 className="text-xs font-black uppercase tracking-wider text-amber-400 font-mono">Đạt giới hạn đặt chỗ tối đa</h4>
+                <h4 className="text-xs font-black uppercase tracking-wider text-amber-400 font-mono">Maximum Booking Limit Reached</h4>
                 <p className="text-[11px] text-amber-200/80 mt-1 font-semibold leading-relaxed">
-                  Bạn đã đạt giới hạn đặt chỗ tối đa! Giới hạn đỗ đồng thời của tài khoản bằng đúng số lượng biển số xe liên kết của bạn: <span className="font-bold text-amber-400">{user.licensePlates.length} ô đỗ</span>. Vui lòng hoàn thành hoặc hủy các lượt đặt chỗ đang diễn ra để bắt đầu lượt mới.
+                  You have reached the maximum booking limit! Your simultaneous booking limit is equal to the number of license plates linked to your account: <span className="font-bold text-amber-400">{user.licensePlates.length} spots</span>. Please complete or cancel ongoing bookings to start a new one.
                 </p>
               </div>
             </motion.div>
@@ -291,12 +291,12 @@ export default function ReservationsPage() {
             className="space-y-6 rounded-3xl border border-white/5 bg-slate-900/40 p-8 backdrop-blur-md shadow-2xl relative overflow-hidden"
           >
             <div className="space-y-1">
-              <p className="text-[10px] font-black uppercase tracking-[0.25em] text-orange-400 font-mono">Mô phỏng đỗ xe 3D</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.25em] text-orange-400 font-mono">3D Parking Simulation</p>
               <h1 className="text-3xl font-black tracking-tight text-white">
-                Sơ đồ bãi đỗ xe <span className="bg-gradient-to-r from-orange-400 via-amber-400 to-cyan-400 bg-clip-text text-transparent">tương tác thông minh</span>
+                Smart Interactive <span className="bg-gradient-to-r from-orange-400 via-amber-400 to-cyan-400 bg-clip-text text-transparent">Parking Map</span>
               </h1>
               <p className="text-xs text-slate-400 font-semibold leading-relaxed pt-1">
-                Các ô đỗ màu xanh lá cây đại diện cho bãi đỗ trống. Bấm trực tiếp vào các ô đỗ khả dụng trên mô hình 3D bên dưới để chọn điểm đỗ của bạn.
+                Green slots represent available spaces. Click directly on any available slot on the 3D map below to select your spot.
               </p>
             </div>
 
@@ -319,7 +319,7 @@ export default function ReservationsPage() {
             <div className="rounded-3xl border border-white/5 bg-slate-900/30 p-8 backdrop-blur-md shadow-2xl flex flex-col gap-5 justify-between relative overflow-hidden">
               <h2 className="text-xs font-black uppercase tracking-wider text-slate-400 font-mono flex items-center gap-2">
                 <ParkingCircle size={15} className="text-orange-400" />
-                Phiếu đăng ký đặt chỗ trước
+                Spot Reservation Form
               </h2>
 
               <AnimatePresence mode="wait">
@@ -342,20 +342,20 @@ export default function ReservationsPage() {
 
                     <div className="grid grid-cols-2 gap-3.5">
                       <div className="rounded-2xl border border-white/5 bg-slate-950/70 p-4">
-                        <p className="text-[10px] font-black uppercase text-slate-500 font-mono">Ô đỗ được chọn</p>
+                        <p className="text-[10px] font-black uppercase text-slate-500 font-mono">Selected Spot</p>
                         <p className="mt-1.5 text-lg font-mono font-black text-orange-400">{selectedSlot}</p>
                       </div>
                       <div className="rounded-2xl border border-white/5 bg-slate-950/70 p-4">
-                        <p className="text-[10px] font-black uppercase text-slate-500 font-mono">Loại ô đỗ</p>
+                        <p className="text-[10px] font-black uppercase text-slate-500 font-mono">Slot Type</p>
                         <p className="mt-1.5 text-sm font-bold text-slate-200">
-                          {selectedSlot === 'A-03' ? '🔋 Sạc điện (EV)' : '🚗 Tiêu chuẩn'}
+                          {selectedSlot === 'A-03' ? '🔋 Electric (EV)' : '🚗 Standard'}
                         </p>
                       </div>
                     </div>
 
                     {/* Plates drop selector */}
                     <div className="space-y-1.5">
-                      <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Chọn phương tiện sử dụng</label>
+                      <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Select Vehicle to Use</label>
                       <div className="relative">
                         <select
                           value={selectedPlate}
@@ -366,17 +366,17 @@ export default function ReservationsPage() {
                           required
                           className="block w-full h-11 px-4 rounded-xl border border-white/10 bg-slate-950 text-white text-sm outline-none focus:border-orange-500 transition-all duration-300 font-mono tracking-wider"
                         >
-                          <option value="" disabled>-- Chọn biển số xe của bạn --</option>
+                          <option value="" disabled>-- Select your license plate --</option>
                           {user.licensePlates.map((item) => {
                             const isUsed = activeReservations.some((ar) => ar.plateNumber === item.plateNumber);
                             return (
-                              <option 
-                                key={item.plateNumber} 
+                              <option
+                                key={item.plateNumber}
                                 value={item.plateNumber}
                                 disabled={isUsed}
                                 className="bg-slate-900"
                               >
-                                {item.vehicleType === 'car' ? '🚗' : '🏍️'} {item.plateNumber} {item.vehicleType === 'car' ? '[Ô tô]' : '[Xe máy]'} {isUsed ? '(Đang đỗ)' : ''}
+                                {item.vehicleType === 'car' ? '🚗' : '🏍️'} {item.plateNumber} {item.vehicleType === 'car' ? '[Car]' : '[Motorcycle]'} {isUsed ? '(Parked)' : ''}
                               </option>
                             );
                           })}
@@ -386,14 +386,13 @@ export default function ReservationsPage() {
 
                     {/* Selected vehicle type details banner */}
                     {selectedPlateDetails && (
-                      <div className={`p-4 rounded-2xl border flex items-center gap-3 transition-colors duration-300 ${
-                        selectedPlateDetails.vehicleType === 'car'
-                          ? 'bg-blue-500/5 border-blue-500/20 text-blue-400'
-                          : 'bg-purple-500/5 border-purple-500/20 text-purple-400'
-                      }`}>
+                      <div className={`p-4 rounded-2xl border flex items-center gap-3 transition-colors duration-300 ${selectedPlateDetails.vehicleType === 'car'
+                        ? 'bg-blue-500/5 border-blue-500/20 text-blue-400'
+                        : 'bg-purple-500/5 border-purple-500/20 text-purple-400'
+                        }`}>
                         {selectedPlateDetails.vehicleType === 'car' ? <Car size={18} /> : <Bike size={18} />}
                         <div className="text-[11px] font-semibold">
-                          Loại phương tiện đăng ký: <span className="uppercase font-bold tracking-wider">{selectedPlateDetails.vehicleType === 'car' ? 'Ô tô' : 'Xe máy'}</span>
+                          Registered Vehicle Type: <span className="uppercase font-bold tracking-wider">{selectedPlateDetails.vehicleType === 'car' ? 'Car' : 'Motorcycle'}</span>
                         </div>
                       </div>
                     )}
@@ -403,14 +402,14 @@ export default function ReservationsPage() {
                         type="submit"
                         className="flex-1 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-widest hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(249,115,22,0.35)] transition-all duration-300"
                       >
-                        Đặt chỗ ngay
+                        Book Now
                       </button>
                       <button
                         type="button"
                         onClick={() => setSelectedSlot(null)}
                         className="px-5 rounded-xl bg-slate-950 border border-white/10 text-white font-bold text-xs uppercase tracking-widest hover:border-white/20 hover:scale-[1.02] transition-all duration-300"
                       >
-                        Hủy
+                        Cancel
                       </button>
                     </div>
                   </motion.form>
@@ -423,7 +422,7 @@ export default function ReservationsPage() {
                     className="rounded-2xl border border-white/5 bg-slate-950/70 p-6 text-center space-y-3"
                   >
                     <p className="text-xs text-slate-400 font-semibold leading-relaxed">
-                      Chưa chọn ô đỗ. Hãy nhấp chọn một ô đỗ khả dụng màu xanh lục trên sơ đồ 3D để bắt đầu quy trình giữ chỗ trước.
+                      No slot selected. Please click on an available green slot on the 3D map to start the reservation process.
                     </p>
                   </motion.div>
                 )}
@@ -433,9 +432,9 @@ export default function ReservationsPage() {
             {/* List of User Reservations */}
             <div className="rounded-3xl border border-white/5 bg-slate-900/30 p-8 backdrop-blur-md shadow-2xl flex flex-col gap-5 justify-between">
               <h2 className="text-xs font-black uppercase tracking-wider text-slate-400 font-mono flex items-center justify-between">
-                <span>Lịch sử đặt chỗ của bạn</span>
+                <span>Your Booking History</span>
                 <span className="text-[10px] bg-slate-800 text-slate-400 font-bold px-2 py-0.5 rounded-full">
-                  {userReservations.length} lượt
+                  {userReservations.length} bookings
                 </span>
               </h2>
 
@@ -443,25 +442,23 @@ export default function ReservationsPage() {
                 {userReservations.map((res) => (
                   <div
                     key={res.id}
-                    className={`rounded-2xl border p-4 flex items-center justify-between gap-4 transition-all duration-300 ${
-                      res.status === 'active'
-                        ? 'bg-slate-950 border-orange-500/20 shadow-[0_0_10px_rgba(249,115,22,0.05)]'
-                        : 'bg-slate-950/50 border-white/5 opacity-70'
-                    }`}
+                    className={`rounded-2xl border p-4 flex items-center justify-between gap-4 transition-all duration-300 ${res.status === 'active'
+                      ? 'bg-slate-950 border-orange-500/20 shadow-[0_0_10px_rgba(249,115,22,0.05)]'
+                      : 'bg-slate-950/50 border-white/5 opacity-70'
+                      }`}
                   >
                     <div className="space-y-1.5 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-mono font-black text-orange-400">{res.id}</span>
-                        <span className={`text-[8px] font-sans font-black px-1.5 py-0.2 rounded uppercase ${
-                          res.status === 'active'
-                            ? 'bg-emerald-500/25 text-emerald-400'
-                            : 'bg-slate-800 text-slate-500'
-                        }`}>
-                          {res.status === 'active' ? 'Đang giữ' : res.status === 'cancelled' ? 'Đã hủy' : 'Hoàn tất'}
+                        <span className={`text-[8px] font-sans font-black px-1.5 py-0.2 rounded uppercase ${res.status === 'active'
+                          ? 'bg-emerald-500/25 text-emerald-400'
+                          : 'bg-slate-800 text-slate-500'
+                          }`}>
+                          {res.status === 'active' ? 'Active' : res.status === 'cancelled' ? 'Cancelled' : 'Completed'}
                         </span>
                       </div>
                       <div className="flex items-center gap-4 text-[11px] text-slate-300 font-bold">
-                        <div>Tọa độ: <span className="font-mono text-white font-extrabold">{res.slotCode}</span></div>
+                        <div>Spot: <span className="font-mono text-white font-extrabold">{res.slotCode}</span></div>
                         <div className="flex items-center gap-1 font-mono">
                           {res.vehicleType === 'car' ? <Car size={11} className="text-blue-400" /> : <Bike size={11} className="text-purple-400" />}
                           <span className={res.vehicleType === 'car' ? 'text-blue-400' : 'text-purple-400'}>{res.plateNumber}</span>
@@ -478,7 +475,7 @@ export default function ReservationsPage() {
                         type="button"
                         onClick={() => handleCancelReservation(res.id)}
                         className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white transition-all duration-200 flex-shrink-0"
-                        title="Hủy đặt chỗ"
+                        title="Cancel Booking"
                       >
                         <Trash2 size={13} className="stroke-[2.5]" />
                       </button>
@@ -488,7 +485,7 @@ export default function ReservationsPage() {
 
                 {userReservations.length === 0 && (
                   <div className="text-center py-6 text-slate-500 font-semibold italic text-xs">
-                    Bạn chưa thực hiện bất kỳ lượt đặt chỗ nào…
+                    You have not made any bookings yet...
                   </div>
                 )}
               </div>

@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { Home, X, AlertCircle } from 'lucide-react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { CartoonCar3D } from '@/components/shared/CartoonCar3D';
+import { requestJson } from '@/services/pbmsApi';
 
 const initialForm = {
   fullName: '',
@@ -12,7 +13,7 @@ const initialForm = {
   confirmPassword: '',
 };
 
-type AuthMode = 'login' | 'register';
+type AuthMode = 'login' | 'register' | 'forgot_email' | 'forgot_reset';
 
 interface AuthPageProps {
   mode: AuthMode;
@@ -38,12 +39,18 @@ const promoPoints = [
   },
 ];
 
+
 export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSubmit, isLoading }: AuthPageProps) {
   const [localNotice, setLocalNotice] = useState<{ message?: string; type?: string } | null>(null);
   const [form, setForm] = useState(initialForm);
   const [savedAccounts, setSavedAccounts] = useState<{ email: string; password?: string }[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [lockTimeLeft, setLockTimeLeft] = useState<number>(0);
+
+  const [forgotEmail, setForgotEmail] = useState<string>('');
+  const [resetToken, setResetToken] = useState<string>('');
+  const [newPassword, setNewPassword] = useState<string>('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState<string>('');
 
   useEffect(() => {
     const checkLock = () => {
@@ -66,6 +73,26 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
     const interval = setInterval(checkLock, 1000);
     return () => clearInterval(interval);
   }, [form.email]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (token) {
+      setResetToken(token);
+      const pendingEmail = localStorage.getItem('pbms.forgotEmail_pending');
+      if (pendingEmail) {
+        setForgotEmail(pendingEmail);
+      } else {
+        const tokens = JSON.parse(localStorage.getItem('pbms.resetTokens') || '{}');
+        const email = tokens[token];
+        if (email) {
+          setForgotEmail(email);
+        }
+      }
+      onModeChange('forgot_reset');
+    }
+  }, [onModeChange]);
+
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const emailInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -144,14 +171,29 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
   const rotateY = useTransform(springX, [0, 1], [-8, 8]);
   const rotateX = useTransform(springY, [0, 1], [8, -8]);
 
-  const title = useMemo(() => (mode === 'login' ? 'Đăng nhập vào PBMS' : 'Tạo tài khoản PBMS'), [mode]);
-  const description = useMemo(
-    () =>
-      mode === 'login'
-        ? 'Đăng nhập để tiếp tục sử dụng hệ thống quản lý bãi đỗ xe, theo dõi thông tin và truy cập các chức năng cần thiết.'
-        : 'Tạo tài khoản mới để bắt đầu sử dụng nền tảng quản lý bãi đỗ xe với giao diện đồng nhất cùng trang chủ.',
-    [mode]
-  );
+  const title = useMemo(() => {
+    if (mode === 'login') return 'Đăng nhập vào PBMS';
+    if (mode === 'register') return 'Tạo tài khoản PBMS';
+    if (mode === 'forgot_email') return 'Quên mật khẩu';
+    if (mode === 'forgot_reset') return 'Đặt lại mật khẩu';
+    return 'PBMS';
+  }, [mode]);
+
+  const description = useMemo(() => {
+    if (mode === 'login') {
+      return 'Đăng nhập để tiếp tục sử dụng hệ thống quản lý bãi đỗ xe, theo dõi thông tin và truy cập các chức năng cần thiết.';
+    }
+    if (mode === 'register') {
+      return 'Tạo tài khoản mới để bắt đầu sử dụng nền tảng quản lý bãi đỗ xe với giao diện đồng nhất cùng trang chủ.';
+    }
+    if (mode === 'forgot_email') {
+      return 'Nhập email đã đăng ký của bạn để nhận liên kết khôi phục mật khẩu tài khoản.';
+    }
+    if (mode === 'forgot_reset') {
+      return 'Tạo mật khẩu mới cho tài khoản của bạn. Mật khẩu phải có độ dài ít nhất 6 ký tự.';
+    }
+    return '';
+  }, [mode]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
@@ -161,6 +203,98 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLocalNotice(null);
+
+    if (mode === 'forgot_email') {
+      const email = form.email.trim();
+      if (!email) {
+        setLocalNotice({ message: 'Vui lòng nhập Email!', type: 'error' });
+        return;
+      }
+      setLocalNotice({ message: 'Đang gửi liên kết khôi phục mật khẩu đến Gmail của bạn...', type: 'success' });
+      try {
+        await onSubmit({
+          mode: 'forgot_email',
+          payload: { email },
+        });
+        setForgotEmail(email);
+        localStorage.setItem('pbms.forgotEmail_pending', email);
+        setLocalNotice({
+          message: `Liên kết đặt lại mật khẩu đã được gửi đến Gmail ${email} thành công! Vui lòng kiểm tra hộp thư (và thư rác) để click vào link thiết lập mật khẩu mới. 🌟`,
+          type: 'success',
+        });
+      } catch (err: any) {
+        const msg = err?.message || 'Email không tồn tại trên hệ thống hoặc lỗi gửi mail.';
+        setLocalNotice({ message: msg, type: 'error' });
+      }
+      return;
+    }
+
+    if (mode === 'forgot_reset') {
+      const emailToUse = forgotEmail.trim() || form.email.trim();
+      if (!emailToUse) {
+        setLocalNotice({ message: 'Vui lòng nhập Email tài khoản!', type: 'error' });
+        return;
+      }
+      if (newPassword !== confirmNewPassword) {
+        setLocalNotice({ message: 'Mật khẩu mới xác nhận không khớp!', type: 'error' });
+        return;
+      }
+      if (newPassword.length < 6) {
+        setLocalNotice({ message: 'Mật khẩu phải có ít nhất 6 ký tự!', type: 'error' });
+        return;
+      }
+      setLocalNotice({ message: 'Đang đặt lại mật khẩu trên hệ thống...', type: 'success' });
+      try {
+        await onSubmit({
+          mode: 'forgot_reset',
+          payload: {
+            token: resetToken,
+            newPassword: newPassword,
+          },
+        });
+
+        // Save new password locally as fallback/sync for mock logins
+        const locallyReset = JSON.parse(localStorage.getItem('pbms.locallyResetPasswords') || '{}');
+        locallyReset[emailToUse.trim().toLowerCase()] = newPassword;
+        localStorage.setItem('pbms.locallyResetPasswords', JSON.stringify(locallyReset));
+
+        // Update in saved accounts list
+        const stored = localStorage.getItem('pbms_saved_accounts');
+        if (stored) {
+          try {
+            let current = JSON.parse(stored);
+            let updated = current.map((acc: any) => {
+              if (acc.email.trim().toLowerCase() === emailToUse.trim().toLowerCase()) {
+                return {
+                  ...acc,
+                  oldPassword: acc.oldPassword || acc.password, // preserve old password for backend validation
+                  password: newPassword,
+                };
+              }
+              return acc;
+            });
+            localStorage.setItem('pbms_saved_accounts', JSON.stringify(updated));
+            setSavedAccounts(updated);
+          } catch (e) {
+            console.error(e);
+          }
+        }
+
+        setLocalNotice({
+          message: 'Đặt lại mật khẩu thành công! Vui lòng đăng nhập bằng mật khẩu mới.',
+          type: 'success',
+        });
+        setForm((s) => ({ ...s, email: emailToUse, password: newPassword }));
+        localStorage.removeItem('pbms.forgotEmail_pending'); // Clean up pending flag
+        setNewPassword('');
+        setConfirmNewPassword('');
+        onModeChange('login');
+      } catch (err: any) {
+        const msg = err?.message || 'Đặt lại mật khẩu thất bại. Token có thể đã hết hạn hoặc không hợp lệ.';
+        setLocalNotice({ message: msg, type: 'error' });
+      }
+      return;
+    }
 
     if (mode === 'register') {
       if (form.password !== form.confirmPassword) {
@@ -582,64 +716,128 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
               </>
             )}
 
-            <div className="space-y-1.5 relative">
-              <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Email</label>
-              <input 
-                ref={emailInputRef}
-                name="email" 
-                value={form.email} 
-                onChange={handleChange} 
-                type="email" 
-                required 
-                autoComplete="new-email"
-                onFocus={() => setShowDropdown(true)}
-                onBlur={() => setShowDropdown(false)}
-                className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
-                placeholder="user@pbms.vn" 
-              />
+            {(mode === 'login' || mode === 'register' || mode === 'forgot_email') && (
+              <div className="space-y-1.5 relative">
+                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">
+                  {mode === 'forgot_email' ? 'Email tài khoản' : 'Email'}
+                </label>
+                <input 
+                  ref={emailInputRef}
+                  name="email" 
+                  value={form.email} 
+                  onChange={handleChange} 
+                  type="email" 
+                  required 
+                  autoComplete="new-email"
+                  onFocus={() => mode !== 'forgot_email' && setShowDropdown(true)}
+                  onBlur={() => setShowDropdown(false)}
+                  className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
+                  placeholder={mode === 'forgot_email' ? 'Nhập email để nhận liên kết khôi phục' : 'user@pbms.vn'} 
+                />
 
-              {/* Custom Cyberpunk Saved Accounts Dropdown */}
-              {showDropdown && savedAccounts.length > 0 && (
-                <div 
-                  ref={dropdownRef}
-                  className="absolute left-0 right-0 top-[68px] z-50 rounded-xl border border-white/10 bg-slate-950/95 shadow-2xl backdrop-blur-md overflow-hidden py-1.5 animate-fadeIn"
-                >
-                  <div className="px-3.5 py-1.5 border-b border-white/5 text-[9px] font-mono text-slate-500 tracking-wider uppercase font-black">
-                    Tài khoản đã lưu
-                  </div>
-                  {savedAccounts.map((acc) => (
-                    <div
-                      key={acc.email}
-                      onMouseDown={(e) => handleSelectAccount(e, acc)}
-                      className="flex items-center justify-between px-3.5 py-2.5 hover:bg-slate-900 text-xs font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer group"
-                    >
-                      <span className="font-medium tracking-wide truncate max-w-[85%]">{acc.email}</span>
-                      <button
-                        type="button"
-                        onMouseDown={(e) => deleteSavedAccount(e, acc.email)}
-                        className="p-1 rounded text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all duration-200"
-                        title="Xóa tài khoản này"
-                      >
-                        <X size={12} className="stroke-[3]" />
-                      </button>
+                {/* Custom Cyberpunk Saved Accounts Dropdown */}
+                {showDropdown && savedAccounts.length > 0 && mode !== 'forgot_email' && (
+                  <div 
+                    ref={dropdownRef}
+                    className="absolute left-0 right-0 top-[68px] z-50 rounded-xl border border-white/10 bg-slate-950/95 shadow-2xl backdrop-blur-md overflow-hidden py-1.5 animate-fadeIn"
+                  >
+                    <div className="px-3.5 py-1.5 border-b border-white/5 text-[9px] font-mono text-slate-500 tracking-wider uppercase font-black">
+                      Tài khoản đã lưu
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                    {savedAccounts.map((acc) => (
+                      <div
+                        key={acc.email}
+                        onMouseDown={(e) => handleSelectAccount(e, acc)}
+                        className="flex items-center justify-between px-3.5 py-2.5 hover:bg-slate-900 text-xs font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer group"
+                      >
+                        <span className="font-medium tracking-wide truncate max-w-[85%]">{acc.email}</span>
+                        <button
+                          type="button"
+                          onMouseDown={(e) => deleteSavedAccount(e, acc.email)}
+                          className="p-1 rounded text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all duration-200"
+                          title="Xóa tài khoản này"
+                        >
+                          <X size={12} className="stroke-[3]" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
-            <div className="space-y-1.5">
-              <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Mật khẩu</label>
-              <input 
-                name="password" 
-                value={form.password} 
-                onChange={handleChange} 
-                type="password" 
-                required 
-                className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
-                placeholder="Ít nhất 6 ký tự" 
-              />
-            </div>
+
+            {mode === 'forgot_reset' && (
+              <>
+                {!forgotEmail && (
+                  <div className="space-y-1.5 animate-fadeIn">
+                    <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Email tài khoản</label>
+                    <input 
+                      name="email" 
+                      value={form.email} 
+                      onChange={handleChange} 
+                      type="email" 
+                      required 
+                      className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
+                      placeholder="Nhập email của bạn" 
+                    />
+                  </div>
+                )}
+                <div className="space-y-1.5">
+                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Mật khẩu mới</label>
+                  <input 
+                    name="newPassword" 
+                    value={newPassword} 
+                    onChange={(e) => setNewPassword(e.target.value)} 
+                    type="password" 
+                    required 
+                    className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
+                    placeholder="Tối thiểu 6 ký tự" 
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Xác nhận mật khẩu mới</label>
+                  <input 
+                    name="confirmNewPassword" 
+                    value={confirmNewPassword} 
+                    onChange={(e) => setConfirmNewPassword(e.target.value)} 
+                    type="password" 
+                    required 
+                    className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
+                    placeholder="Nhập lại mật khẩu mới" 
+                  />
+                </div>
+              </>
+            )}
+
+            {(mode === 'login' || mode === 'register') && (
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Mật khẩu</label>
+                  {mode === 'login' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLocalNotice(null);
+                        onModeChange('forgot_email');
+                      }}
+                      className="text-[10px] font-bold text-orange-400 hover:text-orange-300 hover:underline transition-colors"
+                    >
+                      Quên mật khẩu?
+                    </button>
+                  )}
+                </div>
+                <input 
+                  name="password" 
+                  value={form.password} 
+                  onChange={handleChange} 
+                  type="password" 
+                  required 
+                  className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
+                  placeholder="Ít nhất 6 ký tự" 
+                />
+              </div>
+            )}
 
             {mode === 'register' && (
               <div className="space-y-1.5 animate-fadeIn">
@@ -660,8 +858,8 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
               <motion.button 
                 type="submit" 
                 disabled={isLoading || (mode === 'login' && lockTimeLeft > 0)} 
-                whileHover={mode === 'login' && lockTimeLeft > 0 ? {} : { scale: 1.015 }}
-                whileTap={mode === 'login' && lockTimeLeft > 0 ? {} : { scale: 0.96 }}
+                whileHover={(mode === 'login' && lockTimeLeft > 0) ? {} : { scale: 1.015 }}
+                whileTap={(mode === 'login' && lockTimeLeft > 0) ? {} : { scale: 0.96 }}
                 className={`w-full h-11 rounded-xl text-slate-950 font-black text-xs uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 ${
                   mode === 'login' && lockTimeLeft > 0
                     ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30 cursor-not-allowed shadow-[0_0_15px_rgba(239,68,68,0.05)]'
@@ -674,17 +872,37 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                   ? `Bị khóa (Thử lại sau ${Math.floor(lockTimeLeft / 60)}m ${lockTimeLeft % 60}s)` 
                   : mode === 'login' 
                   ? 'Đăng nhập' 
-                  : 'Tạo tài khoản'}
+                  : mode === 'register'
+                  ? 'Tạo tài khoản'
+                  : mode === 'forgot_email'
+                  ? 'Gửi link khôi phục'
+                  : 'Đặt lại mật khẩu'}
               </motion.button>
               
               <div className="text-center">
-                <button 
-                  type="button" 
-                  onClick={() => onModeChange(mode === 'login' ? 'register' : 'login')} 
-                  className="text-xs font-bold text-slate-400 hover:text-orange-400 underline transition-colors"
-                >
-                  {mode === 'login' ? 'Tạo tài khoản mới' : 'Đã có tài khoản? Đăng nhập'}
-                </button>
+                {['forgot_email', 'forgot_reset'].includes(mode) ? (
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      setLocalNotice(null);
+                      onModeChange('login');
+                    }}
+                    className="text-xs font-bold text-slate-400 hover:text-orange-400 underline transition-colors"
+                  >
+                    Quay lại đăng nhập
+                  </button>
+                ) : (
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      setLocalNotice(null);
+                      onModeChange(mode === 'login' ? 'register' : 'login');
+                    }}
+                    className="text-xs font-bold text-slate-400 hover:text-orange-400 underline transition-colors"
+                  >
+                    {mode === 'login' ? 'Tạo tài khoản mới' : 'Đã có tài khoản? Đăng nhập'}
+                  </button>
+                )}
               </div>
             </div>
           </form>

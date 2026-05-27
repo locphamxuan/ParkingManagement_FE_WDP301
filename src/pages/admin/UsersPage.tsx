@@ -158,7 +158,6 @@ export function UsersPage() {
 
   const token = session?.token || "";
 
-
   const openEditModal = (user: UserRecord) => {
     setActionError(null);
     setForm({
@@ -247,9 +246,15 @@ export function UsersPage() {
       await refresh();
       setPendingDeleteUser(null);
     } catch (err) {
-      setActionError(
-        err instanceof Error ? err.message : "Unable to delete user",
-      );
+      const message =
+        err instanceof Error ? err.message : "Unable to delete user";
+      if (message.toLowerCase().includes("still assigned to buildings")) {
+        setActionError(
+          "User is still assigned to one or more buildings. Revoke the assignment first, then delete the user.",
+        );
+      } else {
+        setActionError(message);
+      }
     } finally {
       setIsDeleting(false);
     }

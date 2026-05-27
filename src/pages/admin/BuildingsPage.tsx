@@ -14,8 +14,10 @@ import {
   createBuilding,
   deleteBuilding,
   getBuildingMembers,
+  revokeBuildingMember,
   updateBuilding,
   updateBuildingStatus,
+  type BuildingMemberRecord,
   type BuildingAssignmentRole,
   type BuildingMembersPayload,
 } from "@/services/admin/adminCrud";
@@ -260,6 +262,10 @@ export function BuildingsPage() {
     useState<BuildingMembersPayload | null>(null);
   const [isLoadingMembers, setIsLoadingMembers] = useState(false);
   const [membersError, setMembersError] = useState<string | null>(null);
+  const [pendingRevokeMember, setPendingRevokeMember] =
+    useState<BuildingMemberRecord | null>(null);
+  const [pendingRevokeRole, setPendingRevokeRole] =
+    useState<BuildingAssignmentRole>("manager");
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [assignTargetBuilding, setAssignTargetBuilding] =
     useState<Building | null>(null);
@@ -290,8 +296,16 @@ export function BuildingsPage() {
   const assignableUsers = useMemo(() => {
     const users = data?.users ?? [];
 
+    const currentManagerId =
+      buildingMembers?.manager?._id || assignTargetBuilding?.manager || null;
+
     return users.filter((user) => {
       if (user.status !== "active" || user.role === "admin") {
+        return false;
+      }
+
+      // never show the current building manager as an assignable candidate
+      if (currentManagerId && user.id === currentManagerId) {
         return false;
       }
 
@@ -301,7 +315,7 @@ export function BuildingsPage() {
 
       return user.role !== "manager";
     });
-  }, [assignRole, data?.users]);
+  }, [assignRole, data?.users, buildingMembers, assignTargetBuilding]);
 
   const filtered = useMemo(() => {
     const source = data?.buildings ?? [];
@@ -405,6 +419,7 @@ export function BuildingsPage() {
     setSelectedBuildingDetail(null);
     setBuildingMembers(null);
     setMembersError(null);
+    setPendingRevokeMember(null);
     setIsLoadingMembers(false);
   };
 
@@ -574,6 +589,34 @@ export function BuildingsPage() {
       );
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const confirmRevokeManager = async () => {
+    if (!token || !selectedBuildingDetail || !pendingRevokeMember) return;
+
+    try {
+      setActionError(null);
+      await revokeBuildingMember(
+        token,
+        selectedBuildingDetail.backendId || selectedBuildingDetail.id,
+        {
+          userId: pendingRevokeMember._id,
+          role: pendingRevokeRole,
+        },
+      );
+      await refresh();
+
+      const refreshedMembers = await getBuildingMembers(
+        token,
+        selectedBuildingDetail.backendId || selectedBuildingDetail.id,
+      );
+      setBuildingMembers(refreshedMembers);
+      setPendingRevokeMember(null);
+    } catch (err) {
+      setActionError(
+        err instanceof Error ? err.message : "Unable to revoke manager",
+      );
     }
   };
 
@@ -838,19 +881,32 @@ export function BuildingsPage() {
                   </span>
                 </div>
                 {buildingMembers?.manager ? (
-                  <div className="grid gap-1.5">
-                    <p className="text-base font-semibold text-white">
-                      {buildingMembers.manager.fullName}
-                    </p>
-                    <p className="text-slate-400">
-                      {buildingMembers.manager.email}
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      Role: {buildingMembers.manager.role}
-                      {buildingMembers.manager.phone
-                        ? ` · ${buildingMembers.manager.phone}`
-                        : ""}
-                    </p>
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="grid gap-1.5">
+                      <p className="text-base font-semibold text-white">
+                        {buildingMembers.manager.fullName}
+                      </p>
+                      <p className="text-slate-400">
+                        {buildingMembers.manager.email}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        Role: {buildingMembers.manager.role}
+                        {buildingMembers.manager.phone
+                          ? ` · ${buildingMembers.manager.phone}`
+                          : ""}
+                      </p>
+                    </div>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => {
+                        setPendingRevokeMember(buildingMembers.manager);
+                        setPendingRevokeRole("manager");
+                      }}
+                      className="rounded-xl px-4 py-2 text-xs font-bold"
+                    >
+                      Revoke manager
+                    </Button>
                   </div>
                 ) : (
                   <p className="text-slate-400">No manager assigned.</p>
@@ -884,8 +940,21 @@ export function BuildingsPage() {
                               {staff.phone ? ` · ${staff.phone}` : ""}
                             </p>
                           </div>
-                          <div className="rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-200">
-                            Assigned staff
+                          <div className="flex flex-wrap items-center gap-2">
+                            <div className="rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-200">
+                              Assigned staff
+                            </div>
+                            <Button
+                              variant="danger"
+                              size="sm"
+                              onClick={() => {
+                                setPendingRevokeMember(staff);
+                                setPendingRevokeRole("staff");
+                              }}
+                              className="rounded-xl px-4 py-2 text-xs font-bold"
+                            >
+                              Revoke
+                            </Button>
                           </div>
                         </div>
                       </div>
@@ -899,6 +968,22 @@ export function BuildingsPage() {
           )}
         </div>
       </Modal>
+
+      <ConfirmModal
+        open={Boolean(pendingRevokeMember)}
+        title={
+          pendingRevokeRole === "manager"
+            ? "Confirm manager revocation"
+            : "Confirm staff revocation"
+        }
+        description={`Are you sure you want to revoke ${pendingRevokeRole === "manager" ? "manager" : "staff"} ${pendingRevokeMember?.fullName || pendingRevokeMember?.email || ""} from this building?`}
+        confirmLabel="Revoke"
+        isConfirming={false}
+        onOpenChange={(open) => {
+          if (!open) setPendingRevokeMember(null);
+        }}
+        onConfirm={confirmRevokeManager}
+      />
 
       <Modal
         open={isAssignModalOpen}

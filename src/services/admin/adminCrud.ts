@@ -185,3 +185,21 @@ export async function assignBuildingMember(
     body: { userId: payload.userId },
   });
 }
+
+export async function revokeBuildingMember(
+  token: string,
+  buildingId: string,
+  payload: AssignBuildingMemberInput,
+): Promise<void> {
+  const path =
+    payload.role === 'manager'
+      ? `/admin/buildings/${buildingId}/revoke-manager`
+      : `/admin/buildings/${buildingId}/revoke-staff`;
+
+  await requestJson<ApiEnvelope<{ assignment: unknown }>>({
+    path,
+    method: 'POST',
+    token,
+    body: { userId: payload.userId },
+  });
+}

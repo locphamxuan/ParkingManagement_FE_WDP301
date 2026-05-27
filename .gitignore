@@ -1,6 +1,9 @@
 # dependencies
 node_modules/
 
+#script output
+scripts/
+
 # production
 dist/
 build/

@@ -17,10 +17,10 @@ export function StaffShiftsPage() {
 
   const summary = useMemo(
     () => [
-      { label: 'Tổng ca', value: items.length },
-      { label: 'Đang làm', value: items.filter((i) => i.status === 'active').length },
-      { label: 'Hoàn thành', value: items.filter((i) => i.status === 'completed').length },
-      { label: 'Đã hủy', value: items.filter((i) => i.status === 'cancelled').length },
+      { label: 'Total Shifts', value: items.length },
+      { label: 'Active', value: items.filter((i) => i.status === 'active').length },
+      { label: 'Completed', value: items.filter((i) => i.status === 'completed').length },
+      { label: 'Cancelled', value: items.filter((i) => i.status === 'cancelled').length },
     ],
     [items]
   );
@@ -33,7 +33,7 @@ export function StaffShiftsPage() {
         setItems(extractShifts(res));
         setError(null);
       })
-      .catch((err) => setError(err instanceof Error ? err.message : 'Tải thất bại'))
+      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load'))
       .finally(() => setLoading(false));
   }, [from, to]);
 
@@ -44,21 +44,21 @@ export function StaffShiftsPage() {
   const columns: DataColumn<MyShift>[] = [
     {
       key: 'workDate',
-      title: 'Ngày',
-      render: (row) => new Date(row.workDate).toLocaleDateString('vi-VN'),
+      title: 'Date',
+      render: (row) => new Date(row.workDate).toLocaleDateString('en-US'),
     },
     {
       key: 'shift',
-      title: 'Ca',
+      title: 'Shift',
       render: (row) => `${row.shift.code} — ${row.shift.startTime}–${row.shift.endTime}`,
     },
-    { key: 'building', title: 'Tòa nhà', render: (row) => row.building.name },
+    { key: 'building', title: 'Building', render: (row) => row.building.name },
     {
       key: 'status',
-      title: 'Trạng thái',
+      title: 'Status',
       render: (row) => <StatusBadge status={row.status} />,
     },
-    { key: 'note', title: 'Ghi chú', render: (row) => row.note ?? '—' },
+    { key: 'note', title: 'Note', render: (row) => row.note ?? '—' },
   ];
 
   return (
@@ -76,7 +76,7 @@ export function StaffShiftsPage() {
 
       <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
         <div className="grid gap-1.5">
-          <label className="text-xs uppercase tracking-[0.18em] text-slate-400">Từ ngày</label>
+          <label className="text-xs uppercase tracking-[0.18em] text-slate-400">From Date</label>
           <input
             type="date"
             className="h-11 rounded-xl border border-white/10 bg-slate-950/50 px-3 text-sm text-white outline-none"
@@ -85,7 +85,7 @@ export function StaffShiftsPage() {
           />
         </div>
         <div className="grid gap-1.5">
-          <label className="text-xs uppercase tracking-[0.18em] text-slate-400">Đến ngày</label>
+          <label className="text-xs uppercase tracking-[0.18em] text-slate-400">To Date</label>
           <input
             type="date"
             className="h-11 rounded-xl border border-white/10 bg-slate-950/50 px-3 text-sm text-white outline-none"
@@ -100,27 +100,27 @@ export function StaffShiftsPage() {
             </Button>
           ) : null}
           <Button variant="secondary" size="sm" onClick={refresh} className="gap-2 rounded-xl border border-white/10 bg-white/5 text-white hover:bg-white/10">
-            <Filter size={14} /> Lọc dữ liệu
+            <Filter size={14} /> Filter
           </Button>
         </div>
       </div>
 
       {loading ? (
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-slate-400">Đang tải...</div>
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-slate-400">Loading...</div>
       ) : error ? (
         <div className="rounded-2xl border border-rose-400/20 bg-rose-500/10 p-6 text-sm text-rose-200">{error}</div>
       ) : items.length === 0 ? (
         <Card className="border-white/10 bg-white/5">
           <CardContent className="p-6 text-sm text-slate-400">
-            Không có ca nào trong khoảng thời gian này.
+            No shifts found in the selected date range.
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-3">
           <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.24em] text-emerald-300">
-            <CalendarClock size={12} /> Ca làm việc ({items.length})
+            <CalendarClock size={12} /> My Shifts ({items.length})
           </div>
-          <DataTable title={`Ca làm việc (${items.length})`} rows={items} columns={columns} />
+          <DataTable title={`Shifts (${items.length})`} rows={items} columns={columns} />
         </div>
       )}
     </div>

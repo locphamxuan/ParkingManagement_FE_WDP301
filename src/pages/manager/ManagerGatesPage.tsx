@@ -10,16 +10,14 @@ import { managerApi, type Gate, type VehicleType } from '@/services/manager/mana
 
 interface FormState {
   code: string;
-  name: string;
-  direction: Gate['direction'];
+  direction: 'in' | 'out';
   status: Gate['status'];
   allowedVehicleTypes: string[];
 }
 
 const empty: FormState = {
   code: '',
-  name: '',
-  direction: 'both',
+  direction: 'in',
   status: 'active',
   allowedVehicleTypes: [],
 };
@@ -65,8 +63,7 @@ export function ManagerGatesPage() {
     setEditing(row);
     setForm({
       code: row.code,
-      name: row.name,
-      direction: row.direction,
+      direction: row.direction === 'both' ? 'in' : row.direction as 'in' | 'out',
       status: row.status,
       allowedVehicleTypes: row.allowedVehicleTypes.map((v) =>
         typeof v === 'string' ? v : v._id
@@ -78,7 +75,6 @@ export function ManagerGatesPage() {
   const onSubmit = async () => {
     const payload = {
       code: form.code.trim().toUpperCase(),
-      name: form.name.trim(),
       direction: form.direction,
       status: form.status,
       allowedVehicleTypes: form.allowedVehicleTypes,
@@ -107,15 +103,14 @@ export function ManagerGatesPage() {
   };
 
   const directionLabel: Record<Gate['direction'], string> = {
-    in: 'In',
-    out: 'Out',
-    both: 'Both',
+    in: '→ Vào',
+    out: '← Ra',
+    both: '↔ Hai chiều',
   };
 
   const columns: DataColumn<Gate>[] = [
-    { key: 'code', title: 'Code' },
-    { key: 'name', title: 'Name' },
-    { key: 'direction', title: 'Direction', render: (row) => directionLabel[row.direction] },
+    { key: 'code', title: 'Mã cổng' },
+    { key: 'direction', title: 'Chiều', render: (row) => directionLabel[row.direction] },
     {
       key: 'allowedVehicleTypes',
       title: 'Vehicle types',
@@ -176,27 +171,30 @@ export function ManagerGatesPage() {
       >
         <div className="grid gap-3 md:grid-cols-2">
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Code</label>
+            <label className="text-xs uppercase text-muted-foreground">Mã cổng</label>
             <Input value={form.code} onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))} />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Name</label>
-            <Input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
+            <label className="text-xs uppercase text-muted-foreground">Chiều</label>
+            <div className="flex gap-2">
+              {(['in', 'out'] as const).map((dir) => (
+                <button
+                  key={dir}
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, direction: dir }))}
+                  className={`flex-1 rounded-lg border py-2.5 text-sm font-semibold transition ${
+                    form.direction === dir
+                      ? 'border-primary bg-primary/15 text-primary'
+                      : 'border-border bg-muted/30 text-muted-foreground hover:border-primary/40'
+                  }`}
+                >
+                  {dir === 'in' ? '→ Vào' : '← Ra'}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Direction</label>
-            <select
-              className="h-10 rounded-md border border-border bg-card px-3 text-sm"
-              value={form.direction}
-              onChange={(e) => setForm((f) => ({ ...f, direction: e.target.value as Gate['direction'] }))}
-            >
-              <option value="both">Both</option>
-              <option value="in">In only</option>
-              <option value="out">Out only</option>
-            </select>
-          </div>
-          <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Trạng thái</label>
+            <label className="text-xs uppercase text-muted-foreground">Status</label>
             <select
               className="h-10 rounded-md border border-border bg-card px-3 text-sm"
               value={form.status}

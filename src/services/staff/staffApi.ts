@@ -26,7 +26,7 @@ const mockSession: ParkingSession = {
   plateNumber: '30A-12345',
   vehicleType: null,
   slot: { _id: 'slot-1', code: 'A1' },
-  gate: { _id: 'gate-1', code: 'G1', name: 'Cổng chính' },
+  entryGate: { _id: 'gate-1', code: 'G1', name: 'Main Gate' },
   checkIn: new Date().toISOString(),
   paymentStatus: 'pending',
   status: 'active',
@@ -56,7 +56,7 @@ export interface ParkingSession {
   plateNumber: string;
   vehicleType?: { _id: string; name: string; code: string } | null;
   slot?: { _id: string; code: string } | null;
-  gate?: { _id: string; code: string; name: string } | null;
+  entryGate?: { _id: string; code: string; name: string } | null;
   checkIn: string;
   checkOut?: string | null;
   duration?: number | null;
@@ -75,6 +75,21 @@ export interface StaffIncident {
   status?: 'open' | 'investigating' | 'escalated' | 'resolved' | 'closed';
   createdAt?: string;
   note?: string;
+}
+
+export interface StaffReservation {
+  _id: string;
+  code?: string;
+  user?: { _id: string; fullName?: string; email?: string } | null;
+  building?: { _id: string; name?: string; code?: string } | null;
+  vehicleType?: { _id: string; name?: string; code?: string } | null;
+  slot?: { _id: string; code?: string } | null;
+  plateNumber?: string;
+  startTime?: string;
+  endTime?: string;
+  status: 'pending' | 'confirmed' | 'checked_in' | 'completed' | 'cancelled' | 'expired';
+  fee?: number | null;
+  createdAt?: string;
 }
 
 interface Wrap<T> {
@@ -107,7 +122,24 @@ export const staffApi = {
   checkIn: (payload: { plateNumber: string; vehicleType?: string; gate?: string; buildingId?: string }) =>
     USE_MOCK ? Promise.resolve({ data: { item: mockSession } }) : api.post<Wrap<{ item: ParkingSession }>>('/staff/parking-sessions/check-in', payload),
 
-  checkOut: (id: string) => (USE_MOCK ? Promise.resolve({ data: { item: mockSession } }) : api.patch<Wrap<{ item: ParkingSession }>>(`/staff/parking-sessions/${id}/check-out`)),
+  checkOut: (id: string, body?: { paymentMethod?: string }) =>
+    USE_MOCK
+      ? Promise.resolve({ data: { item: mockSession } })
+      : api.patch<Wrap<{ item: ParkingSession }>>(`/staff/parking-sessions/${id}/check-out`, body ?? {}),
+
+  // Bank transfer (VietQR via PayOS): create a payment link for the parking fee.
+  initiateSessionPayment: (id: string) =>
+    USE_MOCK
+      ? Promise.resolve({ data: { checkoutUrl: '', qrCode: '', orderCode: 0, amount: 0 } })
+      : api.post<Wrap<{ checkoutUrl: string; qrCode: string; orderCode: number; amount: number; plateNumber: string }>>(
+          `/staff/parking-sessions/${id}/initiate-payment`,
+        ),
+
+  // Reconcile a bank-transfer payment if the PayOS webhook didn't arrive.
+  verifySessionPayment: (orderCode: number) =>
+    USE_MOCK
+      ? Promise.resolve({ data: { status: 'success', settled: true } })
+      : api.get<Wrap<{ status: string; settled: boolean }>>(`/staff/parking-sessions/payment/${orderCode}/status`),
 
   getSessionById: (id: string) => (USE_MOCK ? Promise.resolve({ data: mockSession }) : api.get<Wrap<ParkingSession>>(`/staff/parking-sessions/${id}`)),
 
@@ -118,7 +150,13 @@ export const staffApi = {
 
   processWallet: (payload: unknown) => (USE_MOCK ? Promise.resolve({ data: { success: true } }) : api.post('/staff/wallet-transactions', payload)),
 
-  checkInReservation: (code: string) => (USE_MOCK ? Promise.resolve({ data: { success: true } }) : api.post(`/staff/reservations/${code}/check-in`)),
+  checkInReservation: (code: string) =>
+    USE_MOCK ? Promise.resolve({ data: { success: true } }) : api.post(`/staff/reservations/${code}/check-in`),
+
+  listReservations: (query?: Record<string, string | undefined>) =>
+    USE_MOCK
+      ? Promise.resolve({ data: { items: [] as StaffReservation[], total: 0 } })
+      : api.get<Wrap<{ items: StaffReservation[]; total: number }>>('/staff/reservations', { query }),
 
   incidents: {
     list: (buildingId?: string) =>

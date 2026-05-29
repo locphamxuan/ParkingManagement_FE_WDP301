@@ -47,7 +47,7 @@ export async function loginWithBackend(input: LoginInput): Promise<AuthSession> 
   const user = payload?.data?.user;
 
   if (!token || !user) {
-    throw new Error('Phản hồi đăng nhập không hợp lệ từ máy chủ.');
+    throw new Error('Invalid login response from server.');
   }
 
   const assignedBuildingIds = Array.isArray(user.assignedBuildings)

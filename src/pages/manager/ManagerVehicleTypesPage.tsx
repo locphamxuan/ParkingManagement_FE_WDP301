@@ -88,7 +88,7 @@ export function ManagerVehicleTypesPage() {
             <p>No building found to manage vehicle types.</p>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
-              <label className="block text-sm text-slate-700">Tòa nhà</label>
+              <label className="block text-sm text-slate-700">Building</label>
               <select
                 className="w-full rounded-2xl border border-border bg-white px-3 py-2 text-sm text-slate-900 outline-none transition hover:border-slate-400"
                 value={selectedBuildingId}

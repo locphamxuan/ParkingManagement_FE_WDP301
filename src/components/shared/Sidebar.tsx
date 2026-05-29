@@ -5,11 +5,9 @@ import {
   Building2,
   ChevronLeft,
   CircleDollarSign,
-  FileSearch,
   Fingerprint,
   LayoutDashboard,
   NotebookPen,
-  ShieldAlert,
   Users,
   Wallet,
 } from "lucide-react";
@@ -25,16 +23,10 @@ const modules = [
   { to: "", label: "Overview", icon: LayoutDashboard },
   { to: "buildings", label: "Buildings", icon: Building2 },
   { to: "users", label: "Users", icon: Users },
-  {
-    to: "revenue-analytics",
-    label: "Revenue analytics",
-    icon: CircleDollarSign,
-  },
-  { to: "wallet-governance", label: "Wallet governance", icon: Wallet },
-  { to: "pricing-policies", label: "Pricing policies", icon: NotebookPen },
-  { to: "policy-push-logs", label: "Policy push history", icon: FileSearch },
-  { to: "audit-logs", label: "Audit logs", icon: Activity },
-  { to: "fraud-detection", label: "Fraud detection", icon: ShieldAlert },
+  { to: "revenue-analytics", label: "Revenue Analytics", icon: CircleDollarSign },
+  { to: "system-wallet", label: "System Wallet", icon: Wallet },
+  { to: "pricing-policies", label: "Pricing Policies", icon: NotebookPen },
+  { to: "audit-logs", label: "Audit Logs", icon: Activity },
   { to: "notifications", label: "Notifications", icon: Bell },
 ] as const;
 

@@ -2,17 +2,16 @@ import { NavLink } from 'react-router-dom';
 import {
   Building2,
   ClipboardList,
-  Flag,
   LayoutDashboard,
   MapPin,
   MessageSquare,
   Package,
-  ShieldAlert,
   SlidersHorizontal,
   Square,
   Truck,
   User,
   Users,
+  Wallet,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/utils/cn';
@@ -26,15 +25,15 @@ const modules = [
   { to: '', label: 'Dashboard', icon: LayoutDashboard },
   { to: 'buildings', label: 'Buildings', icon: Building2 },
   { to: 'vehicle-types', label: 'Vehicle Types', icon: Truck },
-  { to: 'floors', label: 'Floors', icon: ClipboardList },
-  { to: 'gates', label: 'Gates', icon: Flag },
+  { to: 'floors', label: 'Floors & Gates', icon: ClipboardList },
   { to: 'slots', label: 'Slots', icon: Square },
   { to: 'price-policies', label: 'Pricing', icon: SlidersHorizontal },
   { to: 'reservation-policy', label: 'Reservations', icon: MapPin },
   { to: 'packages', label: 'Packages', icon: Package },
   { to: 'shifts', label: 'Shifts', icon: Users },
+  { to: 'staff', label: 'Staff', icon: User },
   { to: 'feedbacks', label: 'Feedback', icon: MessageSquare },
-  { to: 'fraud-detection', label: 'Fraud Detection', icon: ShieldAlert },
+  { to: 'wallet', label: 'Wallet', icon: Wallet },
 ] as const;
 
 export function ManagerSidebar({ collapsed, onToggle }: ManagerSidebarProps) {
@@ -48,7 +47,7 @@ export function ManagerSidebar({ collapsed, onToggle }: ManagerSidebarProps) {
       <div className="mb-6 flex items-center justify-between rounded-2xl border border-white/8 bg-slate-800/60 p-3 shadow-sm backdrop-blur-md">
         {!collapsed ? (
           <div className="pl-1">
-            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">Môi trường</p>
+            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">Environment</p>
             <p className="text-xs font-extrabold text-slate-100">MANAGER PORTAL</p>
           </div>
         ) : (

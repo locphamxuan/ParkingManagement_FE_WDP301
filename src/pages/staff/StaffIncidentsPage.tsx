@@ -37,7 +37,7 @@ export function StaffIncidentsPage() {
     building: item.building?.code || item.building?.name || building?.code || '—',
     severity: item.severity || 'medium',
     status: item.status || 'open',
-    timestamp: item.createdAt ? new Date(item.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '—',
+    timestamp: item.createdAt ? new Date(item.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '—',
     note: item.note || '—',
   });
 
@@ -53,7 +53,7 @@ export function StaffIncidentsPage() {
         setItems(mapped);
       })
       .catch((err) => {
-        setError(err instanceof Error ? err.message : 'Tải sự cố thất bại');
+        setError(err instanceof Error ? err.message : 'Failed to load incidents');
         setItems([]);
       })
       .finally(() => setLoading(false));
@@ -70,13 +70,13 @@ export function StaffIncidentsPage() {
         note: incidentNote.trim() || undefined,
         buildingId: buildingId || undefined,
       });
-      setIncidentMessage('Đã tạo sự cố thành công.');
+      setIncidentMessage('Incident created successfully.');
       setIncidentType('');
       setIncidentTarget('');
       setIncidentNote('');
       refresh();
     } catch (err) {
-      setIncidentMessage(err instanceof Error ? err.message : 'Không thể tạo sự cố');
+      setIncidentMessage(err instanceof Error ? err.message : 'Failed to create incident');
     }
   };
 
@@ -100,12 +100,12 @@ export function StaffIncidentsPage() {
       <section className="grid gap-3 lg:grid-cols-[1.15fr,0.85fr]">
         <Card className="border-white/10 bg-white/5">
           <CardHeader>
-            <CardTitle className="text-white">Điều phối sự cố</CardTitle>
+            <CardTitle className="text-white">Incident Overview</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-3 md:grid-cols-3">
               <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-4">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Mở</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Open</p>
                 <p className="mt-2 text-2xl font-semibold text-white">12</p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-4">
@@ -113,7 +113,7 @@ export function StaffIncidentsPage() {
                 <p className="mt-2 text-2xl font-semibold text-white">5</p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-4">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Đã xử lý</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Resolved</p>
                 <p className="mt-2 text-2xl font-semibold text-white">27</p>
               </div>
             </div>
@@ -128,14 +128,14 @@ export function StaffIncidentsPage() {
 
         <Card className="border-white/10 bg-white/5">
           <CardHeader>
-            <CardTitle className="text-white">Tạo sự cố nhanh</CardTitle>
+            <CardTitle className="text-white">Quick Incident Report</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3">
-            <Input value={incidentType} onChange={(e) => setIncidentType(e.target.value)} placeholder="Loại sự cố: mất vé, barrier lỗi, xe quá hạn..." className="border-white/10 bg-white/5 text-white placeholder:text-slate-500" />
-            <Input value={incidentTarget} onChange={(e) => setIncidentTarget(e.target.value)} placeholder="Biển số / cổng / khu vực" className="border-white/10 bg-white/5 text-white placeholder:text-slate-500" />
-            <Input value={incidentNote} onChange={(e) => setIncidentNote(e.target.value)} placeholder="Ghi chú xử lý ban đầu" className="border-white/10 bg-white/5 text-white placeholder:text-slate-500" />
+            <Input value={incidentType} onChange={(e) => setIncidentType(e.target.value)} placeholder="Type: lost ticket, barrier fault, overstay..." className="border-white/10 bg-white/5 text-white placeholder:text-slate-500" />
+            <Input value={incidentTarget} onChange={(e) => setIncidentTarget(e.target.value)} placeholder="Plate / gate / area" className="border-white/10 bg-white/5 text-white placeholder:text-slate-500" />
+            <Input value={incidentNote} onChange={(e) => setIncidentNote(e.target.value)} placeholder="Initial handling note" className="border-white/10 bg-white/5 text-white placeholder:text-slate-500" />
             <Button type="button" onClick={createIncident} className="gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-400 text-slate-950 hover:brightness-110">
-              <Plus size={14} /> Tạo phiếu
+              <Plus size={14} /> Create Ticket
             </Button>
             {incidentMessage ? <p className="text-xs text-slate-400">{incidentMessage}</p> : null}
           </CardContent>
@@ -143,16 +143,16 @@ export function StaffIncidentsPage() {
       </section>
 
       {loading ? (
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-400">Đang tải dữ liệu sự cố từ API staff...</div>
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-400">Loading incidents...</div>
       ) : error ? (
         <div className="rounded-2xl border border-amber-400/20 bg-amber-500/10 p-4 text-sm text-amber-100">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="font-semibold text-white">Không lấy được dữ liệu sự cố từ BE</p>
+              <p className="font-semibold text-white">Failed to load incident data</p>
               <p className="mt-1 leading-6">{error}</p>
             </div>
             <Button onClick={refresh} variant="secondary" className="gap-2 rounded-xl border border-white/10 bg-white/5 text-white hover:bg-white/10">
-              <RefreshCcw size={14} /> Thử lại
+              <RefreshCcw size={14} /> Retry
             </Button>
           </div>
         </div>
@@ -160,7 +160,7 @@ export function StaffIncidentsPage() {
 
       <Card className="border-white/10 bg-white/5">
         <CardHeader>
-          <CardTitle className="text-white">Danh sách sự cố</CardTitle>
+          <CardTitle className="text-white">Incident List</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -169,7 +169,7 @@ export function StaffIncidentsPage() {
               <Input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Tìm kiếm theo mã, loại sự cố, ghi chú..."
+                placeholder="Search by ID, type, note..."
                 className="pl-9 border-white/10 bg-white/5 text-white placeholder:text-slate-500"
               />
             </div>
@@ -178,10 +178,10 @@ export function StaffIncidentsPage() {
               onChange={(e) => setSeverity(e.target.value)}
               className="h-11 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white outline-none"
             >
-              <option value="all">Tất cả mức độ</option>
-              <option value="medium">Trung bình</option>
-              <option value="high">Cao</option>
-              <option value="critical">Nguy cấp</option>
+              <option value="all">All Severities</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="critical">Critical</option>
             </select>
           </div>
 
@@ -202,14 +202,14 @@ export function StaffIncidentsPage() {
                     <Clock3 size={12} className="mr-1 inline-block" /> {incident.timestamp}
                   </div>
                   <Button variant="secondary" className="gap-2 rounded-xl border border-white/10 bg-white/5 text-white hover:bg-white/10">
-                    <ArrowRight size={14} /> Chi tiết
+                    <ArrowRight size={14} /> Details
                   </Button>
                 </div>
               </div>
             ))}
             {filtered.length === 0 ? (
               <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-6 text-sm text-slate-400">
-                Không tìm thấy sự cố phù hợp.
+                No incidents found.
               </div>
             ) : null}
           </div>
@@ -218,9 +218,9 @@ export function StaffIncidentsPage() {
 
       <section className="grid gap-4 md:grid-cols-3">
         {[
-          { label: 'Open', description: 'Sự cố mới cần ghi nhận', icon: AlertTriangle },
-          { label: 'Investigating', description: 'Đang xác minh hiện trường', icon: ShieldAlert },
-          { label: 'Resolved', description: 'Đã khép hồ sơ và audit', icon: CheckCircle2 },
+          { label: 'Open', description: 'New incident — needs to be logged', icon: AlertTriangle },
+          { label: 'Investigating', description: 'On-site verification in progress', icon: ShieldAlert },
+          { label: 'Resolved', description: 'Case closed and audited', icon: CheckCircle2 },
         ].map((item) => {
           const Icon = item.icon;
           return (

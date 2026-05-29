@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Users } from "lucide-react";
 import { ConfirmModal } from "@/components/shared/ConfirmModal";
 import { DataTable, type DataColumn } from "@/components/shared/DataTable";
 import { ModalForm } from "@/components/shared/ModalForm";
@@ -10,13 +11,24 @@ import { useAdminDataset } from "@/hooks/admin/useAdminDataset";
 import { useAuth } from "@/hooks/useAuth";
 import {
   createBuilding,
+  deleteAdminUser,
   deleteBuilding,
   updateBuilding,
   updateBuildingStatus,
+  revokeStaffFromBuilding,
+  revokeManagerFromBuilding,
 } from "@/services/admin/adminCrud";
+import { adminApi, type AdminUser } from "@/services/admin/adminApi";
 import type { Building } from "@/types";
 
 const PAGE_SIZE = 3;
+
+interface MembersState {
+  buildingId: string;
+  buildingName: string;
+  manager: AdminUser | null;
+  staff: AdminUser[];
+}
 
 export function BuildingsPage() {
   const { data, isLoading, error, refresh } = useAdminDataset();
@@ -25,14 +37,21 @@ export function BuildingsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(
-    null,
-  );
+  const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [pendingDeleteBuilding, setPendingDeleteBuilding] =
-    useState<Building | null>(null);
+  const [pendingDeleteBuilding, setPendingDeleteBuilding] = useState<Building | null>(null);
+
+  // Members modal state
+  const [membersState, setMembersState] = useState<MembersState | null>(null);
+  const [isMembersLoading, setIsMembersLoading] = useState(false);
+  const [membersError, setMembersError] = useState<string | null>(null);
+
+  // Delete member state
+  const [pendingDeleteMember, setPendingDeleteMember] = useState<AdminUser | null>(null);
+  const [isDeletingMember, setIsDeletingMember] = useState(false);
+
   const [form, setForm] = useState({
     name: "",
     code: "",
@@ -43,7 +62,6 @@ export function BuildingsPage() {
 
   const filtered = useMemo(() => {
     const source = data?.buildings ?? [];
-
     return source.filter((item) => {
       const q = query.trim().toLowerCase();
       const matchesSearch =
@@ -57,31 +75,72 @@ export function BuildingsPage() {
   }, [data?.buildings, query, statusFilter]);
 
   if (isLoading) {
-    return (
-      <div className="text-sm text-muted-foreground">Loading buildings...</div>
-    );
+    return <div className="text-sm text-muted-foreground">Loading buildings...</div>;
   }
 
   if (error || !data) {
-    return (
-      <div className="text-sm text-red-600">
-        {error || "Failed to load buildings."}
-      </div>
-    );
+    return <div className="text-sm text-red-600">{error || "Failed to load buildings."}</div>;
   }
 
   const token = session?.token || "";
 
+  const openViewMembers = async (building: Building) => {
+    const bid = building.backendId || building.id;
+    setMembersState({ buildingId: bid, buildingName: building.name, manager: null, staff: [] });
+    setIsMembersLoading(true);
+    setMembersError(null);
+    try {
+      const res = await adminApi.buildings.getMembers(bid);
+      setMembersState({
+        buildingId: bid,
+        buildingName: building.name,
+        manager: res.data?.manager ?? null,
+        staff: res.data?.staff ?? [],
+      });
+    } catch (err) {
+      setMembersError(err instanceof Error ? err.message : "Failed to load members");
+    } finally {
+      setIsMembersLoading(false);
+    }
+  };
+
+  const confirmDeleteMember = async () => {
+    if (!token || !pendingDeleteMember || !membersState) return;
+    const isManager = membersState.manager?._id === pendingDeleteMember._id;
+    const buildingId = membersState.buildingId;
+    try {
+      setIsDeletingMember(true);
+      // Bước 1: Revoke khỏi building trước (nếu không, BE sẽ báo 409)
+      if (isManager) {
+        await revokeManagerFromBuilding(token, buildingId, pendingDeleteMember._id);
+      } else {
+        await revokeStaffFromBuilding(token, buildingId, pendingDeleteMember._id);
+      }
+      // Bước 2: Xóa tài khoản
+      await deleteAdminUser(token, pendingDeleteMember._id);
+      // Bước 3: Cập nhật local state
+      setMembersState((prev) =>
+        prev
+          ? {
+              ...prev,
+              manager: isManager ? null : prev.manager,
+              staff: prev.staff.filter((s) => s._id !== pendingDeleteMember._id),
+            }
+          : null,
+      );
+      await refresh();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Unable to delete member");
+    } finally {
+      setIsDeletingMember(false);
+      setPendingDeleteMember(null);
+    }
+  };
+
   const openCreateModal = () => {
     setActionError(null);
     setSelectedBuilding(null);
-    setForm({
-      name: "",
-      code: "",
-      floors: "1",
-      address: "",
-      hourlyRate: "0",
-    });
+    setForm({ name: "", code: "", floors: "1", address: "", hourlyRate: "0" });
     setIsModalOpen(true);
   };
 
@@ -111,16 +170,12 @@ export function BuildingsPage() {
       setIsSaving(true);
       setActionError(null);
       if (selectedBuilding) {
-        await updateBuilding(
-          token,
-          selectedBuilding.backendId || selectedBuilding.id,
-          {
-            name: form.name,
-            code: form.code,
-            totalFloors: Number(form.floors),
-            fullAddress: form.address,
-          },
-        );
+        await updateBuilding(token, selectedBuilding.backendId || selectedBuilding.id, {
+          name: form.name,
+          code: form.code,
+          totalFloors: Number(form.floors),
+          fullAddress: form.address,
+        });
       } else {
         await createBuilding(token, {
           name: form.name,
@@ -133,9 +188,7 @@ export function BuildingsPage() {
       await refresh();
       closeModal();
     } catch (err) {
-      setActionError(
-        err instanceof Error ? err.message : "Unable to save building",
-      );
+      setActionError(err instanceof Error ? err.message : "Unable to save building");
       setIsSaving(false);
     }
   };
@@ -145,20 +198,14 @@ export function BuildingsPage() {
     try {
       setActionError(null);
       const nextStatus = building.status === "active" ? "inactive" : "active";
-      await updateBuildingStatus(
-        token,
-        building.backendId || building.id,
-        nextStatus,
-      );
+      await updateBuildingStatus(token, building.backendId || building.id, nextStatus);
       await refresh();
     } catch (err) {
-      setActionError(
-        err instanceof Error ? err.message : "Unable to change building status",
-      );
+      setActionError(err instanceof Error ? err.message : "Unable to change building status");
     }
   };
 
-  const removeBuildingById = async (building: Building) => {
+  const removeBuildingById = (building: Building) => {
     if (!token) return;
     setPendingDeleteBuilding(building);
   };
@@ -168,16 +215,11 @@ export function BuildingsPage() {
     try {
       setIsDeleting(true);
       setActionError(null);
-      await deleteBuilding(
-        token,
-        pendingDeleteBuilding.backendId || pendingDeleteBuilding.id,
-      );
+      await deleteBuilding(token, pendingDeleteBuilding.backendId || pendingDeleteBuilding.id);
       await refresh();
       setPendingDeleteBuilding(null);
     } catch (err) {
-      setActionError(
-        err instanceof Error ? err.message : "Unable to delete building",
-      );
+      setActionError(err instanceof Error ? err.message : "Unable to delete building");
     } finally {
       setIsDeleting(false);
     }
@@ -192,17 +234,12 @@ export function BuildingsPage() {
     { key: "floors", title: "Floors" },
     {
       key: "occupancyRate",
-      title: "Occupancy rate",
+      title: "Occupancy",
       render: (row) => (
         <div className="w-32">
-          <div className="mb-1 text-xs text-muted-foreground">
-            {row.occupancyRate}%
-          </div>
+          <div className="mb-1 text-xs text-muted-foreground">{row.occupancyRate}%</div>
           <div className="h-2 overflow-hidden rounded-full bg-muted">
-            <div
-              className="h-full bg-primary"
-              style={{ width: `${row.occupancyRate}%` }}
-            />
+            <div className="h-full bg-primary" style={{ width: `${row.occupancyRate}%` }} />
           </div>
         </div>
       ),
@@ -223,21 +260,21 @@ export function BuildingsPage() {
       title: "Actions",
       render: (row) => (
         <div className="flex flex-wrap gap-2">
-          <Button variant="ghost" size="sm" onClick={() => openEditModal(row)}>
-            Edit
-          </Button>
           <Button
             variant="secondary"
             size="sm"
-            onClick={() => toggleBuildingStatus(row)}
+            className="gap-1"
+            onClick={() => openViewMembers(row)}
           >
+            <Users size={12} /> Members
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => openEditModal(row)}>
+            Edit
+          </Button>
+          <Button variant="secondary" size="sm" onClick={() => toggleBuildingStatus(row)}>
             {row.status === "active" ? "Deactivate" : "Activate"}
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => removeBuildingById(row)}
-          >
+          <Button variant="ghost" size="sm" onClick={() => removeBuildingById(row)}>
             Delete
           </Button>
         </div>
@@ -247,29 +284,15 @@ export function BuildingsPage() {
 
   return (
     <div className="grid gap-4">
-      {actionError ? (
-        <div className="text-sm text-red-600">{actionError}</div>
-      ) : null}
+      {actionError ? <div className="text-sm text-red-600">{actionError}</div> : null}
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <SearchFilterBar
           query={query}
-          onQueryChange={(value) => {
-            setPage(1);
-            setQuery(value);
-          }}
+          onQueryChange={(value) => { setPage(1); setQuery(value); }}
           filterValue={statusFilter}
-          onFilterChange={(value) => {
-            setPage(1);
-            setStatusFilter(value);
-          }}
-          filterOptions={[
-            "all",
-            "active",
-            "inactive",
-            "maintenance",
-            "warning",
-          ]}
+          onFilterChange={(value) => { setPage(1); setStatusFilter(value); }}
+          filterOptions={["all", "active", "inactive", "maintenance", "warning"]}
         />
         <Button onClick={openCreateModal}>Create building</Button>
       </div>
@@ -277,30 +300,101 @@ export function BuildingsPage() {
       <DataTable title="Buildings" rows={pageRows} columns={columns} />
 
       <div className="flex items-center justify-end gap-2">
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => setPage((p) => Math.max(1, p - 1))}
-        >
+        <Button variant="secondary" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))}>
           Previous
         </Button>
-        <span className="text-sm text-muted-foreground">
-          Page {page} / {maxPage}
-        </span>
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => setPage((p) => Math.min(maxPage, p + 1))}
-        >
+        <span className="text-sm text-muted-foreground">Page {page} / {maxPage}</span>
+        <Button variant="secondary" size="sm" onClick={() => setPage((p) => Math.min(maxPage, p + 1))}>
           Next
         </Button>
       </div>
 
+      {/* ── Building Members Modal ─────────────────────────── */}
+      {membersState ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-lg rounded-2xl border border-border bg-background p-6 shadow-xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold">
+                Members — {membersState.buildingName}
+              </h2>
+              <Button variant="ghost" size="sm" onClick={() => setMembersState(null)}>
+                ✕
+              </Button>
+            </div>
+
+            {isMembersLoading ? (
+              <p className="text-sm text-muted-foreground">Loading members...</p>
+            ) : membersError ? (
+              <p className="text-sm text-red-600">{membersError}</p>
+            ) : (
+              <div className="grid gap-4">
+                {/* Manager */}
+                <section>
+                  <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    Manager
+                  </h3>
+                  {membersState.manager ? (
+                    <div className="flex items-center justify-between rounded-xl border border-border bg-card p-3 text-sm">
+                      <div>
+                        <p className="font-medium">{membersState.manager.fullName}</p>
+                        <p className="text-muted-foreground">{membersState.manager.email}</p>
+                      </div>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => setPendingDeleteMember(membersState.manager!)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic">No manager assigned</p>
+                  )}
+                </section>
+
+                {/* Staff */}
+                <section>
+                  <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    Staff ({membersState.staff.length})
+                  </h3>
+                  {membersState.staff.length === 0 ? (
+                    <p className="text-sm text-muted-foreground italic">No staff assigned</p>
+                  ) : (
+                    <div className="grid gap-2">
+                      {membersState.staff.map((s) => (
+                        <div
+                          key={s._id}
+                          className="flex items-center justify-between rounded-xl border border-border bg-card p-3 text-sm"
+                        >
+                          <div>
+                            <p className="font-medium">{s.fullName}</p>
+                            <p className="text-muted-foreground">{s.email}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <StatusBadge status={s.isActive ? "active" : "inactive"} />
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => setPendingDeleteMember(s)}
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </section>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : null}
+
+      {/* ── Edit / Create Building Modal ───────────────────── */}
       <ModalForm
         open={isModalOpen}
-        onOpenChange={(open) => {
-          if (!open) closeModal();
-        }}
+        onOpenChange={(open) => { if (!open) closeModal(); }}
         title={selectedBuilding ? "Edit building" : "Create building"}
         onSubmit={saveBuilding}
       >
@@ -308,44 +402,32 @@ export function BuildingsPage() {
           <Input
             placeholder="Building name"
             value={form.name}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, name: e.target.value }))
-            }
+            onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
           />
           <Input
             placeholder="Building code"
             value={form.code}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, code: e.target.value }))
-            }
+            onChange={(e) => setForm((prev) => ({ ...prev, code: e.target.value }))}
           />
           <Input
             placeholder="Address"
             value={form.address}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, address: e.target.value }))
-            }
+            onChange={(e) => setForm((prev) => ({ ...prev, address: e.target.value }))}
           />
           <Input
             placeholder="Floors"
             value={form.floors}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, floors: e.target.value }))
-            }
+            onChange={(e) => setForm((prev) => ({ ...prev, floors: e.target.value }))}
           />
           {!selectedBuilding ? (
             <Input
               placeholder="Hourly rate (VND)"
               value={form.hourlyRate}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, hourlyRate: e.target.value }))
-              }
+              onChange={(e) => setForm((prev) => ({ ...prev, hourlyRate: e.target.value }))}
             />
           ) : null}
         </div>
-        {isSaving ? (
-          <p className="text-xs text-muted-foreground">Saving...</p>
-        ) : null}
+        {isSaving ? <p className="text-xs text-muted-foreground">Saving...</p> : null}
       </ModalForm>
 
       <ConfirmModal
@@ -354,10 +436,19 @@ export function BuildingsPage() {
         description={`Are you sure you want to delete building ${pendingDeleteBuilding?.name || ""}? This action cannot be undone.`}
         confirmLabel="Delete"
         isConfirming={isDeleting}
-        onOpenChange={(open) => {
-          if (!open) setPendingDeleteBuilding(null);
-        }}
+        onOpenChange={(open) => { if (!open) setPendingDeleteBuilding(null); }}
         onConfirm={confirmRemoveBuilding}
+      />
+
+      {/* ── Delete Member Confirm ──────────────────────────── */}
+      <ConfirmModal
+        open={Boolean(pendingDeleteMember)}
+        title={`Delete ${pendingDeleteMember?.role === "manager" ? "manager" : "staff"} account`}
+        description={`Permanently delete account "${pendingDeleteMember?.fullName || pendingDeleteMember?.email || ""}" (${pendingDeleteMember?.email || ""})?  This action cannot be undone.`}
+        confirmLabel="Delete"
+        isConfirming={isDeletingMember}
+        onOpenChange={(open) => { if (!open) setPendingDeleteMember(null); }}
+        onConfirm={confirmDeleteMember}
       />
     </div>
   );

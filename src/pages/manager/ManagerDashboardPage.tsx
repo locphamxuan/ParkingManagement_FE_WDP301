@@ -230,7 +230,7 @@ export function ManagerDashboardPage() {
               </CardHeader>
               <CardContent className="p-5 space-y-4">
                 <div className="rounded-2xl border border-white/5 bg-slate-950/40 p-4">
-                  <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">Số ô đang có xe</p>
+                  <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">Occupied slots</p>
                   <div className="mt-2 flex items-baseline justify-between">
                       <p className="text-2xl font-black text-white font-mono">{overview?.slots?.occupied ?? 0}</p>
                       <p className="text-xs font-bold text-slate-500 font-mono">/ {overview?.slots?.total ?? 0} slots</p>

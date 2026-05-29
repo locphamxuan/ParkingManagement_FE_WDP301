@@ -27,6 +27,11 @@ export interface AdminUser {
   createdAt?: string;
 }
 
+export interface BuildingMembers {
+  manager: AdminUser | null;
+  staff: AdminUser[];
+}
+
 export interface AdminAuditLog {
   _id: string;
   actor: { _id: string; fullName: string; email: string; role: string } | null;
@@ -36,6 +41,23 @@ export interface AdminAuditLog {
   severity: 'low' | 'medium' | 'high' | 'critical';
   building?: { _id: string; name: string; code: string } | null;
   description?: string;
+  createdAt: string;
+}
+
+export interface SystemWallet {
+  _id: string;
+  balance: number;
+  totalDistributed: number;
+  updatedAt: string;
+}
+
+export interface WalletDistribution {
+  _id: string;
+  building: { _id: string; name: string; code: string };
+  amount: number;
+  periodStart?: string;
+  periodEnd?: string;
+  note?: string;
   createdAt: string;
 }
 
@@ -79,10 +101,16 @@ export const adminApi = {
         status,
       }),
     remove: (id: string) => api.delete(`/admin/buildings/${id}`),
+    getMembers: (buildingId: string) =>
+      api.get<Wrap<BuildingMembers>>(`/admin/buildings/${buildingId}/members`),
     assignManager: (buildingId: string, userId: string) =>
       api.post(`/admin/buildings/${buildingId}/assign-manager`, { userId }),
     revokeManager: (buildingId: string, userId: string) =>
       api.post(`/admin/buildings/${buildingId}/revoke-manager`, { userId }),
+    assignStaff: (buildingId: string, userId: string) =>
+      api.post(`/admin/buildings/${buildingId}/assign-staff`, { userId }),
+    revokeStaff: (buildingId: string, userId: string) =>
+      api.post(`/admin/buildings/${buildingId}/revoke-staff`, { userId }),
   },
 
   users: {
@@ -100,4 +128,19 @@ export const adminApi = {
 
   auditLogs: (q?: Record<string, string | undefined>) =>
     api.get<Wrap<ListResult<AdminAuditLog>>>('/admin/audit-logs', { query: q }),
+
+  wallet: {
+    get: () => api.get<Wrap<{ wallet: SystemWallet }>>('/admin/wallet'),
+    distributions: (q?: Record<string, string | undefined>) =>
+      api.get<Wrap<ListResult<WalletDistribution>>>('/admin/wallet/distributions', { query: q }),
+    dailyTransfers: (q?: Record<string, string | undefined>) =>
+      api.get<Wrap<{
+        todayTotal: number;
+        todayBreakdown: { buildingId: string; buildingName: string; buildingCode: string; total: number; count: number }[];
+        trend: { date: string; total: number; count: number }[];
+      }>>('/admin/wallet/daily-transfers', { query: q }),
+  },
+
+  revenue: (q?: Record<string, string | undefined>) =>
+    api.get<Wrap<{ items: { date: string; building: { _id: string; name: string; code: string }; totalRevenue: number; sessionCount: number }[]; total: number }>>('/admin/revenue', { query: q }),
 };

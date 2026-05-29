@@ -7,7 +7,7 @@ import { UsersPage } from "@/pages/admin/UsersPage";
 import { RevenueAnalyticsPage } from "@/pages/admin/RevenueAnalyticsPage";
 import { AuditLogsPage } from "@/pages/admin/AuditLogsPage";
 import { AdminProfilePage } from "@/pages/admin/AdminProfilePage";
-import { FraudDetectionPage } from "@/pages/admin/FraudDetectionPage";
+import { SystemWalletPage } from "@/pages/admin/SystemWalletPage";
 import { ModulePlaceholderPage } from "@/pages/admin/ModulePlaceholderPage";
 import { HomeRoute } from "@/pages/public/HomeRoute";
 import ProfilePage from "@/pages/public/ProfilePage";
@@ -21,24 +21,25 @@ import { ProtectedRoute } from "@/routes/ProtectedRoute";
 import { ManagerLayout } from "@/layouts/ManagerLayout";
 import { ManagerBuildingsPage } from "@/pages/manager/ManagerBuildingsPage";
 import { ManagerDashboardPage } from "@/pages/manager/ManagerDashboardPage";
-import { ManagerFraudDetectionPage } from "@/pages/manager/ManagerFraudDetectionPage";
+import { ManagerWalletPage } from "@/pages/manager/ManagerWalletPage";
 import { ManagerFeedbackPage } from "@/pages/manager/ManagerFeedbackPage";
 import { ManagerProfilePage } from "@/pages/manager/ManagerProfilePage";
 import { ManagerProtectedRoute } from "@/routes/ManagerProtectedRoute";
 import { ManagerVehicleTypesPage } from "@/pages/manager/ManagerVehicleTypesPage";
-import { ManagerFloorsPage } from "@/pages/manager/ManagerFloorsPage";
-import { ManagerGatesPage } from "@/pages/manager/ManagerGatesPage";
+import { ManagerFloorsGatesPage } from "@/pages/manager/ManagerFloorsGatesPage";
 import { ManagerSlotsPage } from "@/pages/manager/ManagerSlotsPage";
 import { ManagerPricingPage } from "@/pages/manager/ManagerPricingPage";
 import { ManagerReservationPolicyPage } from "@/pages/manager/ManagerReservationPolicyPage";
 import { ManagerPackagesPage } from "@/pages/manager/ManagerPackagesPage";
 import { ManagerShiftsPage } from "@/pages/manager/ManagerShiftsPage";
+import { ManagerStaffPage } from "@/pages/manager/ManagerStaffPage";
 import { StaffLayout } from "@/layouts/StaffLayout";
 import { StaffDashboardPage } from "@/pages/staff/StaffDashboardPage";
 import { StaffShiftsPage } from "@/pages/staff/StaffShiftsPage";
 import { StaffSessionsPage } from "@/pages/staff/StaffSessionsPage";
 import { StaffOperationsPage } from "@/pages/staff/StaffOperationsPage";
 import { StaffIncidentsPage } from "@/pages/staff/StaffIncidentsPage";
+import { StaffReservationsPage } from "@/pages/staff/StaffReservationsPage";
 
 export function AppRouter() {
   return (
@@ -72,12 +73,7 @@ export function AppRouter() {
             <Route path="vehicle-types" element={<ManagerVehicleTypesPage />} />
             <Route path="feedbacks" element={<ManagerFeedbackPage />} />
             <Route path="profile" element={<ManagerProfilePage />} />
-            <Route
-              path="fraud-detection"
-              element={<ManagerFraudDetectionPage />}
-            />
-            <Route path="floors" element={<ManagerFloorsPage />} />
-            <Route path="gates" element={<ManagerGatesPage />} />
+            <Route path="floors" element={<ManagerFloorsGatesPage />} />
             <Route path="slots" element={<ManagerSlotsPage />} />
             <Route path="price-policies" element={<ManagerPricingPage />} />
             <Route
@@ -86,6 +82,8 @@ export function AppRouter() {
             />
             <Route path="packages" element={<ManagerPackagesPage />} />
             <Route path="shifts" element={<ManagerShiftsPage />} />
+            <Route path="staff"  element={<ManagerStaffPage />} />
+            <Route path="wallet" element={<ManagerWalletPage />} />
           </Route>
         </Route>
 
@@ -107,13 +105,10 @@ export function AppRouter() {
             <Route index element={<StaffDashboardPage />} />
             <Route path="dashboard" element={<StaffDashboardPage />} />
             <Route path="operations" element={<StaffOperationsPage />} />
+            <Route path="reservations" element={<StaffReservationsPage />} />
             <Route path="my-shifts" element={<StaffShiftsPage />} />
             <Route path="sessions" element={<StaffSessionsPage />} />
             <Route path="incidents" element={<StaffIncidentsPage />} />
-            <Route
-              path="handover"
-              element={<StaffOperationsPage mode="handover" />}
-            />
           </Route>
         ) : (
           <Route element={<ProtectedRoute role="staff" />}>
@@ -121,13 +116,10 @@ export function AppRouter() {
               <Route index element={<StaffDashboardPage />} />
               <Route path="dashboard" element={<StaffDashboardPage />} />
               <Route path="operations" element={<StaffOperationsPage />} />
+              <Route path="reservations" element={<StaffReservationsPage />} />
               <Route path="my-shifts" element={<StaffShiftsPage />} />
               <Route path="sessions" element={<StaffSessionsPage />} />
               <Route path="incidents" element={<StaffIncidentsPage />} />
-              <Route
-                path="handover"
-                element={<StaffOperationsPage mode="handover" />}
-              />
             </Route>
           </Route>
         )}
@@ -141,15 +133,7 @@ export function AppRouter() {
               path="revenue-analytics"
               element={<RevenueAnalyticsPage />}
             />
-            <Route
-              path="wallet-governance"
-              element={
-                <ModulePlaceholderPage
-                  title="Wallet governance"
-                  description="System wallet controls, allocation rules, and approval flows."
-                />
-              }
-            />
+            <Route path="system-wallet" element={<SystemWalletPage />} />
             <Route
               path="pricing-policies"
               element={
@@ -159,17 +143,7 @@ export function AppRouter() {
                 />
               }
             />
-            <Route
-              path="policy-push-logs"
-              element={
-                <ModulePlaceholderPage
-                  title="Policy push history"
-                  description="Policy push history between buildings and rollback actions."
-                />
-              }
-            />
             <Route path="audit-logs" element={<AuditLogsPage />} />
-            <Route path="fraud-detection" element={<FraudDetectionPage />} />
             <Route
               path="system-health"
               element={<Navigate to="/admin/dashboard" replace />}

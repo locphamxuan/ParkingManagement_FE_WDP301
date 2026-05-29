@@ -31,7 +31,8 @@ const empty: FormState = {
   note: '',
 };
 
-const SLOT_STATUSES: ParkingSlot['status'][] = ['available', 'occupied', 'reserved', 'maintenance'];
+// Manager chỉ set 2 trạng thái — occupied/maintenance do hệ thống tự cập nhật
+const SLOT_STATUSES: ParkingSlot['status'][] = ['available', 'reserved'];
 
 // Interactive 3D Extruded Slot Block Component
 function Slot3DBox({ 
@@ -322,7 +323,7 @@ export function ManagerSlotsPage() {
       render: (row) => {
         const id = typeof row.floor === 'string' ? row.floor : row.floor._id;
         const fl = floorMap.get(id);
-        return fl ? `${fl.code} (${fl.levelNumber})` : '?';
+        return fl ? fl.name || fl.code : '?';
       },
     },
     {
@@ -531,7 +532,7 @@ export function ManagerSlotsPage() {
                           </div>
 
                           <div className="text-[8px] text-slate-600 font-black tracking-widest uppercase font-mono text-right preserve-3d mt-4" style={{ transform: 'translateZ(5px)' }}>
-                            LEVEL {floor.levelNumber} ARCHITECTURE
+                            {floor.name || floor.code}
                           </div>
                         </motion.div>
                       );

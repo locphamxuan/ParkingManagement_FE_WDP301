@@ -40,6 +40,7 @@ export interface Gate {
   direction: 'in' | 'out' | 'both';
   status: 'active' | 'inactive' | 'maintenance';
   allowedVehicleTypes: VehicleType[];
+  floors: { _id: string; code: string; name: string; levelNumber: number }[] | string[];
 }
 
 export interface ParkingSlot {
@@ -56,8 +57,9 @@ export interface ParkingSlot {
 export interface PricePolicy {
   _id: string;
   building: string;
-  vehicleType: VehicleType | string;
+  vehicleType: VehicleType | string | null;
   name: string;
+  type: 'regular' | 'peak' | 'holiday';
   hourlyRate: number;
   dailyCap?: number | null;
   minRate?: number;
@@ -105,11 +107,9 @@ export interface Subscription {
 
 export interface ReservationPolicy {
   _id?: string;
-  reservableRatio: number;
   maxHoldMinutes: number;
+  bookingFee: number;
   refundPercent: number;
-  minAdvanceMinutes: number;
-  maxAdvanceHours: number;
   isActive: boolean;
 }
 
@@ -155,6 +155,44 @@ export interface Feedback {
   response?: string;
   respondedAt?: string | null;
   status: 'open' | 'in_progress' | 'resolved' | 'closed';
+  createdAt: string;
+}
+
+export interface BuildingWallet {
+  _id: string;
+  building: string;
+  balance: number;
+  totalDeposited: number;
+  totalWithdrawn: number;
+  updatedAt: string;
+}
+
+export interface BuildingWalletTransaction {
+  _id: string;
+  building: string;
+  type: 'credit' | 'debit';
+  amount: number;
+  balanceAfter: number;
+  reason: 'parking_fee' | 'reservation_fee' | 'transfer_to_system' | 'refund';
+  note?: string | null;
+  createdAt: string;
+}
+
+export interface DailyRevenueResult {
+  totalRevenue: number;
+  targetTransfer: number;
+  date: string;
+}
+
+export interface DailyRevenueSettlement {
+  _id: string;
+  building: string;
+  date: string;
+  revenue: number;
+  targetAmount: number;
+  transferredAmount: number;
+  systemBalanceAfter: number;
+  note?: string;
   createdAt: string;
 }
 
@@ -298,6 +336,17 @@ export const managerApi = {
       }),
     respond: (b: string, id: string, body: { response?: string; status?: Feedback['status'] }) =>
       api.patch<Wrap<{ item: Feedback }>>(path(b, `/feedbacks/${id}`), body),
+  },
+
+  wallet: {
+    get: (b: string) =>
+      api.get<Wrap<{ wallet: BuildingWallet }>>(path(b, '/wallet')),
+    getDailyRevenue: (b: string) =>
+      api.get<Wrap<DailyRevenueResult>>(path(b, '/wallet/daily-revenue')),
+    listTransactions: (b: string, q?: Record<string, string | undefined>) =>
+      api.get<Wrap<{ items: BuildingWalletTransaction[] }>>(path(b, '/wallet/transactions'), { query: q }),
+    listSettlements: (b: string, q?: Record<string, string | undefined>) =>
+      api.get<Wrap<{ items: DailyRevenueSettlement[] }>>(path(b, '/wallet/settlements'), { query: q }),
   },
 
 };

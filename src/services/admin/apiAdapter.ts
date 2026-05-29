@@ -89,16 +89,16 @@ interface ManagerOverviewData {
 }
 
 const OPERATIONAL_GUARDRAILS = [
-  'Mã thẻ online phải gắn với tài khoản người dùng đã xác thực và biển số liên kết.',
-  'Khách walk-in chỉ được vào qua phiên gửi xe hợp lệ và đóng phí trước khi rời bãi.',
-  'Mọi thay đổi chính sách giá, khóa tài khoản, điều chỉnh phí đều phải có audit log.',
+  'Online passes must be linked to an authenticated user account with a registered plate.',
+  'Walk-in guests may only enter via a valid parking session and must pay before leaving.',
+  'All pricing policy changes, account locks, and fee adjustments must have an audit log.',
 ];
 
 const METHOD_LABELS: Record<string, string> = {
-  wallet: 'Ví ứng dụng',
+  wallet: 'Wallet',
   qr: 'QR',
-  cash: 'Tiền mặt',
-  card: 'Thẻ ngân hàng',
+  cash: 'Cash',
+  card: 'Bank card',
 };
 
 const formatCompactCurrency = (amount: number): string =>
@@ -107,7 +107,7 @@ const formatCompactCurrency = (amount: number): string =>
 const formatChartDate = (dateValue: string): string => {
   const date = new Date(dateValue);
   if (Number.isNaN(date.getTime())) return dateValue;
-  return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+  return date.toLocaleDateString('en-US', { day: '2-digit', month: '2-digit' });
 };
 
 const toBuilding = (
@@ -122,7 +122,7 @@ const toBuilding = (
     id: item.code || item._id,
     backendId: item._id,
     name: item.name,
-    address: item.address?.fullAddress || 'Chưa cập nhật địa chỉ',
+    address: item.address?.fullAddress || 'Address not set',
     floors: item.totalFloors || 0,
     occupancyRate: Number(overview?.slots?.occupancyRate || 0),
     status: item.status || 'inactive',
@@ -185,8 +185,8 @@ const toAudit = (item: ApiAudit): AuditLog => ({
   action: item.action,
   target: item.targetTable,
   severity: item.severity || 'low',
-  timestamp: item.createdAt ? new Date(item.createdAt).toLocaleString('vi-VN') : '-',
-  details: item.description || `${item.action} trên ${item.targetTable}`,
+  timestamp: item.createdAt ? new Date(item.createdAt).toLocaleString('en-GB') : '-',
+  details: item.description || `${item.action} on ${item.targetTable}`,
 });
 
 async function getManagerOverview(token: string, buildingId: string): Promise<ManagerOverviewData | null> {
@@ -281,7 +281,7 @@ export async function getApiAdminDataset(token: string): Promise<AdminDataset> {
     {
       key: 'sessions',
       label: 'Parking sessions active',
-      value: overviewRes.data.counts.activeSessions.toLocaleString('vi-VN'),
+      value: overviewRes.data.counts.activeSessions.toLocaleString('en-US'),
       delta: `${overviewRes.data.counts.staff}  operators on duty`,
     },
     {
@@ -293,7 +293,7 @@ export async function getApiAdminDataset(token: string): Promise<AdminDataset> {
     {
       key: 'users',
       label: 'Total users',
-      value: overviewRes.data.counts.users.toLocaleString('vi-VN'),
+      value: overviewRes.data.counts.users.toLocaleString('en-US'),
       delta: `${overviewRes.data.counts.managers} managers / ${overviewRes.data.counts.staff} staff`,
     },
   ];
@@ -309,14 +309,14 @@ export async function getApiAdminDataset(token: string): Promise<AdminDataset> {
     {
       id: 'active-sessions',
       label: 'Parking sessions active',
-      value: overviewRes.data.counts.activeSessions.toLocaleString('vi-VN'),
+      value: overviewRes.data.counts.activeSessions.toLocaleString('en-US'),
       trend: 'Updated in real-time',
       status: overviewRes.data.counts.activeSessions > 0 ? 'ok' : 'warning',
     },
     {
       id: 'ops-staff',
       label: 'Operating staff',
-      value: overviewRes.data.counts.staff.toLocaleString('vi-VN'),
+      value: overviewRes.data.counts.staff.toLocaleString('en-US'),
       trend: `${overviewRes.data.counts.managers} managers`,
       status: overviewRes.data.counts.staff > 0 ? 'ok' : 'critical',
     },

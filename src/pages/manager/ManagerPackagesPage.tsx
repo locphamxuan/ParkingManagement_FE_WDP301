@@ -132,7 +132,7 @@ export function ManagerPackagesPage() {
     {
       key: 'price',
       title: 'Price',
-      render: (row) => `${row.price.toLocaleString('vi-VN')} đ`,
+      render: (row) => `${row.price.toLocaleString('en-US')} VND`,
     },
     { key: 'reservedSlots', title: 'Dedicated Slot' },
     {

@@ -1,10 +1,10 @@
 import { NavLink } from "react-router-dom";
 import {
   AlertTriangle,
+  CalendarCheck2,
   CalendarClock,
   CarFront,
   ChevronLeft,
-  ClipboardList,
   Gauge,
   LayoutDashboard,
   ScanLine,
@@ -19,11 +19,11 @@ interface StaffSidebarProps {
 
 const modules = [
   { to: "", label: "Overview", icon: LayoutDashboard },
-  { to: "operations", label: "Operations center", icon: Gauge },
-  { to: "my-shifts", label: "My shifts", icon: CalendarClock },
-  { to: "sessions", label: "Parking sessions", icon: CarFront },
+  { to: "operations", label: "Check-in / Check-out", icon: Gauge },
+  { to: "reservations", label: "Advance Reservations", icon: CalendarCheck2 },
+  { to: "sessions", label: "Payment Tracking", icon: CarFront },
+  { to: "my-shifts", label: "My Shifts", icon: CalendarClock },
   { to: "incidents", label: "Incidents", icon: AlertTriangle },
-  { to: "handover", label: "Shift handover", icon: ClipboardList },
 ] as const;
 
 export function StaffSidebar({ collapsed, onToggle }: StaffSidebarProps) {

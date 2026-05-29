@@ -55,7 +55,7 @@ export function ManagerFraudDetectionPage() {
       { key: 'detectedAt', title: 'Detected at' },
       {
         key: 'status',
-        title: 'Trạng thái',
+        title: 'Status',
         render: (row) => <StatusBadge status={row.status} />,
       },
     ],

@@ -1,10 +1,11 @@
 import { Badge } from "@/components/ui/badge";
 
 interface StatusBadgeProps {
-  status: string;
+  status: string | null | undefined;
 }
 
 export function StatusBadge({ status }: StatusBadgeProps) {
+  if (!status) return null;
   const normalized = status.toLowerCase();
 
   const labelMap: Record<string, string> = {
@@ -38,6 +39,8 @@ export function StatusBadge({ status }: StatusBadgeProps) {
     available: "Available",
     occupied: "Occupied",
     reserved: "Reserved",
+    cancelled: "Cancelled",
+    expired: "Expired",
   };
 
   const display = labelMap[normalized] ?? status;
@@ -118,6 +121,8 @@ export function StatusBadge({ status }: StatusBadgeProps) {
       "high",
       "inactive",
       "rejected",
+      "cancelled",
+      "expired",
     ].includes(normalized)
   ) {
     return (

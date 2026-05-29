@@ -6,15 +6,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { ADMIN_EMAIL_FALLBACK } from "@/utils/constants";
 
 const titles: Record<string, string> = {
-  "/admin/dashboard": "Executive dashboard",
-  "/admin/dashboard/buildings": "Building management",
-  "/admin/dashboard/users": "User management",
-  "/admin/dashboard/revenue-analytics": "Revenue analytics",
-  "/admin/dashboard/wallet-governance": "Wallet governance",
-  "/admin/dashboard/pricing-policies": "Pricing policies",
-  "/admin/dashboard/policy-push-logs": "Policy push history",
-  "/admin/dashboard/audit-logs": "Audit logs",
-  "/admin/dashboard/fraud-detection": "Fraud detection",
+  "/admin/dashboard": "Executive Dashboard",
+  "/admin/dashboard/buildings": "Building Management",
+  "/admin/dashboard/users": "User Management",
+  "/admin/dashboard/revenue-analytics": "Revenue Analytics",
+  "/admin/dashboard/system-wallet": "System Wallet",
+  "/admin/dashboard/pricing-policies": "Pricing Policies",
+  "/admin/dashboard/audit-logs": "Audit Logs",
   "/admin/dashboard/notifications": "Notifications",
   "/admin/dashboard/profile": "Profile",
   "/admin/dashboard/settings": "Settings",

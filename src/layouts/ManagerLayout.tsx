@@ -18,6 +18,7 @@ const titles: Record<string, string> = {
   '/manager/reservation-policy': 'Reservation Policy',
   '/manager/packages': 'Packages',
   '/manager/shifts': 'Shifts',
+  '/manager/staff': 'Staff',
   '/manager/feedbacks': 'Feedback',
   '/manager/profile': 'Profile',
   '/manager/settings': 'Settings',
@@ -53,10 +54,10 @@ export function ManagerLayout() {
           />
           <main className="flex-1 p-4 md:p-6">
             {isLoading ? (
-              <div className="text-sm text-muted-foreground">Đang tải...</div>
+              <div className="text-sm text-muted-foreground">Loading...</div>
             ) : !selectedBuildingId ? (
               <div className="rounded-md border border-border bg-card p-6 text-sm text-muted-foreground">
-                Tài khoản này chưa được gán tòa nhà nào. Vui lòng liên hệ quản lý.
+                This account has not been assigned to any building. Please contact an admin.
               </div>
             ) : (
               <Outlet context={{ buildingId: selectedBuildingId }} />

@@ -10,12 +10,12 @@ import {
 } from "@/services/staff/staffApi";
 
 const pageTitle: Record<string, string> = {
-  "": "Overview",
-  operations: "Operations center",
-  "my-shifts": "My shifts",
-  sessions: "Parking sessions",
-  incidents: "Incident management",
-  handover: "Shift handover",
+  "": "Tổng quan",
+  operations: "Check-in / Check-out",
+  reservations: "Đặt chỗ trước",
+  "my-shifts": "Ca làm của tôi",
+  sessions: "Phiên gửi xe",
+  incidents: "Sự cố",
 };
 
 export function StaffLayout() {

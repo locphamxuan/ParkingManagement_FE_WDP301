@@ -10,8 +10,8 @@ import { managerApi, type Floor, type VehicleType } from '@/services/manager/man
 
 interface FormState {
   code: string;
-  name: string;
-  levelNumber: string;
+  name: string;        // "Vị trí" do manager tự gõ, VD: "Basement", "Ground", "Tầng 1"
+  levelNumber: string; // số thứ tự để BE sort, giữ dạng string trong form rồi convert khi submit
   capacity: string;
   status: Floor['status'];
   allowedVehicleTypes: string[];
@@ -53,9 +53,7 @@ export function ManagerFloorsPage() {
     }
   }, [buildingId]);
 
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
+  useEffect(() => { refresh(); }, [refresh]);
 
   const openCreate = () => {
     setEditing(null);
@@ -79,8 +77,8 @@ export function ManagerFloorsPage() {
   const onSubmit = async () => {
     const payload = {
       code: form.code.trim().toUpperCase(),
-      name: form.name.trim(),
-      levelNumber: Number(form.levelNumber),
+      name: form.name.trim(),          // string do manager tự gõ
+      levelNumber: Number(form.levelNumber), // vẫn gửi số lên BE
       capacity: Number(form.capacity),
       status: form.status,
       allowedVehicleTypes: form.allowedVehicleTypes,
@@ -99,7 +97,7 @@ export function ManagerFloorsPage() {
   };
 
   const onDelete = async (row: Floor) => {
-    if (!window.confirm(`Delete floor ${row.code}? The floor must not have any slots.`)) return;
+    if (!window.confirm(`Delete floor ${row.code}?`)) return;
     try {
       await managerApi.floors.remove(buildingId, row._id);
       refresh();
@@ -120,15 +118,14 @@ export function ManagerFloorsPage() {
   const columns: DataColumn<Floor>[] = useMemo(
     () => [
       { key: 'code', title: 'Code' },
-      { key: 'name', title: 'Name' },
-      { key: 'levelNumber', title: 'Order' },
+      { key: 'name', title: 'Location' },
       { key: 'capacity', title: 'Capacity' },
       {
         key: 'allowedVehicleTypes',
-        title: 'Allowed vehicle types',
+        title: 'Vehicle Types',
         render: (row) =>
           row.allowedVehicleTypes
-            .map((v) => (typeof v === 'string' ? v : `${v.code}`))
+            .map((v) => (typeof v === 'string' ? v : v.code))
             .join(', ') || '—',
       },
       {
@@ -151,63 +148,72 @@ export function ManagerFloorsPage() {
         ),
       },
     ],
-    [vehicleTypes]
+    [vehicleTypes],
   );
 
   return (
     <div className="grid gap-4">
       <div className="flex justify-end">
         <Button onClick={openCreate} className="gap-2">
-          <Plus size={14} /> Add floor
+          <Plus size={14} /> Add Floor
         </Button>
       </div>
+
       {loading ? (
         <div className="text-sm text-muted-foreground">Loading...</div>
       ) : error ? (
         <div className="text-sm text-red-600">{error}</div>
       ) : (
-        <DataTable title="Floors" rows={items} columns={columns} />
+        <DataTable title="Floor List" rows={items} columns={columns} />
       )}
+
       <ModalForm
         open={modalOpen}
         onOpenChange={setModalOpen}
-        title={editing ? 'Edit floor' : 'Add floor'}
+        title={editing ? 'Edit Floor' : 'Add Floor'}
         onSubmit={onSubmit}
       >
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
+          {/* Mã tầng */}
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Floor code</label>
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Floor Code
+            </label>
             <Input
               value={form.code}
               onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
+              placeholder="E.g. F1, B1, GF"
             />
           </div>
+
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Floor name</label>
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Location
+            </label>
             <Input
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              placeholder="E.g. Basement, Ground, Floor 1..."
             />
           </div>
+
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Order (-1=basement, 1=ground...)</label>
-            <Input
-              type="number"
-              value={form.levelNumber}
-              onChange={(e) => setForm((f) => ({ ...f, levelNumber: e.target.value }))}
-            />
-          </div>
-          <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Capacity</label>
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Capacity
+            </label>
             <Input
               type="number"
               min={0}
               value={form.capacity}
               onChange={(e) => setForm((f) => ({ ...f, capacity: e.target.value }))}
+              className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
           </div>
-          <div className="grid gap-1.5 md:col-span-2">
-            <label className="text-xs uppercase text-muted-foreground">Status</label>
+
+          <div className="grid gap-1.5">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Status
+            </label>
             <select
               className="h-10 rounded-md border border-border bg-card px-3 text-sm"
               value={form.status}
@@ -218,11 +224,14 @@ export function ManagerFloorsPage() {
               <option value="maintenance">Maintenance</option>
             </select>
           </div>
+
           <div className="grid gap-1.5 md:col-span-2">
-            <label className="text-xs uppercase text-muted-foreground">Allowed vehicle types</label>
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Allowed Vehicle Types
+            </label>
             <div className="flex flex-wrap gap-2">
               {vehicleTypes.length === 0 ? (
-                <p className="text-xs text-muted-foreground">No vehicle types. Create some first.</p>
+                <p className="text-xs text-muted-foreground">No vehicle types yet. Create vehicle types first.</p>
               ) : (
                 vehicleTypes.map((vt) => {
                   const active = form.allowedVehicleTypes.includes(vt._id);
@@ -231,7 +240,7 @@ export function ManagerFloorsPage() {
                       type="button"
                       key={vt._id}
                       onClick={() => toggleType(vt._id)}
-                      className={`rounded-full border px-3 py-1 text-xs ${
+                      className={`rounded-full border px-3 py-1 text-xs transition ${
                         active
                           ? 'border-primary bg-primary/15 text-primary'
                           : 'border-border bg-muted/40 text-muted-foreground'

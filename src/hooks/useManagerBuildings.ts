@@ -14,7 +14,7 @@ export function useManagerBuildings() {
   const refreshBuildings = useCallback(async () => {
     if (!token) {
       setBuildings([]);
-      setError('Không tìm thấy phiên đăng nhập.');
+      setError('No active session found.');
       return;
     }
 
@@ -28,7 +28,7 @@ export function useManagerBuildings() {
         setSelectedBuildingId((current) => current || response[0]._id);
       }
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Không thể tải danh sách tòa nhà.');
+      setError(error instanceof Error ? error.message : 'Failed to load buildings.');
     } finally {
       setIsLoading(false);
     }

@@ -327,7 +327,7 @@ export function AdminProfilePage() {
                     <p>{session.email}</p>
                   </div>
                   <div className="rounded-2xl bg-slate-50 p-4">
-                    <p className="font-medium text-slate-800">Vai trò</p>
+                    <p className="font-medium text-slate-800">Role</p>
                     <p className="uppercase font-mono">{session.role}</p>
                   </div>
                 </div>

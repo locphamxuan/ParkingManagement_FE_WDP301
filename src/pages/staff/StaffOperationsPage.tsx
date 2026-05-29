@@ -1,5 +1,5 @@
-﻿import { useCallback, useEffect, useMemo, useState } from 'react';
-import { BellRing, CheckCircle2, RefreshCcw, ScanLine, Wallet } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { CheckCircle2, RefreshCcw, ScanLine } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,45 +9,43 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { staffApi, type ParkingSession } from '@/services/staff/staffApi';
 
-type OperationsMode = 'full' | 'handover';
-
-interface StaffOperationsPageProps {
-  mode?: OperationsMode;
-}
-
 type VehicleKind = 'car' | 'motorcycle';
-type PaymentKind = 'cash' | 'wallet' | 'qr';
+type PaymentKind = 'cash' | 'bank_transfer';
 type OperationMode = 'check-in' | 'check-out';
 
-const statusTone: Record<ParkingSession['status'], 'ok' | 'warning' | 'review'> = {
-  active: 'ok',
-  completed: 'review',
-  cancelled: 'warning',
-};
+interface BankTransferState {
+  orderCode: number;
+  checkoutUrl: string;
+  amount: number;
+  plate: string;
+}
 
-const fmtTime = (value: string | null | undefined) => (value ? new Date(value).toLocaleString('vi-VN') : '—');
+const fmtTime = (value: string | null | undefined) =>
+  value ? new Date(value).toLocaleString('en-US') : '—';
 
-export function StaffOperationsPage({ mode = 'full' }: StaffOperationsPageProps) {
+export function StaffOperationsPage() {
   const { buildingId, building } = useBuildingContext();
-  const isHandoverMode = mode === 'handover';
 
   const [sessions, setSessions] = useState<ParkingSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadTick, setReloadTick] = useState(0);
+
+  // Form state
   const [selectedSessionId, setSelectedSessionId] = useState('');
   const [plateNumber, setPlateNumber] = useState('');
   const [vehicleType, setVehicleType] = useState<VehicleKind>('car');
   const [gate, setGate] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentKind>('cash');
-  const [opMessage, setOpMessage] = useState<string | null>(null);
+  const [opMessage, setOpMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
   const [activeForm, setActiveForm] = useState<OperationMode>('check-in');
-  const [showMoreActions, setShowMoreActions] = useState(false);
-  const [reservationCode, setReservationCode] = useState('');
-  const [walletPlate, setWalletPlate] = useState('');
-  const [walletAmount, setWalletAmount] = useState('');
 
-  const title = isHandoverMode ? 'Bàn giao ca & điều phối cuối ca' : 'Trung tâm vận hành Staff';
+  // Bank-transfer (VietQR via PayOS) modal
+  const [bankTransfer, setBankTransfer] = useState<BankTransferState | null>(null);
+  const [verifying, setVerifying] = useState(false);
+
+  // Reservation check-in
+  const [reservationCode, setReservationCode] = useState('');
 
   const refreshSessions = useCallback(() => {
     setLoading(true);
@@ -60,7 +58,7 @@ export function StaffOperationsPage({ mode = 'full' }: StaffOperationsPageProps)
         setError(null);
         setSelectedSessionId((current) => current || list[0]?._id || '');
       })
-      .catch((err) => setError(err instanceof Error ? err.message : 'Tải thất bại'))
+      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -76,41 +74,42 @@ export function StaffOperationsPage({ mode = 'full' }: StaffOperationsPageProps)
 
   const metrics = useMemo(
     () => [
-      { label: 'Phiên đang mở', value: sessions.filter((session) => session.status === 'active').length, delta: 'Cập nhật từ API staff' },
-      { label: 'Đã thanh toán', value: sessions.filter((session) => session.paymentStatus === 'paid').length, delta: 'Hóa đơn đã khớp' },
-      { label: 'Chờ thanh toán', value: sessions.filter((session) => session.paymentStatus === 'pending').length, delta: 'Cần xử lý checkout' },
-      { label: 'Tổng phiên', value: sessions.length, delta: 'Theo tòa nhà hiện chọn' },
+      { label: 'Active', value: sessions.filter((s) => s.status === 'active').length },
+      { label: 'Awaiting Payment', value: sessions.filter((s) => s.paymentStatus === 'pending').length },
+      { label: 'Paid', value: sessions.filter((s) => s.paymentStatus === 'paid').length },
+      { label: 'Total Sessions', value: sessions.length },
     ],
-    [sessions]
+    [sessions],
   );
 
-  const selectedSession = sessions.find((session) => session._id === selectedSessionId) ?? null;
-  const activeCheckoutSession =
-    selectedSession && selectedSession.status === 'active' ? selectedSession : sessions.find((session) => session.status === 'active') ?? selectedSession;
-  const selectedSessionHint = activeCheckoutSession
-    ? `${activeCheckoutSession.plateNumber} · ${activeCheckoutSession.gate?.name ?? 'chưa rõ cổng'} · ${activeCheckoutSession.paymentStatus}`
-    : 'Chưa có session đang mở để checkout';
+  const selectedSession = sessions.find((s) => s._id === selectedSessionId) ?? null;
+  const activeSessions = sessions.filter((s) => s.status === 'active');
 
   const columns: DataColumn<ParkingSession>[] = [
-    { key: 'plateNumber', title: 'Biển số' },
-    { key: 'vehicleType', title: 'Loại xe', render: (row) => (row.vehicleType ? `${row.vehicleType.name} (${row.vehicleType.code})` : '—') },
-    { key: 'gate', title: 'Cổng', render: (row) => row.gate?.name ?? '—' },
-    { key: 'checkIn', title: 'Vào', render: (row) => fmtTime(row.checkIn) },
-    { key: 'checkOut', title: 'Ra', render: (row) => fmtTime(row.checkOut) },
-    { key: 'paymentStatus', title: 'Thanh toán', render: (row) => <StatusBadge status={row.paymentStatus} /> },
-    { key: 'status', title: 'Trạng thái', render: (row) => <StatusBadge status={row.status} /> },
+    { key: 'plateNumber', title: 'Plate' },
+    {
+      key: 'vehicleType',
+      title: 'Vehicle Type',
+      render: (row) => (row.vehicleType ? `${row.vehicleType.name} (${row.vehicleType.code})` : '—'),
+    },
+    { key: 'entryGate', title: 'Gate', render: (row) => row.entryGate?.code ?? '—' },
+    { key: 'checkIn', title: 'Entry', render: (row) => fmtTime(row.checkIn) },
+    { key: 'checkOut', title: 'Exit', render: (row) => fmtTime(row.checkOut) },
+    {
+      key: 'paymentStatus',
+      title: 'Payment',
+      render: (row) => <StatusBadge status={row.paymentStatus} />,
+    },
+    {
+      key: 'status',
+      title: 'Status',
+      render: (row) => <StatusBadge status={row.status} />,
+    },
   ];
 
   const selectOperation = (nextMode: OperationMode) => {
     setActiveForm(nextMode);
     setOpMessage(null);
-  };
-
-  const focusCheckout = (sessionId?: string) => {
-    if (sessionId) {
-      setSelectedSessionId(sessionId);
-    }
-    selectOperation('check-out');
   };
 
   const onCheckIn = async () => {
@@ -122,13 +121,13 @@ export function StaffOperationsPage({ mode = 'full' }: StaffOperationsPageProps)
         gate: gate.trim() || undefined,
         buildingId: buildingId || undefined,
       });
-      setOpMessage('Đã tạo check-in thành công.');
+      setOpMessage({ type: 'ok', text: 'Check-in created successfully.' });
       setPlateNumber('');
       setGate('');
       setActiveForm('check-out');
       setReloadTick((n) => n + 1);
     } catch (err) {
-      setOpMessage(err instanceof Error ? err.message : 'Không thể check-in');
+      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Check-in failed' });
     }
   };
 
@@ -136,12 +135,51 @@ export function StaffOperationsPage({ mode = 'full' }: StaffOperationsPageProps)
     if (!selectedSession) return;
     setOpMessage(null);
     try {
-      await staffApi.checkOut(selectedSession._id);
-      setOpMessage('Đã checkout thành công.');
+      if (paymentMethod === 'bank_transfer') {
+        // Create a VietQR (PayOS) link; session completes after the customer pays.
+        const res = await staffApi.initiateSessionPayment(selectedSession._id);
+        const d = (res as any)?.data;
+        setBankTransfer({
+          orderCode: d.orderCode,
+          checkoutUrl: d.checkoutUrl,
+          amount: d.amount,
+          plate: d.plateNumber || selectedSession.plateNumber,
+        });
+        return;
+      }
+      await staffApi.checkOut(selectedSession._id, { paymentMethod: 'cash' });
+      setOpMessage({ type: 'ok', text: 'Check-out completed successfully.' });
       setPaymentMethod('cash');
       setReloadTick((n) => n + 1);
     } catch (err) {
-      setOpMessage(err instanceof Error ? err.message : 'Không thể checkout');
+      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Check-out failed' });
+    }
+  };
+
+  const onVerifyBankTransfer = async () => {
+    if (!bankTransfer) return;
+    setVerifying(true);
+    try {
+      const res = await staffApi.verifySessionPayment(bankTransfer.orderCode);
+      const status = (res as any)?.data?.status;
+      if (status === 'success') {
+        setBankTransfer(null);
+        setPaymentMethod('cash');
+        setOpMessage({ type: 'ok', text: 'Bank transfer received — session checked out.' });
+        setReloadTick((n) => n + 1);
+      } else if (status === 'cancelled' || status === 'expired') {
+        setBankTransfer(null);
+        setOpMessage({ type: 'err', text: `Payment ${status}. Please start checkout again.` });
+      } else {
+        setOpMessage({
+          type: 'err',
+          text: 'Payment not received yet. Ask the customer to finish the transfer, then verify again.',
+        });
+      }
+    } catch (err) {
+      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Verification failed' });
+    } finally {
+      setVerifying(false);
     }
   };
 
@@ -150,315 +188,278 @@ export function StaffOperationsPage({ mode = 'full' }: StaffOperationsPageProps)
     setOpMessage(null);
     try {
       await staffApi.checkInReservation(reservationCode.trim());
-      setOpMessage('Đã check-in reservation thành công.');
+      setOpMessage({ type: 'ok', text: 'Reservation check-in completed successfully.' });
       setReservationCode('');
       setReloadTick((n) => n + 1);
     } catch (err) {
-      setOpMessage(err instanceof Error ? err.message : 'Không thể check-in reservation');
-    }
-  };
-
-  const onProcessWallet = async () => {
-    if (!walletPlate.trim() || !walletAmount.trim()) return;
-    setOpMessage(null);
-    try {
-      await staffApi.processWallet({
-        plateNumber: walletPlate.trim().toUpperCase(),
-        amount: Number(walletAmount),
-      });
-      setOpMessage('Đã xử lý giao dịch ví thành công.');
-      setWalletPlate('');
-      setWalletAmount('');
-    } catch (err) {
-      setOpMessage(err instanceof Error ? err.message : 'Không thể xử lý ví');
+      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Reservation check-in failed' });
     }
   };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="grid gap-6">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35 }}
+      className="grid gap-6"
+    >
+      {/* Header */}
       <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-6 shadow-sm">
         <div className="relative z-10 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-orange-300">Vận hành ca trực</p>
-            <h2 className="mt-1 text-2xl font-semibold text-white">{title}</h2>
-            <p className="mt-1 text-sm text-slate-300">{building ? `${building.code} · ${building.name}` : 'Chưa chọn tòa nhà'}</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-orange-300">Shift Operations</p>
+            <h2 className="mt-1 text-2xl font-semibold text-white">Check-in / Check-out</h2>
+            <p className="mt-1 text-sm text-slate-300">
+              {building ? `${building.code} · ${building.name}` : 'No building selected'}
+            </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <StatusBadge status="active" />
-            <StatusBadge status="warning" />
-            <StatusBadge status="review" />
-          </div>
+          <Button
+            variant="secondary"
+            onClick={refreshSessions}
+            className="gap-2 self-start rounded-xl border border-white/10 bg-white/5 text-white hover:bg-white/10 lg:self-auto"
+          >
+            <RefreshCcw size={14} /> Refresh
+          </Button>
         </div>
       </section>
 
+      {/* Metrics */}
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {metrics.map((metric) => (
-          <Card key={metric.label} className="border-white/10 bg-white/5">
+        {metrics.map((m) => (
+          <Card key={m.label} className="border-white/10 bg-white/5">
             <CardContent className="p-5">
-              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-400">{metric.label}</p>
-              <p className="mt-3 text-3xl font-semibold text-white">{loading ? '–' : String(metric.value)}</p>
-              <p className="mt-1 text-xs text-slate-400">{metric.delta}</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-400">{m.label}</p>
+              <p className="mt-3 text-3xl font-semibold text-white">{loading ? '–' : String(m.value)}</p>
             </CardContent>
           </Card>
         ))}
       </section>
 
+      {/* Main panel */}
       <section className="grid gap-6 xl:grid-cols-[1.05fr,0.95fr]">
+        {/* Operation form */}
         <Card className="border-white/10 bg-white/5">
           <CardHeader>
-            <CardTitle className="text-white">{isHandoverMode ? 'Tóm tắt bàn giao' : 'Thao tác chính'}</CardTitle>
+            <CardTitle className="text-white">Operations</CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
-            {isHandoverMode ? (
-              <>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-4">
-                    <p className="text-[10px] font-black uppercase tracking-[0.24em] text-orange-300">Cần bàn giao</p>
-                    <p className="mt-2 text-3xl font-semibold text-white">{sessions.filter((session) => session.status === 'active').length}</p>
-                    <p className="mt-1 text-sm text-slate-400">Phiên đang mở cần người ca sau tiếp nhận.</p>
+            {/* Mode toggle */}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => selectOperation('check-in')}
+                className={`rounded-2xl border p-4 text-left transition ${
+                  activeForm === 'check-in'
+                    ? 'border-orange-400/30 bg-orange-500/10'
+                    : 'border-white/10 bg-slate-950/50 hover:border-orange-400/25 hover:bg-slate-900/80'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.24em] text-orange-300">Check-in</p>
+                    <p className="mt-1 text-sm font-semibold text-white">Vehicle Entry</p>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-4">
-                    <p className="text-[10px] font-black uppercase tracking-[0.24em] text-orange-300">Lưu ý cuối ca</p>
-                    <ul className="mt-2 space-y-2 text-sm text-slate-300">
-                      <li>• Đối soát các phiên đang mở</li>
-                      <li>• Chốt các xe chờ checkout</li>
-                      <li>• Báo manager nếu có bất thường</li>
-                    </ul>
-                  </div>
+                  <ScanLine size={18} className="text-orange-300" />
                 </div>
+              </button>
 
-                <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-400">Phiên cần xử lý</p>
-                      <p className="mt-1 text-sm font-semibold text-white">{activeCheckoutSession ? selectedSessionHint : 'Chưa có phiên mở'}</p>
-                    </div>
-                    <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-slate-300">
-                      {building ? building.code : 'No building selected'}
-                    </div>
+              <button
+                type="button"
+                onClick={() => selectOperation('check-out')}
+                className={`rounded-2xl border p-4 text-left transition ${
+                  activeForm === 'check-out'
+                    ? 'border-orange-400/30 bg-orange-500/10'
+                    : 'border-white/10 bg-slate-950/50 hover:border-orange-400/25 hover:bg-slate-900/80'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.24em] text-orange-300">Check-out</p>
+                    <p className="mt-1 text-sm font-semibold text-white">Vehicle Exit</p>
                   </div>
-
-                  <div className="mt-4 grid gap-1.5">
-                    <label className="text-xs uppercase tracking-[0.18em] text-slate-400">Session đang mở</label>
-                    <select value={selectedSessionId} onChange={(e) => setSelectedSessionId(e.target.value)} className="h-11 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white outline-none">
-                      <option value="">Chọn session để bàn giao</option>
-                      {sessions.filter((session) => session.status === 'active').map((session) => (
-                        <option key={session._id} value={session._id}>
-                          {session.plateNumber} · {session.gate?.name ?? 'Cổng chưa rõ'}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <Button onClick={onCheckOut} disabled={!selectedSession || loading} className="gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60">
-                      <CheckCircle2 size={14} /> Chốt phiên đang chọn
-                    </Button>
-                    <Button variant="ghost" className="gap-2 rounded-xl text-slate-300 hover:bg-white/6 hover:text-white">
-                      <BellRing size={14} /> Báo manager
-                    </Button>
-                    <Button variant="secondary" onClick={refreshSessions} className="gap-2 rounded-xl border border-white/10 bg-white/5 text-white hover:bg-white/10">
-                      <RefreshCcw size={14} /> Làm mới dữ liệu
-                    </Button>
-                  </div>
-
-                  {opMessage ? <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-200">{opMessage}</div> : null}
+                  <CheckCircle2 size={18} className="text-orange-300" />
                 </div>
-              </>
-            ) : (
-              <>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <button
-                    type="button"
-                    onClick={() => selectOperation('check-in')}
-                    className={`rounded-2xl border p-4 text-left transition ${
-                      activeForm === 'check-in'
-                        ? 'border-orange-400/30 bg-orange-500/10'
-                        : 'border-white/10 bg-slate-950/50 hover:border-orange-400/25 hover:bg-slate-900/80'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.24em] text-orange-300">Check-in</p>
-                        <p className="mt-1 text-sm font-semibold text-white">Nhận xe vào bãi</p>
+              </button>
+            </div>
+
+            {/* Form fields */}
+            <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-4">
+              <div className="mt-1 grid gap-4 md:grid-cols-2">
+                {activeForm === 'check-in' ? (
+                  <>
+                    <div className="grid gap-1.5 md:col-span-2">
+                      <label className="text-xs uppercase tracking-[0.18em] text-slate-400">License Plate</label>
+                      <Input
+                        value={plateNumber}
+                        onChange={(e) => setPlateNumber(e.target.value)}
+                        placeholder="59X1-123.45"
+                        className="border-white/10 bg-white/5 text-white placeholder:text-slate-500"
+                        onKeyDown={(e) => e.key === 'Enter' && onCheckIn()}
+                      />
+                    </div>
+                    <div className="grid gap-1.5">
+                      <label className="text-xs uppercase tracking-[0.18em] text-slate-400">Vehicle Type</label>
+                      <select
+                        value={vehicleType}
+                        onChange={(e) => setVehicleType(e.target.value as VehicleKind)}
+                        className="h-11 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white outline-none"
+                      >
+                        <option value="car">Car</option>
+                        <option value="motorcycle">Motorcycle</option>
+                      </select>
+                    </div>
+                    <div className="grid gap-1.5">
+                      <label className="text-xs uppercase tracking-[0.18em] text-slate-400">Entry Gate</label>
+                      <Input
+                        value={gate}
+                        onChange={(e) => setGate(e.target.value)}
+                        placeholder="Gate A"
+                        className="border-white/10 bg-white/5 text-white placeholder:text-slate-500"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="grid gap-1.5 md:col-span-2">
+                      <label className="text-xs uppercase tracking-[0.18em] text-slate-400">Active Session</label>
+                      <select
+                        value={selectedSessionId}
+                        onChange={(e) => setSelectedSessionId(e.target.value)}
+                        className="h-11 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white outline-none"
+                      >
+                        <option value="">Select session to check out</option>
+                        {activeSessions.map((s) => (
+                          <option key={s._id} value={s._id}>
+                            {s.plateNumber} · {s.entryGate?.code ?? '—'}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="grid gap-1.5 md:col-span-2">
+                      <label className="text-xs uppercase tracking-[0.18em] text-slate-400">Payment Method</label>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {(
+                          [
+                            { value: 'cash', label: 'Cash' },
+                            { value: 'bank_transfer', label: 'Bank Transfer' },
+                          ] as const
+                        ).map((method) => (
+                          <button
+                            key={method.value}
+                            type="button"
+                            onClick={() => setPaymentMethod(method.value)}
+                            className={`rounded-xl border px-4 py-3 text-left text-sm font-medium transition ${
+                              paymentMethod === method.value
+                                ? 'border-orange-400/30 bg-orange-500/10 text-white'
+                                : 'border-white/10 bg-white/5 text-slate-300 hover:border-orange-400/20 hover:bg-white/8'
+                            }`}
+                          >
+                            {method.label}
+                          </button>
+                        ))}
                       </div>
-                      <ScanLine size={18} className="text-orange-300" />
                     </div>
-                  </button>
+                  </>
+                )}
+              </div>
+            </div>
 
-                  <button
-                    type="button"
-                    onClick={() => selectOperation('check-out')}
-                    className={`rounded-2xl border p-4 text-left transition ${
-                      activeForm === 'check-out'
-                        ? 'border-orange-400/30 bg-orange-500/10'
-                        : 'border-white/10 bg-slate-950/50 hover:border-orange-400/25 hover:bg-slate-900/80'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.24em] text-orange-300">Check-out</p>
-                        <p className="mt-1 text-sm font-semibold text-white">Xử lý xe ra bãi</p>
-                      </div>
-                      <CheckCircle2 size={18} className="text-orange-300" />
-                    </div>
-                  </button>
-                </div>
+            {/* Action button */}
+            <div className="flex flex-wrap gap-2">
+              {activeForm === 'check-out' ? (
+                <Button
+                  onClick={onCheckOut}
+                  disabled={!selectedSession || loading}
+                  className="gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <CheckCircle2 size={14} /> {paymentMethod === 'bank_transfer' ? 'Generate QR' : 'Checkout'}
+                </Button>
+              ) : (
+                <Button
+                  onClick={onCheckIn}
+                  disabled={!plateNumber.trim() || loading}
+                  className="gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <ScanLine size={14} /> Check-in
+                </Button>
+              )}
+            </div>
 
-                <div className="flex items-center gap-3">
-                  <button type="button" onClick={() => setShowMoreActions((current) => !current)} className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-200 hover:bg-white/8">
-                    {showMoreActions ? 'Ẩn thao tác thêm' : 'Thêm thao tác'}
-                  </button>
-                  <Button variant="secondary" onClick={refreshSessions} className="gap-2 rounded-xl border border-white/10 bg-white/5 text-white hover:bg-white/10">
-                    <RefreshCcw size={14} /> Làm mới dữ liệu
-                  </Button>
-                </div>
+            {/* Reservation check-in section */}
+            <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-4">
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-orange-300">Advance Reservation Check-in</p>
+              <div className="mt-3 flex gap-2">
+                <Input
+                  value={reservationCode}
+                  onChange={(e) => setReservationCode(e.target.value)}
+                  placeholder="Reservation code / ID"
+                  className="border-white/10 bg-white/5 text-white placeholder:text-slate-500"
+                  onKeyDown={(e) => e.key === 'Enter' && onCheckInReservation()}
+                />
+                <Button
+                  type="button"
+                  onClick={onCheckInReservation}
+                  disabled={!reservationCode.trim()}
+                  className="shrink-0 rounded-xl bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60"
+                >
+                  Check-in
+                </Button>
+              </div>
+            </div>
 
-                {showMoreActions ? (
-                  <div className="grid gap-3 lg:grid-cols-2">
-                    <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-4">
-                      <p className="text-[10px] font-black uppercase tracking-[0.24em] text-orange-300">Reservation</p>
-                      <div className="mt-3 flex gap-2">
-                        <Input value={reservationCode} onChange={(e) => setReservationCode(e.target.value)} placeholder="Mã reservation" className="border-white/10 bg-white/5 text-white placeholder:text-slate-500" />
-                        <Button type="button" onClick={onCheckInReservation} className="rounded-xl bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110">
-                          Check-in
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-4">
-                      <p className="text-[10px] font-black uppercase tracking-[0.24em] text-orange-300">Wallet</p>
-                      <div className="mt-3 grid gap-2 sm:grid-cols-[1fr,0.7fr]">
-                        <Input value={walletPlate} onChange={(e) => setWalletPlate(e.target.value)} placeholder="Biển số" className="border-white/10 bg-white/5 text-white placeholder:text-slate-500" />
-                        <Input value={walletAmount} onChange={(e) => setWalletAmount(e.target.value)} placeholder="Số tiền" inputMode="numeric" className="border-white/10 bg-white/5 text-white placeholder:text-slate-500" />
-                      </div>
-                      <Button type="button" onClick={onProcessWallet} className="mt-3 rounded-xl bg-emerald-500 text-white hover:brightness-110">
-                        <Wallet size={14} className="mr-2" /> Process wallet
-                      </Button>
-                    </div>
-                  </div>
-                ) : null}
-
-                <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-400">Ngữ cảnh thao tác</p>
-                      <p className="mt-1 text-sm font-semibold text-white">{activeForm === 'check-in' ? 'Đang nhập xe vào bãi' : 'Đang chọn session để checkout'}</p>
-                    </div>
-                    <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-slate-300">
-                      {building ? building.code : 'No building selected'}
-                    </div>
-                  </div>
-
-                  <div className="mt-4 grid gap-4 md:grid-cols-2">
-                    {activeForm === 'check-in' ? (
-                      <>
-                        <div className="grid gap-1.5 md:col-span-2">
-                          <label className="text-xs uppercase tracking-[0.18em] text-slate-400">Biển số</label>
-                          <Input value={plateNumber} onChange={(e) => setPlateNumber(e.target.value)} placeholder="59X1-123.45" className="border-white/10 bg-white/5 text-white placeholder:text-slate-500" />
-                        </div>
-                        <div className="grid gap-1.5">
-                          <label className="text-xs uppercase tracking-[0.18em] text-slate-400">Loại xe</label>
-                          <select value={vehicleType} onChange={(e) => setVehicleType(e.target.value as VehicleKind)} className="h-11 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white outline-none">
-                            <option value="car">Ô tô</option>
-                            <option value="motorcycle">Xe máy</option>
-                          </select>
-                        </div>
-                        <div className="grid gap-1.5">
-                          <label className="text-xs uppercase tracking-[0.18em] text-slate-400">Cổng vào</label>
-                          <Input value={gate} onChange={(e) => setGate(e.target.value)} placeholder="Cổng A" className="border-white/10 bg-white/5 text-white placeholder:text-slate-500" />
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="grid gap-1.5 md:col-span-2">
-                          <label className="text-xs uppercase tracking-[0.18em] text-slate-400">Session đang mở</label>
-                          <select value={selectedSessionId} onChange={(e) => setSelectedSessionId(e.target.value)} className="h-11 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white outline-none">
-                            <option value="">Chọn session để checkout</option>
-                            {sessions.filter((session) => session.status === 'active').map((session) => (
-                              <option key={session._id} value={session._id}>
-                                {session.plateNumber} · {session.gate?.name ?? 'Cổng chưa rõ'}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div className="grid gap-1.5 md:col-span-2">
-                          <label className="text-xs uppercase tracking-[0.18em] text-slate-400">Thông tin session</label>
-                          <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">{selectedSessionHint}</div>
-                        </div>
-                        <div className="grid gap-1.5 md:col-span-2">
-                          <label className="text-xs uppercase tracking-[0.18em] text-slate-400">Phương thức thanh toán</label>
-                          <div className="grid gap-2 sm:grid-cols-3">
-                            {[
-                              { value: 'cash', label: 'Tiền mặt' },
-                              { value: 'wallet', label: 'Ví điện tử' },
-                              { value: 'qr', label: 'QR' },
-                            ].map((method) => (
-                              <button
-                                key={method.value}
-                                type="button"
-                                onClick={() => setPaymentMethod(method.value as PaymentKind)}
-                                className={`rounded-xl border px-4 py-3 text-left text-sm font-medium transition ${paymentMethod === method.value ? 'border-orange-400/30 bg-orange-500/10 text-white' : 'border-white/10 bg-white/5 text-slate-300 hover:border-orange-400/20 hover:bg-white/8'}`}
-                              >
-                                {method.label}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  {activeForm === 'check-out' ? (
-                    <Button onClick={onCheckOut} disabled={!selectedSession || loading} className="gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60">
-                      <CheckCircle2 size={14} /> Checkout thật
-                    </Button>
-                  ) : (
-                    <Button onClick={onCheckIn} disabled={!plateNumber.trim() || loading} className="gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60">
-                      <ScanLine size={14} /> Check-in thật
-                    </Button>
-                  )}
-                  <Button variant="ghost" className="gap-2 rounded-xl text-slate-300 hover:bg-white/6 hover:text-white">
-                    <BellRing size={14} /> Báo manager
-                  </Button>
-                </div>
-
-                {opMessage ? <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-200">{opMessage}</div> : null}
-              </>
-            )}
+            {/* Feedback */}
+            {opMessage ? (
+              <div
+                className={`rounded-2xl border p-4 text-sm ${
+                  opMessage.type === 'ok'
+                    ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
+                    : 'border-rose-500/30 bg-rose-500/10 text-rose-300'
+                }`}
+              >
+                {opMessage.text}
+              </div>
+            ) : null}
           </CardContent>
         </Card>
 
+        {/* Active sessions sidebar */}
         <Card className="border-white/10 bg-white/5">
           <CardHeader>
-            <CardTitle className="text-white">{isHandoverMode ? 'Phiên cần bàn giao' : 'Phiên đang xử lý'}</CardTitle>
+            <CardTitle className="text-white">All Session Parking Active</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {loading ? (
-              <p className="text-sm text-slate-400">Đang tải...</p>
+              <p className="text-sm text-slate-400">Loading...</p>
             ) : error ? (
               <p className="text-sm text-rose-300">{error}</p>
-            ) : sessions.length === 0 ? (
-              <p className="text-sm text-slate-400">Chưa có phiên nào.</p>
+            ) : activeSessions.length === 0 ? (
+              <p className="text-sm text-slate-400">No active sessions.</p>
             ) : (
-              sessions.slice(0, 5).map((session) => (
+              activeSessions.slice(0, 6).map((s) => (
                 <button
-                  key={session._id}
+                  key={s._id}
                   type="button"
-                  onClick={() => focusCheckout(session._id)}
+                  onClick={() => {
+                    setSelectedSessionId(s._id);
+                    selectOperation('check-out');
+                  }}
                   className={`flex w-full items-start gap-3 rounded-2xl border p-4 text-left transition ${
-                    selectedSessionId === session._id ? 'border-orange-400/30 bg-orange-500/10' : 'border-white/10 bg-slate-950/50 hover:border-orange-400/25 hover:bg-slate-900/80'
+                    selectedSessionId === s._id
+                      ? 'border-orange-400/30 bg-orange-500/10'
+                      : 'border-white/10 bg-slate-950/50 hover:border-orange-400/25 hover:bg-slate-900/80'
                   }`}
                 >
-                  <div className="mt-1 rounded-full bg-orange-500/15 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-orange-300">{session.paymentStatus}</div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-white">{session.plateNumber}</p>
-                    <p className="mt-1 text-sm text-slate-400">
-                      {session.gate?.name ?? 'Cổng chưa xác định'} · {session.vehicleType ? `${session.vehicleType.name} (${session.vehicleType.code})` : 'Loại xe chưa xác định'}
-                    </p>
+                  <div className="mt-1 rounded-full bg-orange-500/15 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-orange-300">
+                    {s.paymentStatus}
                   </div>
-                  <StatusBadge status={statusTone[session.status]} />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-white">{s.plateNumber}</p>
+                    <p className="mt-1 truncate text-sm text-slate-400">
+                      {s.entryGate?.code ?? '—'} ·{' '}
+                      {s.vehicleType ? `${s.vehicleType.name}` : '—'}
+                    </p>
+                    <p className="mt-0.5 text-xs text-slate-500">{fmtTime(s.checkIn)}</p>
+                  </div>
                 </button>
               ))
             )}
@@ -466,22 +467,73 @@ export function StaffOperationsPage({ mode = 'full' }: StaffOperationsPageProps)
         </Card>
       </section>
 
+      {/* Full sessions table */}
       <Card className="border-white/10 bg-white/5">
         <CardHeader>
-          <CardTitle className="text-white">Danh sách phiên từ BE</CardTitle>
+          <CardTitle className="text-white">All Sessions</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-sm text-slate-400">Đang tải...</p>
+            <p className="text-sm text-slate-400">Loading...</p>
           ) : error ? (
             <p className="text-sm text-rose-300">{error}</p>
           ) : sessions.length === 0 ? (
-            <p className="text-sm text-slate-400">Chưa có phiên nào.</p>
+            <p className="text-sm text-slate-400">No sessions found.</p>
           ) : (
-            <DataTable title={`Phiên gửi xe (${sessions.length})`} rows={sessions} columns={columns} />
+            <DataTable title={`Parking Sessions (${sessions.length})`} rows={sessions} columns={columns} />
           )}
         </CardContent>
       </Card>
+
+      {/* Bank transfer (VietQR via PayOS) modal */}
+      {bankTransfer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="w-full max-w-md rounded-3xl border border-white/10 bg-slate-950 p-6 shadow-xl">
+            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-orange-300">Bank Transfer</p>
+            <h3 className="mt-1 text-xl font-semibold text-white">Collect Payment</h3>
+            <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-slate-400">Plate</span>
+                <span className="font-semibold text-white">{bankTransfer.plate}</span>
+              </div>
+              <div className="mt-2 flex items-center justify-between text-sm">
+                <span className="text-slate-400">Amount</span>
+                <span className="font-mono text-lg font-bold text-amber-400">
+                  {bankTransfer.amount.toLocaleString('en-US')} ₫
+                </span>
+              </div>
+            </div>
+            <p className="mt-4 text-sm text-slate-300">
+              Open the payment page and let the customer scan the VietQR with their banking app. After they
+              transfer, tap <span className="font-semibold text-white">Verify Payment</span> to confirm and
+              check out.
+            </p>
+            <Button
+              onClick={() => window.open(bankTransfer.checkoutUrl, '_blank', 'noopener')}
+              className="mt-4 w-full gap-2 rounded-xl border border-white/10 bg-white/5 text-white hover:bg-white/10"
+            >
+              Open Payment Page (QR)
+            </Button>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <Button
+                onClick={onVerifyBankTransfer}
+                disabled={verifying}
+                className="gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60"
+              >
+                {verifying ? 'Verifying...' : 'Verify Payment'}
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => setBankTransfer(null)}
+                disabled={verifying}
+                className="rounded-xl border border-white/10 bg-white/5 text-white hover:bg-white/10"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }

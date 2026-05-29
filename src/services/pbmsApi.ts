@@ -40,8 +40,8 @@ export async function requestJson<T = unknown>({
   if (!response.ok) {
     const message =
       typeof payload === 'object' && payload !== null && 'message' in payload
-        ? String((payload as { message?: unknown }).message || 'Khong the xu ly yeu cau')
-        : 'Khong the xu ly yeu cau';
+        ? String((payload as { message?: unknown }).message || 'Unable to process request')
+        : 'Unable to process request';
     throw new Error(message);
   }
 

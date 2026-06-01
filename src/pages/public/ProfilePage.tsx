@@ -819,6 +819,29 @@ export default function ProfilePage() {
                 </div>
               )}
 
+              {/* QR Code Check-in Card */}
+              {user.role === 'user' && session && (
+                <div className="rounded-3xl bg-slate-950/60 border border-orange-500/20 p-6 shadow-lg shadow-orange-500/5 space-y-4 flex flex-col items-center text-center">
+                  <div className="space-y-1">
+                    <h2 className="text-xs font-black uppercase tracking-wider text-orange-400 font-mono">My QR Check-in</h2>
+                    <p className="text-[10px] text-slate-500 font-semibold leading-relaxed">
+                      Scan at gate reader to associate session & pay with wallet
+                    </p>
+                  </div>
+                  <div className="bg-white p-3 rounded-2xl shadow-inner border border-white/10 relative overflow-hidden flex items-center justify-center">
+                    <img 
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${session.userId}`}
+                      alt="QR Code Check-in"
+                      className="w-[140px] h-[140px]"
+                      loading="lazy"
+                    />
+                  </div>
+                  <span className="text-[9px] font-mono font-black uppercase tracking-wider px-2.5 py-1 rounded bg-orange-500/10 text-orange-400 border border-orange-500/20">
+                    ID: {session.userId}
+                  </span>
+                </div>
+              )}
+
             </div>
 
           </motion.aside>

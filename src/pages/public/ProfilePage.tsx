@@ -830,7 +830,7 @@ export default function ProfilePage() {
                   </div>
                   <div className="bg-white p-3 rounded-2xl shadow-inner border border-white/10 relative overflow-hidden flex items-center justify-center">
                     <img 
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${session.userId}`}
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://192.168.0.103:8081/profile?userId=${session.userId}`}
                       alt="QR Code Check-in"
                       className="w-[140px] h-[140px]"
                       loading="lazy"

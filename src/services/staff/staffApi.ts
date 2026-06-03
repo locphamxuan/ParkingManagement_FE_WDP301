@@ -119,8 +119,13 @@ export const staffApi = {
   searchSessions: (q: string) =>
     USE_MOCK ? Promise.resolve({ data: { items: [mockSession] } }) : api.get<Wrap<ApiList<ParkingSession>>>('/staff/parking-sessions/search', { query: { q } }),
 
-  checkIn: (payload: { plateNumber: string; vehicleType?: string; gate?: string; buildingId?: string }) =>
-    USE_MOCK ? Promise.resolve({ data: { item: mockSession } }) : api.post<Wrap<{ item: ParkingSession }>>('/staff/parking-sessions/check-in', payload),
+  checkIn: (payload: { plateNumber: string; vehicleType?: string; gate?: string; buildingId?: string; building?: string }) =>
+    USE_MOCK ? Promise.resolve({ data: { item: mockSession } }) : api.post<Wrap<{ item: ParkingSession }>>('/staff/parking-sessions/check-in', {
+      plateNumber: payload.plateNumber,
+      vehicleType: payload.vehicleType,
+      gate: payload.gate,
+      building: payload.building || payload.buildingId
+    }),
 
   checkOut: (id: string, body?: { paymentMethod?: string }) =>
     USE_MOCK
@@ -142,6 +147,21 @@ export const staffApi = {
       : api.get<Wrap<{ status: string; settled: boolean }>>(`/staff/parking-sessions/payment/${orderCode}/status`),
 
   getSessionById: (id: string) => (USE_MOCK ? Promise.resolve({ data: mockSession }) : api.get<Wrap<ParkingSession>>(`/staff/parking-sessions/${id}`)),
+
+  lookupPlate: (plate: string) =>
+    USE_MOCK
+      ? Promise.resolve({ data: { plateNumber: plate, hasAccount: false, user: null } })
+      : api.get<Wrap<{ plateNumber: string; hasAccount: boolean; user: { id: string; fullName: string; email: string; phone?: string; walletBalance: number } | null }>>(`/staff/parking-sessions/lookup-plate/${plate}`),
+
+  lookupUserQr: (qrCode: string) =>
+    USE_MOCK
+      ? Promise.resolve({ data: { userId: qrCode, hasAccount: false, user: null } })
+      : api.get<Wrap<{ userId: string; hasAccount: boolean; user: { id: string; fullName: string; email: string; phone?: string } | null }>>(`/staff/users/lookup-qr/${qrCode}`),
+
+  addCustomerPlate: (customerId: string, payload: { plateNumber: string; vehicleType?: string }) =>
+    USE_MOCK
+      ? Promise.resolve({ data: { success: true } })
+      : api.post<Wrap<{ success: boolean }>>(`/staff/users/${customerId}/license-plates`, payload),
 
   getMyShifts: (query?: Record<string, string | undefined>) =>
     USE_MOCK ? Promise.resolve({ data: { items: [mockShift] } }) : api.get<Wrap<ApiList<MyShift>>>('/staff/my-shifts', { query }),

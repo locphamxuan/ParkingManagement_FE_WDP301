@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, RefreshCcw, ScanLine, QrCode, Loader2, AlertCircle, Sparkles, UserPlus } from 'lucide-react';
+import { CheckCircle2, RefreshCcw, ScanLine, QrCode, Loader2, AlertCircle, Sparkles, UserPlus, Car, Bike } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +10,9 @@ import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { staffApi, type ParkingSession } from '@/services/staff/staffApi';
 import { AIAutoScanZone } from '@/components/staff/AIAutoScanZone';
 import { QRCodeScannerModal } from '@/components/staff/QRCodeScannerModal';
+import { api } from '@/services/apiClient';
+
+const USE_MOCK = (import.meta.env.VITE_USE_MOCK_DATA as string | undefined) !== 'false';
 
 type VehicleKind = 'car' | 'motorcycle';
 type PaymentKind = 'cash' | 'bank_transfer';
@@ -61,6 +64,122 @@ export function StaffOperationsPage() {
 
   // Reservation check-in
   const [reservationCode, setReservationCode] = useState('');
+  const [allowedTypes, setAllowedTypes] = useState<string[]>(['CAR', 'MOTORCYCLE']);
+  const [buildingFloors, setBuildingFloors] = useState<any[]>([]);
+
+  // Fetch allowed vehicle types from floors of this building
+  useEffect(() => {
+    if (!buildingId) return;
+    if (USE_MOCK) {
+      setAllowedTypes(['CAR', 'MOTORCYCLE']);
+      setBuildingFloors([]);
+      return;
+    }
+    api.get(`/users/buildings/${buildingId}/floors`)
+      .then((res: any) => {
+        const floors = res?.data?.floors || [];
+        setBuildingFloors(floors);
+        const types = new Set<string>();
+        floors.forEach((floor: any) => {
+          if (floor.allowedVehicleTypes) {
+            floor.allowedVehicleTypes.forEach((vt: any) => {
+              if (vt.code) {
+                types.add(vt.code.toUpperCase());
+              }
+            });
+          }
+        });
+        setAllowedTypes(Array.from(types));
+      })
+      .catch((err) => {
+        console.error('Failed to load building floors/vehicle types:', err);
+      });
+  }, [buildingId]);
+
+  // Set default supported vehicle type when building allowedTypes changes
+  useEffect(() => {
+    if (allowedTypes.length > 0) {
+      const hasCar = allowedTypes.includes('CAR');
+      const hasMotorcycle = allowedTypes.includes('MOTORCYCLE');
+      if (hasCar && !hasMotorcycle) {
+        setVehicleType('car');
+      } else if (hasMotorcycle && !hasCar) {
+        setVehicleType('motorcycle');
+      }
+    }
+  }, [allowedTypes]);
+
+  // Helper to detect vehicle type from plate number format
+  const detectTypeFromPlate = (plate: string): 'car' | 'motorcycle' => {
+    const clean = plate.trim().toUpperCase();
+    if (clean.length >= 3) {
+      const parts = clean.split('-');
+      const prefix = parts[0]?.trim() || '';
+      if (prefix.length === 3) {
+        return 'car';
+      }
+      if (/[A-Z]{2}$/.test(prefix)) {
+        const letters = prefix.substring(2);
+        if (['LD', 'DA', 'KT', 'MD'].includes(letters)) {
+          return 'car';
+        }
+        return 'motorcycle';
+      }
+      if (/^\d{2}[A-Z]\d/.test(prefix)) {
+        return 'motorcycle';
+      }
+    }
+    return 'car';
+  };
+
+  // Auto-detect vehicle type from plate number format
+  useEffect(() => {
+    const cleanPlate = plateNumber.trim().toUpperCase();
+    if (cleanPlate.length >= 3) {
+      const detected = detectTypeFromPlate(cleanPlate);
+      if (detected === 'motorcycle' && allowedTypes.includes('MOTORCYCLE')) {
+        setVehicleType('motorcycle');
+      } else if (detected === 'car' && allowedTypes.includes('CAR')) {
+        setVehicleType('car');
+      }
+    }
+  }, [plateNumber, allowedTypes]);
+
+  // Get floors that support the selected vehicle type
+  const recommendedFloors = useMemo(() => {
+    const currentCode = vehicleType === 'car' ? 'CAR' : 'MOTORCYCLE';
+    return buildingFloors
+      .filter((floor: any) => {
+        const allowed = floor.allowedVehicleTypes || [];
+        return allowed.some((vt: any) => {
+          const code = typeof vt === 'string' ? vt : vt.code;
+          return String(code).toUpperCase() === currentCode;
+        });
+      })
+      .map((floor: any) => floor.name);
+  }, [buildingFloors, vehicleType]);
+
+  // Warning when plate format does not match selected vehicle type
+  const plateTypeWarning = useMemo(() => {
+    const cleanPlate = plateNumber.trim().toUpperCase();
+    if (cleanPlate.length >= 3) {
+      const detected = detectTypeFromPlate(cleanPlate);
+      if (detected !== vehicleType) {
+        return `Warning: License plate format looks like a ${detected}, but you selected ${vehicleType}.`;
+      }
+    }
+    return null;
+  }, [plateNumber, vehicleType]);
+
+  // Warning when building does not support the selected vehicle type
+  const buildingSupportWarning = useMemo(() => {
+    if (allowedTypes.length === 0) return null;
+    const currentCode = vehicleType === 'car' ? 'CAR' : 'MOTORCYCLE';
+    if (!allowedTypes.includes(currentCode)) {
+      return `Warning: This building does not support ${vehicleType} parking.`;
+    }
+    return null;
+  }, [allowedTypes, vehicleType]);
 
   // VN License Plate formatting Regex and cleaner
   const cleanOcrText = (rawText: string): string => {
@@ -404,6 +523,16 @@ export function StaffOperationsPage() {
       title: 'Vehicle Type',
       render: (row) => (row.vehicleType ? `${row.vehicleType.name} (${row.vehicleType.code})` : '—'),
     },
+    {
+      key: 'floor',
+      title: 'Floor',
+      render: (row) => (row as any).slot?.floor?.name ?? '—',
+    },
+    {
+      key: 'slot',
+      title: 'Slot',
+      render: (row) => (row as any).slot?.code ?? '—',
+    },
     { key: 'entryGate', title: 'Gate', render: (row) => row.entryGate?.code ?? '—' },
     { key: 'checkIn', title: 'Entry', render: (row) => fmtTime(row.checkIn) },
     { key: 'checkOut', title: 'Exit', render: (row) => fmtTime(row.checkOut) },
@@ -658,23 +787,68 @@ export function StaffOperationsPage() {
                     </div>
                     <div className="grid gap-1.5">
                       <label className="text-xs uppercase tracking-[0.18em] text-slate-400">Vehicle Type</label>
-                      <select
-                        value={vehicleType}
-                        onChange={(e) => setVehicleType(e.target.value as VehicleKind)}
-                        className="h-11 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white outline-none"
-                      >
-                        <option value="car">Car</option>
-                        <option value="motorcycle">Motorcycle</option>
-                      </select>
+                      <div className="flex gap-2 p-1 rounded-xl bg-slate-950 border border-white/10">
+                        <button
+                          type="button"
+                          disabled={!allowedTypes.includes('CAR')}
+                          onClick={() => setVehicleType('car')}
+                          className={`flex-1 flex items-center justify-center gap-2 h-9 rounded-lg text-xs font-bold transition-all duration-300 ${
+                            vehicleType === 'car'
+                              ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 shadow-[0_0_15px_rgba(249,115,22,0.3)] scale-105'
+                              : 'text-slate-400 hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent'
+                          }`}
+                        >
+                          <Car size={14} />
+                          Car {!allowedTypes.includes('CAR') && '(N/A)'}
+                        </button>
+                        <button
+                          type="button"
+                          disabled={!allowedTypes.includes('MOTORCYCLE')}
+                          onClick={() => setVehicleType('motorcycle')}
+                          className={`flex-1 flex items-center justify-center gap-2 h-9 rounded-lg text-xs font-bold transition-all duration-300 ${
+                            vehicleType === 'motorcycle'
+                              ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 shadow-[0_0_15px_rgba(249,115,22,0.3)] scale-105'
+                              : 'text-slate-400 hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent'
+                          }`}
+                        >
+                          <Bike size={14} />
+                          Motorcycle {!allowedTypes.includes('MOTORCYCLE') && '(N/A)'}
+                        </button>
+                      </div>
+                      {recommendedFloors.length > 0 && (
+                        <div className="mt-1 flex items-center gap-1.5 text-xs text-orange-300">
+                          <span className="flex h-1.5 w-1.5 rounded-full bg-orange-400"></span>
+                          <span>Allowed Floors: <strong>{recommendedFloors.join(', ')}</strong></span>
+                        </div>
+                      )}
+                      {plateTypeWarning && (
+                        <div className="mt-1 flex items-center gap-1.5 text-[11px] text-amber-400">
+                          <AlertCircle size={12} />
+                          {plateTypeWarning}
+                        </div>
+                      )}
+                      {buildingSupportWarning && (
+                        <div className="mt-1 flex items-center gap-1.5 text-[11px] text-rose-400">
+                          <AlertCircle size={12} />
+                          {buildingSupportWarning}
+                        </div>
+                      )}
                     </div>
                     <div className="grid gap-1.5">
-                      <label className="text-xs uppercase tracking-[0.18em] text-slate-400">Entry Gate</label>
+                      <label className="text-xs uppercase tracking-[0.18em] text-slate-400">
+                        Entry Gate <span className="text-orange-400 font-bold">*</span>
+                      </label>
                       <Input
                         value={gate}
                         onChange={(e) => setGate(e.target.value)}
-                        placeholder="Gate A"
+                        placeholder="Gate A (e.g. CV_T1)"
                         className="border-white/10 bg-white/5 text-white placeholder:text-slate-500"
                       />
+                      {!gate.trim() && (
+                        <span className="text-[10px] text-amber-400">
+                          Vui lòng điền cổng vào để check-in.
+                        </span>
+                      )}
                     </div>
                   </>
                 ) : (
@@ -736,7 +910,7 @@ export function StaffOperationsPage() {
               ) : (
                 <Button
                   onClick={onCheckIn}
-                  disabled={!plateNumber.trim() || loading}
+                  disabled={!plateNumber.trim() || !gate.trim() || loading || !!buildingSupportWarning || !!plateTypeWarning}
                   className="gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <ScanLine size={14} /> Check-in
@@ -823,6 +997,8 @@ export function StaffOperationsPage() {
                     <p className="mt-1 truncate text-sm text-slate-400">
                       {s.entryGate?.code ?? '—'} ·{' '}
                       {s.vehicleType ? `${s.vehicleType.name}` : '—'}
+                      {(s as any).slot?.floor?.name ? ` · ${(s as any).slot.floor.name}` : ''}
+                      {(s as any).slot?.code ? ` (${(s as any).slot.code})` : ''}
                     </p>
                     <p className="mt-0.5 text-xs text-slate-500">{fmtTime(s.checkIn)}</p>
                   </div>

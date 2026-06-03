@@ -81,6 +81,16 @@ export function StaffSessionsPage() {
       render: (row) =>
         row.vehicleType ? `${row.vehicleType.name} (${row.vehicleType.code})` : '—',
     },
+    {
+      key: 'floor',
+      title: 'Floor',
+      render: (row) => (row as any).slot?.floor?.name ?? '—',
+    },
+    {
+      key: 'slot',
+      title: 'Slot',
+      render: (row) => (row as any).slot?.code ?? '—',
+    },
     { key: 'entryGate', title: 'Gate', render: (row) => row.entryGate?.name ?? '—' },
     { key: 'checkIn', title: 'Entry', render: (row) => fmtTime(row.checkIn) },
     { key: 'checkOut', title: 'Exit', render: (row) => fmtTime(row.checkOut) },

@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
 import type { FormEvent } from 'react';
-import { Home, X, AlertCircle } from 'lucide-react';
+import { Home, X, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { CartoonCar3D } from '@/components/shared/CartoonCar3D';
 import { requestJson } from '@/services/pbmsApi';
@@ -13,7 +13,7 @@ const initialForm = {
   confirmPassword: '',
 };
 
-type AuthMode = 'login' | 'register' | 'forgot_email' | 'forgot_reset';
+type AuthMode = 'login' | 'register' | 'register_otp' | 'forgot_email' | 'forgot_reset';
 
 interface AuthPageProps {
   mode: AuthMode;
@@ -46,6 +46,10 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
   const [savedAccounts, setSavedAccounts] = useState<{ email: string; password?: string }[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [lockTimeLeft, setLockTimeLeft] = useState<number>(0);
+  const [showPassword, setShowPassword] = useState(false);
+
+  // OTP state for register_otp mode
+  const [otpValue, setOtpValue] = useState<string>('');
 
   const [forgotEmail, setForgotEmail] = useState<string>('');
   const [resetToken, setResetToken] = useState<string>('');
@@ -113,6 +117,13 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
     }
   }, []);
 
+  // Reset OTP value when entering register_otp mode
+  useEffect(() => {
+    if (mode === 'register_otp') {
+      setOtpValue('');
+    }
+  }, [mode]);
+
   // Save account helper
   const saveAccount = (email: string, password?: string) => {
     if (!email) return;
@@ -174,6 +185,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
   const title = useMemo(() => {
     if (mode === 'login') return 'Sign In to PBMS';
     if (mode === 'register') return 'Create PBMS Account';
+    if (mode === 'register_otp') return 'Verify OTP Code';
     if (mode === 'forgot_email') return 'Forgot Password';
     if (mode === 'forgot_reset') return 'Reset Password';
     return 'PBMS';
@@ -185,6 +197,9 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
     }
     if (mode === 'register') {
       return 'Create a new account to start using the parking lot management system with a beautifully consistent design.';
+    }
+    if (mode === 'register_otp') {
+      return 'An OTP has been sent to your email. Please enter the 6-digit code to verify your account.';
     }
     if (mode === 'forgot_email') {
       return 'Enter your registered email address to receive a recovery link to reset your account password.';
@@ -296,6 +311,23 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
       return;
     }
 
+    if (mode === 'register_otp') {
+      const otp = otpValue.trim();
+      if (!otp || otp.length !== 6) {
+        setLocalNotice({ message: 'Please enter a valid 6-digit OTP code!', type: 'error' });
+        return;
+      }
+      try {
+        await onSubmit({
+          mode: 'register_otp',
+          payload: { otp },
+        });
+      } catch (err) {
+        // Error already mapped in the hook
+      }
+      return;
+    }
+
     if (mode === 'register') {
       if (form.password !== form.confirmPassword) {
         setLocalNotice({ message: 'Passwords do not match!', type: 'error' });
@@ -341,7 +373,11 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
       } catch (err) {
         // Error already mapped in public auth flow hook
       }
-    } else {
+      return;
+    }
+
+    // mode === 'login'
+    {
       const email = form.email.trim().toLowerCase();
 
       // Strict frontend-side login lock check
@@ -403,6 +439,30 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
     mouseX.set(0.5);
     mouseY.set(0.5);
   }
+
+  function handleOtpChange(e: React.ChangeEvent<HTMLInputElement>) {
+    // Only allow up to 6 digits
+    const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+    setOtpValue(value);
+  }
+
+  function handleOtpKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    // Allow backspace to clear
+    if (e.key === 'Backspace' && otpValue.length > 0) {
+      setOtpValue(prev => prev.slice(0, -1));
+    }
+  }
+
+  const PasswordToggleButton = () => (
+    <button
+      type="button"
+      onClick={() => setShowPassword((prev) => !prev)}
+      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-orange-400 transition-colors p-0.5"
+      tabIndex={-1}
+    >
+      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+    </button>
+  );
 
   return (
     <main
@@ -688,6 +748,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
           ) : null}
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* ── REGISTER MODE FIELDS ── */}
             {mode === 'register' && (
               <>
                 <div className="space-y-1.5">
@@ -715,6 +776,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
               </>
             )}
 
+            {/* ── REGISTER AND LOGIN EMAIL FIELDS ── */}
             {(mode === 'login' || mode === 'register' || mode === 'forgot_email') && (
               <div className="space-y-1.5 relative">
                 <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">
@@ -765,7 +827,33 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
               </div>
             )}
 
+            {/* ── REGISTER OTP INPUT FIELD ── */}
+            {mode === 'register_otp' && (
+              <div className="space-y-2">
+                <div className="text-center">
+                  <p className="text-xs font-bold text-slate-400">
+                    An OTP has been sent to your email
+                  </p>
+                </div>
+                <div className="flex justify-center">
+                  <input
+                    name="otp"
+                    type="text"
+                    inputMode="numeric"
+                    value={otpValue}
+                    onChange={handleOtpChange}
+                    onKeyDown={handleOtpKeyDown}
+                    maxLength={6}
+                    required
+                    autoFocus
+                    className="w-48 text-center text-2xl font-black tracking-[0.5em] rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
+                    placeholder="000000"
+                  />
+                </div>
+              </div>
+            )}
 
+            {/* ── FORGOT RESET FIELDS ── */}
             {mode === 'forgot_reset' && (
               <>
                 {!forgotEmail && (
@@ -781,31 +869,38 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                 )}
                 <div className="space-y-1.5">
                   <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">New Password</label>
-                  <input
-                    name="newPassword"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    type="password"
-                    required
-                    className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
-                    placeholder="Minimum 6 characters"
-                  />
+                  <div className="relative">
+                    <input
+                      name="newPassword"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      type={showPassword ? "text" : "password"}
+                      required
+                      className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 pr-11 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
+                      placeholder="Minimum 6 characters"
+                    />
+                    <PasswordToggleButton />
+                  </div>
                 </div>
                 <div className="space-y-1.5">
                   <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Confirm New Password</label>
-                  <input
-                    name="confirmNewPassword"
-                    value={confirmNewPassword}
-                    onChange={(e) => setConfirmNewPassword(e.target.value)}
-                    type="password"
-                    required
-                    className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
-                    placeholder="Re-enter new password"
-                  />
+                  <div className="relative">
+                    <input
+                      name="confirmNewPassword"
+                      value={confirmNewPassword}
+                      onChange={(e) => setConfirmNewPassword(e.target.value)}
+                      type={showPassword ? "text" : "password"}
+                      required
+                      className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 pr-11 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
+                      placeholder="Re-enter new password"
+                    />
+                    <PasswordToggleButton />
+                  </div>
                 </div>
               </>
             )}
 
+            {/* ── PASSWORD FIELD (for login + register) ── */}
             {(mode === 'login' || mode === 'register') && (
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
@@ -823,33 +918,41 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                     </button>
                   )}
                 </div>
-                <input
-                  name="password"
-                  value={form.password}
-                  onChange={handleChange}
-                  type="password"
-                  required
-                  className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
-                  placeholder="At least 6 characters"
-                />
+                <div className="relative">
+                  <input
+                    name="password"
+                    value={form.password}
+                    onChange={handleChange}
+                    type={showPassword ? "text" : "password"}
+                    required
+                    className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 pr-11 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
+                    placeholder="At least 6 characters"
+                  />
+                  <PasswordToggleButton />
+                </div>
               </div>
             )}
 
+            {/* ── CONFIRM PASSWORD FIELD (register only) ── */}
             {mode === 'register' && (
               <div className="space-y-1.5 animate-fadeIn">
                 <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Confirm Password</label>
-                <input
-                  name="confirmPassword"
-                  value={form.confirmPassword}
-                  onChange={handleChange}
-                  type="password"
-                  required
-                  className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
-                  placeholder="Re-enter password"
-                />
+                <div className="relative">
+                  <input
+                    name="confirmPassword"
+                    value={form.confirmPassword}
+                    onChange={handleChange}
+                    type={showPassword ? "text" : "password"}
+                    required
+                    className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 pr-11 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
+                    placeholder="Re-enter password"
+                  />
+                  <PasswordToggleButton />
+                </div>
               </div>
             )}
 
+            {/* ── SUBMIT BUTTON ── */}
             <div className="flex flex-col gap-4 pt-3">
               <motion.button
                 type="submit"
@@ -869,11 +972,14 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                       ? 'Sign In'
                       : mode === 'register'
                         ? 'Create Account'
-                        : mode === 'forgot_email'
-                          ? 'Send recovery link'
-                          : 'Reset Password'}
+                        : mode === 'register_otp'
+                          ? 'Verify OTP'
+                          : mode === 'forgot_email'
+                            ? 'Send recovery link'
+                            : 'Reset Password'}
               </motion.button>
 
+              {/* ── BOTTOM NAVIGATION ── */}
               <div className="text-center">
                 {['forgot_email', 'forgot_reset'].includes(mode) ? (
                   <button
@@ -885,6 +991,17 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                     className="text-xs font-bold text-slate-400 hover:text-orange-400 underline transition-colors"
                   >
                     Back to Sign In
+                  </button>
+                ) : mode === 'register_otp' ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLocalNotice(null);
+                      onModeChange('register');
+                    }}
+                    className="text-xs font-bold text-slate-400 hover:text-orange-400 underline transition-colors"
+                  >
+                    Back to Registration
                   </button>
                 ) : (
                   <button

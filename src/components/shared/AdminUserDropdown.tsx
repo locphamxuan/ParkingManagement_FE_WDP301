@@ -18,10 +18,9 @@ export function AdminUserDropdown({ email, onLogout, compact = false }: Props) {
 
   const handleViewProfile = () => {
     setOpen(false);
+    // Admins have no profile page (the entry is hidden for them).
     if (location.pathname.startsWith("/manager")) {
       navigate("/manager/profile");
-    } else if (location.pathname.startsWith("/admin")) {
-      navigate("/admin/dashboard/profile");
     } else {
       navigate("/profile");
     }
@@ -38,6 +37,8 @@ export function AdminUserDropdown({ email, onLogout, compact = false }: Props) {
 
   const displayEmail = email ?? user?.email ?? "";
   const role = user?.role ?? "user";
+  // Admins have no profile page; hide the Profile entry on the admin dashboard.
+  const showProfile = !location.pathname.startsWith("/admin") && role !== "admin";
   return (
     <div className="relative inline-block" ref={ref}>
       <button
@@ -94,13 +95,15 @@ export function AdminUserDropdown({ email, onLogout, compact = false }: Props) {
             </div>
           </div>
           <div className="border-t border-white/5">
-            <button
-              type="button"
-              className="user-dropdown-item w-full px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-              onClick={handleViewProfile}
-            >
-              Profile
-            </button>
+            {showProfile && (
+              <button
+                type="button"
+                className="user-dropdown-item w-full px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
+                onClick={handleViewProfile}
+              >
+                Profile
+              </button>
+            )}
             <button
               type="button"
               className="user-dropdown-item w-full px-4 py-3 text-left text-sm text-rose-400 transition hover:bg-slate-800 border-t border-white/5"

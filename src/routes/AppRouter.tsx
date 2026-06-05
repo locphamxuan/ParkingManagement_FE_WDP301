@@ -6,7 +6,6 @@ import { BuildingsPage } from "@/pages/admin/BuildingsPage";
 import { UsersPage } from "@/pages/admin/UsersPage";
 import { RevenueAnalyticsPage } from "@/pages/admin/RevenueAnalyticsPage";
 import { AuditLogsPage } from "@/pages/admin/AuditLogsPage";
-import { AdminProfilePage } from "@/pages/admin/AdminProfilePage";
 import { SystemWalletPage } from "@/pages/admin/SystemWalletPage";
 import { ModulePlaceholderPage } from "@/pages/admin/ModulePlaceholderPage";
 import { HomeRoute } from "@/pages/public/HomeRoute";
@@ -99,8 +98,7 @@ export function AppRouter() {
           element={<Navigate to="/auth/login" replace />}
         />
 
-        {(import.meta.env.VITE_USE_MOCK_DATA as string | undefined) !==
-        "false" ? (
+        <Route element={<ProtectedRoute role="staff" />}>
           <Route path="/staff" element={<StaffLayout />}>
             <Route index element={<StaffDashboardPage />} />
             <Route path="dashboard" element={<StaffDashboardPage />} />
@@ -110,19 +108,7 @@ export function AppRouter() {
             <Route path="sessions" element={<StaffSessionsPage />} />
             <Route path="incidents" element={<StaffIncidentsPage />} />
           </Route>
-        ) : (
-          <Route element={<ProtectedRoute role="staff" />}>
-            <Route path="/staff" element={<StaffLayout />}>
-              <Route index element={<StaffDashboardPage />} />
-              <Route path="dashboard" element={<StaffDashboardPage />} />
-              <Route path="operations" element={<StaffOperationsPage />} />
-              <Route path="reservations" element={<StaffReservationsPage />} />
-              <Route path="my-shifts" element={<StaffShiftsPage />} />
-              <Route path="sessions" element={<StaffSessionsPage />} />
-              <Route path="incidents" element={<StaffIncidentsPage />} />
-            </Route>
-          </Route>
-        )}
+        </Route>
 
         <Route element={<ProtectedRoute role="admin" />}>
           <Route path="/admin/dashboard" element={<AdminLayout />}>
@@ -134,15 +120,6 @@ export function AppRouter() {
               element={<RevenueAnalyticsPage />}
             />
             <Route path="system-wallet" element={<SystemWalletPage />} />
-            <Route
-              path="pricing-policies"
-              element={
-                <ModulePlaceholderPage
-                  title="Pricing policies"
-                  description="Policy scope, policy templates, and role-based constraints."
-                />
-              }
-            />
             <Route path="audit-logs" element={<AuditLogsPage />} />
             <Route
               path="system-health"
@@ -157,7 +134,8 @@ export function AppRouter() {
                 />
               }
             />
-            <Route path="profile" element={<AdminProfilePage />} />
+            {/* Admins do not have a profile page — redirect to dashboard. */}
+            <Route path="profile" element={<Navigate to="/admin/dashboard" replace />} />
             <Route
               path="settings"
               element={

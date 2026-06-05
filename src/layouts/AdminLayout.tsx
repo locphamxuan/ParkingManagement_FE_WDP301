@@ -11,10 +11,8 @@ const titles: Record<string, string> = {
   "/admin/dashboard/users": "User Management",
   "/admin/dashboard/revenue-analytics": "Revenue Analytics",
   "/admin/dashboard/system-wallet": "System Wallet",
-  "/admin/dashboard/pricing-policies": "Pricing Policies",
   "/admin/dashboard/audit-logs": "Audit Logs",
   "/admin/dashboard/notifications": "Notifications",
-  "/admin/dashboard/profile": "Profile",
   "/admin/dashboard/settings": "Settings",
 };
 

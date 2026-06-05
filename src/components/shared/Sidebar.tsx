@@ -7,7 +7,6 @@ import {
   CircleDollarSign,
   Fingerprint,
   LayoutDashboard,
-  NotebookPen,
   Users,
   Wallet,
 } from "lucide-react";
@@ -25,7 +24,6 @@ const modules = [
   { to: "users", label: "Users", icon: Users },
   { to: "revenue-analytics", label: "Revenue Analytics", icon: CircleDollarSign },
   { to: "system-wallet", label: "System Wallet", icon: Wallet },
-  { to: "pricing-policies", label: "Pricing Policies", icon: NotebookPen },
   { to: "audit-logs", label: "Audit Logs", icon: Activity },
   { to: "notifications", label: "Notifications", icon: Bell },
 ] as const;

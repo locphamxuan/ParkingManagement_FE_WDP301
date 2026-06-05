@@ -32,7 +32,7 @@ export function QRCodeScannerModal({ isOpen, onClose, onSuccess }: QRCodeScanner
       streamRef.current = stream;
     } catch (err) {
       console.error('Camera start failed:', err);
-      setScanError('Không thể truy cập camera. Vui lòng thử lại.');
+      setScanError('Could not access the camera. Please try again.');
     }
   };
 
@@ -77,14 +77,14 @@ export function QRCodeScannerModal({ isOpen, onClose, onSuccess }: QRCodeScanner
       img.onload = () => {
         const canvas = canvasRef.current;
         if (!canvas) {
-          setScanError('Không tìm thấy Canvas để phân tích ảnh.');
+          setScanError('Canvas not found for image analysis.');
           setIsLoading(false);
           return;
         }
 
         const ctx = canvas.getContext('2d');
         if (!ctx) {
-          setScanError('Không thể tạo context 2D cho Canvas.');
+          setScanError('Could not create a 2D canvas context.');
           setIsLoading(false);
           return;
         }
@@ -101,10 +101,10 @@ export function QRCodeScannerModal({ isOpen, onClose, onSuccess }: QRCodeScanner
             onSuccess(decoded);
             onClose();
           } else {
-            setScanError('Không tìm thấy mã QR nào trong hình ảnh của bạn.');
+            setScanError('No QR code found in your image.');
           }
         } catch (err) {
-          setScanError('Lỗi phân tích hình ảnh.');
+          setScanError('Image analysis error.');
         } finally {
           setIsLoading(false);
         }
@@ -134,10 +134,10 @@ export function QRCodeScannerModal({ isOpen, onClose, onSuccess }: QRCodeScanner
         stopCamera();
         onClose();
       } else {
-        setScanError('Không tìm thấy mã QR trong khung hình camera.');
+        setScanError('No QR code found in the camera frame.');
       }
     } catch (err) {
-      setScanError('Lỗi xử lý quét QR.');
+      setScanError('QR scan processing error.');
     }
   };
 
@@ -164,7 +164,7 @@ export function QRCodeScannerModal({ isOpen, onClose, onSuccess }: QRCodeScanner
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.24em] text-emerald-400">QR Scanner</p>
-            <h3 className="text-xl font-semibold text-white">Quét Mã QR Đặt Chỗ</h3>
+            <h3 className="text-xl font-semibold text-white">Scan QR Code</h3>
           </div>
           <button
             onClick={() => { stopCamera(); onClose(); }}
@@ -182,7 +182,7 @@ export function QRCodeScannerModal({ isOpen, onClose, onSuccess }: QRCodeScanner
               useCamera ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Camera size={14} /> Quét WebCam
+            <Camera size={14} /> Webcam Scan
           </button>
           <button
             onClick={() => setUseCamera(false)}
@@ -206,7 +206,7 @@ export function QRCodeScannerModal({ isOpen, onClose, onSuccess }: QRCodeScanner
                     onClick={startCamera}
                     className="mt-4 h-8 px-4 rounded-lg bg-white/10 text-xs text-white hover:bg-white/20"
                   >
-                    Thử Lại
+                    Retry
                   </Button>
                 </div>
               )}
@@ -230,7 +230,7 @@ export function QRCodeScannerModal({ isOpen, onClose, onSuccess }: QRCodeScanner
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="h-40 w-40 border-2 border-emerald-400/40 border-dashed rounded-lg flex items-center justify-center">
                     <p className="text-[9px] uppercase font-bold tracking-widest text-emerald-400/80 bg-slate-950/60 px-2 py-0.5 rounded border border-emerald-500/20">
-                      Mã QR Đặt Chỗ
+                      QR Code
                     </p>
                   </div>
                 </div>
@@ -242,19 +242,19 @@ export function QRCodeScannerModal({ isOpen, onClose, onSuccess }: QRCodeScanner
               {isLoading ? (
                 <div className="flex flex-col items-center gap-2">
                   <Loader2 className="h-8 w-8 text-emerald-400 animate-spin" />
-                  <p className="text-sm font-semibold text-slate-300">Đang quét mã QR...</p>
+                  <p className="text-sm font-semibold text-slate-300">Scanning QR code...</p>
                 </div>
               ) : (
                 <>
                   <p className="text-sm text-slate-300 mb-4 max-w-[280px]">
-                    Tải lên hoặc kéo thả ảnh chứa mã QR đặt chỗ từ điện thoại hoặc thiết bị của khách hàng.
+                    Upload or drag &amp; drop an image containing the QR code from the customer's phone or device.
                   </p>
                   <Button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     className="gap-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-semibold"
                   >
-                    <Upload size={14} /> Tải Lên Ảnh QR Code
+                    <Upload size={14} /> Upload QR Code Image
                   </Button>
                 </>
               )}
@@ -284,7 +284,7 @@ export function QRCodeScannerModal({ isOpen, onClose, onSuccess }: QRCodeScanner
               onClick={captureFrameAndScan}
               className="h-11 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-semibold"
             >
-              🎯 Quét Ngay
+              🎯 Scan Now
             </Button>
           ) : (
             <div />
@@ -294,11 +294,11 @@ export function QRCodeScannerModal({ isOpen, onClose, onSuccess }: QRCodeScanner
             onClick={() => { stopCamera(); onClose(); }}
             className="h-11 rounded-xl border border-white/10 bg-white/5 text-white hover:bg-white/10"
           >
-            Đóng
+            Close
           </Button>
         </div>
 
-        {/* Resolves Lỗi: Move <canvas> outside useCamera condition so it remains mounted on Upload tab */}
+        {/* Keep <canvas> mounted outside the useCamera condition so it stays available on the Upload tab */}
         <canvas ref={canvasRef} className="hidden" />
       </motion.div>
     </div>

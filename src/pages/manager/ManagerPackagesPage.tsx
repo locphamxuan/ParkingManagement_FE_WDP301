@@ -16,6 +16,8 @@ interface FormState {
   price: string;
   reservedSlots: string;
   description: string;
+  allowDedicatedSlot: boolean;
+  benefits: string;
   isActive: boolean;
 }
 
@@ -27,6 +29,8 @@ const empty: FormState = {
   price: '0',
   reservedSlots: '0',
   description: '',
+  allowDedicatedSlot: false,
+  benefits: '',
   isActive: true,
 };
 
@@ -77,6 +81,8 @@ export function ManagerPackagesPage() {
       price: String(row.price),
       reservedSlots: String(row.reservedSlots),
       description: row.description ?? '',
+      allowDedicatedSlot: row.allowDedicatedSlot ?? false,
+      benefits: (row.benefits ?? []).join(', '),
       isActive: row.isActive,
     });
     setModalOpen(true);
@@ -95,6 +101,8 @@ export function ManagerPackagesPage() {
       price: Number(form.price),
       reservedSlots: Number(form.reservedSlots),
       description: form.description.trim(),
+      allowDedicatedSlot: form.allowDedicatedSlot,
+      benefits: form.benefits.split(',').map((s) => s.trim()).filter(Boolean),
       isActive: form.isActive,
     };
     try {
@@ -134,7 +142,21 @@ export function ManagerPackagesPage() {
       title: 'Price',
       render: (row) => `${row.price.toLocaleString('en-US')} VND`,
     },
-    { key: 'reservedSlots', title: 'Dedicated Slot' },
+    { key: 'reservedSlots', title: 'Reserved Slots' },
+    {
+      key: 'allowDedicatedSlot',
+      title: 'Dedicated Slot',
+      render: (row) => row.allowDedicatedSlot
+        ? <span className="text-xs font-black text-emerald-400 border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 rounded-full">Yes</span>
+        : <span className="text-xs text-muted-foreground">—</span>,
+    },
+    {
+      key: 'benefits',
+      title: 'Benefits',
+      render: (row) => row.benefits && row.benefits.length > 0
+        ? <span className="text-xs text-slate-400">{row.benefits.join(', ')}</span>
+        : <span className="text-muted-foreground text-xs">—</span>,
+    },
     {
       key: 'isActive',
       title: 'Status',
@@ -241,7 +263,23 @@ export function ManagerPackagesPage() {
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
             />
           </div>
-          <label className="flex items-center gap-2 text-sm md:col-span-2">
+          <div className="grid gap-1.5 md:col-span-2">
+            <label className="text-xs uppercase text-muted-foreground">Benefits (comma-separated)</label>
+            <Input
+              value={form.benefits}
+              onChange={(e) => setForm((f) => ({ ...f, benefits: e.target.value }))}
+              placeholder="e.g. Dedicated slot selection, Priority access, ..."
+            />
+          </div>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={form.allowDedicatedSlot}
+              onChange={(e) => setForm((f) => ({ ...f, allowDedicatedSlot: e.target.checked }))}
+            />
+            <span>Allow subscriber to select a dedicated slot</span>
+          </label>
+          <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"
               checked={form.isActive}

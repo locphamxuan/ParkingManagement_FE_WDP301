@@ -1,10 +1,14 @@
 import { useMemo, useState } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/shared/Navbar';
 import { ManagerSidebar } from '@/components/shared/ManagerSidebar';
 import { useAuth } from '@/hooks/useAuth';
 import { ADMIN_EMAIL_FALLBACK } from '@/utils/constants';
 import { useManagerBuildings } from '@/hooks/useManagerBuildings';
+import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
+
+// Pages a manager can reach WITHOUT an active subscription (so they can pay).
+const UNGATED_PATHS = ['/manager/wallet', '/manager/profile'];
 
 const titles: Record<string, string> = {
   '/manager': 'Manager Dashboard',
@@ -28,10 +32,16 @@ export function ManagerLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const { session, logout } = useAuth();
   const { buildings, selectedBuildingId, setSelectedBuildingId, isLoading } = useManagerBuildings();
+  const { status: subscription, loading: subLoading, refresh: refreshSubscription } = useSubscriptionStatus(selectedBuildingId);
   const navigate = useNavigate();
   const location = useLocation();
 
   const title = useMemo(() => titles[location.pathname] ?? 'Manager Dashboard', [location.pathname]);
+
+  // Gate: an inactive subscription locks every page except wallet + profile.
+  const isUngatedPath = UNGATED_PATHS.includes(location.pathname);
+  const subscriptionBlocked =
+    !!selectedBuildingId && !subLoading && subscription !== null && !subscription.active && !isUngatedPath;
 
   return (
     <div className="admin-theme relative min-h-screen bg-slate-950 text-foreground">
@@ -59,8 +69,10 @@ export function ManagerLayout() {
               <div className="rounded-md border border-border bg-card p-6 text-sm text-muted-foreground">
                 This account has not been assigned to any building. Please contact an admin.
               </div>
+            ) : subscriptionBlocked ? (
+              <Navigate to="/manager/profile" replace />
             ) : (
-              <Outlet context={{ buildingId: selectedBuildingId }} />
+              <Outlet context={{ buildingId: selectedBuildingId, subscription, refreshSubscription }} />
             )}
           </main>
         </div>

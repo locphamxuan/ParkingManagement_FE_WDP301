@@ -15,7 +15,7 @@ export function AIAutoScanZone({ onScanSuccess }: AIAutoScanZoneProps) {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Resolves Lỗi 2: Convert raw OCR text to uppercase before regex matching
+  // Convert raw OCR text to uppercase before regex matching
   const correctOcrDigits = (suffix: string): string => {
     let corrected = '';
     for (let i = 0; i < suffix.length; i++) {
@@ -123,25 +123,25 @@ export function AIAutoScanZone({ onScanSuccess }: AIAutoScanZoneProps) {
       const data = await res.json();
 
       if (data.IsErroredOnProcessing) {
-        throw new Error(data.ErrorMessage?.[0] || 'Lỗi xử lý hình ảnh.');
+        throw new Error(data.ErrorMessage?.[0] || 'Image processing error.');
       }
 
-      // Resolves Lỗi 1: Read from data.ParsedResults[0].ParsedText
+      // Read from data.ParsedResults[0].ParsedText
       const text = data.ParsedResults?.[0]?.ParsedText || data.ParsedText || '';
 
       if (!text.trim()) {
-        throw new Error('Không nhận diện được ký tự nào. Vui lòng tải lên ảnh rõ nét hơn.');
+        throw new Error('No characters recognized. Please upload a clearer image.');
       }
 
       const formattedPlate = normalizePlate(text);
       if (!formattedPlate) {
-        throw new Error('Không trích xuất được biển số xe hợp lệ.');
+        throw new Error('Could not extract a valid license plate.');
       }
 
       onScanSuccess(formattedPlate);
     } catch (err) {
       console.error(err);
-      setOcrError(err instanceof Error ? err.message : 'Nhận diện hình ảnh thất bại.');
+      setOcrError(err instanceof Error ? err.message : 'Image recognition failed.');
     } finally {
       setIsOcrLoading(false);
     }
@@ -158,7 +158,7 @@ export function AIAutoScanZone({ onScanSuccess }: AIAutoScanZoneProps) {
       recognizePlateFromImage(base64String);
     };
     reader.onerror = () => {
-      setOcrError('Không thể đọc file ảnh.');
+      setOcrError('Could not read the image file.');
       setIsOcrLoading(false);
     };
     reader.readAsDataURL(file);
@@ -189,13 +189,13 @@ export function AIAutoScanZone({ onScanSuccess }: AIAutoScanZoneProps) {
             </div>
           </div>
           <p className="text-xs text-slate-300 mb-4 max-w-[280px]">
-            Quét biển số tự động. Kéo thả ảnh CCTV tại đây hoặc sử dụng điều khiển bên dưới.
+            Automatic plate scanning. Drag &amp; drop a CCTV image here, or use the controls below.
           </p>
 
           {isOcrLoading ? (
             <div className="flex flex-col items-center justify-center py-2">
               <Loader2 className="h-8 w-8 text-orange-400 animate-spin mb-2" />
-              <p className="text-xs font-semibold text-orange-300">Đang nhận diện biển số xe...</p>
+              <p className="text-xs font-semibold text-orange-300">Recognizing license plate...</p>
             </div>
           ) : (
             <div className="flex flex-wrap gap-2.5 justify-center">
@@ -204,7 +204,7 @@ export function AIAutoScanZone({ onScanSuccess }: AIAutoScanZoneProps) {
                 onClick={() => setIsCameraOpen(true)}
                 className="h-9 px-4 rounded-xl border border-orange-500/30 bg-orange-500/15 text-xs text-orange-200 hover:bg-orange-500/25 hover:shadow-[0_0_10px_rgba(249,115,22,0.2)] gap-1.5 transition-all duration-200 animate-pulse hover:animate-none"
               >
-                <Camera size={14} /> Quét WebCam Trực Tiếp
+                <Camera size={14} /> Live Webcam Scan
               </Button>
 
               <Button
@@ -212,7 +212,7 @@ export function AIAutoScanZone({ onScanSuccess }: AIAutoScanZoneProps) {
                 onClick={() => fileInputRef.current?.click()}
                 className="h-9 px-4 rounded-xl border border-white/10 bg-white/5 text-xs text-slate-300 hover:bg-white/10 gap-1.5 transition-all duration-200"
               >
-                <Upload size={14} /> Tải Lên Ảnh Biển Số
+                <Upload size={14} /> Upload Plate Image
               </Button>
 
               <input

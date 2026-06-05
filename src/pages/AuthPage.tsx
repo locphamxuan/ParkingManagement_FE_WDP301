@@ -110,11 +110,6 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
     } catch (e) {
       console.error('Failed to load saved accounts', e);
     }
-
-    // Initialize mock database if not already present
-    if (!localStorage.getItem('pbms.allRegisteredPhones')) {
-      localStorage.setItem('pbms.allRegisteredPhones', JSON.stringify(["0911111111", "0922222222"]));
-    }
   }, []);
 
   // Reset OTP value when entering register_otp mode
@@ -344,19 +339,6 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
         return;
       }
 
-      const allRegisteredPhonesRaw = localStorage.getItem('pbms.allRegisteredPhones');
-      const allRegisteredPhones: string[] = allRegisteredPhonesRaw
-        ? JSON.parse(allRegisteredPhonesRaw)
-        : ['0911111111', '0922222222'];
-
-      if (allRegisteredPhones.includes(phoneTrimmed)) {
-        setLocalNotice({
-          message: 'This phone number has already been registered by another account!',
-          type: 'error',
-        });
-        return;
-      }
-
       const payload: Record<string, string> = {
         email: form.email.trim(),
         password: form.password,
@@ -364,12 +346,9 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
         phone: phoneTrimmed,
       };
 
+      // Backend enforces phone/email uniqueness and returns an error if duplicated.
       try {
         await onSubmit({ mode, payload });
-
-        // Add new phone to simulated registry on registration success
-        const updatedPhones = [...allRegisteredPhones, phoneTrimmed];
-        localStorage.setItem('pbms.allRegisteredPhones', JSON.stringify(updatedPhones));
       } catch (err) {
         // Error already mapped in public auth flow hook
       }

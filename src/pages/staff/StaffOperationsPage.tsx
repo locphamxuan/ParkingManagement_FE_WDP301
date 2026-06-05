@@ -4,15 +4,11 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { DataTable, type DataColumn } from '@/components/shared/DataTable';
-import { StatusBadge } from '@/components/shared/StatusBadge';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { staffApi, type ParkingSession } from '@/services/staff/staffApi';
 import { AIAutoScanZone } from '@/components/staff/AIAutoScanZone';
 import { QRCodeScannerModal } from '@/components/staff/QRCodeScannerModal';
 import { api } from '@/services/apiClient';
-
-const USE_MOCK = (import.meta.env.VITE_USE_MOCK_DATA as string | undefined) !== 'false';
 
 type VehicleKind = 'car' | 'motorcycle';
 type PaymentKind = 'cash' | 'bank_transfer';
@@ -40,7 +36,6 @@ export function StaffOperationsPage() {
   const [selectedSessionId, setSelectedSessionId] = useState('');
   const [plateNumber, setPlateNumber] = useState('');
   const [vehicleType, setVehicleType] = useState<VehicleKind>('car');
-  const [gate, setGate] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentKind>('cash');
   const [opMessage, setOpMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
   const [activeForm, setActiveForm] = useState<OperationMode>('check-in');
@@ -70,11 +65,6 @@ export function StaffOperationsPage() {
   // Fetch allowed vehicle types from floors of this building
   useEffect(() => {
     if (!buildingId) return;
-    if (USE_MOCK) {
-      setAllowedTypes(['CAR', 'MOTORCYCLE']);
-      setBuildingFloors([]);
-      return;
-    }
     api.get(`/users/buildings/${buildingId}/floors`)
       .then((res: any) => {
         const floors = res?.data?.floors || [];
@@ -181,221 +171,9 @@ export function StaffOperationsPage() {
     return null;
   }, [allowedTypes, vehicleType]);
 
-  // VN License Plate formatting Regex and cleaner
-  const cleanOcrText = (rawText: string): string => {
-    const upperText = rawText.toUpperCase().trim();
-
-    const correctOcrDigits = (suffix: string): string => {
-      let corrected = '';
-      for (let i = 0; i < suffix.length; i++) {
-        const char = suffix[i];
-        if (/[0-9]/.test(char)) {
-          corrected += char;
-        } else {
-          if (char === 'S') {
-            const prev = i > 0 ? suffix[i - 1] : '';
-            const next = i < suffix.length - 1 ? suffix[i + 1] : '';
-            if (prev === '8') {
-              corrected += '9'; // 8S -> 89
-            } else if (prev === '5') {
-              corrected += '6'; // 5S -> 56
-            } else if (next === '7') {
-              corrected += '6'; // S7 -> 67
-            } else {
-              corrected += '5'; // default S -> 5
-            }
-          } else if (char === 'B') {
-            corrected += '8';
-          } else if (char === 'O' || char === 'D' || char === 'Q') {
-            corrected += '0';
-          } else if (char === 'I' || char === 'T' || char === 'J' || char === 'L') {
-            corrected += '1';
-          } else if (char === 'Z') {
-            corrected += '2';
-          } else if (char === 'A') {
-            corrected += '4';
-          } else if (char === 'G') {
-            corrected += '6';
-          } else {
-            corrected += '0';
-          }
-        }
-      }
-      return corrected;
-    };
-    
-    // Replace all non-alphanumeric character sequences with a single space
-    const normalizedSpaces = upperText.replace(/[^A-Z0-9]+/g, ' ');
-    const parts = normalizedSpaces.split(' ').filter(p => p.length > 0);
-    
-    if (parts.length >= 2) {
-      const part1 = parts[0];
-      const suffixParts = parts.slice(1);
-      const cleanSuffixParts = suffixParts.map(p => correctOcrDigits(p));
-      
-      if (cleanSuffixParts.length === 2) {
-        const s1 = cleanSuffixParts[0];
-        const s2 = cleanSuffixParts[1];
-        if (s1.length === 3 && s2.length === 2) {
-          return `${part1}-${s1}.${s2}`;
-        }
-      }
-      
-      const combinedSuffix = cleanSuffixParts.join('');
-      if (combinedSuffix.length === 5) {
-        return `${part1}-${combinedSuffix.substring(0, 3)}.${combinedSuffix.substring(3)}`;
-      } else if (combinedSuffix.length === 4) {
-        return `${part1}-${combinedSuffix}`;
-      }
-    }
-
-    // Double fallback: regex-based
-    const pattern = /(\d{2}[^A-Z0-9]*[A-Z]{1,2}\d{0,2})[\s\-_.]*(\d{3}[\s\-_.]*\d{2}|\d{3,5})/g;
-    const match = pattern.exec(upperText);
-    if (match) {
-      const part1 = match[1].replace(/[^A-Z0-9]/g, '');
-      const part2 = correctOcrDigits(match[2].replace(/[^A-Z0-9]/g, ''));
-      
-      let formattedPart2 = part2;
-      if (part2.length === 5) {
-        formattedPart2 = part2.substring(0, 3) + '.' + part2.substring(3);
-      }
-      
-      return `${part1}-${formattedPart2}`;
-    }
-    
-    const clean = upperText.replace(/[^A-Z0-9]/g, '');
-    return clean.substring(0, 12);
-  };
-
-  const startWebcam = async () => {
-    setIsScanning(true);
-    setOcrError(null);
-    try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }
-      });
-      setTimeout(() => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = mediaStream;
-        }
-      }, 100);
-      streamRef.current = mediaStream;
-    } catch (err) {
-      console.error('Failed to start webcam:', err);
-      setOcrError('Không thể khởi động Webcam. Vui lòng cấp quyền truy cập camera.');
-    }
-  };
-
-  const stopWebcam = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
-    }
-    setIsScanning(false);
-  };
-
-  const performOcr = async (base64String: string) => {
-    setIsOcrLoading(true);
-    setOcrError(null);
-    try {
-      const formData = new FormData();
-      formData.append('apikey', 'K87161803788957');
-      formData.append('base64Image', base64String);
-      formData.append('language', 'eng');
-      formData.append('isOverlayRequired', 'false');
-
-      const res = await fetch('https://api.ocr.space/parse/image', {
-        method: 'POST',
-        body: formData,
-      });
-      
-      if (!res.ok) {
-        throw new Error(`OCR Space API trả về mã lỗi: ${res.status}`);
-      }
-
-      const data = await res.json();
-      
-      if (data.IsErroredOnProcessing) {
-        throw new Error(data.ErrorMessage?.[0] || 'Lỗi nhận diện OCR.');
-      }
-
-      const parsedText = data.ParsedResults?.[0]?.ParsedText;
-      if (!parsedText || !parsedText.trim()) {
-        throw new Error('Không nhận diện được chữ. Vui lòng thử lại với ảnh rõ nét hơn.');
-      }
-
-      const cleaned = cleanOcrText(parsedText);
-      if (!cleaned) {
-        throw new Error('Không trích xuất được biển số xe hợp lệ.');
-      }
-
-      setPlateNumber(cleaned);
-      setOpMessage({ type: 'ok', text: `Nhận diện biển số thành công: ${cleaned}` });
-
-      if (activeForm === 'check-out') {
-        const matched = sessions.find(
-          (s) => s.status === 'active' && s.plateNumber.toUpperCase().replace(/[^A-Z0-9]/g, '') === cleaned.replace(/[^A-Z0-9]/g, '')
-        );
-        if (matched) {
-          setSelectedSessionId(matched._id);
-          setOpMessage({ type: 'ok', text: `Nhận diện biển số thành công: ${cleaned} (Đã khớp với phiên đang đỗ)` });
-        } else {
-          setOpMessage({ type: 'err', text: `Nhận diện biển số thành công: ${cleaned} (Nhưng không tìm thấy phiên đang đỗ trùng khớp)` });
-        }
-      }
-    } catch (err) {
-      console.error('OCR Error:', err);
-      setOcrError(err instanceof Error ? err.message : 'Lỗi nhận diện biển số xe.');
-    } finally {
-      setIsOcrLoading(false);
-    }
-  };
-
-  const captureFrameAndScan = async () => {
-    if (!videoRef.current) return;
-    setIsOcrLoading(true);
-    setOcrError(null);
-    try {
-      const video = videoRef.current;
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth || 640;
-      canvas.height = video.videoHeight || 480;
-      
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const base64String = canvas.toDataURL('image/jpeg', 0.85);
-        
-        stopWebcam();
-        await performOcr(base64String);
-      }
-    } catch (err) {
-      setOcrError(err instanceof Error ? err.message : 'Lỗi khi chụp hình từ Webcam.');
-      setIsOcrLoading(false);
-    }
-  };
-
-  const handleImageUpload = (file: File) => {
-    if (!file) return;
-    setIsOcrLoading(true);
-    setOcrError(null);
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64String = reader.result as string;
-      performOcr(base64String);
-    };
-    reader.onerror = () => {
-      setOcrError('Không thể đọc file ảnh.');
-      setIsOcrLoading(false);
-    };
-    reader.readAsDataURL(file);
-  };
-
   const handleLprScanSuccess = (plate: string) => {
     setPlateNumber(plate);
-    setOpMessage({ type: 'ok', text: `Nhận diện biển số thành công: ${plate}` });
+    setOpMessage({ type: 'ok', text: `Plate recognized: ${plate}` });
 
     if (activeForm === 'check-out') {
       const matched = sessions.find(
@@ -403,10 +181,27 @@ export function StaffOperationsPage() {
       );
       if (matched) {
         setSelectedSessionId(matched._id);
-        setOpMessage({ type: 'ok', text: `Nhận diện biển số thành công: ${plate} (Đã khớp với phiên đang đỗ)` });
+        setOpMessage({ type: 'ok', text: `Plate recognized: ${plate} (matched an active session)` });
       } else {
-        setOpMessage({ type: 'err', text: `Nhận diện biển số thành công: ${plate} (Nhưng không tìm thấy phiên đang đỗ trùng khớp)` });
+        setOpMessage({ type: 'err', text: `Plate recognized: ${plate} (no matching active session found)` });
       }
+    }
+  };
+
+  // Resolve a scanned plate-QR token (PLT-...) → owner + plate, then reuse the LPR flow.
+  const handlePlateQrScan = async (qrCode: string) => {
+    try {
+      const res = await staffApi.lookupPlateQr(qrCode);
+      const data = (res as any)?.data;
+      if (data?.found && data.plate?.plateNumber) {
+        const ownerName = data.user?.fullName ? ` — ${data.user.fullName}` : '';
+        handleLprScanSuccess(data.plate.plateNumber);
+        setOpMessage({ type: 'ok', text: `Scanned plate QR: ${data.plate.plateNumber}${ownerName}` });
+      } else {
+        setOpMessage({ type: 'err', text: 'No plate matches the scanned QR code.' });
+      }
+    } catch (err) {
+      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Failed to look up plate QR.' });
     }
   };
 
@@ -440,10 +235,10 @@ export function StaffOperationsPage() {
           email: data.user.email,
         });
       } else {
-        setBindingError('Không tìm thấy tài khoản khách hàng nào khớp với thông tin nhập.');
+        setBindingError('No customer account matches the entered info.');
       }
     } catch (err) {
-      setBindingError(err instanceof Error ? err.message : 'Lỗi truy vấn khách hàng.');
+      setBindingError(err instanceof Error ? err.message : 'Failed to look up customer.');
     } finally {
       setBindingLoading(false);
     }
@@ -460,7 +255,7 @@ export function StaffOperationsPage() {
       
       setOpMessage({
         type: 'ok',
-        text: `Đã liên kết biển số xe ${scannedPlateForBinding} vào tài khoản khách hàng ${foundCustomer.fullName} thành công!`,
+        text: `Linked plate ${scannedPlateForBinding} to ${foundCustomer.fullName}'s account successfully!`,
       });
       
       setPlateAccountInfo({
@@ -472,7 +267,7 @@ export function StaffOperationsPage() {
       setCustomerIdOrEmail('');
       setFoundCustomer(null);
     } catch (err) {
-      setBindingError(err instanceof Error ? err.message : 'Lỗi liên kết biển số.');
+      setBindingError(err instanceof Error ? err.message : 'Failed to link plate.');
     } finally {
       setBindingLoading(false);
     }
@@ -516,38 +311,6 @@ export function StaffOperationsPage() {
   const selectedSession = sessions.find((s) => s._id === selectedSessionId) ?? null;
   const activeSessions = sessions.filter((s) => s.status === 'active');
 
-  const columns: DataColumn<ParkingSession>[] = [
-    { key: 'plateNumber', title: 'Plate' },
-    {
-      key: 'vehicleType',
-      title: 'Vehicle Type',
-      render: (row) => (row.vehicleType ? `${row.vehicleType.name} (${row.vehicleType.code})` : '—'),
-    },
-    {
-      key: 'floor',
-      title: 'Floor',
-      render: (row) => (row as any).slot?.floor?.name ?? '—',
-    },
-    {
-      key: 'slot',
-      title: 'Slot',
-      render: (row) => (row as any).slot?.code ?? '—',
-    },
-    { key: 'entryGate', title: 'Gate', render: (row) => row.entryGate?.code ?? '—' },
-    { key: 'checkIn', title: 'Entry', render: (row) => fmtTime(row.checkIn) },
-    { key: 'checkOut', title: 'Exit', render: (row) => fmtTime(row.checkOut) },
-    {
-      key: 'paymentStatus',
-      title: 'Payment',
-      render: (row) => <StatusBadge status={row.paymentStatus} />,
-    },
-    {
-      key: 'status',
-      title: 'Status',
-      render: (row) => <StatusBadge status={row.status} />,
-    },
-  ];
-
   const selectOperation = (nextMode: OperationMode) => {
     setActiveForm(nextMode);
     setOpMessage(null);
@@ -562,12 +325,10 @@ export function StaffOperationsPage() {
       await staffApi.checkIn({
         plateNumber: currentPlate,
         vehicleType: vehicleType === 'motorcycle' ? 'motorcycle' : 'car',
-        gate: gate.trim() || undefined,
         building: buildingId || undefined,
       });
-      setOpMessage({ type: 'ok', text: `Đã tạo phiên gửi xe thành công cho biển số ${currentPlate}.` });
+      setOpMessage({ type: 'ok', text: `Parking session created successfully for plate ${currentPlate}.` });
       setPlateNumber('');
-      setGate('');
       setActiveForm('check-out');
       setReloadTick((n) => n + 1);
 
@@ -575,7 +336,7 @@ export function StaffOperationsPage() {
         setPlateToPromptBinding(currentPlate);
       }
     } catch (err) {
-      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Check-in thất bại' });
+      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Check-in failed' });
     }
   };
 
@@ -755,7 +516,7 @@ export function StaffOperationsPage() {
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                           </span>
                           <p className="text-xs text-emerald-300">
-                            Khách hàng thành viên: <strong className="text-white">{plateAccountInfo.user?.fullName}</strong> ({plateAccountInfo.user?.email || 'Không có email'})
+                            Member: <strong className="text-white">{plateAccountInfo.user?.fullName}</strong> ({plateAccountInfo.user?.email || 'No email'})
                           </p>
                         </div>
                       )}
@@ -769,7 +530,7 @@ export function StaffOperationsPage() {
                               <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
                             </span>
                             <p className="text-xs text-orange-200">
-                              Biển số <strong className="text-white">{plateNumber.toUpperCase()}</strong> chưa liên kết với tài khoản thành viên nào.
+                              Plate <strong className="text-white">{plateNumber.toUpperCase()}</strong> is not linked to any member account.
                             </p>
                           </div>
                           <Button
@@ -780,12 +541,12 @@ export function StaffOperationsPage() {
                             }}
                             className="h-8 rounded-lg bg-orange-500 text-[10px] text-slate-950 font-bold hover:bg-orange-400 px-3 shrink-0"
                           >
-                            Liên Kết Tài Khoản Khách
+                            Link Customer Account
                           </Button>
                         </div>
                       )}
                     </div>
-                    <div className="grid gap-1.5">
+                    <div className="grid gap-1.5 md:col-span-2">
                       <label className="text-xs uppercase tracking-[0.18em] text-slate-400">Vehicle Type</label>
                       <div className="flex gap-2 p-1 rounded-xl bg-slate-950 border border-white/10">
                         <button
@@ -832,22 +593,6 @@ export function StaffOperationsPage() {
                           <AlertCircle size={12} />
                           {buildingSupportWarning}
                         </div>
-                      )}
-                    </div>
-                    <div className="grid gap-1.5">
-                      <label className="text-xs uppercase tracking-[0.18em] text-slate-400">
-                        Entry Gate <span className="text-orange-400 font-bold">*</span>
-                      </label>
-                      <Input
-                        value={gate}
-                        onChange={(e) => setGate(e.target.value)}
-                        placeholder="Gate A (e.g. CV_T1)"
-                        className="border-white/10 bg-white/5 text-white placeholder:text-slate-500"
-                      />
-                      {!gate.trim() && (
-                        <span className="text-[10px] text-amber-400">
-                          Vui lòng điền cổng vào để check-in.
-                        </span>
                       )}
                     </div>
                   </>
@@ -910,7 +655,7 @@ export function StaffOperationsPage() {
               ) : (
                 <Button
                   onClick={onCheckIn}
-                  disabled={!plateNumber.trim() || !gate.trim() || loading || !!buildingSupportWarning || !!plateTypeWarning}
+                  disabled={!plateNumber.trim() || loading || !!buildingSupportWarning || !!plateTypeWarning}
                   className="gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <ScanLine size={14} /> Check-in
@@ -934,7 +679,7 @@ export function StaffOperationsPage() {
                   onClick={() => setIsQrModalOpen(true)}
                   className="shrink-0 rounded-xl border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 gap-1.5"
                 >
-                  <QrCode size={14} /> Quét QR
+                  <QrCode size={14} /> Scan QR
                 </Button>
                 <Button
                   type="button"
@@ -992,15 +737,21 @@ export function StaffOperationsPage() {
                   <div className="mt-1 rounded-full bg-orange-500/15 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-orange-300">
                     {s.paymentStatus}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-white">{s.plateNumber}</p>
-                    <p className="mt-1 truncate text-sm text-slate-400">
-                      {s.entryGate?.code ?? '—'} ·{' '}
-                      {s.vehicleType ? `${s.vehicleType.name}` : '—'}
-                      {(s as any).slot?.floor?.name ? ` · ${(s as any).slot.floor.name}` : ''}
-                      {(s as any).slot?.code ? ` (${(s as any).slot.code})` : ''}
-                    </p>
-                    <p className="mt-0.5 text-xs text-slate-500">{fmtTime(s.checkIn)}</p>
+                  <div className="flex-1 min-w-0 space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-white">{s.plateNumber}</p>
+                      <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-bold text-slate-300">
+                        {s.reservation ? 'Reservation' : 'Walk-in'}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-slate-400">
+                      <p><span className="text-slate-500">Vehicle:</span> {s.vehicleType?.name ?? '—'}</p>
+                      <p><span className="text-slate-500">Floor:</span> {s.slot?.floor?.name ?? '—'}</p>
+                      <p><span className="text-slate-500">Slot:</span> {s.slot?.code ?? '—'}</p>
+                      <p><span className="text-slate-500">Gate:</span> {s.entryGate?.code ?? '—'}</p>
+                      <p className="col-span-2"><span className="text-slate-500">Check-in:</span> {fmtTime(s.checkIn)}</p>
+                      <p className="col-span-2"><span className="text-slate-500">Check-out:</span> {s.checkOut ? fmtTime(s.checkOut) : '—'}</p>
+                    </div>
                   </div>
                 </button>
               ))
@@ -1009,31 +760,20 @@ export function StaffOperationsPage() {
         </Card>
       </section>
 
-      {/* Full sessions table */}
-      <Card className="border-white/10 bg-white/5">
-        <CardHeader>
-          <CardTitle className="text-white">All Sessions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <p className="text-sm text-slate-400">Loading...</p>
-          ) : error ? (
-            <p className="text-sm text-rose-300">{error}</p>
-          ) : sessions.length === 0 ? (
-            <p className="text-sm text-slate-400">No sessions found.</p>
-          ) : (
-            <DataTable title={`Parking Sessions (${sessions.length})`} rows={sessions} columns={columns} />
-          )}
-        </CardContent>
-      </Card>
-
       {/* QR Scanner Modal */}
       <QRCodeScannerModal
         isOpen={isQrModalOpen}
         onClose={() => setIsQrModalOpen(false)}
         onSuccess={(code) => {
-          setReservationCode(code);
-          setOpMessage({ type: 'ok', text: `Đã quét thành công mã QR đặt chỗ: ${code}` });
+          const trimmed = code.trim();
+          if (trimmed.toUpperCase().startsWith('PLT-')) {
+            // Per-plate QR token → identify the vehicle/owner and prefill the plate.
+            handlePlateQrScan(trimmed);
+          } else {
+            setReservationCode(trimmed);
+            setOpMessage({ type: 'ok', text: `Reservation QR scanned successfully: ${trimmed}` });
+          }
+          setIsQrModalOpen(false);
         }}
       />
 
@@ -1048,7 +788,7 @@ export function StaffOperationsPage() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.24em] text-orange-300">Account Link</p>
-                <h3 className="text-xl font-semibold text-white">Liên Kết Biển Số</h3>
+                <h3 className="text-xl font-semibold text-white">Link License Plate</h3>
               </div>
               <button
                 onClick={() => { setIsBindingModalOpen(false); setCustomerIdOrEmail(''); setFoundCustomer(null); setBindingError(null); }}
@@ -1059,17 +799,17 @@ export function StaffOperationsPage() {
             </div>
 
             <p className="text-xs text-slate-300 mb-4 leading-relaxed">
-              Bạn đang thực hiện liên kết biển số xe <strong className="text-orange-300 font-mono text-sm">{scannedPlateForBinding}</strong> vào tài khoản thành viên của khách hàng.
+              You are linking plate <strong className="text-orange-300 font-mono text-sm">{scannedPlateForBinding}</strong> to the customer's member account.
             </p>
 
             <div className="space-y-4">
               <div className="grid gap-1.5">
-                <label className="text-xs uppercase tracking-[0.18em] text-slate-400">ID / Email / QR Code Khách</label>
+                <label className="text-xs uppercase tracking-[0.18em] text-slate-400">Customer ID / Email / QR Code</label>
                 <div className="flex gap-2">
                   <Input
                     value={customerIdOrEmail}
                     onChange={(e) => setCustomerIdOrEmail(e.target.value)}
-                    placeholder="Nhập ID, email hoặc mã QR của khách"
+                    placeholder="Enter customer ID, email, or QR code"
                     className="border-white/10 bg-white/5 text-white placeholder:text-slate-500 text-xs"
                     onKeyDown={(e) => e.key === 'Enter' && handleLookupCustomer()}
                   />
@@ -1079,14 +819,14 @@ export function StaffOperationsPage() {
                     disabled={bindingLoading || !customerIdOrEmail.trim()}
                     className="rounded-xl bg-orange-500 text-slate-950 hover:bg-orange-400 shrink-0 text-xs px-4"
                   >
-                    Kiểm Tra
+                    Check
                   </Button>
                 </div>
               </div>
 
               {bindingLoading && (
                 <div className="flex items-center gap-2 text-xs text-orange-300">
-                  <Loader2 className="h-4 w-4 animate-spin animate-infinite" /> Đang xử lý...
+                  <Loader2 className="h-4 w-4 animate-spin animate-infinite" /> Processing...
                 </div>
               )}
 
@@ -1099,9 +839,9 @@ export function StaffOperationsPage() {
 
               {foundCustomer && (
                 <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 space-y-3">
-                  <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Khách hàng thành viên</p>
+                  <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Member</p>
                   <div className="text-xs space-y-1.5 text-slate-300">
-                    <p>Họ tên: <strong className="text-white">{foundCustomer.fullName}</strong></p>
+                    <p>Name: <strong className="text-white">{foundCustomer.fullName}</strong></p>
                     <p>Email: <strong className="text-white">{foundCustomer.email}</strong></p>
                   </div>
                   <Button
@@ -1109,7 +849,7 @@ export function StaffOperationsPage() {
                     disabled={bindingLoading}
                     className="w-full h-10 rounded-xl bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 font-bold text-xs"
                   >
-                    Đồng Ý Liên Kết Biển Số Xe 🎯
+                    Confirm Link Plate 🎯
                   </Button>
                 </div>
               )}
@@ -1122,7 +862,7 @@ export function StaffOperationsPage() {
                 disabled={bindingLoading}
                 className="rounded-xl border border-white/10 bg-white/5 text-white hover:bg-white/10 text-xs px-4 h-9"
               >
-                Hủy bỏ
+                Cancel
               </Button>
             </div>
           </motion.div>
@@ -1146,24 +886,24 @@ export function StaffOperationsPage() {
                 <Sparkles className="h-6 w-6 animate-pulse" />
               </div>
               <div className="flex-1">
-                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-orange-400">Gợi Ý Hệ Thống (AI Suggestion)</p>
-                <h3 className="mt-1 text-lg font-bold text-white">Hỏi Khách Hàng Thêm Biển Số</h3>
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-orange-400">AI Suggestion</p>
+                <h3 className="mt-1 text-lg font-bold text-white">Ask Customer to Save Plate</h3>
               </div>
             </div>
 
             <div className="mt-6 space-y-4 relative z-10">
               <div className="rounded-2xl border border-white/5 bg-white/5 p-4 text-center">
-                <p className="text-xs text-slate-400">Biển số vừa check-in</p>
+                <p className="text-xs text-slate-400">Plate just checked in</p>
                 <p className="mt-1 font-mono text-2xl font-black tracking-wider text-orange-300">{plateToPromptBinding}</p>
               </div>
 
               <div className="rounded-2xl border border-orange-500/20 bg-orange-500/5 p-4">
                 <p className="text-xs font-semibold text-orange-300 mb-1.5 flex items-center gap-1.5">
                   <UserPlus size={14} className="shrink-0" />
-                  Bảo vệ gợi ý khách hàng:
+                  Suggested staff message to the customer:
                 </p>
                 <p className="text-sm italic text-slate-200 leading-relaxed">
-                  "Dạ thưa anh/chị, biển số này chưa được đăng ký vào tài khoản. Anh/chị có muốn lưu biển số vào tài khoản thành viên để lần sau tự động mở cổng và tích điểm không ạ?"
+                  "This plate isn't registered to an account yet. Would you like to save it to your member account so the gate opens automatically and you earn points next time?"
                 </p>
               </div>
             </div>
@@ -1174,7 +914,7 @@ export function StaffOperationsPage() {
                 onClick={() => setPlateToPromptBinding(null)}
                 className="rounded-xl border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 text-xs px-4 h-11 transition-all duration-300"
               >
-                Không, Bỏ Qua
+                No, Skip
               </Button>
               <Button
                 onClick={() => {
@@ -1184,7 +924,7 @@ export function StaffOperationsPage() {
                 }}
                 className="rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-bold hover:brightness-110 shadow-lg shadow-orange-500/20 text-xs px-4 h-11 transition-all duration-300 flex items-center justify-center gap-1.5"
               >
-                Có, Liên Kết Ngay 🎯
+                Yes, Link Now 🎯
               </Button>
             </div>
           </motion.div>

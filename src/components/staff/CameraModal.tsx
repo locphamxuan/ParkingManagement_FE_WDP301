@@ -28,7 +28,7 @@ export function CameraModal({ isOpen, onClose, onSuccess }: CameraModalProps) {
       streamRef.current = mediaStream;
     } catch (err) {
       console.error('Failed to start webcam:', err);
-      setOcrError('Không thể khởi động Webcam. Vui lòng cấp quyền truy cập camera.');
+      setOcrError('Could not start the webcam. Please grant camera access.');
     }
   };
 
@@ -159,19 +159,19 @@ export function CameraModal({ isOpen, onClose, onSuccess }: CameraModalProps) {
       const data = await res.json();
 
       if (data.IsErroredOnProcessing) {
-        throw new Error(data.ErrorMessage?.[0] || 'Lỗi xử lý hình ảnh.');
+        throw new Error(data.ErrorMessage?.[0] || 'Image processing error.');
       }
 
-      // Resolves Lỗi 1: Read from data.ParsedResults[0].ParsedText
+      // Read from data.ParsedResults[0].ParsedText
       const text = data.ParsedResults?.[0]?.ParsedText || data.ParsedText || '';
       
       if (!text.trim()) {
-        throw new Error('Không nhận diện được ký tự nào. Vui lòng thử lại với ảnh rõ nét hơn.');
+        throw new Error('No characters recognized. Please try again with a clearer image.');
       }
 
       const formattedPlate = normalizePlate(text);
       if (!formattedPlate) {
-        throw new Error('Không trích xuất được biển số hợp lệ.');
+        throw new Error('Could not extract a valid license plate.');
       }
 
       onSuccess(formattedPlate);
@@ -179,7 +179,7 @@ export function CameraModal({ isOpen, onClose, onSuccess }: CameraModalProps) {
       onClose();
     } catch (err) {
       console.error(err);
-      setOcrError(err instanceof Error ? err.message : 'Nhận diện thất bại.');
+      setOcrError(err instanceof Error ? err.message : 'Recognition failed.');
     } finally {
       setIsOcrLoading(false);
     }
@@ -200,7 +200,7 @@ export function CameraModal({ isOpen, onClose, onSuccess }: CameraModalProps) {
         await recognizePlateFromImage(base64String);
       }
     } catch (err) {
-      setOcrError('Không thể chụp hình từ webcam.');
+      setOcrError('Could not capture from webcam.');
     }
   };
 
@@ -227,7 +227,7 @@ export function CameraModal({ isOpen, onClose, onSuccess }: CameraModalProps) {
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.24em] text-orange-300">Live AI Feed</p>
-            <h3 className="text-xl font-semibold text-white">Quét Biển Số WebCam</h3>
+            <h3 className="text-xl font-semibold text-white">Webcam Plate Scan</h3>
           </div>
           <button
             onClick={() => { stopWebcam(); onClose(); }}
@@ -247,7 +247,7 @@ export function CameraModal({ isOpen, onClose, onSuccess }: CameraModalProps) {
                 onClick={startWebcam}
                 className="mt-4 h-8 px-4 rounded-lg bg-white/10 text-xs text-white hover:bg-white/20"
               >
-                Thử Lại
+                Retry
               </Button>
             </div>
           )}
@@ -269,7 +269,7 @@ export function CameraModal({ isOpen, onClose, onSuccess }: CameraModalProps) {
             <div className="absolute bottom-4 right-4 h-5 w-5 border-b-2 border-r-2 border-emerald-400" />
             <div className="absolute inset-0 flex items-center justify-center">
               <p className="text-[10px] uppercase font-bold tracking-widest text-emerald-400/60 bg-slate-950/40 px-3 py-1 rounded-full border border-emerald-500/20 backdrop-blur-sm">
-                Căn biển số vào khu vực này
+                Align the plate within this area
               </p>
             </div>
           </div>
@@ -284,11 +284,11 @@ export function CameraModal({ isOpen, onClose, onSuccess }: CameraModalProps) {
           >
             {isOcrLoading ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" /> Nhận diện...
+                <Loader2 className="h-4 w-4 animate-spin" /> Recognizing...
               </>
             ) : (
               <>
-                🎯 Chụp & Nhận Diện
+                🎯 Capture &amp; Recognize
               </>
             )}
           </Button>
@@ -297,7 +297,7 @@ export function CameraModal({ isOpen, onClose, onSuccess }: CameraModalProps) {
             onClick={() => { stopWebcam(); onClose(); }}
             className="h-11 rounded-xl border border-white/10 bg-white/5 text-white hover:bg-white/10"
           >
-            Đóng
+            Close
           </Button>
         </div>
       </motion.div>

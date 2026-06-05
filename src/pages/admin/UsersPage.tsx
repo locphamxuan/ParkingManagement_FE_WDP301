@@ -318,7 +318,7 @@ export function UsersPage() {
             {row.status === "active" ? "Lock" : "Unlock"}
           </Button>
           <Button
-            variant="destructive"
+            variant="danger"
             size="sm"
             onClick={() => setPendingDeleteUser(row)}
           >

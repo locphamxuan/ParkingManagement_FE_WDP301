@@ -27,9 +27,19 @@ export interface AdminUser {
   createdAt?: string;
 }
 
+export interface ManagerSubscriptionStatus {
+  active: boolean;
+  endDate: string | null;
+  startDate: string | null;
+  daysRemaining: number;
+  package: { _id: string; name: string; price: number; durationDays: number } | null;
+  packageName: string | null;
+}
+
 export interface BuildingMembers {
   manager: AdminUser | null;
   staff: AdminUser[];
+  subscription?: ManagerSubscriptionStatus;
 }
 
 export interface AdminAuditLog {
@@ -111,6 +121,16 @@ export const adminApi = {
       api.post(`/admin/buildings/${buildingId}/assign-staff`, { userId }),
     revokeStaff: (buildingId: string, userId: string) =>
       api.post(`/admin/buildings/${buildingId}/revoke-staff`, { userId }),
+    grantSubscription: (buildingId: string, packageId: string) =>
+      api.post<Wrap<{ subscription: ManagerSubscriptionStatus }>>(
+        `/admin/buildings/${buildingId}/subscription/grant`,
+        { packageId },
+      ),
+    revokeSubscription: (buildingId: string) =>
+      api.post<Wrap<{ subscription: ManagerSubscriptionStatus }>>(
+        `/admin/buildings/${buildingId}/subscription/revoke`,
+        {},
+      ),
   },
 
   users: {
@@ -133,14 +153,40 @@ export const adminApi = {
     get: () => api.get<Wrap<{ wallet: SystemWallet }>>('/admin/wallet'),
     distributions: (q?: Record<string, string | undefined>) =>
       api.get<Wrap<ListResult<WalletDistribution>>>('/admin/wallet/distributions', { query: q }),
-    dailyTransfers: (q?: Record<string, string | undefined>) =>
-      api.get<Wrap<{
-        todayTotal: number;
-        todayBreakdown: { buildingId: string; buildingName: string; buildingCode: string; total: number; count: number }[];
-        trend: { date: string; total: number; count: number }[];
-      }>>('/admin/wallet/daily-transfers', { query: q }),
   },
 
   revenue: (q?: Record<string, string | undefined>) =>
     api.get<Wrap<{ items: { date: string; building: { _id: string; name: string; code: string }; totalRevenue: number; sessionCount: number }[]; total: number }>>('/admin/revenue', { query: q }),
+
+  subscriptionRevenue: (q?: Record<string, string | undefined>) =>
+    api.get<Wrap<{ items: SubscriptionTransfer[]; total: number; grandTotal: number }>>('/admin/revenue/subscriptions', { query: q }),
+
+  subscriptionPackages: {
+    list: () => api.get<Wrap<{ items: AdminSubscriptionPackage[] }>>('/admin/subscription-packages'),
+    create: (body: Partial<AdminSubscriptionPackage>) =>
+      api.post<Wrap<AdminSubscriptionPackage>>('/admin/subscription-packages', body),
+    update: (id: string, body: Partial<AdminSubscriptionPackage>) =>
+      api.put<Wrap<AdminSubscriptionPackage>>(`/admin/subscription-packages/${id}`, body),
+    remove: (id: string) => api.delete(`/admin/subscription-packages/${id}`),
+  },
 };
+
+export interface AdminSubscriptionPackage {
+  _id: string;
+  name: string;
+  price: number;
+  durationDays: number;
+  description?: string;
+  features: string[];
+  isActive: boolean;
+  createdAt?: string;
+}
+
+export interface SubscriptionTransfer {
+  _id: string;
+  building?: { _id: string; name: string; code: string };
+  performedBy?: { _id: string; fullName: string; email: string };
+  amount: number;
+  balanceAfter: number;
+  createdAt: string;
+}

@@ -18,7 +18,7 @@ import {
   revokeStaffFromBuilding,
   revokeManagerFromBuilding,
 } from "@/services/admin/adminCrud";
-import { adminApi, type AdminUser } from "@/services/admin/adminApi";
+import { adminApi, type AdminUser, type ManagerSubscriptionStatus, type AdminSubscriptionPackage } from "@/services/admin/adminApi";
 import type { Building } from "@/types";
 
 const PAGE_SIZE = 3;
@@ -28,6 +28,7 @@ interface MembersState {
   buildingName: string;
   manager: AdminUser | null;
   staff: AdminUser[];
+  subscription: ManagerSubscriptionStatus | null;
 }
 
 export function BuildingsPage() {
@@ -51,6 +52,12 @@ export function BuildingsPage() {
   // Delete member state
   const [pendingDeleteMember, setPendingDeleteMember] = useState<AdminUser | null>(null);
   const [isDeletingMember, setIsDeletingMember] = useState(false);
+  const [showSubDetails, setShowSubDetails] = useState(false);
+
+  // Admin subscription override (grant / revoke for a building's manager)
+  const [subPackages, setSubPackages] = useState<AdminSubscriptionPackage[]>([]);
+  const [grantPackageId, setGrantPackageId] = useState("");
+  const [subActionLoading, setSubActionLoading] = useState(false);
 
   const [form, setForm] = useState({
     name: "",
@@ -86,21 +93,62 @@ export function BuildingsPage() {
 
   const openViewMembers = async (building: Building) => {
     const bid = building.backendId || building.id;
-    setMembersState({ buildingId: bid, buildingName: building.name, manager: null, staff: [] });
+    setShowSubDetails(false);
+    setMembersState({ buildingId: bid, buildingName: building.name, manager: null, staff: [], subscription: null });
     setIsMembersLoading(true);
     setMembersError(null);
     try {
-      const res = await adminApi.buildings.getMembers(bid);
+      const [res, pkgRes] = await Promise.all([
+        adminApi.buildings.getMembers(bid),
+        adminApi.subscriptionPackages.list(),
+      ]);
       setMembersState({
         buildingId: bid,
         buildingName: building.name,
         manager: res.data?.manager ?? null,
         staff: res.data?.staff ?? [],
+        subscription: res.data?.subscription ?? null,
       });
+      const pkgs = (pkgRes.data?.items ?? []).filter((p) => p.isActive);
+      setSubPackages(pkgs);
+      setGrantPackageId(pkgs[0]?._id ?? "");
     } catch (err) {
       setMembersError(err instanceof Error ? err.message : "Failed to load members");
     } finally {
       setIsMembersLoading(false);
+    }
+  };
+
+  const handleGrantSubscription = async () => {
+    if (!token || !membersState || !grantPackageId) return;
+    setSubActionLoading(true);
+    setActionError(null);
+    try {
+      const res = await adminApi.buildings.grantSubscription(membersState.buildingId, grantPackageId);
+      setMembersState((prev) =>
+        prev ? { ...prev, subscription: res.data?.subscription ?? prev.subscription } : prev,
+      );
+      setShowSubDetails(true);
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Unable to grant subscription");
+    } finally {
+      setSubActionLoading(false);
+    }
+  };
+
+  const handleRevokeSubscription = async () => {
+    if (!token || !membersState) return;
+    setSubActionLoading(true);
+    setActionError(null);
+    try {
+      const res = await adminApi.buildings.revokeSubscription(membersState.buildingId);
+      setMembersState((prev) =>
+        prev ? { ...prev, subscription: res.data?.subscription ?? null } : prev,
+      );
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Unable to revoke subscription");
+    } finally {
+      setSubActionLoading(false);
     }
   };
 
@@ -334,18 +382,109 @@ export function BuildingsPage() {
                     Manager
                   </h3>
                   {membersState.manager ? (
-                    <div className="flex items-center justify-between rounded-xl border border-border bg-card p-3 text-sm">
-                      <div>
-                        <p className="font-medium">{membersState.manager.fullName}</p>
-                        <p className="text-muted-foreground">{membersState.manager.email}</p>
+                    <div className="rounded-xl border border-border bg-card p-3 text-sm">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">{membersState.manager.fullName}</p>
+                          <p className="text-muted-foreground">{membersState.manager.email}</p>
+                        </div>
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={() => setPendingDeleteMember(membersState.manager!)}
+                        >
+                          Delete
+                        </Button>
                       </div>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => setPendingDeleteMember(membersState.manager!)}
-                      >
-                        Delete
-                      </Button>
+
+                      {/* Subscription status — click to view package details */}
+                      <div className="mt-3 border-t border-border/60 pt-3">
+                        {membersState.subscription?.active ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => setShowSubDetails((v) => !v)}
+                              className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-600 transition hover:bg-emerald-500/15"
+                            >
+                              ✓ Package purchased
+                              <span className="text-[10px] font-normal opacity-70">
+                                {showSubDetails ? "▲" : "▼"}
+                              </span>
+                            </button>
+                            {showSubDetails ? (
+                              <div className="mt-2 grid gap-1 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs">
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">Package</span>
+                                  <span className="font-semibold">
+                                    {membersState.subscription.packageName ||
+                                      membersState.subscription.package?.name ||
+                                      "—"}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">Valid until</span>
+                                  <span className="font-semibold">
+                                    {membersState.subscription.endDate
+                                      ? new Date(membersState.subscription.endDate).toLocaleDateString("en-US", { dateStyle: "medium" } as Intl.DateTimeFormatOptions)
+                                      : "—"}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">Days remaining</span>
+                                  <span className="font-semibold">{membersState.subscription.daysRemaining} days</span>
+                                </div>
+                              </div>
+                            ) : null}
+                          </>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-bold text-amber-600">
+                            ✕ No active package
+                          </span>
+                        )}
+
+                        {/* Admin override: grant / extend / revoke the subscription */}
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          {subPackages.length === 0 ? (
+                            <p className="text-xs italic text-muted-foreground">
+                              No admin packages defined. Create one in System Wallet.
+                            </p>
+                          ) : (
+                            <>
+                              <select
+                                value={grantPackageId}
+                                onChange={(e) => setGrantPackageId(e.target.value)}
+                                className="h-9 rounded-lg border border-border bg-secondary px-2 text-xs text-foreground outline-none"
+                              >
+                                {subPackages.map((p) => (
+                                  <option key={p._id} value={p._id}>
+                                    {p.name} · {p.durationDays}d · {p.price.toLocaleString()} VND
+                                  </option>
+                                ))}
+                              </select>
+                              <Button
+                                size="sm"
+                                onClick={handleGrantSubscription}
+                                disabled={subActionLoading || !grantPackageId}
+                              >
+                                {membersState.subscription?.active ? "Extend" : "Grant"}
+                              </Button>
+                            </>
+                          )}
+                          {membersState.subscription?.active ? (
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={handleRevokeSubscription}
+                              disabled={subActionLoading}
+                            >
+                              Revoke
+                            </Button>
+                          ) : null}
+                          {subActionLoading ? (
+                            <span className="text-xs text-muted-foreground">Saving…</span>
+                          ) : null}
+                        </div>
+                      </div>
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground italic">No manager assigned</p>
@@ -373,7 +512,7 @@ export function BuildingsPage() {
                           <div className="flex items-center gap-2">
                             <StatusBadge status={s.isActive ? "active" : "inactive"} />
                             <Button
-                              variant="destructive"
+                              variant="danger"
                               size="sm"
                               onClick={() => setPendingDeleteMember(s)}
                             >

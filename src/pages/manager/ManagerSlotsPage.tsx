@@ -323,7 +323,7 @@ export function ManagerSlotsPage() {
       render: (row) => {
         const id = typeof row.floor === 'string' ? row.floor : row.floor._id;
         const fl = floorMap.get(id);
-        return fl ? fl.name || fl.code : '?';
+        return fl ? fl.code : '?';
       },
     },
     {
@@ -388,7 +388,7 @@ export function ManagerSlotsPage() {
             <option value="">All floors</option>
             {floors.map((f) => (
               <option key={f._id} value={f._id}>
-                {f.code} - {f.name}
+                {f.code}
               </option>
             ))}
           </select>
@@ -507,7 +507,7 @@ export function ManagerSlotsPage() {
                           {/* Floor label badge */}
                           <div className="flex justify-between items-center mb-4 z-10 preserve-3d" style={{ transform: 'translateZ(15px)' }}>
                             <span className="text-[10px] font-black tracking-widest text-orange-400 uppercase font-mono bg-slate-950/80 px-2.5 py-1 rounded-lg border border-white/5">
-                              FLOOR {floor.code} - {floor.name}
+                              FLOOR {floor.code}
                             </span>
                             <span className="text-[9px] font-bold text-slate-500 font-mono">
                               CAPACITY: {floorSlots.filter(s => s.status === 'occupied').length}/{floorSlots.length} SLOTS
@@ -532,7 +532,7 @@ export function ManagerSlotsPage() {
                           </div>
 
                           <div className="text-[8px] text-slate-600 font-black tracking-widest uppercase font-mono text-right preserve-3d mt-4" style={{ transform: 'translateZ(5px)' }}>
-                            {floor.name || floor.code}
+                            {floor.code}
                           </div>
                         </motion.div>
                       );
@@ -675,7 +675,7 @@ export function ManagerSlotsPage() {
               <option value="">Select floor</option>
               {floors.map((fl) => (
                 <option key={fl._id} value={fl._id}>
-                  {fl.code} - {fl.name}
+                  {fl.code}
                 </option>
               ))}
             </select>

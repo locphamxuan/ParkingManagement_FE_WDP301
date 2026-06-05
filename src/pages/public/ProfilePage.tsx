@@ -88,13 +88,6 @@ export default function ProfilePage() {
     };
   }, [session]);
 
-  useEffect(() => {
-    // Initialize mock database if not already present
-    if (!localStorage.getItem('pbms.allRegisteredPhones')) {
-      localStorage.setItem('pbms.allRegisteredPhones', JSON.stringify(["0911111111", "0922222222"]));
-    }
-  }, []);
-
   if (!session || !user) {
     return <Navigate to="/auth/login" replace />;
   }
@@ -203,24 +196,6 @@ export default function ProfilePage() {
       setProfileError('Phone number must start with 0 and contain exactly 10 digits!');
       return;
     }
-
-    // Step 2: Duplicate check
-    const allRegisteredPhonesRaw = localStorage.getItem('pbms.allRegisteredPhones');
-    let allRegisteredPhones: string[] = allRegisteredPhonesRaw
-      ? JSON.parse(allRegisteredPhonesRaw)
-      : ['0911111111', '0922222222'];
-
-    if (newPhone !== oldPhone && allRegisteredPhones.includes(newPhone)) {
-      setProfileError('This phone number is already registered to another account!');
-      return;
-    }
-
-    // Step 3: Update simulated registry
-    if (oldPhone) {
-      allRegisteredPhones = allRegisteredPhones.filter((p) => p !== oldPhone);
-    }
-    allRegisteredPhones.push(newPhone);
-    localStorage.setItem('pbms.allRegisteredPhones', JSON.stringify(allRegisteredPhones));
 
     setIsSaving(true);
 

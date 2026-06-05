@@ -1,13 +1,18 @@
 import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Edit, LogOut, Save, User, X, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Edit, LogOut, Save, X, AlertCircle, CheckCircle2, ShieldAlert, ShieldCheck, Wallet } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export function ManagerProfilePage() {
   const { session, logout, updateProfile } = useAuth();
+  const { subscription } = useBuildingContext();
   const navigate = useNavigate();
+
+  const fmtDate = (iso: string | null | undefined) =>
+    iso ? new Date(iso).toLocaleDateString('en-US', { dateStyle: 'medium' } as Intl.DateTimeFormatOptions) : '—';
 
   const [isEditing, setIsEditing] = useState(false);
   const [fullName, setFullName] = useState('');
@@ -65,22 +70,6 @@ export function ManagerProfilePage() {
       return;
     }
 
-    const allRegisteredPhonesRaw = localStorage.getItem('pbms.allRegisteredPhones');
-    let allRegisteredPhones: string[] = allRegisteredPhonesRaw
-      ? JSON.parse(allRegisteredPhonesRaw)
-      : ['0911111111', '0922222222'];
-
-    if (newPhone !== oldPhone && allRegisteredPhones.includes(newPhone)) {
-      setPhoneError('This phone number is already registered to another account!');
-      return;
-    }
-
-    if (oldPhone) {
-      allRegisteredPhones = allRegisteredPhones.filter((value) => value !== oldPhone);
-    }
-    allRegisteredPhones.push(newPhone);
-    localStorage.setItem('pbms.allRegisteredPhones', JSON.stringify(allRegisteredPhones));
-
     updateProfile({
       fullName: trimmedName,
       phone: newPhone,
@@ -100,6 +89,40 @@ export function ManagerProfilePage() {
             <CheckCircle2 size={18} className="text-emerald-600" />
             <span>{success}</span>
           </div>
+        ) : null}
+
+        {/* Subscription status — gate to the manager dashboard */}
+        {subscription ? (
+          subscription.active ? (
+            <div className="mb-6 flex flex-wrap items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100 shadow-sm">
+              <ShieldCheck size={18} className="shrink-0 text-emerald-400" />
+              <span className="font-semibold">
+                Subscription active{subscription.packageName ? ` — ${subscription.packageName}` : ''}.
+              </span>
+              <span className="text-emerald-200/80">
+                Valid until {fmtDate(subscription.endDate)} ({subscription.daysRemaining} day{subscription.daysRemaining === 1 ? '' : 's'} left).
+              </span>
+              <Button size="sm" variant="secondary" className="ml-auto gap-2" onClick={() => navigate('/manager/wallet')}>
+                <Wallet size={14} /> View Wallet
+              </Button>
+            </div>
+          ) : (
+            <div className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/10 px-5 py-4 shadow-sm">
+              <div className="flex items-start gap-3">
+                <ShieldAlert size={20} className="mt-0.5 shrink-0 text-amber-400" />
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-amber-100">No active subscription</p>
+                  <p className="mt-1 text-sm text-amber-200/85">
+                    Your building does not have an active admin-system subscription, so the manager dashboard is locked.
+                    Go to your wallet to top up and purchase a package — once active, the full dashboard unlocks automatically.
+                  </p>
+                  <Button className="mt-3 gap-2" onClick={() => navigate('/manager/wallet')}>
+                    <Wallet size={15} /> Go to Wallet — Subscribe &amp; Top Up
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )
         ) : null}
 
         <div className="grid gap-6 lg:grid-cols-[1fr_2fr]">

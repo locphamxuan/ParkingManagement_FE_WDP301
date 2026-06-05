@@ -25,8 +25,6 @@ export interface Floor {
   _id: string;
   building: string;
   code: string;
-  name: string;
-  levelNumber: number;
   capacity: number;
   status: 'active' | 'inactive' | 'maintenance';
   allowedVehicleTypes: VehicleType[];
@@ -71,17 +69,6 @@ export interface PricePolicy {
   status?: 'pending' | 'approved' | 'rejected';
 }
 
-export interface PolicyPushLog {
-  _id: string;
-  building: string;
-  pricePolicy: { _id: string; name: string };
-  actor: { _id: string; fullName: string; email: string; role: string };
-  action: string;
-  previousValue?: unknown;
-  newValue?: unknown;
-  createdAt: string;
-}
-
 export interface LongTermPackage {
   _id: string;
   building: string;
@@ -92,6 +79,18 @@ export interface LongTermPackage {
   price: number;
   reservedSlots: number;
   description?: string;
+  allowDedicatedSlot: boolean;
+  benefits: string[];
+  isActive: boolean;
+}
+
+export interface AdminSubscriptionPackage {
+  _id: string;
+  name: string;
+  price: number;
+  durationDays: number;
+  description?: string;
+  features: string[];
   isActive: boolean;
 }
 
@@ -162,8 +161,8 @@ export interface BuildingWallet {
   _id: string;
   building: string;
   balance: number;
-  totalDeposited: number;
-  totalWithdrawn: number;
+  totalReceived: number;
+  totalTransferred: number;
   updatedAt: string;
 }
 
@@ -173,27 +172,23 @@ export interface BuildingWalletTransaction {
   type: 'credit' | 'debit';
   amount: number;
   balanceAfter: number;
-  reason: 'parking_fee' | 'reservation_fee' | 'transfer_to_system' | 'refund';
+  reason: 'parking_fee' | 'reservation_fee' | 'transfer_to_system' | 'refund' | 'topup' | 'admin_subscription';
   note?: string | null;
   createdAt: string;
 }
 
 export interface DailyRevenueResult {
   totalRevenue: number;
-  targetTransfer: number;
   date: string;
 }
 
-export interface DailyRevenueSettlement {
-  _id: string;
-  building: string;
-  date: string;
-  revenue: number;
-  targetAmount: number;
-  transferredAmount: number;
-  systemBalanceAfter: number;
-  note?: string;
-  createdAt: string;
+export interface SubscriptionStatus {
+  active: boolean;
+  endDate: string | null;
+  startDate: string | null;
+  daysRemaining: number;
+  package: { _id: string; name: string; price: number; durationDays: number } | null;
+  packageName: string | null;
 }
 
 export interface DashboardOverview {
@@ -279,8 +274,6 @@ export const managerApi = {
     update: (b: string, id: string, body: Partial<PricePolicy>) =>
       api.put<Wrap<{ item: PricePolicy }>>(path(b, `/price-policies/${id}`), body),
     deactivate: (b: string, id: string) => api.delete(path(b, `/price-policies/${id}`)),
-    pushLogs: (b: string) =>
-      api.get<Wrap<{ items: PolicyPushLog[]; pagination: unknown }>>(path(b, '/policy-push-logs')),
   },
 
   packages: {
@@ -345,8 +338,24 @@ export const managerApi = {
       api.get<Wrap<DailyRevenueResult>>(path(b, '/wallet/daily-revenue')),
     listTransactions: (b: string, q?: Record<string, string | undefined>) =>
       api.get<Wrap<{ items: BuildingWalletTransaction[] }>>(path(b, '/wallet/transactions'), { query: q }),
-    listSettlements: (b: string, q?: Record<string, string | undefined>) =>
-      api.get<Wrap<{ items: DailyRevenueSettlement[] }>>(path(b, '/wallet/settlements'), { query: q }),
+    listSubscriptionPackages: (b: string) =>
+      api.get<Wrap<{ items: AdminSubscriptionPackage[] }>>(path(b, '/wallet/subscription-packages')),
+    getSubscriptionStatus: (b: string) =>
+      api.get<Wrap<SubscriptionStatus>>(path(b, '/subscription')),
+    subscribe: (b: string, packageId: string) =>
+      api.post<Wrap<{ wallet: BuildingWallet; package: AdminSubscriptionPackage }>>(
+        path(b, '/wallet/subscribe'),
+        { packageId },
+      ),
+    initiateTopup: (b: string, amount: number) =>
+      api.post<Wrap<{ checkoutUrl: string; qrCode: string; orderCode: number }>>(
+        path(b, '/wallet/topup'),
+        { amount },
+      ),
+    verifyTopup: (b: string, orderCode: number) =>
+      api.get<Wrap<{ status: string; credited: boolean }>>(
+        path(b, `/wallet/topup/${orderCode}/verify`),
+      ),
   },
 
 };

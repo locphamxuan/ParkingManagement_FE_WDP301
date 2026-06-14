@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from 'react';
+﻿import { useEffect, useRef, useState, useMemo } from 'react';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform, useScroll } from 'framer-motion';
 import type { LucideIcon } from 'lucide-react';
 import {
@@ -25,6 +25,9 @@ import {
   X,
 } from 'lucide-react';
 import AdminUserDropdown from '@/components/shared/AdminUserDropdown';
+import FeedbackModal from '@/components/shared/FeedbackModal';
+import NotificationBell from '@/components/shared/NotificationBell';
+import { useFeedbackPending } from '@/hooks/useFeedbackNotifications';
 import type { LegacyModule } from '../data/mainFlow';
 import { AnimatedParkingMap3D } from '@/components/shared/AnimatedParkingMap3D';
 
@@ -94,8 +97,9 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
   const productModules = isStaffUser ? [] : modules.slice(0, 4);
   const serviceModules = isStaffUser ? [] : modules.slice(4);
   const [showPlateBanner, setShowPlateBanner] = useState(true);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const feedbackPending = useFeedbackPending(Boolean(user && user.role === 'user'));
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -119,8 +123,8 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
   });
 
   // Stage 1 (Hero: 0% to 25%): Default isometric overview
-  // Stage 2 (Đặc điểm: 25% to 60%): 180deg rotation (Z: -45 -> 135) + zoom details
-  // Stage 3 (Giải pháp: 60% to 100%): Down shift and shrink (scale: 0.85)
+  // Stage 2 (Äáº·c Ä‘iá»ƒm: 25% to 60%): 180deg rotation (Z: -45 -> 135) + zoom details
+  // Stage 3 (Giáº£i phÃ¡p: 60% to 100%): Down shift and shrink (scale: 0.85)
   const rotateZ = useTransform(smoothScroll, [0, 0.25, 0.60, 1.0], [-45, -45, 135, -45]);
   const rotateX = useTransform(smoothScroll, [0, 0.25, 0.60, 1.0], [55, 55, 48, 55]);
   const scale = useTransform(smoothScroll, [0, 0.25, 0.60, 1.0], [1.0, 1.0, 1.45, 0.85]);
@@ -137,11 +141,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (!menuRef.current) return;
-      if (!menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-      }
-    }
+      if (!menuRef.current) return;    }
 
     document.addEventListener('click', handleClick);
     return () => document.removeEventListener('click', handleClick);
@@ -150,7 +150,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
   return (
     <main id="top" className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-orange-500 selection:text-white relative">
 
-      {/* Background Neon Glow Spheres — fixed so they never cause scroll issues */}
+      {/* Background Neon Glow Spheres â€” fixed so they never cause scroll issues */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10" aria-hidden="true">
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[55%] rounded-full bg-[radial-gradient(circle_at_center,hsla(24,95%,53%,0.08),transparent_55%)] blur-3xl" />
         <div className="absolute top-[35%] right-[-15%] w-[60%] h-[60%] rounded-full bg-[radial-gradient(circle_at_center,hsla(263,90%,51%,0.07),transparent_55%)] blur-3xl" />
@@ -161,7 +161,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
       {/* Cyber Header Navigation */}
       <header className="border-b border-white/5 bg-slate-950/60 sticky top-0 z-40 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <a href="#top" aria-label="PBMS Trang chủ" className="flex items-center gap-3 group">
+          <a href="#top" aria-label="PBMS Trang chá»§" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 grid place-items-center shadow-[0_0_15px_rgba(249,115,22,0.3)] transition-all group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(249,115,22,0.5)]">
               <span className="w-2.5 h-2.5 bg-slate-950 rounded-full" />
             </div>
@@ -190,7 +190,8 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
             </div>
 
             {user ? (
-              <div className="relative animate-fadeIn" ref={menuRef}>
+              <div className="relative flex items-center gap-2 animate-fadeIn" ref={menuRef}>
+                <NotificationBell enabled={user.role === 'user'} />
                 <AdminUserDropdown email={user.email} onLogout={onLogout ?? (() => { localStorage.removeItem('pbms.token'); localStorage.removeItem('pbms.user'); window.location.href = '/auth/login'; })} />
               </div>
             ) : (
@@ -221,7 +222,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
                 <div className="flex items-center gap-1.5 flex-1 min-w-0">
                   <AlertTriangle size={12} className="text-amber-400 flex-shrink-0" />
                   <p className="text-[11px] font-semibold text-amber-200/90 truncate">
-                    No registered license plate — Automatic check-in/out is currently unavailable.
+                    No registered license plate â€” Automatic check-in/out is currently unavailable.
                   </p>
                 </div>
                 <a
@@ -291,10 +292,13 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
                       {heroButtonText} <ArrowRight size={14} />
                     </a>
                     <button
-                      onClick={onViewProfile}
-                      className="px-6 py-3 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 hover:border-orange-500/30 hover:bg-slate-900/60 inline-flex items-center"
+                      onClick={() => { if (feedbackPending.count > 0) setFeedbackModalOpen(true); else onViewProfile(); }}
+                      className="relative px-6 py-3 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 hover:border-orange-500/30 hover:bg-slate-900/60 inline-flex items-center"
                     >
                       View Personal Profile
+                      {feedbackPending.count > 0 ? (
+                        <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-black text-white ring-4 ring-slate-950">{feedbackPending.count > 9 ? '9+' : feedbackPending.count}</span>
+                      ) : null}
                     </button>
                   </>
                 ) : (
@@ -316,7 +320,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
               </div>
             </motion.section>
 
-            {/* Story Deck Item 2: Giới thiệu & Quản lý tầng & slot */}
+            {/* Story Deck Item 2: Giá»›i thiá»‡u & Quáº£n lÃ½ táº§ng & slot */}
             <motion.section
               id="gioi-thieu"
               className="min-h-[70vh] flex flex-col justify-center scroll-mt-24"
@@ -349,7 +353,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
               </div>
             </motion.section>
 
-            {/* Story Deck Item 3: Check-in/Check-out & Cổng kiểm soát */}
+            {/* Story Deck Item 3: Check-in/Check-out & Cá»•ng kiá»ƒm soÃ¡t */}
             <motion.section
               id="check-in-gate"
               className="min-h-[70vh] flex flex-col justify-center scroll-mt-24"
@@ -393,7 +397,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
                 y={isMobile ? undefined : y}
               />
 
-              {/* Floating highlight status badges overlay around the model — stacked on the left side to prevent bottom overlapping */}
+              {/* Floating highlight status badges overlay around the model â€” stacked on the left side to prevent bottom overlapping */}
               <div className="absolute -left-28 md:-left-36 lg:-left-44 top-[10%] flex flex-col gap-4 max-w-[140px] pointer-events-none z-20">
                 {heroHighlights.slice(0, 1).map((item, idx) => (
                   <motion.article
@@ -459,14 +463,17 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
 
                   <div className="mt-4">
                     <button
-                      className={`w-full py-2.5 px-4 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-1.5 ${module.available
+                      className={`relative w-full py-2.5 px-4 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-1.5 ${module.available
                           ? 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-slate-950 hover:shadow-[0_0_15px_rgba(249,115,22,0.2)]'
                           : 'bg-slate-800 text-slate-500 cursor-not-allowed'
                         }`}
-                      onClick={() => { if (module.id === 'profile') return onViewProfile(); onAction(module); }}
+                      onClick={() => { if ((module.id === 'reservations' || module.id === 'profile') && feedbackPending.count > 0) return setFeedbackModalOpen(true); if (module.id === 'profile') return onViewProfile(); onAction(module); }}
                       disabled={!module.available}
                     >
                       {module.available ? module.actionLabel : 'Coming Soon'} <ArrowRight size={12} />
+                      {(module.id === 'reservations' || module.id === 'profile') && feedbackPending.count > 0 ? (
+                        <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-black text-white ring-4 ring-slate-900">{feedbackPending.count > 9 ? '9+' : feedbackPending.count}</span>
+                      ) : null}
                     </button>
                   </div>
                 </motion.article>
@@ -580,9 +587,18 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
           </div>
         </div>
         <div className="mt-10 border-t border-white/5 pt-6 text-center">
-          <small className="text-[10px] font-bold text-slate-500 font-mono">© {new Date().getFullYear()} PBMS PARKING. PREMIUM INTERFACE DESIGN UNDER DECENTRALIZED PROTOCOLS.</small>
+          <small className="text-[10px] font-bold text-slate-500 font-mono">Â© {new Date().getFullYear()} PBMS PARKING. PREMIUM INTERFACE DESIGN UNDER DECENTRALIZED PROTOCOLS.</small>
         </div>
       </footer>
+
+      <FeedbackModal
+        open={feedbackModalOpen}
+        targets={feedbackPending.items}
+        onClose={() => setFeedbackModalOpen(false)}
+        onSubmitted={() => feedbackPending.refresh()}
+      />
     </main>
   );
 }
+
+

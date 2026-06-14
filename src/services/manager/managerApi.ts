@@ -148,15 +148,36 @@ export interface ShiftRevenue {
 export interface Feedback {
   _id: string;
   user: { _id: string; fullName: string; email: string; phone?: string };
+  building?: { _id?: string; name?: string; code?: string; address?: unknown } | null;
+  parkingSession?: {
+    _id?: string;
+    plateNumber?: string;
+    entryTime?: string;
+    exitTime?: string;
+    fee?: number;
+    status?: string;
+  } | null;
+  reservation?: {
+    _id?: string;
+    code?: string;
+    plateNumber?: string;
+    startTime?: string;
+    endTime?: string;
+    fee?: number;
+    estimatedFee?: number;
+    status?: string;
+  } | null;
   rating?: number | null;
-  subject: string;
-  content: string;
-  response?: string;
-  respondedAt?: string | null;
-  status: 'open' | 'in_progress' | 'resolved' | 'closed';
+  comment?: string;
+  portraitImageUrl?: string | null;
+  plateImageUrl?: string | null;
+  staffReply?: string | null;
+  repliedAt?: string | null;
+  repliedBy?: { _id?: string; fullName?: string; email?: string; role?: string } | null;
+  status: 'pending' | 'resolved';
   createdAt: string;
+  updatedAt?: string;
 }
-
 export interface BuildingWallet {
   _id: string;
   building: string;

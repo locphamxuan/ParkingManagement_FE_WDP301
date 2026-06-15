@@ -82,6 +82,8 @@ export interface LongTermPackage {
   allowDedicatedSlot: boolean;
   benefits: string[];
   isActive: boolean;
+  maxHoursPerDay?: number;
+  graceDays?: number;
 }
 
 export interface AdminSubscriptionPackage {
@@ -102,6 +104,12 @@ export interface Subscription {
   startDate: string;
   endDate: string;
   status: 'pending' | 'active' | 'expired' | 'cancelled';
+  slot?: {
+    _id: string;
+    code: string;
+    floor: { _id: string; code: string; name: string; levelNumber: number } | string;
+  } | null;
+  slotReleased?: boolean;
 }
 
 export interface ReservationPolicy {
@@ -110,6 +118,10 @@ export interface ReservationPolicy {
   bookingFee: number;
   refundPercent: number;
   isActive: boolean;
+  depositPercent?: number;
+  maxAdvanceDays?: number;
+  maxDurationHours?: number;
+  overstayPenaltyPercent?: number;
 }
 
 export interface Shift {
@@ -130,6 +142,7 @@ export interface StaffShift {
   workDate: string;
   status: 'scheduled' | 'active' | 'completed' | 'cancelled';
   note?: string;
+  gate?: { _id: string; code: string; direction: 'in' | 'out' | 'both' } | null;
 }
 
 export interface ShiftRevenue {
@@ -245,6 +258,8 @@ export const managerApi = {
     api.get<Wrap<ManagerBuilding[] | { items: ManagerBuilding[] }>>('/manager/buildings'),
   updateBuilding: (id: string, body: Partial<ManagerBuilding>) =>
     api.put<Wrap<{ building: ManagerBuilding }>>(`/manager/buildings/${id}`, body),
+  updateOperatingHours: (buildingId: string, operatingHours: { open: string; close: string }) =>
+    api.put<Wrap<{ building: ManagerBuilding }>>(`/manager/buildings/${buildingId}/operating-hours`, operatingHours),
 
   getDashboard: (buildingId: string) =>
     api.get<Wrap<DashboardOverview>>(path(buildingId, '/dashboard')),
@@ -305,8 +320,10 @@ export const managerApi = {
     update: (b: string, id: string, body: Partial<LongTermPackage>) =>
       api.put<Wrap<{ item: LongTermPackage }>>(path(b, `/packages/${id}`), body),
     remove: (b: string, id: string) => api.delete(path(b, `/packages/${id}`)),
-    subscriptions: (b: string) =>
-      api.get<Wrap<{ items: Subscription[]; pagination: unknown }>>(path(b, '/subscriptions')),
+    subscriptions: (b: string, q?: Record<string, string | undefined>) =>
+      api.get<Wrap<{ items: Subscription[]; pagination: unknown }>>(path(b, '/subscriptions'), { query: q }),
+    releaseSlot: (b: string, id: string) =>
+      api.post(path(b, `/subscriptions/${id}/release-slot`), {}),
   },
 
   reservationPolicy: {

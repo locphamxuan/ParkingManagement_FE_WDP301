@@ -1,42 +1,45 @@
 import { useMemo, useState } from 'react';
-import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Navbar } from '@/components/shared/Navbar';
-import { ManagerSidebar } from '@/components/shared/ManagerSidebar';
+import { Navigate, Outlet, useLocation, useNavigate, useMatch } from 'react-router-dom';
+import { Navbar } from '@/components/layout/Navbar';
+import { ManagerSidebar } from '@/components/layout/ManagerSidebar';
 import { useAuth } from '@/hooks/useAuth';
 import { ADMIN_EMAIL_FALLBACK } from '@/utils/constants';
 import { useManagerBuildings } from '@/hooks/useManagerBuildings';
 import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 
 // Pages a manager can reach WITHOUT an active subscription (so they can pay).
-const UNGATED_PATHS = ['/manager/wallet', '/manager/profile'];
+const UNGATED_PATHS = ['/manager/wallet', '/manager/profile', '/manager/operating-hours', '/manager/buildings'];
 
 const titles: Record<string, string> = {
-  '/manager': 'Manager Dashboard',
-  '/manager/dashboard': 'Dashboard',
-  '/manager/buildings': 'Manage Buildings',
-  '/manager/vehicle-types': 'Vehicle Types',
-  '/manager/floors': 'Floors',
-  '/manager/gates': 'Gates',
-  '/manager/slots': 'Slots',
-  '/manager/price-policies': 'Pricing Policies',
-  '/manager/reservation-policy': 'Reservation Policy',
-  '/manager/packages': 'Packages',
-  '/manager/shifts': 'Shifts',
-  '/manager/staff': 'Staff',
-  '/manager/feedbacks': 'Feedback',
-  '/manager/profile': 'Profile',
-  '/manager/settings': 'Settings',
+  '/manager': 'Bảng điều khiển Manager',
+  '/manager/dashboard': 'Báo cáo quản lý',
+  '/manager/buildings': 'Quản lý tòa nhà',
+  '/manager/vehicle-types': 'Loại xe',
+  '/manager/floors': 'Tầng',
+  '/manager/gates': 'Cổng',
+  '/manager/slots': 'Chỗ đỗ',
+  '/manager/operating-hours': 'Giờ hoạt động',
+  '/manager/price-policies': 'Chính sách giá',
+  '/manager/reservation-policy': 'Chính sách đặt chỗ',
+  '/manager/packages': 'Gói đăng ký',
+  '/manager/shifts': 'Ca trực & Gán ca',
+  '/manager/reviews': 'Xem đánh giá',
+  '/manager/wallet': 'Ví tòa nhà',
+  '/manager/profile': 'Xem hồ sơ',
+  '/manager/settings': 'Cài đặt',
 };
 
 export function ManagerLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const { session, logout } = useAuth();
   const { buildings, selectedBuildingId, setSelectedBuildingId, isLoading } = useManagerBuildings();
-  const { status: subscription, loading: subLoading, refresh: refreshSubscription } = useSubscriptionStatus(selectedBuildingId);
+  const { status: subscription, loading: subLoading, refresh: refreshSubscription } =
+    useSubscriptionStatus(selectedBuildingId);
   const navigate = useNavigate();
   const location = useLocation();
 
   const title = useMemo(() => titles[location.pathname] ?? 'Manager Dashboard', [location.pathname]);
+  const isProfileRoute = Boolean(useMatch('/manager/profile'));
 
   // Gate: an inactive subscription locks every page except wallet + profile.
   const isUngatedPath = UNGATED_PATHS.includes(location.pathname);
@@ -56,23 +59,32 @@ export function ManagerLayout() {
           <Navbar
             title={title}
             email={session?.email ?? ADMIN_EMAIL_FALLBACK}
-            hideSearch={true}
+            fullName={session?.displayName}
+            role={session?.role}
+            showNotification={false}
             onLogout={() => {
               logout();
-              navigate('/manager/login', { replace: true });
+              navigate('/auth/login', { replace: true });
             }}
           />
           <main className="flex-1 p-4 md:p-6">
-            {isLoading ? (
-              <div className="text-sm text-muted-foreground">Loading...</div>
-            ) : !selectedBuildingId ? (
+            {isLoading && !isProfileRoute ? (
+              <div className="text-sm text-muted-foreground">Đang tải...</div>
+            ) : !selectedBuildingId && !isProfileRoute ? (
               <div className="rounded-md border border-border bg-card p-6 text-sm text-muted-foreground">
-                This account has not been assigned to any building. Please contact an admin.
+                Tài khoản này chưa được gán tòa nhà nào. Vui lòng liên hệ quản lý.
               </div>
             ) : subscriptionBlocked ? (
-              <Navigate to="/manager/profile" replace />
+              // No active subscription → force the manager to the wallet to buy a package.
+              <Navigate to="/manager/wallet" replace />
             ) : (
-              <Outlet context={{ buildingId: selectedBuildingId, subscription, refreshSubscription }} />
+              <Outlet
+                context={{
+                  buildingId: selectedBuildingId ?? '',
+                  subscription,
+                  refreshSubscription,
+                }}
+              />
             )}
           </main>
         </div>

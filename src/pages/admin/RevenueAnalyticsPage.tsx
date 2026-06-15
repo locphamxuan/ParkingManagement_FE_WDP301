@@ -1,122 +1,126 @@
-import { useEffect, useState } from 'react';
-import {
-  Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,
-} from 'recharts';
-import { DataTable, type DataColumn } from '@/components/shared/DataTable';
+import { useCallback, useEffect, useState } from 'react';
+import { Building2, Crown, RefreshCw } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { adminApi, type SubscriptionTransfer } from '@/services/admin/adminApi';
 
-function fmtVnd(n: number | null | undefined) {
-  if (n == null) return '—';
-  return `${n.toLocaleString('en-US')} ₫`;
-}
+type SubscriptionTransferReport = { items: SubscriptionTransfer[]; total: number; grandTotal: number };
 
-function fmtTime(iso: string) {
-  return new Date(iso).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' });
-}
+const fmtVnd = (n: number | undefined | null) =>
+  n != null ? `${n.toLocaleString('vi-VN')} ₫` : '—';
 
-const columns: DataColumn<SubscriptionTransfer>[] = [
-  {
-    key: 'building',
-    title: 'Building',
-    render: (row) => row.building
-      ? <span><span className="font-semibold">{row.building.name}</span> <span className="ml-1.5 text-xs text-muted-foreground">{row.building.code}</span></span>
-      : <span className="text-muted-foreground">—</span>,
-  },
-  {
-    key: 'performedBy',
-    title: 'Manager',
-    render: (row) => row.performedBy
-      ? <span className="text-sm">{row.performedBy.fullName}</span>
-      : <span className="text-muted-foreground">—</span>,
-  },
-  { key: 'amount', title: 'Amount', render: (row) => <span className="font-semibold text-emerald-500">{fmtVnd(row.amount)}</span> },
-  { key: 'createdAt', title: 'Date', render: (row) => fmtTime(row.createdAt) },
-];
-
-// Group transfers by date for the chart
-function buildChartData(transfers: SubscriptionTransfer[]) {
-  const map = new Map<string, number>();
-  transfers.forEach((t) => {
-    const day = t.createdAt.split('T')[0];
-    map.set(day, (map.get(day) ?? 0) + t.amount);
-  });
-  return Array.from(map.entries())
-    .map(([date, total]) => ({ date, total }))
-    .sort((a, b) => a.date.localeCompare(b.date));
-}
+const fmtDate = (iso: string) =>
+  new Date(iso).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
 export function RevenueAnalyticsPage() {
-  const [transfers, setTransfers] = useState<SubscriptionTransfer[]>([]);
-  const [grandTotal, setGrandTotal] = useState(0);
+  const [subReport, setSubReport] = useState<SubscriptionTransferReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadTransfers = useCallback(async () => {
     setLoading(true);
-    adminApi.subscriptionRevenue()
-      .then((res) => {
-        setTransfers((res as any)?.data?.items ?? []);
-        setGrandTotal((res as any)?.data?.grandTotal ?? 0);
-        setError(null);
-      })
-      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load'))
-      .finally(() => setLoading(false));
+    setError(null);
+    try {
+      const res = await adminApi.subscriptionRevenue();
+      setSubReport((res as { data?: SubscriptionTransferReport })?.data ?? null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Không thể tải doanh thu gói dịch vụ.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  if (loading) return <div className="text-sm text-muted-foreground">Loading revenue analytics...</div>;
-  if (error) return <div className="text-sm text-rose-600">{error}</div>;
+  useEffect(() => { void loadTransfers(); }, [loadTransfers]);
 
-  const chartData = buildChartData(transfers);
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <RefreshCw size={14} className="animate-spin" /> Đang tải phân tích doanh thu...
+      </div>
+    );
+  }
 
   return (
-    <div className="grid gap-5">
-      {/* Summary */}
-      <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-        <p className="text-[10px] font-black uppercase tracking-[0.22em] text-muted-foreground">
-          Total Subscription Revenue Received
-        </p>
-        <p className="mt-2 text-3xl font-semibold">{fmtVnd(grandTotal)}</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Revenue from manager subscription purchases
-        </p>
-      </div>
-
-      {/* Chart */}
-      <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
-        <h3 className="mb-3 text-base font-semibold">Subscription Revenue by Date</h3>
-        {chartData.length === 0 ? (
-          <div className="flex h-[260px] items-center justify-center text-sm text-muted-foreground">
-            No subscription transfers yet.
+    <div className="space-y-6">
+      {/* Doanh thu từ gói dịch vụ hệ thống (Manager mua gói của Admin) */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Crown size={18} className="text-amber-400" />
+            <div>
+              <h3 className="font-semibold text-foreground">Doanh thu từ gói dịch vụ hệ thống</h3>
+              <p className="text-xs text-muted-foreground">
+                Tiền các quản lý thanh toán khi mua gói dịch vụ của hệ thống
+              </p>
+            </div>
           </div>
-        ) : (
-          <div className="h-[260px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
-                <CartesianGrid stroke="rgba(191,161,131,0.22)" strokeDasharray="3 3" />
-                <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-                <YAxis tick={{ fill: '#64748b', fontSize: 11 }} tickFormatter={(v) => `${(v / 1_000_000).toFixed(1)}M`} />
-                <Tooltip
-                  formatter={(v: number) => [fmtVnd(v), 'Amount']}
-                  contentStyle={{
-                    background: '#fffaf3',
-                    border: '1px solid rgba(234,88,12,0.16)',
-                    borderRadius: '0.6rem',
-                    boxShadow: '0 16px 36px rgba(120,83,48,0.14)',
-                  }}
-                />
-                <Bar dataKey="total" fill="#f97316" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          <Button variant="secondary" size="sm" onClick={loadTransfers} className="gap-1.5">
+            <RefreshCw size={13} /> Làm mới
+          </Button>
+        </div>
+
+        {error && (
+          <div className="rounded-lg border border-rose-500/20 bg-rose-500/10 px-3 py-2 text-sm text-rose-500">
+            {error}
           </div>
         )}
-      </div>
 
-      {/* All transfers table */}
-      <DataTable
-        title={`Subscription Transfer History (${transfers.length})`}
-        rows={transfers}
-        columns={columns}
-      />
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Card className="border-amber-500/20 bg-amber-500/5 sm:col-span-1">
+            <CardContent className="p-5">
+              <div className="mb-2 flex items-center gap-2">
+                <Crown size={14} className="text-amber-500" />
+                <p className="text-xs font-black uppercase tracking-wider text-amber-600/70">
+                  Tổng tiền gói đã thu
+                </p>
+              </div>
+              <p className="text-3xl font-bold text-amber-600 dark:text-amber-400">
+                {fmtVnd(subReport?.grandTotal)}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {subReport?.total ?? 0} lượt mua gói từ các quản lý
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Danh sách lượt mua gói */}
+          <Card className="sm:col-span-2">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-sm">
+                <Building2 size={14} className="text-primary" />
+                Lượt mua gói gần đây
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {!subReport?.items?.length ? (
+                <p className="py-2 text-sm text-muted-foreground">Chưa có lượt mua gói nào.</p>
+              ) : (
+                <div className="space-y-2">
+                  {subReport.items.map((t) => (
+                    <div key={t._id} className="flex items-center justify-between rounded-lg border border-border bg-card/50 px-3 py-2.5">
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">
+                          {t.building?.code && (
+                            <span className="mr-1.5 font-mono text-xs text-muted-foreground">{t.building.code}</span>
+                          )}
+                          {t.building?.name ?? 'Tòa nhà'}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {fmtDate(t.createdAt)}
+                          {t.performedBy?.fullName ? ` · ${t.performedBy.fullName}` : ''}
+                        </p>
+                      </div>
+                      <p className="font-mono font-bold text-amber-600 dark:text-amber-400">
+                        +{fmtVnd(t.amount)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </section>
     </div>
   );
 }

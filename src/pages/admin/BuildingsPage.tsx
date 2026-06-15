@@ -1,14 +1,15 @@
-import { useMemo, useState } from "react";
-import { Users } from "lucide-react";
-import { ConfirmModal } from "@/components/shared/ConfirmModal";
-import { DataTable, type DataColumn } from "@/components/shared/DataTable";
-import { ModalForm } from "@/components/shared/ModalForm";
-import { SearchFilterBar } from "@/components/shared/SearchFilterBar";
-import { StatusBadge } from "@/components/shared/StatusBadge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useAdminDataset } from "@/hooks/admin/useAdminDataset";
-import { useAuth } from "@/hooks/useAuth";
+import { useMemo, useState } from 'react';
+import { Users } from 'lucide-react';
+import { ConfirmModal } from '@/components/modals/ConfirmModal';
+import { DataTable, type DataColumn } from '@/components/common/DataTable';
+import { ModalForm } from '@/components/modals/ModalForm';
+import { SearchFilterBar } from '@/components/common/SearchFilterBar';
+import { StatusBadge } from '@/components/common/StatusBadge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { CustomSelect } from '@/components/ui/select';
+import { useAdminDataset } from '@/hooks/admin/useAdminDataset';
+import { useAuth } from '@/hooks/useAuth';
 import {
   createBuilding,
   deleteAdminUser,
@@ -17,11 +18,20 @@ import {
   updateBuildingStatus,
   revokeStaffFromBuilding,
   revokeManagerFromBuilding,
-} from "@/services/admin/adminCrud";
-import { adminApi, type AdminUser, type ManagerSubscriptionStatus, type AdminSubscriptionPackage } from "@/services/admin/adminApi";
-import type { Building } from "@/types";
+} from '@/services/admin/adminCrud';
+import {
+  adminApi,
+  type AdminUser,
+  type AdminSubscriptionPackage,
+  type ManagerSubscriptionStatus,
+} from '@/services/admin/adminApi';
+import type { Building } from '@/types';
 
-const PAGE_SIZE = 3;
+const PAGE_SIZE = 10;
+
+const fmtVnd = (n: number) => `${n.toLocaleString('vi-VN')} ₫`;
+const fmtDate = (iso: string | null | undefined) =>
+  iso ? new Date(iso).toLocaleDateString('vi-VN') : '—';
 
 interface MembersState {
   buildingId: string;
@@ -34,8 +44,8 @@ interface MembersState {
 export function BuildingsPage() {
   const { data, isLoading, error, refresh } = useAdminDataset();
   const { session } = useAuth();
-  const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(null);
@@ -44,27 +54,23 @@ export function BuildingsPage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [pendingDeleteBuilding, setPendingDeleteBuilding] = useState<Building | null>(null);
 
-  // Members modal state
   const [membersState, setMembersState] = useState<MembersState | null>(null);
   const [isMembersLoading, setIsMembersLoading] = useState(false);
   const [membersError, setMembersError] = useState<string | null>(null);
 
-  // Delete member state
   const [pendingDeleteMember, setPendingDeleteMember] = useState<AdminUser | null>(null);
   const [isDeletingMember, setIsDeletingMember] = useState(false);
-  const [showSubDetails, setShowSubDetails] = useState(false);
 
-  // Admin subscription override (grant / revoke for a building's manager)
   const [subPackages, setSubPackages] = useState<AdminSubscriptionPackage[]>([]);
-  const [grantPackageId, setGrantPackageId] = useState("");
-  const [subActionLoading, setSubActionLoading] = useState(false);
+  const [grantPackageId, setGrantPackageId] = useState('');
+  const [subBusy, setSubBusy] = useState(false);
 
   const [form, setForm] = useState({
-    name: "",
-    code: "",
-    floors: "1",
-    address: "",
-    hourlyRate: "0",
+    name: '',
+    code: '',
+    floors: '1',
+    address: '',
+    hourlyRate: '0',
   });
 
   const filtered = useMemo(() => {
@@ -75,32 +81,31 @@ export function BuildingsPage() {
         item.name.toLowerCase().includes(q) ||
         item.address.toLowerCase().includes(q) ||
         item.manager.toLowerCase().includes(q);
-      const matchesStatus =
-        statusFilter === "all" || item.status === statusFilter;
+      const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
   }, [data?.buildings, query, statusFilter]);
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading buildings...</div>;
+    return <div className="text-sm text-muted-foreground">Đang tải danh sách tòa nhà...</div>;
   }
 
   if (error || !data) {
-    return <div className="text-sm text-red-600">{error || "Failed to load buildings."}</div>;
+    return <div className="text-sm text-red-600">{error || 'Tải tòa nhà thất bại.'}</div>;
   }
 
-  const token = session?.token || "";
+  const token = session?.token || '';
 
   const openViewMembers = async (building: Building) => {
     const bid = building.backendId || building.id;
-    setShowSubDetails(false);
     setMembersState({ buildingId: bid, buildingName: building.name, manager: null, staff: [], subscription: null });
     setIsMembersLoading(true);
     setMembersError(null);
+    setGrantPackageId('');
     try {
       const [res, pkgRes] = await Promise.all([
         adminApi.buildings.getMembers(bid),
-        adminApi.subscriptionPackages.list(),
+        adminApi.subscriptionPackages.list({ isActive: 'true' }),
       ]);
       setMembersState({
         buildingId: bid,
@@ -109,46 +114,54 @@ export function BuildingsPage() {
         staff: res.data?.staff ?? [],
         subscription: res.data?.subscription ?? null,
       });
-      const pkgs = (pkgRes.data?.items ?? []).filter((p) => p.isActive);
-      setSubPackages(pkgs);
-      setGrantPackageId(pkgs[0]?._id ?? "");
+      setSubPackages((pkgRes as { data?: { items: AdminSubscriptionPackage[] } })?.data?.items ?? []);
     } catch (err) {
-      setMembersError(err instanceof Error ? err.message : "Failed to load members");
+      setMembersError(err instanceof Error ? err.message : 'Không thể tải danh sách thành viên');
     } finally {
       setIsMembersLoading(false);
     }
   };
 
-  const handleGrantSubscription = async () => {
-    if (!token || !membersState || !grantPackageId) return;
-    setSubActionLoading(true);
-    setActionError(null);
+  const reloadMembersSubscription = async (bid: string) => {
     try {
-      const res = await adminApi.buildings.grantSubscription(membersState.buildingId, grantPackageId);
+      const res = await adminApi.buildings.getMembers(bid);
       setMembersState((prev) =>
-        prev ? { ...prev, subscription: res.data?.subscription ?? prev.subscription } : prev,
+        prev && prev.buildingId === bid
+          ? { ...prev, subscription: res.data?.subscription ?? null }
+          : prev,
       );
-      setShowSubDetails(true);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const handleGrantSubscription = async () => {
+    if (!membersState || !grantPackageId) return;
+    setSubBusy(true);
+    setMembersError(null);
+    try {
+      await adminApi.buildings.grantSubscription(membersState.buildingId, grantPackageId);
+      await reloadMembersSubscription(membersState.buildingId);
+      setGrantPackageId('');
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Unable to grant subscription");
+      setMembersError(err instanceof Error ? err.message : 'Không thể cấp gói');
     } finally {
-      setSubActionLoading(false);
+      setSubBusy(false);
     }
   };
 
   const handleRevokeSubscription = async () => {
-    if (!token || !membersState) return;
-    setSubActionLoading(true);
-    setActionError(null);
+    if (!membersState) return;
+    if (!window.confirm('Thu hồi gói dịch vụ của tòa nhà này? Bảng điều khiển của quản lý sẽ bị khóa ngay.')) return;
+    setSubBusy(true);
+    setMembersError(null);
     try {
-      const res = await adminApi.buildings.revokeSubscription(membersState.buildingId);
-      setMembersState((prev) =>
-        prev ? { ...prev, subscription: res.data?.subscription ?? null } : prev,
-      );
+      await adminApi.buildings.revokeSubscription(membersState.buildingId);
+      await reloadMembersSubscription(membersState.buildingId);
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Unable to revoke subscription");
+      setMembersError(err instanceof Error ? err.message : 'Không thể thu hồi gói');
     } finally {
-      setSubActionLoading(false);
+      setSubBusy(false);
     }
   };
 
@@ -158,15 +171,12 @@ export function BuildingsPage() {
     const buildingId = membersState.buildingId;
     try {
       setIsDeletingMember(true);
-      // Bước 1: Revoke khỏi building trước (nếu không, BE sẽ báo 409)
       if (isManager) {
         await revokeManagerFromBuilding(token, buildingId, pendingDeleteMember._id);
       } else {
         await revokeStaffFromBuilding(token, buildingId, pendingDeleteMember._id);
       }
-      // Bước 2: Xóa tài khoản
       await deleteAdminUser(token, pendingDeleteMember._id);
-      // Bước 3: Cập nhật local state
       setMembersState((prev) =>
         prev
           ? {
@@ -178,7 +188,7 @@ export function BuildingsPage() {
       );
       await refresh();
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Unable to delete member");
+      setActionError(err instanceof Error ? err.message : 'Không thể xóa thành viên');
     } finally {
       setIsDeletingMember(false);
       setPendingDeleteMember(null);
@@ -188,7 +198,7 @@ export function BuildingsPage() {
   const openCreateModal = () => {
     setActionError(null);
     setSelectedBuilding(null);
-    setForm({ name: "", code: "", floors: "1", address: "", hourlyRate: "0" });
+    setForm({ name: '', code: '', floors: '1', address: '', hourlyRate: '0' });
     setIsModalOpen(true);
   };
 
@@ -200,7 +210,7 @@ export function BuildingsPage() {
       code: building.id,
       floors: String(building.floors),
       address: building.address,
-      hourlyRate: "0",
+      hourlyRate: '0',
     });
     setIsModalOpen(true);
   };
@@ -236,7 +246,7 @@ export function BuildingsPage() {
       await refresh();
       closeModal();
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Unable to save building");
+      setActionError(err instanceof Error ? err.message : 'Không thể lưu tòa nhà');
       setIsSaving(false);
     }
   };
@@ -245,11 +255,11 @@ export function BuildingsPage() {
     if (!token) return;
     try {
       setActionError(null);
-      const nextStatus = building.status === "active" ? "inactive" : "active";
+      const nextStatus = building.status === 'active' ? 'inactive' : 'active';
       await updateBuildingStatus(token, building.backendId || building.id, nextStatus);
       await refresh();
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Unable to change building status");
+      setActionError(err instanceof Error ? err.message : 'Không thể đổi trạng thái tòa nhà');
     }
   };
 
@@ -267,7 +277,7 @@ export function BuildingsPage() {
       await refresh();
       setPendingDeleteBuilding(null);
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Unable to delete building");
+      setActionError(err instanceof Error ? err.message : 'Không thể xóa tòa nhà');
     } finally {
       setIsDeleting(false);
     }
@@ -277,12 +287,12 @@ export function BuildingsPage() {
   const pageRows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const columns: DataColumn<Building>[] = [
-    { key: "name", title: "Building name" },
-    { key: "address", title: "Address" },
-    { key: "floors", title: "Floors" },
+    { key: 'name', title: 'Tên tòa nhà' },
+    { key: 'address', title: 'Địa chỉ' },
+    { key: 'floors', title: 'Số tầng' },
     {
-      key: "occupancyRate",
-      title: "Occupancy",
+      key: 'occupancyRate',
+      title: 'Tỉ lệ chiếm dụng',
       render: (row) => (
         <div className="w-32">
           <div className="mb-1 text-xs text-muted-foreground">{row.occupancyRate}%</div>
@@ -293,19 +303,19 @@ export function BuildingsPage() {
       ),
     },
     {
-      key: "status",
-      title: "Status",
+      key: 'status',
+      title: 'Trạng thái',
       render: (row) => <StatusBadge status={row.status} />,
     },
-    { key: "manager", title: "Manager" },
+    { key: 'manager', title: 'Người quản lý' },
     {
-      key: "revenueToday",
-      title: "Revenue today",
-      render: (row) => `${row.revenueToday.toLocaleString()} VND`,
+      key: 'revenueToday',
+      title: 'Doanh thu hôm nay',
+      render: (row) => `${row.revenueToday.toLocaleString('vi-VN')} ₫`,
     },
     {
-      key: "actions",
-      title: "Actions",
+      key: 'actions',
+      title: 'Hành động',
       render: (row) => (
         <div className="flex flex-wrap gap-2">
           <Button
@@ -314,16 +324,16 @@ export function BuildingsPage() {
             className="gap-1"
             onClick={() => openViewMembers(row)}
           >
-            <Users size={12} /> Members
+            <Users size={12} /> Thành viên
           </Button>
           <Button variant="ghost" size="sm" onClick={() => openEditModal(row)}>
-            Edit
+            Sửa
           </Button>
           <Button variant="secondary" size="sm" onClick={() => toggleBuildingStatus(row)}>
-            {row.status === "active" ? "Deactivate" : "Activate"}
+            {row.status === 'active' ? 'Ngưng' : 'Kích hoạt'}
           </Button>
           <Button variant="ghost" size="sm" onClick={() => removeBuildingById(row)}>
-            Delete
+            Xóa
           </Button>
         </div>
       ),
@@ -337,33 +347,41 @@ export function BuildingsPage() {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <SearchFilterBar
           query={query}
-          onQueryChange={(value) => { setPage(1); setQuery(value); }}
+          onQueryChange={(value) => {
+            setPage(1);
+            setQuery(value);
+          }}
           filterValue={statusFilter}
-          onFilterChange={(value) => { setPage(1); setStatusFilter(value); }}
-          filterOptions={["all", "active", "inactive", "maintenance", "warning"]}
+          onFilterChange={(value) => {
+            setPage(1);
+            setStatusFilter(value);
+          }}
+          filterOptions={['all', 'active', 'inactive', 'maintenance', 'warning']}
         />
-        <Button onClick={openCreateModal}>Create building</Button>
+        <Button onClick={openCreateModal}>Tạo tòa nhà</Button>
       </div>
 
-      <DataTable title="Buildings" rows={pageRows} columns={columns} />
+      <DataTable title="Tòa nhà" rows={pageRows} columns={columns} />
 
       <div className="flex items-center justify-end gap-2">
         <Button variant="secondary" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))}>
-          Previous
+          Trước
         </Button>
-        <span className="text-sm text-muted-foreground">Page {page} / {maxPage}</span>
+        <span className="text-sm text-muted-foreground">
+          Trang {page} / {maxPage}
+        </span>
         <Button variant="secondary" size="sm" onClick={() => setPage((p) => Math.min(maxPage, p + 1))}>
-          Next
+          Tiếp
         </Button>
       </div>
 
-      {/* ── Building Members Modal ─────────────────────────── */}
+      {/* Members Modal */}
       {membersState ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="w-full max-w-lg rounded-2xl border border-border bg-background p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold">
-                Members — {membersState.buildingName}
+                Thành viên — {membersState.buildingName}
               </h2>
               <Button variant="ghost" size="sm" onClick={() => setMembersState(null)}>
                 ✕
@@ -371,135 +389,91 @@ export function BuildingsPage() {
             </div>
 
             {isMembersLoading ? (
-              <p className="text-sm text-muted-foreground">Loading members...</p>
+              <p className="text-sm text-muted-foreground">Đang tải danh sách thành viên...</p>
             ) : membersError ? (
               <p className="text-sm text-red-600">{membersError}</p>
             ) : (
               <div className="grid gap-4">
-                {/* Manager */}
-                <section>
-                  <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    Manager
+                {/* Gói dịch vụ hệ thống */}
+                <section className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3">
+                  <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-amber-500">
+                    Gói dịch vụ hệ thống
                   </h3>
-                  {membersState.manager ? (
-                    <div className="rounded-xl border border-border bg-card p-3 text-sm">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium">{membersState.manager.fullName}</p>
-                          <p className="text-muted-foreground">{membersState.manager.email}</p>
-                        </div>
-                        <Button
-                          variant="danger"
-                          size="sm"
-                          onClick={() => setPendingDeleteMember(membersState.manager!)}
-                        >
-                          Delete
-                        </Button>
+                  {membersState.subscription?.active ? (
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="text-sm">
+                        <p className="font-medium text-foreground">
+                          {membersState.subscription.packageName
+                            ?? membersState.subscription.package?.name
+                            ?? 'Đang hoạt động'}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Còn {membersState.subscription.daysRemaining} ngày · hết hạn{' '}
+                          {fmtDate(membersState.subscription.endDate)}
+                        </p>
                       </div>
-
-                      {/* Subscription status — click to view package details */}
-                      <div className="mt-3 border-t border-border/60 pt-3">
-                        {membersState.subscription?.active ? (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => setShowSubDetails((v) => !v)}
-                              className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-600 transition hover:bg-emerald-500/15"
-                            >
-                              ✓ Package purchased
-                              <span className="text-[10px] font-normal opacity-70">
-                                {showSubDetails ? "▲" : "▼"}
-                              </span>
-                            </button>
-                            {showSubDetails ? (
-                              <div className="mt-2 grid gap-1 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs">
-                                <div className="flex justify-between">
-                                  <span className="text-muted-foreground">Package</span>
-                                  <span className="font-semibold">
-                                    {membersState.subscription.packageName ||
-                                      membersState.subscription.package?.name ||
-                                      "—"}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-muted-foreground">Valid until</span>
-                                  <span className="font-semibold">
-                                    {membersState.subscription.endDate
-                                      ? new Date(membersState.subscription.endDate).toLocaleDateString("en-US", { dateStyle: "medium" } as Intl.DateTimeFormatOptions)
-                                      : "—"}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-muted-foreground">Days remaining</span>
-                                  <span className="font-semibold">{membersState.subscription.daysRemaining} days</span>
-                                </div>
-                              </div>
-                            ) : null}
-                          </>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-bold text-amber-600">
-                            ✕ No active package
-                          </span>
-                        )}
-
-                        {/* Admin override: grant / extend / revoke the subscription */}
-                        <div className="mt-3 flex flex-wrap items-center gap-2">
-                          {subPackages.length === 0 ? (
-                            <p className="text-xs italic text-muted-foreground">
-                              No admin packages defined. Create one in System Wallet.
-                            </p>
-                          ) : (
-                            <>
-                              <select
-                                value={grantPackageId}
-                                onChange={(e) => setGrantPackageId(e.target.value)}
-                                className="h-9 rounded-lg border border-border bg-secondary px-2 text-xs text-foreground outline-none"
-                              >
-                                {subPackages.map((p) => (
-                                  <option key={p._id} value={p._id}>
-                                    {p.name} · {p.durationDays}d · {p.price.toLocaleString()} VND
-                                  </option>
-                                ))}
-                              </select>
-                              <Button
-                                size="sm"
-                                onClick={handleGrantSubscription}
-                                disabled={subActionLoading || !grantPackageId}
-                              >
-                                {membersState.subscription?.active ? "Extend" : "Grant"}
-                              </Button>
-                            </>
-                          )}
-                          {membersState.subscription?.active ? (
-                            <Button
-                              variant="secondary"
-                              size="sm"
-                              onClick={handleRevokeSubscription}
-                              disabled={subActionLoading}
-                            >
-                              Revoke
-                            </Button>
-                          ) : null}
-                          {subActionLoading ? (
-                            <span className="text-xs text-muted-foreground">Saving…</span>
-                          ) : null}
-                        </div>
-                      </div>
+                      <Button variant="danger" size="sm" disabled={subBusy} onClick={handleRevokeSubscription}>
+                        Thu hồi
+                      </Button>
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground italic">No manager assigned</p>
+                    <p className="mb-2 text-sm italic text-muted-foreground">Chưa có gói đang hoạt động</p>
+                  )}
+
+                  <div className="mt-2 flex items-center gap-2">
+                    <CustomSelect
+                      className="h-9 flex-1"
+                      value={grantPackageId}
+                      onChange={(val) => setGrantPackageId(val)}
+                      placeholder="-- Chọn gói để cấp/gia hạn --"
+                      options={[
+                        { value: '', label: '-- Chọn gói để cấp/gia hạn --' },
+                        ...subPackages.map((p) => ({
+                          value: p._id,
+                          label: `${p.name} · ${fmtVnd(p.price)} · ${p.durationDays} ngày`
+                        }))
+                      ]}
+                    />
+                    <Button size="sm" disabled={subBusy || !grantPackageId} onClick={handleGrantSubscription}>
+                      Cấp gói
+                    </Button>
+                  </div>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    Cấp gói thủ công (miễn phí) — không trừ tiền ví tòa nhà.
+                  </p>
+                </section>
+
+                <section>
+                  <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    Quản lý
+                  </h3>
+                  {membersState.manager ? (
+                    <div className="flex items-center justify-between rounded-xl border border-border bg-card p-3 text-sm">
+                      <div>
+                        <p className="font-medium">{membersState.manager.fullName}</p>
+                        <p className="text-muted-foreground">{membersState.manager.email}</p>
+                      </div>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => setPendingDeleteMember(membersState.manager!)}
+                      >
+                        Xóa
+                      </Button>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic">Chưa có quản lý</p>
                   )}
                 </section>
 
-                {/* Staff */}
                 <section>
                   <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    Staff ({membersState.staff.length})
+                    Nhân viên ({membersState.staff.length})
                   </h3>
                   {membersState.staff.length === 0 ? (
-                    <p className="text-sm text-muted-foreground italic">No staff assigned</p>
+                    <p className="text-sm text-muted-foreground italic">Chưa có nhân viên</p>
                   ) : (
-                    <div className="grid gap-2">
+                    <div className="grid gap-2 max-h-64 overflow-y-auto">
                       {membersState.staff.map((s) => (
                         <div
                           key={s._id}
@@ -510,13 +484,13 @@ export function BuildingsPage() {
                             <p className="text-muted-foreground">{s.email}</p>
                           </div>
                           <div className="flex items-center gap-2">
-                            <StatusBadge status={s.isActive ? "active" : "inactive"} />
+                            <StatusBadge status={s.isActive ? 'active' : 'inactive'} />
                             <Button
                               variant="danger"
                               size="sm"
                               onClick={() => setPendingDeleteMember(s)}
                             >
-                              Delete
+                              Xóa
                             </Button>
                           </div>
                         </div>
@@ -530,63 +504,68 @@ export function BuildingsPage() {
         </div>
       ) : null}
 
-      {/* ── Edit / Create Building Modal ───────────────────── */}
+      {/* Edit / Create Building Modal */}
       <ModalForm
         open={isModalOpen}
-        onOpenChange={(open) => { if (!open) closeModal(); }}
-        title={selectedBuilding ? "Edit building" : "Create building"}
+        onOpenChange={(open) => {
+          if (!open) closeModal();
+        }}
+        title={selectedBuilding ? 'Sửa tòa nhà' : 'Tạo tòa nhà'}
         onSubmit={saveBuilding}
       >
         <div className="grid gap-3 md:grid-cols-2">
           <Input
-            placeholder="Building name"
+            placeholder="Tên tòa nhà"
             value={form.name}
             onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
           />
           <Input
-            placeholder="Building code"
+            placeholder="Mã tòa nhà"
             value={form.code}
             onChange={(e) => setForm((prev) => ({ ...prev, code: e.target.value }))}
           />
           <Input
-            placeholder="Address"
+            placeholder="Địa chỉ"
             value={form.address}
             onChange={(e) => setForm((prev) => ({ ...prev, address: e.target.value }))}
           />
           <Input
-            placeholder="Floors"
+            placeholder="Số tầng"
             value={form.floors}
             onChange={(e) => setForm((prev) => ({ ...prev, floors: e.target.value }))}
           />
           {!selectedBuilding ? (
             <Input
-              placeholder="Hourly rate (VND)"
+              placeholder="Giá giờ (VND)"
               value={form.hourlyRate}
               onChange={(e) => setForm((prev) => ({ ...prev, hourlyRate: e.target.value }))}
             />
           ) : null}
         </div>
-        {isSaving ? <p className="text-xs text-muted-foreground">Saving...</p> : null}
+        {isSaving ? <p className="text-xs text-muted-foreground">Đang lưu...</p> : null}
       </ModalForm>
 
       <ConfirmModal
         open={Boolean(pendingDeleteBuilding)}
-        title="Confirm building deletion"
-        description={`Are you sure you want to delete building ${pendingDeleteBuilding?.name || ""}? This action cannot be undone.`}
-        confirmLabel="Delete"
+        title="Xác nhận xóa tòa nhà"
+        description={`Bạn có chắc chắn muốn xóa tòa nhà ${pendingDeleteBuilding?.name || ''}? Hành động này không thể hoàn tác.`}
+        confirmLabel="Xóa"
         isConfirming={isDeleting}
-        onOpenChange={(open) => { if (!open) setPendingDeleteBuilding(null); }}
+        onOpenChange={(open) => {
+          if (!open) setPendingDeleteBuilding(null);
+        }}
         onConfirm={confirmRemoveBuilding}
       />
 
-      {/* ── Delete Member Confirm ──────────────────────────── */}
       <ConfirmModal
         open={Boolean(pendingDeleteMember)}
-        title={`Delete ${pendingDeleteMember?.role === "manager" ? "manager" : "staff"} account`}
-        description={`Permanently delete account "${pendingDeleteMember?.fullName || pendingDeleteMember?.email || ""}" (${pendingDeleteMember?.email || ""})?  This action cannot be undone.`}
-        confirmLabel="Delete"
+        title={`Xóa tài khoản ${pendingDeleteMember?.role === 'manager' ? 'quản lý' : 'nhân viên'}`}
+        description={`Xóa vĩnh viễn tài khoản "${pendingDeleteMember?.fullName || pendingDeleteMember?.email || ''}" (${pendingDeleteMember?.email || ''})? Hành động này không thể hoàn tác.`}
+        confirmLabel="Xóa"
         isConfirming={isDeletingMember}
-        onOpenChange={(open) => { if (!open) setPendingDeleteMember(null); }}
+        onOpenChange={(open) => {
+          if (!open) setPendingDeleteMember(null);
+        }}
         onConfirm={confirmDeleteMember}
       />
     </div>

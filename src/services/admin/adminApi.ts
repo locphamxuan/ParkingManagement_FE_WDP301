@@ -153,6 +153,10 @@ export const adminApi = {
     get: () => api.get<Wrap<{ wallet: SystemWallet }>>('/admin/wallet'),
     distributions: (q?: Record<string, string | undefined>) =>
       api.get<Wrap<ListResult<WalletDistribution>>>('/admin/wallet/distributions', { query: q }),
+    topup: (amount: number) =>
+      api.post(`/admin/wallet/topup`, { amount }),
+    distribute: (body: { buildingId: string; amount: number; periodStart?: string; periodEnd?: string; note?: string }) =>
+      api.post(`/admin/wallet/distribute`, body),
   },
 
   revenue: (q?: Record<string, string | undefined>) =>
@@ -162,7 +166,8 @@ export const adminApi = {
     api.get<Wrap<{ items: SubscriptionTransfer[]; total: number; grandTotal: number }>>('/admin/revenue/subscriptions', { query: q }),
 
   subscriptionPackages: {
-    list: () => api.get<Wrap<{ items: AdminSubscriptionPackage[] }>>('/admin/subscription-packages'),
+    list: (q?: Record<string, string | undefined>) =>
+      api.get<Wrap<{ items: AdminSubscriptionPackage[] }>>('/admin/subscription-packages', { query: q }),
     create: (body: Partial<AdminSubscriptionPackage>) =>
       api.post<Wrap<AdminSubscriptionPackage>>('/admin/subscription-packages', body),
     update: (id: string, body: Partial<AdminSubscriptionPackage>) =>

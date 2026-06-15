@@ -23,7 +23,8 @@ interface AdminOverviewData {
     activeSessions: number;
   };
   revenue: {
-    today: number;
+    today?: number;
+    total?: number;
     byMethod: Record<string, { amount: number; count: number }>;
   };
 }
@@ -101,8 +102,16 @@ const METHOD_LABELS: Record<string, string> = {
   card: 'Bank card',
 };
 
-const formatCompactCurrency = (amount: number): string =>
-  `${(amount / 1_000_000).toFixed(1)}M VND`;
+const formatCompactCurrency = (amount: any): string => {
+  const numericAmount = Number(amount);
+  if (amount === null || amount === undefined || Number.isNaN(numericAmount)) {
+    return '0 ₫';
+  }
+  if (numericAmount >= 1_000_000) {
+    return `${(numericAmount / 1_000_000).toFixed(1)}M VND`;
+  }
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(numericAmount);
+};
 
 const formatChartDate = (dateValue: string): string => {
   const date = new Date(dateValue);
@@ -287,7 +296,7 @@ export async function getApiAdminDataset(token: string): Promise<AdminDataset> {
     {
       key: 'revenue',
       label: 'Today revenue',
-      value: formatCompactCurrency(overviewRes.data.revenue.today),
+      value: formatCompactCurrency(overviewRes.data.revenue?.today ?? overviewRes.data.revenue?.total ?? 0),
       delta: `${paymentMethodDistribution.length} payment methods`,
     },
     {

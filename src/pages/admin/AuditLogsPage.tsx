@@ -1,169 +1,140 @@
-import { useMemo, useState } from "react";
-import { DataTable, type DataColumn } from "@/components/shared/DataTable";
-import { StatusBadge } from "@/components/shared/StatusBadge";
-import { useAdminDataset } from "@/hooks/admin/useAdminDataset";
-import type { AuditLog } from "@/types";
+import { useMemo, useState } from 'react';
+import { DataTable, type DataColumn } from '@/components/common/DataTable';
+import { SearchFilterBar } from '@/components/common/SearchFilterBar';
+import { StatusBadge } from '@/components/common/StatusBadge';
+import { useAdminDataset } from '@/hooks/admin/useAdminDataset';
+import type { AuditLog } from '@/types';
 
-// Category tabs. `match` lists keywords matched against the action (case-insensitive).
-// `all` shows everything; `other` is a catch-all for actions matching no other tab.
-const CATEGORY_TABS: { key: string; label: string; match: string[] }[] = [
-  { key: "all", label: "All", match: [] },
-  { key: "infrastructure", label: "Infrastructure", match: ["FLOOR", "GATE", "SLOT", "VEHICLE_TYPE", "BUILDING"] },
-  { key: "price", label: "Pricing", match: ["PRICE_POLICY", "PRICING", "PRICE"] },
-  { key: "package", label: "Packages", match: ["PACKAGE", "SUBSCRIPTION"] },
-  { key: "shift", label: "Shifts", match: ["SHIFT", "STAFF_SHIFT"] },
-  { key: "wallet", label: "Wallet & Money", match: ["WALLET", "TRANSFER", "TOPUP", "PAYMENT", "REVENUE"] },
-  { key: "policy", label: "Policies", match: ["POLICY", "RESERVATION_POLICY"] },
-  { key: "account", label: "Accounts", match: ["USER", "MANAGER", "STAFF", "LOGIN", "AUTH", "ROLE"] },
-  { key: "other", label: "Other", match: [] },
-];
+// Nhãn tiếng Việt cho từng bảng mục tiêu (targetTable) của nhật ký.
+const TARGET_LABELS: Record<string, string> = {
+  users: 'Người dùng',
+  buildings: 'Tòa nhà',
+  floors: 'Tầng',
+  gates: 'Cổng',
+  parking_slots: 'Chỗ đỗ',
+  vehicle_types: 'Loại xe',
+  price_policies: 'Bảng giá',
+  long_term_packages: 'Gói dài hạn',
+  reservation_policies: 'Chính sách đặt chỗ',
+  shifts: 'Ca làm việc',
+  staff_shifts: 'Phân ca nhân viên',
+  feedbacks: 'Phản hồi',
+  revenue_distributions: 'Phân phối doanh thu',
+  subscription_packages: 'Gói dịch vụ',
+  subscriptions: 'Đăng ký gói',
+  wallets: 'Ví',
+  transactions: 'Giao dịch',
+};
 
-// All keywords that belong to a named (non-all/other) tab — used to detect "other".
-const NAMED_KEYWORDS = CATEGORY_TABS.filter((c) => c.key !== "all" && c.key !== "other").flatMap(
-  (c) => c.match,
-);
-
-function matchCategory(action: string, category: string): boolean {
-  if (category === "all") return true;
-  const upper = action.toUpperCase();
-  if (category === "other") return !NAMED_KEYWORDS.some((m) => upper.includes(m));
-  const cat = CATEGORY_TABS.find((c) => c.key === category);
-  if (!cat) return true;
-  return cat.match.some((m) => upper.includes(m));
-}
-
-const SEVERITIES = ["all", "low", "medium", "high", "critical"] as const;
+const targetLabel = (target: string) => TARGET_LABELS[target] ?? target;
 
 export function AuditLogsPage() {
   const { data, isLoading, error } = useAdminDataset();
-  const [query, setQuery] = useState("");
-  const [severity, setSeverity] = useState<string>("all");
-  const [category, setCategory] = useState("all");
+  const [query, setQuery] = useState('');
+  const [severity, setSeverity] = useState('all');
+  const [activeTab, setActiveTab] = useState<string | null>(null);
 
-  const allLogs = useMemo(() => data?.auditLogs ?? [], [data?.auditLogs]);
+  const logs = data?.auditLogs ?? [];
 
-  // Count per tab (respects the current search + severity, ignores the active tab).
-  const tabCounts = useMemo(() => {
-    const base = allLogs.filter((log) => {
-      const q = query.trim().toLowerCase();
-      const matchQuery =
-        !q ||
-        log.actor.toLowerCase().includes(q) ||
-        log.action.toLowerCase().includes(q) ||
-        log.target.toLowerCase().includes(q) ||
-        log.details.toLowerCase().includes(q);
-      const matchSeverity = severity === "all" || log.severity === severity;
-      return matchQuery && matchSeverity;
-    });
-    const counts: Record<string, number> = {};
-    for (const tab of CATEGORY_TABS) {
-      counts[tab.key] = base.filter((l) => matchCategory(l.action, tab.key)).length;
+  // Nhóm nhật ký theo bảng mục tiêu để tách thành các tab nhỏ.
+  const groups = useMemo(() => {
+    const map = new Map<string, AuditLog[]>();
+    for (const log of logs) {
+      const key = log.target || 'khác';
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(log);
     }
-    return counts;
-  }, [allLogs, query, severity]);
+    return Array.from(map.entries())
+      .map(([key, items]) => ({ key, items }))
+      .sort((a, b) => targetLabel(a.key).localeCompare(targetLabel(b.key), 'vi'));
+  }, [logs]);
+
+  const currentTab = activeTab && groups.some((g) => g.key === activeTab)
+    ? activeTab
+    : groups[0]?.key ?? null;
 
   const filtered = useMemo(() => {
-    return allLogs.filter((log) => {
+    const source = groups.find((g) => g.key === currentTab)?.items ?? [];
+    return source.filter((log) => {
       const q = query.trim().toLowerCase();
       const matchQuery =
-        !q ||
         log.actor.toLowerCase().includes(q) ||
         log.action.toLowerCase().includes(q) ||
         log.target.toLowerCase().includes(q) ||
         log.details.toLowerCase().includes(q);
-      const matchSeverity = severity === "all" || log.severity === severity;
-      const matchCat = matchCategory(log.action, category);
-      return matchQuery && matchSeverity && matchCat;
+      const matchSeverity = severity === 'all' || log.severity === severity;
+      return matchQuery && matchSeverity;
     });
-  }, [allLogs, query, severity, category]);
+  }, [groups, currentTab, query, severity]);
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading audit logs...</div>;
+    return <div className="text-sm text-muted-foreground">Đang tải nhật ký kiểm toán...</div>;
   }
 
   if (error || !data) {
-    return <div className="text-sm text-red-600">{error || "Failed to load audit logs."}</div>;
+    return <div className="text-sm text-red-600">{error || 'Tải nhật ký thất bại.'}</div>;
   }
 
   const columns: DataColumn<AuditLog>[] = [
-    { key: "actor", title: "Actor" },
-    { key: "action", title: "Action" },
-    { key: "target", title: "Target" },
-    { key: "details", title: "Details" },
-    { key: "timestamp", title: "Timestamp" },
+    { key: 'actor', title: 'Người thực hiện' },
+    { key: 'action', title: 'Hành động' },
+    { key: 'details', title: 'Chi tiết' },
+    { key: 'timestamp', title: 'Thời gian' },
     {
-      key: "severity",
-      title: "Severity",
+      key: 'severity',
+      title: 'Mức độ',
       render: (row) => <StatusBadge status={row.severity} />,
     },
   ];
 
-  const activeTab = CATEGORY_TABS.find((t) => t.key === category);
+  if (groups.length === 0) {
+    return (
+      <div className="rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+        Chưa có nhật ký kiểm toán nào.
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-4">
-      {/* Category tabs */}
-      <div className="flex flex-wrap items-center gap-1 border-b border-border">
-        {CATEGORY_TABS.map(({ key, label }) => {
-          const active = category === key;
-          const count = tabCounts[key] ?? 0;
+      {/* Tab nhỏ cho từng bảng mục tiêu */}
+      <div className="flex flex-wrap gap-2">
+        {groups.map((g) => {
+          const isActive = g.key === currentTab;
           return (
             <button
-              key={key}
+              key={g.key}
               type="button"
-              onClick={() => setCategory(key)}
-              className={`relative flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition ${
-                active
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground"
+              onClick={() => setActiveTab(g.key)}
+              className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
+                isActive
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-border bg-card text-muted-foreground hover:text-foreground'
               }`}
             >
-              {label}
+              {targetLabel(g.key)}
               <span
                 className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
-                  active ? "bg-primary/15 text-primary" : "bg-muted/50 text-muted-foreground"
+                  isActive ? 'bg-primary/20 text-primary' : 'bg-secondary text-muted-foreground'
                 }`}
               >
-                {count}
+                {g.items.length}
               </span>
-              {active ? (
-                <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-primary" />
-              ) : null}
             </button>
           );
         })}
       </div>
 
-      {/* Secondary filters: search + severity */}
-      <div className="flex flex-wrap items-center gap-3">
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search by actor, action, target, details..."
-          className="h-9 flex-1 min-w-48 rounded-md border border-border bg-card px-3 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-        />
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs text-muted-foreground">Severity:</span>
-          {SEVERITIES.map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setSeverity(s)}
-              className={`rounded-full border px-3 py-1 text-xs font-bold capitalize transition ${
-                severity === s
-                  ? "border-orange-400/50 bg-orange-500/10 text-orange-400"
-                  : "border-border bg-muted/30 text-muted-foreground hover:border-orange-400/30"
-              }`}
-            >
-              {s === "all" ? "All" : s}
-            </button>
-          ))}
-        </div>
-      </div>
+      <SearchFilterBar
+        query={query}
+        onQueryChange={setQuery}
+        filterValue={severity}
+        onFilterChange={setSeverity}
+        filterOptions={['all', 'low', 'medium', 'high', 'critical']}
+      />
 
       <DataTable
-        title={`${activeTab?.label ?? "All"} — ${filtered.length} log${filtered.length === 1 ? "" : "s"}`}
+        title={`Nhật ký: ${currentTab ? targetLabel(currentTab) : ''}`}
         rows={filtered}
         columns={columns}
       />

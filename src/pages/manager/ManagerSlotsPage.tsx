@@ -3,8 +3,10 @@ import { Pencil, Plus, Trash2, Layers, RotateCcw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { DataTable, type DataColumn } from '@/components/shared/DataTable';
-import { ModalForm } from '@/components/shared/ModalForm';
+import { DataTable, type DataColumn } from '@/components/common/DataTable';
+import { ModalForm } from '@/components/modals/ModalForm';
+import { CustomSelect } from '@/components/ui/select';
+import { MultiSlotForm, type SlotFormRow } from '@/components/manager/MultiSlotForm';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import {
   managerApi,
@@ -31,8 +33,7 @@ const empty: FormState = {
   note: '',
 };
 
-// Manager chỉ set 2 trạng thái — occupied/maintenance do hệ thống tự cập nhật
-const SLOT_STATUSES: ParkingSlot['status'][] = ['available', 'reserved'];
+const SLOT_STATUSES: ParkingSlot['status'][] = ['available', 'occupied', 'reserved', 'maintenance'];
 
 // Interactive 3D Extruded Slot Block Component
 function Slot3DBox({ 
@@ -52,22 +53,22 @@ function Slot3DBox({
   const config = {
     available: {
       faceColor: 'bg-emerald-500/25 border-emerald-500/40 text-emerald-300',
-      label: 'Available',
+      label: 'Trống',
       glow: 'shadow-[0_0_14px_rgba(16,185,129,0.25),0_0_4px_rgba(16,185,129,0.1)] hover:shadow-[0_0_28px_rgba(16,185,129,0.6),0_0_8px_rgba(16,185,129,0.3)]'
     },
     occupied: {
       faceColor: 'bg-red-500/25 border-red-500/45 text-red-300',
-      label: 'Occupied',
+      label: 'Có xe',
       glow: 'shadow-[0_0_14px_rgba(239,68,68,0.35),0_0_4px_rgba(239,68,68,0.15)] hover:shadow-[0_0_28px_rgba(239,68,68,0.65),0_0_8px_rgba(239,68,68,0.3)]'
     },
     reserved: {
       faceColor: 'bg-purple-500/25 border-purple-500/45 text-purple-300',
-      label: 'Reserved',
+      label: 'Đã đặt',
       glow: 'shadow-[0_0_14px_rgba(168,85,247,0.35),0_0_4px_rgba(168,85,247,0.15)] hover:shadow-[0_0_28px_rgba(168,85,247,0.65),0_0_8px_rgba(168,85,247,0.3)]'
     },
     maintenance: {
       faceColor: 'bg-amber-500/20 border-amber-500/35 text-amber-300 bg-[repeating-linear-gradient(45deg,rgba(245,158,11,0.12),rgba(245,158,11,0.12)_6px,rgba(0,0,0,0.4)_6px,rgba(0,0,0,0.4)_12px)]',
-      label: 'Maintenance',
+      label: 'Bảo trì',
       glow: 'shadow-[0_0_14px_rgba(245,158,11,0.2),0_0_4px_rgba(245,158,11,0.1)] hover:shadow-[0_0_28px_rgba(245,158,11,0.55),0_0_8px_rgba(245,158,11,0.25)]'
     }
   }[slot.status];
@@ -77,10 +78,10 @@ function Slot3DBox({
 
   // Resolve vehicle type name
   const vtName = useMemo(() => {
-    if (!slot.vehicleType) return '— Not fixed —';
+    if (!slot.vehicleType) return '— Không cố định —';
     if (typeof slot.vehicleType === 'object') return slot.vehicleType.name;
     const found = vehicleTypes.find(v => v._id === slot.vehicleType);
-    return found ? found.name : 'Vehicle type';
+    return found ? found.name : 'Loại xe';
   }, [slot.vehicleType, vehicleTypes]);
 
   return (
@@ -153,8 +154,8 @@ function Slot3DBox({
               </span>
             </div>
             <div className="space-y-1 text-[9px] text-slate-400 font-semibold leading-relaxed">
-              <p>Type: <span className="text-white font-black">{vtName}</span></p>
-              <p>Reservable: <span className="text-white font-black">{slot.reservable ? 'Yes' : 'Locked'}</span></p>
+              <p>Loại: <span className="text-white font-black">{vtName}</span></p>
+              <p>Đặt chỗ: <span className="text-white font-black">{slot.reservable ? 'Có' : 'Khóa'}</span></p>
               {slot.note && <p className="border-t border-white/5 pt-1 mt-1 text-slate-500 italic">Note: {slot.note}</p>}
             </div>
           </motion.div>
@@ -176,6 +177,7 @@ export function ManagerSlotsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<ParkingSlot | null>(null);
   const [form, setForm] = useState<FormState>(empty);
+  const [multiSlotModalOpen, setMultiSlotModalOpen] = useState(false);
 
   // High-fidelity View mode toggle
   const [viewMode, setViewMode] = useState<'list' | '3d'>('3d');
@@ -183,18 +185,6 @@ export function ManagerSlotsPage() {
   // Interactive cockpit rotation state values for 3D stacks
   const [rx, setRx] = useState(60);
   const [rz, setRz] = useState(-45);
-  const [zoom, setZoom] = useState(1);
-
-  const clampZoom = useCallback((value: number) => Math.min(3, Math.max(0.5, value)), []);
-
-  const handleViewportWheel = useCallback(
-    (event: React.WheelEvent<HTMLDivElement>) => {
-      event.preventDefault();
-      const delta = event.deltaY > 0 ? -0.08 : 0.08;
-      setZoom((current) => clampZoom(Number((current + delta).toFixed(2))));
-    },
-    [clampZoom],
-  );
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -212,7 +202,7 @@ export function ManagerSlotsPage() {
       setVehicleTypes(vtRes.data.items);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load');
+      setError(err instanceof Error ? err.message : 'Tải thất bại');
     } finally {
       setLoading(false);
     }
@@ -246,9 +236,7 @@ export function ManagerSlotsPage() {
   }, [items, floors]);
 
   const openCreate = () => {
-    setEditing(null);
-    setForm({ ...empty, floor: floors[0]?._id ?? '' });
-    setModalOpen(true);
+    setMultiSlotModalOpen(true);
   };
 
   const openEdit = (row: ParkingSlot) => {
@@ -272,13 +260,12 @@ export function ManagerSlotsPage() {
 
   const onSubmit = async () => {
     if (!form.floor) {
-      alert('Please select a floor first');
+      alert('Chọn tầng trước');
       return;
     }
     const payload = {
       code: form.code.trim().toUpperCase(),
       floor: form.floor,
-      vehicleType: form.vehicleType || null,
       status: form.status,
       reservable: form.reservable,
       note: form.note.trim(),
@@ -292,17 +279,35 @@ export function ManagerSlotsPage() {
       setModalOpen(false);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Save failed');
+      alert(err instanceof Error ? err.message : 'Lưu thất bại');
     }
   };
 
   const onDelete = async (row: ParkingSlot) => {
-    if (!window.confirm(`Delete slot ${row.code}?`)) return;
+    if (!window.confirm(`Xóa ô ${row.code}?`)) return;
     try {
       await managerApi.slots.remove(buildingId, row._id);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Delete failed');
+      alert(err instanceof Error ? err.message : 'Xóa thất bại');
+    }
+  };
+
+  const onMultiSlotSubmit = async (rows: SlotFormRow[]) => {
+    try {
+      for (const row of rows) {
+        const payload = {
+          code: row.code.trim().toUpperCase(),
+          floor: row.floor,
+          status: row.status,
+          reservable: row.reservable,
+          note: row.note.trim(),
+        };
+        await managerApi.slots.create(buildingId, payload as Partial<ParkingSlot> & { floor: string });
+      }
+      refresh();
+    } catch (err) {
+      throw err;
     }
   };
 
@@ -311,15 +316,15 @@ export function ManagerSlotsPage() {
       await managerApi.slots.updateStatus(buildingId, row._id, status);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Update failed');
+      alert(err instanceof Error ? err.message : 'Cập nhật thất bại');
     }
   };
 
   const columns: DataColumn<ParkingSlot>[] = [
-    { key: 'code', title: 'Code' },
+    { key: 'code', title: 'Mã ô' },
     {
       key: 'floor',
-      title: 'Floor',
+      title: 'Tầng',
       render: (row) => {
         const id = typeof row.floor === 'string' ? row.floor : row.floor._id;
         const fl = floorMap.get(id);
@@ -328,35 +333,34 @@ export function ManagerSlotsPage() {
     },
     {
       key: 'vehicleType',
-      title: 'Vehicle type',
-      render: (row) =>
-        !row.vehicleType
-          ? '—'
-          : typeof row.vehicleType === 'string'
-            ? row.vehicleType
-            : row.vehicleType.code,
+      title: 'Loại xe (theo tầng)',
+      render: (row) => {
+        const id = typeof row.floor === 'string' ? row.floor : row.floor._id;
+        const fl = floorMap.get(id);
+        const types = (fl?.allowedVehicleTypes ?? []) as Array<{ code?: string } | string>;
+        if (!types.length) return 'Mọi loại';
+        return types.map((t) => (typeof t === 'object' ? t.code : t)).filter(Boolean).join(', ');
+      },
     },
     {
       key: 'status',
-      title: 'Status',
+      title: 'Trạng thái',
       render: (row) => (
-        <select
-          className="h-8 rounded-lg border border-white/10 bg-slate-900 text-white px-2 text-xs"
+        <CustomSelect
           value={row.status}
-          onChange={(e) => onStatusChange(row, e.target.value as ParkingSlot['status'])}
-        >
-          {SLOT_STATUSES.map((s) => (
-            <option key={s} value={s}>
-              {s === 'available' ? 'Available' : s === 'occupied' ? 'Occupied' : s === 'reserved' ? 'Reserved' : 'Maintenance'}
-            </option>
-          ))}
-        </select>
+          onChange={(val) => onStatusChange(row, val as ParkingSlot['status'])}
+          options={SLOT_STATUSES.map((s) => ({
+            value: s,
+            label: s === 'available' ? 'Trống' : s === 'occupied' ? 'Đầy' : s === 'reserved' ? 'Đặt chỗ' : 'Bảo trì',
+          }))}
+          className="h-8 w-28 text-xs font-semibold"
+        />
       ),
     },
     {
       key: 'reservable',
-      title: 'Reservable',
-      render: (row) => (row.reservable ? 'Yes' : 'No'),
+      title: 'Cho đặt',
+      render: (row) => (row.reservable ? 'Có' : 'Không'),
     },
     {
       key: 'actions',
@@ -378,33 +382,33 @@ export function ManagerSlotsPage() {
     <div className="grid gap-6 animate-fadeIn">
       
       {/* Sci-fi Controller & Toggle Row */}
-      <div className="flex flex-wrap items-center justify-between gap-4 glass-panel-dark p-4 rounded-3xl border border-white/5">
+      <div className="relative z-30 flex flex-wrap items-center justify-between gap-4 glass-panel-dark p-4 rounded-3xl border border-white/5">
         <div className="flex flex-wrap items-center gap-3">
-          <select
-            className="h-9 rounded-xl border border-white/10 bg-slate-900 text-slate-300 px-3 text-xs font-black uppercase tracking-wider font-mono focus:border-orange-500/40"
+          <CustomSelect
             value={floorFilter}
-            onChange={(e) => setFloorFilter(e.target.value)}
-          >
-            <option value="">All floors</option>
-            {floors.map((f) => (
-              <option key={f._id} value={f._id}>
-                {f.code}
-              </option>
-            ))}
-          </select>
+            onChange={setFloorFilter}
+            options={[
+              { value: '', label: 'Tất cả tầng' },
+              ...floors.map((f) => ({
+                value: f._id,
+                label: f.code,
+              })),
+            ]}
+            className="w-40"
+          />
           
-          <select
-            className="h-9 rounded-xl border border-white/10 bg-slate-900 text-slate-300 px-3 text-xs font-black uppercase tracking-wider font-mono focus:border-orange-500/40"
+          <CustomSelect
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="">All statuses</option>
-            {SLOT_STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {s === 'available' ? 'Available (Green)' : s === 'occupied' ? 'Occupied (Orange)' : s === 'reserved' ? 'Reserved (Blue)' : 'Maintenance (Amber)'}
-              </option>
-            ))}
-          </select>
+            onChange={setStatusFilter}
+            options={[
+              { value: '', label: 'Tất cả trạng thái' },
+              ...SLOT_STATUSES.map((s) => ({
+                value: s,
+                label: s === 'available' ? 'Trống (Green)' : s === 'occupied' ? 'Đầy (Orange)' : s === 'reserved' ? 'Đặt chỗ (Blue)' : 'Bảo trì (Amber)',
+              })),
+            ]}
+            className="w-48"
+          />
         </div>
 
         {/* View Toggle */}
@@ -417,7 +421,7 @@ export function ManagerSlotsPage() {
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            List view
+            Danh sách bảng
           </button>
           <button
             onClick={() => setViewMode('3d')}
@@ -427,13 +431,13 @@ export function ManagerSlotsPage() {
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            3D Hologram map
+            Bản đồ 3D Hologram
           </button>
         </div>
 
         <div className="flex items-center gap-3">
           <Button onClick={openCreate} className="rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider hover:shadow-[0_0_15px_rgba(249,115,22,0.3)] gap-2">
-            <Plus size={14} className="stroke-[3]" /> Add parking slot
+            <Plus size={14} className="stroke-[3]" /> Thêm ô đỗ
           </Button>
         </div>
       </div>
@@ -441,7 +445,7 @@ export function ManagerSlotsPage() {
       {loading ? (
         <div className="text-sm text-slate-400 flex items-center justify-center p-24 glass-panel-dark rounded-3xl border border-white/5">
           <div className="h-4 w-4 animate-spin rounded-full border-2 border-orange-500 border-t-transparent mr-2" />
-          Loading parking slot data...
+          Đang tải dữ liệu ô đỗ...
         </div>
       ) : error ? (
         <div className="text-sm text-rose-400 glass-panel-dark p-6 rounded-3xl border border-rose-500/10 bg-rose-950/15">{error}</div>
@@ -449,7 +453,7 @@ export function ManagerSlotsPage() {
         <div>
           {viewMode === 'list' ? (
             <div className="glass-panel-dark rounded-3xl border border-white/5 p-6 backdrop-blur-md shadow-2xl">
-                <DataTable title={`Parking slots (${items.length})`} rows={items} columns={columns} />
+              <DataTable title={`Ô đỗ (${items.length})`} rows={items} columns={columns} />
             </div>
           ) : (
             /* Sci-Fi 3D Visual Map Mode */
@@ -466,15 +470,11 @@ export function ManagerSlotsPage() {
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(249,115,22,0.07),rgba(168,85,247,0.035)_50%,transparent_75%)] pointer-events-none" />
                 
                 {/* 3D Render Stack Container */}
-                <div
-                  className="perspective-1000 w-full h-full flex items-center justify-center preserve-3d"
-                  onWheel={handleViewportWheel}
-                >
+                <div className="perspective-1000 w-full h-full flex items-center justify-center preserve-3d">
                   <motion.div
                     style={{
                       rotateX: rx,
                       rotateZ: rz,
-                      scale: zoom,
                       transformStyle: 'preserve-3d',
                     }}
                     className="isometric-mesh relative w-[500px] h-[400px] preserve-3d transition-transform duration-200"
@@ -507,17 +507,17 @@ export function ManagerSlotsPage() {
                           {/* Floor label badge */}
                           <div className="flex justify-between items-center mb-4 z-10 preserve-3d" style={{ transform: 'translateZ(15px)' }}>
                             <span className="text-[10px] font-black tracking-widest text-orange-400 uppercase font-mono bg-slate-950/80 px-2.5 py-1 rounded-lg border border-white/5">
-                              FLOOR {floor.code}
+                              TẦNG {floor.code}
                             </span>
                             <span className="text-[9px] font-bold text-slate-500 font-mono">
-                              CAPACITY: {floorSlots.filter(s => s.status === 'occupied').length}/{floorSlots.length} SLOTS
+                              CÔNG SUẤT: {floorSlots.filter(s => s.status === 'occupied').length}/{floorSlots.length} SLOT
                             </span>
                           </div>
 
                           {/* Grid Layout of Slot blocks */}
                           <div className="grid grid-cols-4 sm:grid-cols-5 gap-6 my-auto items-center justify-items-center preserve-3d" style={{ transform: 'translateZ(10px)' }}>
                             {floorSlots.length === 0 ? (
-                              <div className="col-span-full text-center text-slate-600 text-xs py-10 uppercase tracking-widest font-mono">No parking slots configured</div>
+                              <div className="col-span-full text-center text-slate-600 text-xs py-10 uppercase tracking-widest font-mono">Chưa cấu hình ô đỗ</div>
                             ) : (
                               floorSlots.map((slot) => (
                                 <Slot3DBox 
@@ -532,7 +532,7 @@ export function ManagerSlotsPage() {
                           </div>
 
                           <div className="text-[8px] text-slate-600 font-black tracking-widest uppercase font-mono text-right preserve-3d mt-4" style={{ transform: 'translateZ(5px)' }}>
-                            {floor.code}
+                            {floor.code} ARCHITECTURE
                           </div>
                         </motion.div>
                       );
@@ -544,7 +544,7 @@ export function ManagerSlotsPage() {
                 <div className="absolute left-6 top-6 flex flex-col gap-1.5 z-20 pointer-events-none">
                   <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-slate-400">
                     <Layers size={12} className="text-orange-400" />
-                    <span>3D Zone Map ({items.length} slots)</span>
+                    <span>Sơ đồ 3D Phân Khu ({items.length} Ô đỗ)</span>
                   </div>
                 </div>
               </div>
@@ -554,14 +554,14 @@ export function ManagerSlotsPage() {
                 <div>
                   <h3 className="text-xs font-black uppercase tracking-widest text-white font-mono mb-4 flex items-center gap-1.5 pb-2.5 border-b border-white/5">
                     <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-ping" />
-                    Spatial View
+                    Góc nhìn Không Gian
                   </h3>
                   
                   {/* Cockpit Angle Tilt Controls */}
                   <div className="space-y-6">
                     <div className="space-y-2">
                       <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400 font-mono">
-                        <span>Tilt X</span>
+                        <span>Độ Nghiêng X</span>
                         <span className="text-orange-400 font-mono">{rx}°</span>
                       </div>
                       <input 
@@ -576,7 +576,7 @@ export function ManagerSlotsPage() {
 
                     <div className="space-y-2">
                       <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400 font-mono">
-                        <span>Rotation Z</span>
+                        <span>Góc Xoay Z</span>
                         <span className="text-orange-400 font-mono">{rz}°</span>
                       </div>
                       <input 
@@ -589,24 +589,8 @@ export function ManagerSlotsPage() {
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400 font-mono">
-                        <span>Zoom</span>
-                        <span className="text-orange-400 font-mono">{zoom.toFixed(2)}x</span>
-                      </div>
-                      <input
-                        type="range"
-                        min="0.5"
-                        max="3"
-                        step="0.05"
-                        value={zoom}
-                        onChange={(e) => setZoom(clampZoom(Number(e.target.value)))}
-                        className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-orange-500 border border-white/5"
-                      />
-                    </div>
-
                     <button 
-                      onClick={() => { setRx(60); setRz(-45); setZoom(1); }}
+                      onClick={() => { setRx(60); setRz(-45); }}
                       className="w-full py-2.5 rounded-xl border border-white/10 hover:border-orange-500/30 text-white font-mono text-[9px] font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 hover:bg-slate-950/50"
                     >
                       <RotateCcw size={12} /> Reset View
@@ -615,27 +599,27 @@ export function ManagerSlotsPage() {
                 </div>
 
                 <div className="mt-8 pt-4 border-t border-white/5 space-y-3">
-                  <div className="text-[9px] font-black uppercase tracking-widest text-slate-500 font-mono mb-2">Status legend</div>
+                  <div className="text-[9px] font-black uppercase tracking-widest text-slate-500 font-mono mb-2">Chú thích trạng thái</div>
                   <div className="flex items-center justify-between text-[10px] font-bold text-slate-300 bg-slate-950/40 p-2.5 rounded-xl border border-white/5">
-                    <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-emerald-500/20 border border-emerald-500/40" /> Available</span>
+                    <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-emerald-500/20 border border-emerald-500/40" /> Trống</span>
                     <span className="font-mono text-emerald-400 font-black">
                       {items.filter(s => s.status === 'available').length}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-[10px] font-bold text-slate-300 bg-slate-950/40 p-2.5 rounded-xl border border-white/5">
-                    <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-red-500/20 border border-red-500/40" /> Occupied</span>
+                    <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-red-500/20 border border-red-500/40" /> Có xe đỗ</span>
                     <span className="font-mono text-red-400 font-black">
                       {items.filter(s => s.status === 'occupied').length}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-[10px] font-bold text-slate-300 bg-slate-950/40 p-2.5 rounded-xl border border-white/5">
-                    <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-purple-500/20 border border-purple-500/40" /> Reserved</span>
+                    <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-purple-500/20 border border-purple-500/40" /> Đã đặt</span>
                     <span className="font-mono text-purple-400 font-black">
                       {items.filter(s => s.status === 'reserved').length}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-[10px] font-bold text-slate-300 bg-slate-950/40 p-2.5 rounded-xl border border-white/5">
-                    <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-amber-500/20 border border-amber-500/30" /> Maintenance</span>
+                    <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-amber-500/20 border border-amber-500/30" /> Bảo trì</span>
                     <span className="font-mono text-amber-400 font-black">
                       {items.filter(s => s.status === 'maintenance').length}
                     </span>
@@ -653,12 +637,12 @@ export function ManagerSlotsPage() {
       <ModalForm
         open={modalOpen}
         onOpenChange={setModalOpen}
-        title={editing ? 'Edit slot' : 'Add slot'}
+        title={editing ? 'Sửa ô đỗ' : 'Thêm ô đỗ'}
         onSubmit={onSubmit}
       >
         <div className="grid gap-4 md:grid-cols-2 text-slate-100">
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Slot code</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Mã ô</label>
             <Input
               value={form.code}
               onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
@@ -666,50 +650,35 @@ export function ManagerSlotsPage() {
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Floor</label>
-            <select
-              className="h-10 rounded-xl border border-white/10 bg-slate-950 text-white px-3 text-sm focus:border-orange-500/40"
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Tầng</label>
+            <CustomSelect
               value={form.floor}
-              onChange={(e) => setForm((f) => ({ ...f, floor: e.target.value }))}
-            >
-              <option value="">Select floor</option>
-              {floors.map((fl) => (
-                <option key={fl._id} value={fl._id}>
-                  {fl.code}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setForm((f) => ({ ...f, floor: val }))}
+              options={[
+                { value: '', label: 'Chọn tầng' },
+                ...floors.map((fl) => ({
+                  value: fl._id,
+                  label: fl.code,
+                })),
+              ]}
+              placeholder="Chọn tầng..."
+            />
+          </div>
+          <div className="grid gap-1.5 sm:col-span-2">
+            <p className="rounded-xl border border-sky-500/20 bg-sky-500/5 px-3 py-2 text-[11px] text-sky-300">
+              Loại xe của ô đỗ <strong>tự lấy theo loại xe cho phép của tầng</strong> (cấu hình ở tab Tầng), không cần set ở đây.
+            </p>
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Vehicle type (optional)</label>
-            <select
-              className="h-10 rounded-xl border border-white/10 bg-slate-950 text-white px-3 text-sm focus:border-orange-500/40"
-              value={form.vehicleType}
-              onChange={(e) => setForm((f) => ({ ...f, vehicleType: e.target.value }))}
-            >
-              <option value="">— Not fixed —</option>
-              {vehicleTypes.map((vt) => (
-                <option key={vt._id} value={vt._id}>
-                  {vt.code} - {vt.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Status</label>
-            <select
-              className="h-10 rounded-xl border border-white/10 bg-slate-950 text-white px-3 text-sm focus:border-orange-500/40"
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Trạng thái</label>
+            <CustomSelect
               value={form.status}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, status: e.target.value as ParkingSlot['status'] }))
-              }
-            >
-              {SLOT_STATUSES.map((s) => (
-                <option key={s} value={s}>
-                  {s === 'available' ? 'Available' : s === 'occupied' ? 'Occupied' : s === 'reserved' ? 'Reserved' : 'Maintenance'}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setForm((f) => ({ ...f, status: val as ParkingSlot['status'] }))}
+              options={SLOT_STATUSES.map((s) => ({
+                value: s,
+                label: s === 'available' ? 'Trống' : s === 'occupied' ? 'Đầy' : s === 'reserved' ? 'Đặt chỗ' : 'Bảo trì',
+              }))}
+            />
           </div>
           <label className="flex items-center gap-3 text-xs font-bold text-slate-300 md:col-span-2 select-none">
             <input
@@ -718,10 +687,10 @@ export function ManagerSlotsPage() {
               onChange={(e) => setForm((f) => ({ ...f, reservable: e.target.checked }))}
               className="w-4 h-4 rounded border-white/10 bg-slate-950 text-orange-500 focus:ring-0 focus:ring-offset-0 cursor-pointer"
             />
-            <span>Allow reservations</span>
+            <span>Cho phép đặt chỗ trước</span>
           </label>
           <div className="grid gap-1.5 md:col-span-2">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Note</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Ghi chú</label>
             <Input
               value={form.note}
               onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
@@ -730,6 +699,14 @@ export function ManagerSlotsPage() {
           </div>
         </div>
       </ModalForm>
+
+      {/* Multi-slot form for batch creation */}
+      <MultiSlotForm
+        isOpen={multiSlotModalOpen}
+        onClose={() => setMultiSlotModalOpen(false)}
+        onSubmit={onMultiSlotSubmit}
+        floors={floors}
+      />
     </div>
   );
 }

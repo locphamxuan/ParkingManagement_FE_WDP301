@@ -8,7 +8,7 @@ export interface ManagerBuildingRecord {
   _id: string;
   name: string;
   code?: string;
-  status?: string;
+  status?: 'active' | 'inactive' | 'maintenance';
   totalFloors?: number;
   address?: { fullAddress?: string };
   manager?: string;

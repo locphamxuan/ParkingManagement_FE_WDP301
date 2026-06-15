@@ -7,6 +7,7 @@ import { UsersPage } from "@/pages/admin/UsersPage";
 import { RevenueAnalyticsPage } from "@/pages/admin/RevenueAnalyticsPage";
 import { AuditLogsPage } from "@/pages/admin/AuditLogsPage";
 import { SystemWalletPage } from "@/pages/admin/SystemWalletPage";
+import { SubscriptionPackagesPage } from "@/pages/admin/SubscriptionPackagesPage";
 import { ModulePlaceholderPage } from "@/pages/admin/ModulePlaceholderPage";
 import { HomeRoute } from "@/pages/public/HomeRoute";
 import ProfilePage from "@/pages/public/ProfilePage";
@@ -30,7 +31,10 @@ import { ManagerSlotsPage } from "@/pages/manager/ManagerSlotsPage";
 import { ManagerPricingPage } from "@/pages/manager/ManagerPricingPage";
 import { ManagerReservationPolicyPage } from "@/pages/manager/ManagerReservationPolicyPage";
 import { ManagerPackagesPage } from "@/pages/manager/ManagerPackagesPage";
-import { ManagerShiftsPage } from "@/pages/manager/ManagerShiftsPage";
+import { ManagerShiftManagementPage } from "@/pages/manager/ManagerShiftManagementPage";
+import { ManagerOperatingHoursPage } from "@/pages/manager/ManagerOperatingHoursPage";
+import { ManagerSubscriptionsPage } from "@/pages/manager/ManagerSubscriptionsPage";
+import { ManagerReviewsPage } from "@/pages/manager/ManagerReviewsPage";
 import { ManagerStaffPage } from "@/pages/manager/ManagerStaffPage";
 import { StaffLayout } from "@/layouts/StaffLayout";
 import { StaffDashboardPage } from "@/pages/staff/StaffDashboardPage";
@@ -73,6 +77,7 @@ export function AppRouter() {
             <Route path="feedbacks" element={<ManagerFeedbackPage />} />
             <Route path="profile" element={<ManagerProfilePage />} />
             <Route path="floors" element={<ManagerFloorsGatesPage />} />
+            <Route path="gates" element={<ManagerFloorsGatesPage />} />
             <Route path="slots" element={<ManagerSlotsPage />} />
             <Route path="price-policies" element={<ManagerPricingPage />} />
             <Route
@@ -80,9 +85,12 @@ export function AppRouter() {
               element={<ManagerReservationPolicyPage />}
             />
             <Route path="packages" element={<ManagerPackagesPage />} />
-            <Route path="shifts" element={<ManagerShiftsPage />} />
+            <Route path="shifts" element={<ManagerShiftManagementPage />} />
             <Route path="staff"  element={<ManagerStaffPage />} />
             <Route path="wallet" element={<ManagerWalletPage />} />
+            <Route path="operating-hours" element={<ManagerOperatingHoursPage />} />
+            <Route path="subscriptions" element={<ManagerSubscriptionsPage />} />
+            <Route path="reviews" element={<ManagerReviewsPage />} />
           </Route>
         </Route>
 
@@ -91,7 +99,7 @@ export function AppRouter() {
           element={<Navigate to="/auth/login" replace />}
         />
         <Route path="/admin" element={<Navigate to="/auth/login" replace />} />
-        <Route path="/admin/direct" element={<AdminLayout />} />
+
 
         <Route
           path="/staff/login"
@@ -119,6 +127,7 @@ export function AppRouter() {
               path="revenue-analytics"
               element={<RevenueAnalyticsPage />}
             />
+            <Route path="subscription-packages" element={<SubscriptionPackagesPage />} />
             <Route path="system-wallet" element={<SystemWalletPage />} />
             <Route path="audit-logs" element={<AuditLogsPage />} />
             <Route

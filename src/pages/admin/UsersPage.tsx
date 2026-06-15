@@ -1,153 +1,77 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ConfirmModal } from "@/components/shared/ConfirmModal";
-import { DataTable, type DataColumn } from "@/components/shared/DataTable";
-import { ModalForm } from "@/components/shared/ModalForm";
-import { SearchFilterBar } from "@/components/shared/SearchFilterBar";
-import { StatusBadge } from "@/components/shared/StatusBadge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useAdminDataset } from "@/hooks/admin/useAdminDataset";
+import { useMemo, useState } from 'react';
+import { ConfirmModal } from '@/components/modals/ConfirmModal';
+import { DataTable, type DataColumn } from '@/components/common/DataTable';
+import { ModalForm } from '@/components/modals/ModalForm';
+import { SearchFilterBar } from '@/components/common/SearchFilterBar';
+import { StatusBadge } from '@/components/common/StatusBadge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { CustomSelect } from '@/components/ui/select';
+import { useAdminDataset } from '@/hooks/admin/useAdminDataset';
 import {
   createAdminUser,
   deleteAdminUser,
   updateAdminUser,
   updateAdminUserStatus,
-} from "@/services/admin/adminCrud";
-import { useAuth } from "@/hooks/useAuth";
-import type { UserRecord } from "@/types";
-
-// Only user‑role accounts are managed here.
-// Staff / manager assignment is done via Buildings → Members.
-const ROLE_OPTIONS: Array<{ value: 'admin' | 'manager' | 'staff' | 'user'; label: string }> = [
-  { value: "user",    label: "User" },
-  { value: "staff",   label: "Staff"   },
-  { value: "manager", label: "Manager" },
-];
-
-function RoleDropdown({
-  value,
-  onChange,
-}: {
-  value: 'admin' | 'manager' | 'staff' | 'user';
-  onChange: (value: 'admin' | 'manager' | 'staff' | 'user') => void;
-}) {
-  const [isOpen, setIsOpen] = useState(false);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handlePointerDown = (event: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setIsOpen(false);
-    };
-    document.addEventListener("mousedown", handlePointerDown);
-    document.addEventListener("keydown", handleEscape);
-    return () => {
-      document.removeEventListener("mousedown", handlePointerDown);
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, []);
-
-  const currentLabel = ROLE_OPTIONS.find((o) => o.value === value)?.label ?? "User";
-
-  return (
-    <div ref={wrapperRef} className="relative">
-      <button
-        type="button"
-        className="flex h-10 w-full items-center justify-between rounded-[1.2rem] border border-border bg-secondary px-4 text-sm text-foreground outline-none transition hover:border-border/80 focus:ring-2 focus:ring-ring"
-        onClick={() => setIsOpen((prev) => !prev)}
-        aria-haspopup="listbox"
-        aria-expanded={isOpen}
-      >
-        <span className="text-base font-medium">{currentLabel}</span>
-        <span className="-translate-y-[2px] text-xl leading-none text-muted-foreground">›</span>
-      </button>
-
-      {isOpen ? (
-        <div className="absolute left-0 top-[calc(100%+0.5rem)] z-50 w-full rounded-[1.4rem] border border-border bg-background p-2 shadow-[0_14px_45px_rgba(15,23,42,0.12)]">
-          <div className="grid gap-1">
-            {ROLE_OPTIONS.map((option) => {
-              const selected = option.value === value;
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  role="option"
-                  aria-selected={selected}
-                  className={`flex w-full items-center rounded-[1.1rem] px-4 py-3 text-left text-[1rem] transition-all duration-150 ${
-                    selected
-                      ? "bg-[#e8efff] text-[#2f62e0]"
-                      : "text-slate-800 hover:bg-slate-200"
-                  }`}
-                  onClick={() => { onChange(option.value); setIsOpen(false); }}
-                >
-                  <span>{option.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ) : null}
-    </div>
-  );
-}
+} from '@/services/admin/adminCrud';
+import { useAuth } from '@/hooks/useAuth';
+import type { UserRecord } from '@/types';
 
 export function UsersPage() {
   const { data, isLoading, error, refresh } = useAdminDataset();
   const { session } = useAuth();
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [selectedUser, setSelectedUser] = useState<UserRecord | null>(null);
-  const [pendingLockUser, setPendingLockUser] = useState<UserRecord | null>(null);
-  const [pendingDeleteUser, setPendingDeleteUser] = useState<UserRecord | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [form, setForm] = useState({
-    fullName: "",
-    email: "",
-    password: "",
-    phone: "",
-    role: "user" as 'admin' | 'manager' | 'staff' | 'user',
-    buildingId: "",
+  const [pendingDeleteUser, setPendingDeleteUser] = useState<UserRecord | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const [form, setForm] = useState<{
+    fullName: string;
+    email: string;
+    password: string;
+    phone: string;
+    role: 'user' | 'staff' | 'manager' | 'admin';
+    buildingId: string;
+  }>({
+    fullName: '',
+    email: '',
+    password: '',
+    phone: '',
+    role: 'user',
+    buildingId: '',
   });
 
-  // Derive building list from the already‑loaded dataset
-  const buildings = useMemo(
-    () => data?.buildings ?? [],
-    [data?.buildings],
-  );
-
-  // Only show "user" role accounts on this page.
-  // Staff / manager are managed via building assignment.
   const filtered = useMemo(() => {
-    const source = (data?.users ?? []).filter((u) => u.role === "user");
-    const q = query.trim().toLowerCase();
-    if (!q) return source;
-    return source.filter(
-      (user) =>
+    // Tab Người dùng chỉ quản lý tài khoản khách (role === 'user').
+    const source = (data?.users ?? []).filter((user) => user.role === 'user');
+    return source.filter((user) => {
+      const q = query.trim().toLowerCase();
+      const matchQuery =
         user.name.toLowerCase().includes(q) ||
         user.email.toLowerCase().includes(q) ||
-        user.linkedPlates.some((plate) => plate.toLowerCase().includes(q)),
-    );
-  }, [data?.users, query]);
+        user.linkedPlates.some((plate) => plate.toLowerCase().includes(q));
+      const matchStatus = statusFilter === 'all' || user.status === statusFilter;
+      return matchQuery && matchStatus;
+    });
+  }, [data?.users, query, statusFilter]);
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading users...</div>;
+    return <div className="text-sm text-muted-foreground">Đang tải danh sách người dùng...</div>;
   }
 
   if (error || !data) {
-    return <div className="text-sm text-red-600">{error || "Failed to load users."}</div>;
+    return <div className="text-sm text-red-600">{error || 'Tải người dùng thất bại.'}</div>;
   }
 
-  const token = session?.token || "";
+  const token = session?.token || '';
 
   const openCreateModal = () => {
     setActionError(null);
-    setForm({ fullName: "", email: "", password: "", phone: "", role: "user", buildingId: "" });
+    setForm({ fullName: '', email: '', password: '', phone: '', role: 'user', buildingId: '' });
     setIsCreating(true);
   };
 
@@ -156,10 +80,10 @@ export function UsersPage() {
     setForm({
       fullName: user.name,
       email: user.email,
-      password: "",
-      phone: user.phone || "",
+      password: '',
+      phone: user.phone || '',
       role: user.role,
-      buildingId: "",
+      buildingId: '',
     });
     setSelectedUser(user);
   };
@@ -173,29 +97,11 @@ export function UsersPage() {
 
   const saveCreate = async () => {
     if (!token) return;
-
-    // Validate: manager / staff must have a building selected
-    if ((form.role === "manager" || form.role === "staff") && !form.buildingId) {
-      setActionError(
-        `A building must be selected when creating a ${form.role} account.`,
-      );
+    const needsBuilding = form.role === 'staff' || form.role === 'manager';
+    if (needsBuilding && !form.buildingId) {
+      setActionError('Vui lòng chọn tòa nhà cho nhân viên / quản lý.');
       return;
     }
-
-    // Validate required fields
-    if (!form.fullName.trim()) {
-      setActionError("Full name is required.");
-      return;
-    }
-    if (!form.email.trim()) {
-      setActionError("Email is required.");
-      return;
-    }
-    if (!form.password.trim()) {
-      setActionError("Password is required.");
-      return;
-    }
-
     try {
       setIsSaving(true);
       setActionError(null);
@@ -205,12 +111,12 @@ export function UsersPage() {
         password: form.password,
         phone: form.phone,
         role: form.role,
-        buildingId: form.buildingId || undefined,
+        buildingId: needsBuilding ? form.buildingId : undefined,
       });
       await refresh();
       closeModals();
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Unable to create user");
+      setActionError(err instanceof Error ? err.message : 'Không thể tạo người dùng');
       setIsSaving(false);
     }
   };
@@ -227,102 +133,124 @@ export function UsersPage() {
       await refresh();
       closeModals();
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Unable to update user");
+      setActionError(err instanceof Error ? err.message : 'Không thể cập nhật người dùng');
       setIsSaving(false);
     }
   };
 
   const toggleStatus = async (user: UserRecord) => {
     if (!token) return;
-    // Show confirm before locking
-    if (user.status === "active") {
-      setPendingLockUser(user);
-      return;
-    }
     try {
-      await updateAdminUserStatus(token, user.id, true);
+      setActionError(null);
+      await updateAdminUserStatus(token, user.id, user.status !== 'active');
       await refresh();
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Unable to change user status");
+      setActionError(err instanceof Error ? err.message : 'Không thể đổi trạng thái người dùng');
     }
   };
 
-  const confirmLock = async () => {
-    if (!token || !pendingLockUser) return;
-    try {
-      await updateAdminUserStatus(token, pendingLockUser.id, false);
-      await refresh();
-    } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Unable to lock user");
-    } finally {
-      setPendingLockUser(null);
-    }
-  };
-
-  const confirmDelete = async () => {
+  const confirmDeleteUser = async () => {
     if (!token || !pendingDeleteUser) return;
     try {
       setIsDeleting(true);
+      setActionError(null);
       await deleteAdminUser(token, pendingDeleteUser.id);
       await refresh();
+      setPendingDeleteUser(null);
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Unable to delete user");
+      setActionError(err instanceof Error ? err.message : 'Không thể xóa người dùng');
     } finally {
       setIsDeleting(false);
-      setPendingDeleteUser(null);
     }
   };
 
   const columns: DataColumn<UserRecord>[] = [
-    { key: "name",  title: "Name"  },
-    { key: "email", title: "Email" },
-    { key: "phone", title: "Phone", render: (row) => row.phone || "—" },
+    { key: 'name', title: 'Họ tên' },
+    { key: 'email', title: 'Email' },
+    { key: 'phone', title: 'Số điện thoại', render: (row) => row.phone || 'Chưa cập nhật' },
+    { key: 'status', title: 'Trạng thái', render: (row) => <StatusBadge status={row.status} /> },
     {
-      key: "status",
-      title: "Status",
-      render: (row) => <StatusBadge status={row.status} />,
+      key: 'walletBalance',
+      title: 'Số dư ví',
+      render: (row) => `${row.walletBalance.toLocaleString('vi-VN')} ₫`,
     },
     {
-      key: "walletBalance",
-      title: "Wallet",
-      render: (row) => `${row.walletBalance.toLocaleString()} VND`,
-    },
-    {
-      key: "linkedPlates",
-      title: "Plates",
-      render: (row) =>
-        row.linkedPlates.length === 0 ? (
-          <span className="text-xs italic text-muted-foreground">None</span>
-        ) : (
-          <div className="flex flex-wrap gap-1">
-            {row.linkedPlates.map((p) => (
+      key: 'linkedPlates',
+      title: 'Biển số liên kết',
+      render: (row) => {
+        const locallyUpdatedRaw = localStorage.getItem('pbms.locallyUpdatedUsers');
+        const locallyUpdated = locallyUpdatedRaw ? JSON.parse(locallyUpdatedRaw) : {};
+        const targetEmail = (row.email || '').trim().toLowerCase();
+        const matchingKey = Object.keys(locallyUpdated).find(
+          (key) => key.trim().toLowerCase() === targetEmail,
+        );
+        const localUser = matchingKey ? locallyUpdated[matchingKey] : null;
+        const localPlates: Array<{ plateNumber: string; vehicleType: 'car' | 'motorcycle'; isDefault?: boolean }> =
+          localUser?.licensePlates || [];
+
+        const plateMap = new Map<string, { vehicleType: 'car' | 'motorcycle'; isDefault?: boolean }>();
+        localPlates.forEach((p) => {
+          if (p.plateNumber) {
+            plateMap.set(p.plateNumber.toUpperCase(), { vehicleType: p.vehicleType, isDefault: p.isDefault });
+          }
+        });
+        (row.linkedPlates || []).forEach((p) => {
+          const upper = p.toUpperCase();
+          if (!plateMap.has(upper)) {
+            plateMap.set(upper, { vehicleType: 'car', isDefault: false });
+          }
+        });
+
+        const mergedPlates = Array.from(plateMap.entries()).map(([plateNumber, info]) => ({
+          plateNumber,
+          vehicleType: info.vehicleType,
+          isDefault: info.isDefault,
+        }));
+
+        if (mergedPlates.length === 0) {
+          return <span className="text-muted-foreground italic text-xs">Chưa liên kết</span>;
+        }
+
+        return (
+          <div className="flex flex-wrap gap-1.5">
+            {mergedPlates.map((p) => (
               <span
-                key={p}
-                className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] font-bold"
+                key={p.plateNumber}
+                className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[10px] font-mono font-black border tracking-wider ${
+                  p.isDefault
+                    ? 'bg-amber-500/20 border-amber-500/30 text-amber-500'
+                    : p.vehicleType === 'car'
+                    ? 'bg-blue-500/20 border-blue-500/30 text-blue-400'
+                    : 'bg-purple-500/20 border-purple-500/30 text-purple-400'
+                }`}
+                title={p.isDefault ? 'Biển số mặc định' : p.vehicleType === 'car' ? 'Ô tô' : 'Xe máy'}
               >
-                {p}
+                <span>{p.vehicleType === 'car' ? '🚗' : '🏍️'}</span>
+                <span>{p.plateNumber}</span>
+                {p.isDefault && (
+                  <span className="text-[8px] font-sans font-extrabold uppercase tracking-normal opacity-95">
+                    (Mặc định)
+                  </span>
+                )}
               </span>
             ))}
           </div>
-        ),
+        );
+      },
     },
     {
-      key: "actions",
-      title: "Actions",
+      key: 'actions',
+      title: 'Hành động',
       render: (row) => (
         <div className="flex flex-wrap gap-2">
           <Button variant="ghost" size="sm" onClick={() => openEditModal(row)}>
-            Edit
+            Sửa
           </Button>
           <Button variant="secondary" size="sm" onClick={() => toggleStatus(row)}>
-            {row.status === "active" ? "Lock" : "Unlock"}
+            {row.status === 'active' ? 'Khóa' : 'Mở'}
           </Button>
-          <Button
-            variant="danger"
-            size="sm"
-            onClick={() => setPendingDeleteUser(row)}
-          >
-            Delete
+          <Button variant="ghost" size="sm" onClick={() => setPendingDeleteUser(row)}>
+            Xóa
           </Button>
         </div>
       ),
@@ -331,61 +259,58 @@ export function UsersPage() {
 
   return (
     <div className="grid gap-4">
-      {actionError ? (
-        <div className="text-sm text-red-600">{actionError}</div>
-      ) : null}
+      {actionError ? <div className="text-sm text-red-600">{actionError}</div> : null}
 
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-xs text-muted-foreground">
-          Showing <strong>user</strong> accounts only. Staff & manager accounts are managed via
-          Buildings → Members.
-        </p>
-        <Button onClick={openCreateModal}>Create user</Button>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <SearchFilterBar
+          query={query}
+          onQueryChange={setQuery}
+          filterValue={statusFilter}
+          onFilterChange={setStatusFilter}
+          filterOptions={['all', 'active', 'blocked', 'pending']}
+        />
+        <Button onClick={openCreateModal}>Tạo người dùng</Button>
       </div>
 
-      <SearchFilterBar
-        query={query}
-        onQueryChange={setQuery}
-        filterValue="user"
-        onFilterChange={() => undefined}
-        filterOptions={["user"]}
-      />
+      <DataTable title="Người dùng" rows={filtered} columns={columns} />
 
-      <DataTable title="Users" rows={filtered} columns={columns} />
-
-      {/* ── Edit Modal ─────────────────────────────────────── */}
+      {/* Edit User Modal */}
       <ModalForm
         open={Boolean(selectedUser)}
-        onOpenChange={(open) => { if (!open) closeModals(); }}
-        title="Edit user"
+        onOpenChange={(open) => {
+          if (!open) closeModals();
+        }}
+        title="Cập nhật người dùng"
         onSubmit={saveUpdate}
       >
         <div className="grid gap-3 md:grid-cols-2">
           <Input
-            placeholder="Full name"
+            placeholder="Họ tên"
             value={form.fullName}
             onChange={(e) => setForm((prev) => ({ ...prev, fullName: e.target.value }))}
           />
           <Input placeholder="Email" value={form.email} disabled />
           <Input
-            placeholder="Phone"
+            placeholder="Số điện thoại"
             value={form.phone}
             onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
           />
         </div>
-        {isSaving ? <p className="text-xs text-muted-foreground">Saving...</p> : null}
+        {isSaving ? <p className="text-xs text-muted-foreground">Đang lưu...</p> : null}
       </ModalForm>
 
-      {/* ── Create Modal ───────────────────────────────────── */}
+      {/* Create User Modal */}
       <ModalForm
         open={isCreating}
-        onOpenChange={(open) => { if (!open) closeModals(); }}
-        title="Create user"
+        onOpenChange={(open) => {
+          if (!open) closeModals();
+        }}
+        title="Tạo người dùng"
         onSubmit={saveCreate}
       >
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           <Input
-            placeholder="Full name"
+            placeholder="Họ tên"
             value={form.fullName}
             onChange={(e) => setForm((prev) => ({ ...prev, fullName: e.target.value }))}
           />
@@ -395,83 +320,71 @@ export function UsersPage() {
             onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
           />
           <Input
-            placeholder="Password"
+            placeholder="Mật khẩu"
             type="password"
             value={form.password}
             onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))}
           />
           <Input
-            placeholder="Phone"
+            placeholder="Số điện thoại"
             value={form.phone}
             onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
           />
-          <div className="md:col-span-2">
-            <label className="mb-1 block text-xs uppercase text-muted-foreground">Role</label>
-            <RoleDropdown
+          <div className="grid gap-1.5">
+            <label className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Vai trò</label>
+            <CustomSelect
+              className="h-10"
               value={form.role}
-              onChange={(role) => setForm((prev) => ({ ...prev, role, buildingId: "" }))}
+              onChange={(val) =>
+                setForm((prev) => ({ ...prev, role: val as typeof prev.role, buildingId: '' }))
+              }
+              options={[
+                { value: 'user', label: 'Người dùng' },
+                { value: 'staff', label: 'Nhân viên' },
+                { value: 'manager', label: 'Quản lý' }
+              ]}
             />
           </div>
-
-          {/* Building selector — shown only for staff / manager */}
-          {(form.role === "staff" || form.role === "manager") ? (
-            <div className="md:col-span-2">
-              <label className="mb-1 block text-xs uppercase text-muted-foreground">
-                Assign to building <span className="text-red-500">*</span>
+          {(form.role === 'staff' || form.role === 'manager') && (
+            <div className="grid gap-1.5">
+              <label className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                Tòa nhà phụ trách <span className="text-red-500">*</span>
               </label>
-              <select
+              <CustomSelect
+                className="h-10"
                 value={form.buildingId}
-                onChange={(e) => {
-                  setForm((prev) => ({ ...prev, buildingId: e.target.value }));
-                  setActionError(null);
-                }}
-                className={`h-10 w-full rounded-[1.2rem] border px-4 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring bg-secondary ${
-                  !form.buildingId && actionError
-                    ? "border-red-500 focus:ring-red-300"
-                    : "border-border"
-                }`}
-              >
-                <option value="">— Select building —</option>
-                {buildings.map((b) => (
-                  <option key={b.backendId || b.id} value={b.backendId || b.id}>
-                    {b.name} ({b.id})
-                  </option>
-                ))}
-              </select>
-              {!form.buildingId && actionError?.includes("building") ? (
-                <p className="mt-1 text-xs text-red-500">
-                  Please select a building.
-                </p>
-              ) : null}
+                onChange={(val) => setForm((prev) => ({ ...prev, buildingId: val }))}
+                placeholder="-- Chọn tòa nhà --"
+                options={[
+                  { value: '', label: '-- Chọn tòa nhà --' },
+                  ...(data?.buildings ?? []).map((b) => ({
+                    value: b.backendId || b.id,
+                    label: b.name
+                  }))
+                ]}
+              />
             </div>
-          ) : null}
+          )}
         </div>
-        {actionError && isCreating ? (
-          <p className="mt-1 text-sm text-red-600">{actionError}</p>
-        ) : null}
-        {isSaving ? <p className="text-xs text-muted-foreground">Creating...</p> : null}
+        {(form.role === 'staff' || form.role === 'manager') && (
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            {form.role === 'staff' ? 'Nhân viên' : 'Quản lý'} sẽ được gán vào tòa nhà đã chọn ngay khi tạo.
+            Tài khoản loại này không hiển thị ở danh sách “Người dùng”.
+          </p>
+        )}
+        {isSaving ? <p className="text-xs text-muted-foreground">Đang tạo...</p> : null}
       </ModalForm>
 
-      {/* ── Lock Confirm ───────────────────────────────────── */}
-      <ConfirmModal
-        open={Boolean(pendingLockUser)}
-        title="Lock user account"
-        description={`Lock account ${pendingLockUser?.email || ""}? The user will not be able to log in.`}
-        confirmLabel="Lock"
-        isConfirming={false}
-        onOpenChange={(open) => { if (!open) setPendingLockUser(null); }}
-        onConfirm={confirmLock}
-      />
-
-      {/* ── Delete Confirm ─────────────────────────────────── */}
       <ConfirmModal
         open={Boolean(pendingDeleteUser)}
-        title="Delete user account"
-        description={`Permanently delete account "${pendingDeleteUser?.name || pendingDeleteUser?.email || ""}"? This action cannot be undone.`}
-        confirmLabel="Delete"
+        title="Xác nhận xóa người dùng"
+        description={`Xóa vĩnh viễn tài khoản "${pendingDeleteUser?.name || pendingDeleteUser?.email || ''}"? Hành động này không thể hoàn tác.`}
+        confirmLabel="Xóa"
         isConfirming={isDeleting}
-        onOpenChange={(open) => { if (!open) setPendingDeleteUser(null); }}
-        onConfirm={confirmDelete}
+        onOpenChange={(open) => {
+          if (!open) setPendingDeleteUser(null);
+        }}
+        onConfirm={confirmDeleteUser}
       />
     </div>
   );

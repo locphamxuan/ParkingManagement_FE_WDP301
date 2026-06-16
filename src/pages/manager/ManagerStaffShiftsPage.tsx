@@ -56,7 +56,9 @@ export function ManagerStaffShiftsPage() {
     setIsSubmitting(true);
     try {
       if (editing) {
-        await managerApi.shifts.updateStaffShift(buildingId, editing._id, data as any);
+        await managerApi.shifts.updateStaffShift(buildingId, editing._id, {
+          ...data,
+        });
       } else {
         await managerApi.shifts.assignStaffShift(buildingId, data);
       }

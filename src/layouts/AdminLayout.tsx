@@ -11,7 +11,7 @@ const titles: Record<string, string> = {
   '/admin/dashboard/users': 'Quản lý người dùng',
   '/admin/dashboard/revenue-analytics': 'Phân tích doanh thu',
   '/admin/dashboard/subscription-packages': 'Gói dịch vụ hệ thống',
-  '/admin/dashboard/system-wallet': 'Ví hệ thống',
+  '/admin/dashboard/wallet-governance': 'Ví hệ thống',
   '/admin/dashboard/audit-logs': 'Nhật ký kiểm toán',
   '/admin/dashboard/notifications': 'Thông báo',
   '/admin/dashboard/profile': 'Hồ sơ cá nhân',

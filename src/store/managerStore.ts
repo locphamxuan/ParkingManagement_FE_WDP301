@@ -45,7 +45,7 @@ export const useManagerStore = create<ManagerState>()(
           });
           return buildings;
         } catch (error) {
-          const message = error instanceof Error ? error.message : 'Failed to load buildings';
+          const message = error instanceof Error ? error.message : 'Tải danh sách tòa nhà thất bại';
           set({ error: message, isLoading: false });
           throw error;
         }

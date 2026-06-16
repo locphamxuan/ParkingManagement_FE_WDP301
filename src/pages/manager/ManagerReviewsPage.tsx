@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { DataTable, type DataColumn } from '@/components/common/DataTable';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { userApi } from '@/services/user/userApi';
-import { managerApi } from '@/services/manager/managerApi';
 import type { Feedback } from '@/services/user/userApi';
 import { Modal } from '@/components/ui/modal';
 
@@ -63,10 +62,21 @@ export function ManagerReviewsPage() {
 
     setReplying(true);
     try {
-      if (!buildingId) throw new Error('Không xác định được tòa nhà');
-      await managerApi.feedbacks.respond(buildingId, replyForm.reviewId, {
-        response: replyForm.staffReply.trim(),
-      });
+      // Create a new FormData to send the reply
+      // Since userApi doesn't have a reply endpoint, we'll need to implement this via direct API call
+      const response = await fetch(
+        `/api/feedbacks/${replyForm.reviewId}/reply`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ staffReply: replyForm.staffReply.trim() }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Gửi phản hồi thất bại');
+      }
 
       await refresh();
       setReplyModalOpen(false);
@@ -305,10 +315,9 @@ export function ManagerReviewsPage() {
 
             <div className="flex justify-end gap-3">
               <Button
-                variant="ghost"
+                variant="outline"
                 onClick={() => !replying && setReplyModalOpen(false)}
                 disabled={replying}
-                className="rounded-lg border border-slate-700 text-slate-300 transition-colors hover:bg-slate-800 hover:text-white"
               >
                 Hủy
               </Button>

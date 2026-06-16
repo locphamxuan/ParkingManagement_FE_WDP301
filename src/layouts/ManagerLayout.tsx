@@ -8,7 +8,7 @@ import { useManagerBuildings } from '@/hooks/useManagerBuildings';
 import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 
 // Pages a manager can reach WITHOUT an active subscription (so they can pay).
-const UNGATED_PATHS = ['/manager/wallet', '/manager/profile', '/manager/operating-hours', '/manager/buildings'];
+const UNGATED_PATHS = ['/manager/wallet', '/manager/profile', '/manager/operating-hours'];
 
 const titles: Record<string, string> = {
   '/manager': 'Bảng điều khiển Manager',

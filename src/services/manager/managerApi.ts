@@ -1,4 +1,4 @@
-import { api } from '@/services/apiClient';
+import { api } from '@/services/client/apiClient';
 
 export interface ManagerBuilding {
   _id: string;
@@ -38,7 +38,8 @@ export interface Gate {
   direction: 'in' | 'out' | 'both';
   status: 'active' | 'inactive' | 'maintenance';
   allowedVehicleTypes: VehicleType[];
-  floors: { _id: string; code: string; name: string; levelNumber: number }[] | string[];
+  /** Floors this gate serves (BE Gate.floors). */
+  floors?: (Floor | string)[];
 }
 
 export interface ParkingSlot {
@@ -55,18 +56,26 @@ export interface ParkingSlot {
 export interface PricePolicy {
   _id: string;
   building: string;
-  vehicleType: VehicleType | string | null;
+  vehicleType: VehicleType | string;
   name: string;
-  type: 'regular' | 'peak' | 'holiday';
+  /** Rate type — regular (giờ thường) hoặc peak (cao điểm). */
+  type: 'regular' | 'peak';
   hourlyRate: number;
-  dailyCap?: number | null;
-  minRate?: number;
-  maxRate?: number | null;
   timeWindow?: { from: string; to: string };
   effectiveFrom: string;
   effectiveTo?: string | null;
   isActive: boolean;
-  status?: 'pending' | 'approved' | 'rejected';
+}
+
+export interface PolicyPushLog {
+  _id: string;
+  building: string;
+  pricePolicy: { _id: string; name: string };
+  actor: { _id: string; fullName: string; email: string; role: string };
+  action: string;
+  previousValue?: unknown;
+  newValue?: unknown;
+  createdAt: string;
 }
 
 export interface LongTermPackage {
@@ -79,20 +88,14 @@ export interface LongTermPackage {
   price: number;
   reservedSlots: number;
   description?: string;
-  allowDedicatedSlot: boolean;
-  benefits: string[];
-  isActive: boolean;
+  /** Perks shown to users (e.g. "Miễn phí rửa xe", "Ưu tiên chỗ gần thang máy"). */
+  benefits?: string[];
+  /** When true, subscribers get a dedicated reserved slot. */
+  allowDedicatedSlot?: boolean;
+  /** Số giờ đỗ miễn phí tối đa/ngày của gói (0 = không giới hạn). */
   maxHoursPerDay?: number;
+  /** Số ngày giữ slot cố định sau khi gói hết hạn (grace) trước khi thu hồi. */
   graceDays?: number;
-}
-
-export interface AdminSubscriptionPackage {
-  _id: string;
-  name: string;
-  price: number;
-  durationDays: number;
-  description?: string;
-  features: string[];
   isActive: boolean;
 }
 
@@ -107,21 +110,24 @@ export interface Subscription {
   slot?: {
     _id: string;
     code: string;
-    floor: { _id: string; code: string; name: string; levelNumber: number } | string;
-  } | null;
+    floor?: string | { _id: string; code?: string; name?: string } | null;
+  } | string | null;
   slotReleased?: boolean;
 }
 
 export interface ReservationPolicy {
   _id?: string;
   maxHoldMinutes: number;
-  bookingFee: number;
   refundPercent: number;
+  /** % tổng phí thu làm cọc khi đặt; phần còn lại (100 - depositPercent) thu sau checkout. */
+  depositPercent: number;
+  /** Số ngày được đặt trước tối đa. */
+  maxAdvanceDays: number;
+  /** Số giờ tối đa cho mỗi lượt đặt. */
+  maxDurationHours: number;
+  /** % phụ phí phạt áp lên phần đỗ quá giờ đặt (overstay). 0 = không phạt. */
+  overstayPenaltyPercent: number;
   isActive: boolean;
-  depositPercent?: number;
-  maxAdvanceDays?: number;
-  maxDurationHours?: number;
-  overstayPenaltyPercent?: number;
 }
 
 export interface Shift {
@@ -139,10 +145,11 @@ export interface StaffShift {
   building: string;
   shift: { _id: string; code: string; name: string; startTime: string; endTime: string };
   staff: { _id: string; fullName: string; email: string; phone?: string };
+  /** Gate the manager assigned this staff to for the shift (ra / vào). */
+  gate?: { _id: string; code: string; name?: string; direction: 'in' | 'out' | 'both'; status?: string } | null;
   workDate: string;
   status: 'scheduled' | 'active' | 'completed' | 'cancelled';
   note?: string;
-  gate?: { _id: string; code: string; direction: 'in' | 'out' | 'both' } | null;
 }
 
 export interface ShiftRevenue {
@@ -158,73 +165,6 @@ export interface ShiftRevenue {
   reconciled: boolean;
 }
 
-export interface Feedback {
-  _id: string;
-  user: { _id: string; fullName: string; email: string; phone?: string };
-  building?: { _id?: string; name?: string; code?: string; address?: unknown } | null;
-  parkingSession?: {
-    _id?: string;
-    plateNumber?: string;
-    entryTime?: string;
-    exitTime?: string;
-    fee?: number;
-    status?: string;
-  } | null;
-  reservation?: {
-    _id?: string;
-    code?: string;
-    plateNumber?: string;
-    startTime?: string;
-    endTime?: string;
-    fee?: number;
-    estimatedFee?: number;
-    status?: string;
-  } | null;
-  rating?: number | null;
-  comment?: string;
-  portraitImageUrl?: string | null;
-  plateImageUrl?: string | null;
-  staffReply?: string | null;
-  repliedAt?: string | null;
-  repliedBy?: { _id?: string; fullName?: string; email?: string; role?: string } | null;
-  status: 'pending' | 'resolved';
-  createdAt: string;
-  updatedAt?: string;
-}
-export interface BuildingWallet {
-  _id: string;
-  building: string;
-  balance: number;
-  totalReceived: number;
-  totalTransferred: number;
-  updatedAt: string;
-}
-
-export interface BuildingWalletTransaction {
-  _id: string;
-  building: string;
-  type: 'credit' | 'debit';
-  amount: number;
-  balanceAfter: number;
-  reason: 'parking_fee' | 'reservation_fee' | 'transfer_to_system' | 'refund' | 'topup' | 'admin_subscription';
-  note?: string | null;
-  createdAt: string;
-}
-
-export interface DailyRevenueResult {
-  totalRevenue: number;
-  date: string;
-}
-
-export interface SubscriptionStatus {
-  active: boolean;
-  endDate: string | null;
-  startDate: string | null;
-  daysRemaining: number;
-  package: { _id: string; name: string; price: number; durationDays: number } | null;
-  packageName: string | null;
-}
-
 export interface DashboardOverview {
   slots: {
     total: number;
@@ -238,12 +178,73 @@ export interface DashboardOverview {
   gates: number;
   sessions: { active: number; today: number };
   subscriptions: { active: number };
-  feedbacks: { pending: number };
   revenue: {
     today: number;
     byMethod: Record<string, { amount: number; count: number }>;
     weekly: { date: string; revenue: number; sessions: number }[];
   };
+}
+
+export interface BuildingWallet {
+  _id: string;
+  building: string;
+  balance: number;
+  updatedAt: string;
+}
+
+export interface BuildingWalletTransaction {
+  _id: string;
+  building: string;
+  type: 'credit' | 'debit';
+  reason: string;
+  amount: number;
+  balanceAfter: number;
+  note?: string;
+  createdAt: string;
+}
+
+export interface DailyRevenueResult {
+  date: string;
+  totalRevenue: number;
+  targetTransfer: number;
+  settled: boolean;
+}
+
+export interface DailyRevenueSettlement {
+  _id: string;
+  building: string;
+  date: string;
+  revenue: number;
+  targetAmount: number;
+  transferredAmount: number;
+  note?: string;
+  createdAt: string;
+}
+
+export interface AdminSubscriptionPackage {
+  _id: string;
+  name: string;
+  price: number;
+  durationDays: number;
+  description?: string;
+  features?: string[];
+  isActive: boolean;
+  createdAt?: string;
+}
+
+export interface SubscriptionStatus {
+  active: boolean;
+  endDate: string | null;
+  startDate: string | null;
+  daysRemaining: number;
+  package: { _id: string; name: string; price: number; durationDays: number } | null;
+  packageName: string | null;
+}
+
+export interface WalletTopUpResult {
+  checkoutUrl: string;
+  qrCode: string;
+  orderCode: number;
 }
 
 interface Wrap<T> {
@@ -258,8 +259,9 @@ export const managerApi = {
     api.get<Wrap<ManagerBuilding[] | { items: ManagerBuilding[] }>>('/manager/buildings'),
   updateBuilding: (id: string, body: Partial<ManagerBuilding>) =>
     api.put<Wrap<{ building: ManagerBuilding }>>(`/manager/buildings/${id}`, body),
-  updateOperatingHours: (buildingId: string, operatingHours: { open: string; close: string }) =>
-    api.put<Wrap<{ building: ManagerBuilding }>>(`/manager/buildings/${buildingId}/operating-hours`, operatingHours),
+  /** Update only the building open/close hours (dedicated tab). */
+  updateOperatingHours: (buildingId: string, body: { open: string; close: string }) =>
+    api.put<Wrap<{ building: ManagerBuilding }>>(path(buildingId, '/operating-hours'), body),
 
   getDashboard: (buildingId: string) =>
     api.get<Wrap<DashboardOverview>>(path(buildingId, '/dashboard')),
@@ -283,12 +285,15 @@ export const managerApi = {
   },
 
   gates: {
+    // Manager CRUD cổng và tự đặt thể loại (ra / vào / hai chiều).
     list: (b: string) => api.get<Wrap<{ items: Gate[] }>>(path(b, '/gates')),
-    create: (b: string, body: Partial<Gate> & { allowedVehicleTypes?: string[] }) =>
+    create: (b: string, body: { code: string; name?: string; direction?: Gate['direction']; status?: Gate['status'] }) =>
       api.post<Wrap<{ item: Gate }>>(path(b, '/gates'), body),
-    update: (b: string, id: string, body: Partial<Gate> & { allowedVehicleTypes?: string[] }) =>
+    update: (b: string, id: string, body: { code?: string; name?: string; direction?: Gate['direction']; status?: Gate['status'] }) =>
       api.put<Wrap<{ item: Gate }>>(path(b, `/gates/${id}`), body),
     remove: (b: string, id: string) => api.delete(path(b, `/gates/${id}`)),
+    updateStatus: (b: string, id: string, status: Gate['status']) =>
+      api.patch<Wrap<{ item: Gate }>>(path(b, `/gates/${id}/status`), { status }),
   },
 
   slots: {
@@ -310,6 +315,8 @@ export const managerApi = {
     update: (b: string, id: string, body: Partial<PricePolicy>) =>
       api.put<Wrap<{ item: PricePolicy }>>(path(b, `/price-policies/${id}`), body),
     deactivate: (b: string, id: string) => api.delete(path(b, `/price-policies/${id}`)),
+    pushLogs: (b: string) =>
+      api.get<Wrap<{ items: PolicyPushLog[]; pagination: unknown }>>(path(b, '/policy-push-logs')),
   },
 
   packages: {
@@ -322,8 +329,9 @@ export const managerApi = {
     remove: (b: string, id: string) => api.delete(path(b, `/packages/${id}`)),
     subscriptions: (b: string, q?: Record<string, string | undefined>) =>
       api.get<Wrap<{ items: Subscription[]; pagination: unknown }>>(path(b, '/subscriptions'), { query: q }),
-    releaseSlot: (b: string, id: string) =>
-      api.post(path(b, `/subscriptions/${id}/release-slot`), {}),
+    /** Manager chủ động thu hồi slot cố định của một subscription. */
+    releaseSlot: (b: string, subscriptionId: string) =>
+      api.post<Wrap<{ item: Subscription }>>(path(b, `/subscriptions/${subscriptionId}/release-slot`), {}),
   },
 
   reservationPolicy: {
@@ -348,10 +356,13 @@ export const managerApi = {
       api.get<Wrap<{ items: StaffShift[] }>>(path(b, '/staff-shifts'), { query: q }),
     assignStaffShift: (
       b: string,
-      body: { staff: string; shift: string; workDate: string; note?: string }
+      body: { staff: string; shift: string; workDate: string; gate?: string | null; note?: string }
     ) => api.post<Wrap<{ item: StaffShift }>>(path(b, '/staff-shifts'), body),
-    updateStaffShift: (b: string, id: string, body: Partial<StaffShift>) =>
-      api.put<Wrap<{ item: StaffShift }>>(path(b, `/staff-shifts/${id}`), body),
+    updateStaffShift: (
+      b: string,
+      id: string,
+      body: { staff?: string; shift?: string; workDate?: string; gate?: string | null; status?: StaffShift['status']; note?: string }
+    ) => api.put<Wrap<{ item: StaffShift }>>(path(b, `/staff-shifts/${id}`), body),
     removeStaffShift: (b: string, id: string) =>
       api.delete(path(b, `/staff-shifts/${id}`)),
     revenues: (b: string, q?: Record<string, string | undefined>) =>
@@ -360,41 +371,41 @@ export const managerApi = {
       >(path(b, '/shift-revenues'), { query: q }),
   },
 
-  feedbacks: {
-    list: (b: string, q?: Record<string, string | undefined>) =>
-      api.get<Wrap<{ items: Feedback[]; pagination: unknown }>>(path(b, '/feedbacks'), {
-        query: q,
-      }),
-    respond: (b: string, id: string, body: { response?: string; status?: Feedback['status'] }) =>
-      api.patch<Wrap<{ item: Feedback }>>(path(b, `/feedbacks/${id}`), body),
-  },
-
   wallet: {
     get: (b: string) =>
       api.get<Wrap<{ wallet: BuildingWallet }>>(path(b, '/wallet')),
-    getDailyRevenue: (b: string) =>
-      api.get<Wrap<DailyRevenueResult>>(path(b, '/wallet/daily-revenue')),
+    getDailyRevenue: (b: string, date?: string) =>
+      api.get<Wrap<DailyRevenueResult>>(path(b, '/wallet/daily-revenue'), {
+        query: date ? { date } : undefined,
+      }),
     listTransactions: (b: string, q?: Record<string, string | undefined>) =>
       api.get<Wrap<{ items: BuildingWalletTransaction[] }>>(path(b, '/wallet/transactions'), { query: q }),
+    listSettlements: (b: string, q?: Record<string, string | undefined>) =>
+      api.get<Wrap<{ items: DailyRevenueSettlement[] }>>(path(b, '/wallet/settlements'), { query: q }),
+
+    /** Admin subscription packages a manager can buy (GET /wallet/subscription-packages). */
     listSubscriptionPackages: (b: string) =>
       api.get<Wrap<{ items: AdminSubscriptionPackage[] }>>(path(b, '/wallet/subscription-packages')),
-    getSubscriptionStatus: (b: string) =>
-      api.get<Wrap<SubscriptionStatus>>(path(b, '/subscription')),
+
+    /** Subscribe to an admin package, paying from the building wallet (POST /wallet/subscribe). */
     subscribe: (b: string, packageId: string) =>
-      api.post<Wrap<{ wallet: BuildingWallet; package: AdminSubscriptionPackage }>>(
+      api.post<Wrap<{ wallet: BuildingWallet; package: AdminSubscriptionPackage; subscription: SubscriptionStatus }>>(
         path(b, '/wallet/subscribe'),
-        { packageId },
+        { packageId }
       ),
+
+    /** PayOS top-up for the building wallet (POST /wallet/topup). */
     initiateTopup: (b: string, amount: number) =>
-      api.post<Wrap<{ checkoutUrl: string; qrCode: string; orderCode: number }>>(
-        path(b, '/wallet/topup'),
-        { amount },
-      ),
+      api.post<Wrap<WalletTopUpResult>>(path(b, '/wallet/topup'), { amount }),
+
+    /** Manually verify a PayOS top-up (GET /wallet/topup/:orderCode/verify). */
     verifyTopup: (b: string, orderCode: number) =>
-      api.get<Wrap<{ status: string; credited: boolean }>>(
-        path(b, `/wallet/topup/${orderCode}/verify`),
-      ),
+      api.get<Wrap<{ status: string; credited: boolean }>>(path(b, `/wallet/topup/${orderCode}/verify`)),
   },
+
+  /** Building admin-subscription status — drives the dashboard gate (GET /subscription). */
+  getSubscriptionStatus: (b: string) =>
+    api.get<Wrap<SubscriptionStatus>>(path(b, '/subscription')),
 
 };
 

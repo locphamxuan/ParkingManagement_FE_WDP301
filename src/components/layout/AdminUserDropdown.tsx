@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronDown, LogOut } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { ChevronDown, LogOut, User } from 'lucide-react';
 
 interface Props {
   email: string;
@@ -11,6 +12,17 @@ interface Props {
 export function AdminUserDropdown({ email, onLogout, fullName, role }: Props) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleViewProfile = () => {
+    setOpen(false);
+    if (location.pathname.startsWith('/manager')) {
+      navigate('/manager/profile');
+    } else if (location.pathname.startsWith('/admin')) {
+      navigate('/admin/dashboard/profile');
+    }
+  };
 
   useEffect(() => {
     function onDoc(e: MouseEvent) {
@@ -69,6 +81,14 @@ export function AdminUserDropdown({ email, onLogout, fullName, role }: Props) {
 
           {/* Actions */}
           <div className="p-1">
+            <button
+              type="button"
+              className="user-dropdown-item flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
+              onClick={handleViewProfile}
+            >
+              <User size={14} className="text-slate-400" />
+              Xem hồ sơ
+            </button>
             <button
               type="button"
               className="user-dropdown-item flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-rose-400 transition hover:bg-rose-500/10 hover:text-rose-300 mt-0.5"

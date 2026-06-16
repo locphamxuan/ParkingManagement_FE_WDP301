@@ -24,7 +24,7 @@ const modules = [
   { to: 'users', label: 'Người dùng', icon: Users },
   { to: 'revenue-analytics', label: 'Phân tích doanh thu', icon: CircleDollarSign },
   { to: 'subscription-packages', label: 'Gói dịch vụ', icon: Crown },
-  { to: 'system-wallet', label: 'Ví hệ thống', icon: Wallet },
+  { to: 'wallet-governance', label: 'Ví hệ thống', icon: Wallet },
   { to: 'audit-logs', label: 'Nhật ký kiểm tra', icon: FileSearch },
 ] as const;
 

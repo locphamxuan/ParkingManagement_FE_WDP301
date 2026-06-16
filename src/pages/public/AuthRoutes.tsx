@@ -1,10 +1,8 @@
 import { useCallback, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import AuthPage from '@/pages/AuthPage';
-import { requestJson } from '@/services/pbmsApi';
+import AuthPage, { AuthMode } from '@/pages/AuthPage';
+import { requestJson } from '@/services/client/apiClient';
 import { useAuth } from '@/hooks/useAuth';
-import { saveSession } from '@/services/storage';
-import { useAuthStore } from '@/store/authStore';
 
 interface AuthApiResponse {
   success: boolean;
@@ -19,55 +17,42 @@ function mapAuthErrorMessage(message: string): string {
   const normalized = message.trim().toLowerCase();
 
   if (normalized.includes('invalid email or password')) {
-    return 'Invalid email or password.';
+    return 'Email hoặc mật khẩu không đúng.';
   }
   if (normalized.includes('account is deactivated')) {
-    return 'Account is deactivated. Please contact the administrator.';
+    return 'Tài khoản đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.';
   }
   if (normalized.includes('email already registered')) {
-    return 'Email already registered.';
+    return 'Email đã được đăng ký.';
   }
-  if (normalized.includes('password must be at least 6 characters') || normalized.includes('mật khẩu phải có ít nhất 6 ký tự')) {
-    return 'Password must be at least 6 characters long.';
+  if (normalized.includes('password must be at least 6 characters')) {
+    return 'Mật khẩu phải có ít nhất 6 ký tự.';
   }
   if (normalized.includes('valid email is required')) {
-    return 'Invalid email address.';
+    return 'Email không hợp lệ.';
   }
   if (normalized.includes('full name is required')) {
-    return 'Full name is required.';
+    return 'Vui lòng nhập họ và tên.';
   }
   if (normalized.includes('invalid phone number')) {
-    return 'Invalid phone number.';
-  }
-  if (normalized.includes('email không tồn tại') || normalized.includes('email does not exist')) {
-    return 'Email address does not exist on our system.';
-  }
-  if (normalized.includes('mã otp không hợp lệ') || normalized.includes('mã otp không chính xác') || normalized.includes('invalid otp')) {
-    return 'Invalid or expired OTP code.';
-  }
-  if (normalized.includes('mã otp đã hết hạn') || normalized.includes('otp has expired')) {
-    return 'OTP code has expired.';
-  }
-  if (normalized.includes('người dùng không tồn tại') || normalized.includes('user does not exist')) {
-    return 'User does not exist.';
+    return 'Số điện thoại không hợp lệ.';
   }
 
-  return message || 'Unable to process request, please try again.';
+  return message || 'Không thể xử lý yêu cầu, vui lòng thử lại.';
 }
 
-export type AuthMode = 'login' | 'register' | 'register_otp' | 'forgot_email' | 'forgot_reset';
-
-function usePublicAuthFlow(initialMode: AuthMode) {
+function usePublicAuthFlow(initialMode: 'login' | 'register') {
   const navigate = useNavigate();
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [notice, setNotice] = useState<{ message?: string; type?: string }>({});
   const [isLoading, setLoading] = useState(false);
-  const [pendingRegisterPayload, setPendingRegisterPayload] = useState<Record<string, string> | null>(null);
 
-  const onModeChange = useCallback((m: AuthMode) => setMode(m), []);
+  const onModeChange = useCallback((m: AuthMode) => {
+    setMode(m);
+  }, []);
 
   const onBackHome = useCallback(
-    () => navigate('/', { replace: true }),
+    () => navigate("/", { replace: true }),
     [navigate],
   );
 
@@ -78,7 +63,7 @@ function usePublicAuthFlow(initialMode: AuthMode) {
       mode: m,
       payload,
     }: {
-      mode: AuthMode;
+      mode: string;
       payload: Record<string, string>;
     }) => {
       try {
@@ -88,7 +73,7 @@ function usePublicAuthFlow(initialMode: AuthMode) {
           const session = await login(payload.email, payload.password);
 
           setNotice({
-            message: 'Logged in successfully.',
+            message: 'Đăng nhập thành công.',
             type: 'success',
           });
 
@@ -101,99 +86,39 @@ function usePublicAuthFlow(initialMode: AuthMode) {
           } else {
             navigate('/', { replace: true });
           }
-        } else if (m === 'register') {
-          await requestJson<AuthApiResponse>({
-            path: '/users/auth/register-request',
+        } else {
+          const path = '/users/auth/register';
+          const response = await requestJson<AuthApiResponse>({
+            path,
             method: 'POST',
             body: payload,
-          });
-
-          setPendingRegisterPayload(payload);
-          setMode('register_otp');
-        } else if (m === 'register_otp') {
-          const response = await requestJson<AuthApiResponse>({
-            path: '/users/auth/register-verify',
-            method: 'POST',
-            body: {
-              email: pendingRegisterPayload?.email,
-              otp: payload.otp,
-            },
           });
 
           const token = response?.data?.token;
           const user = response?.data?.user;
 
           if (!token || !user) {
-            throw new Error('Invalid authentication response from server.');
+            throw new Error('Phản hồi xác thực không hợp lệ từ máy chủ.');
           }
 
           setNotice({
-            message: 'Account created successfully. Welcome!',
+            message: 'Đăng ký thành công.',
             type: 'success',
           });
-
-          const userRecord = user as Record<string, unknown>;
-          saveSession({ token, user: userRecord });
-          useAuthStore.setState({
-            session: {
-              token,
-              userId: String(userRecord._id ?? ''),
-              role: (userRecord.role as 'admin' | 'manager' | 'staff' | 'user') ?? 'user',
-              email: String(userRecord.email ?? ''),
-              displayName: String(userRecord.fullName ?? ''),
-              assignedBuildingIds: Array.isArray(userRecord.assignedBuildings)
-                ? (userRecord.assignedBuildings as Array<Record<string, unknown> | string>).map((item) =>
-                    String(typeof item === 'object' && item !== null ? (item as { _id?: string })._id ?? item : item ?? ''),
-                  ).filter(Boolean)
-                : [],
-              phone: String(userRecord.phone ?? ''),
-              licensePlates: Array.isArray(userRecord.licensePlates)
-                ? (userRecord.licensePlates as Array<string | Record<string, unknown>>).map((item) => {
-                    if (typeof item === 'string') {
-                      return { plateNumber: item, vehicleType: 'car' as const, isDefault: false };
-                    }
-                    const p = item as Record<string, unknown>;
-                    return {
-                      _id: p._id ? String(p._id) : undefined,
-                      plateNumber: String(p.plateNumber ?? ''),
-                      vehicleType: (p.vehicleType === 'motorcycle' ? 'motorcycle' : 'car') as 'car' | 'motorcycle',
-                      isDefault: p.isDefault === true || p.isDefault === 'true',
-                    };
-                  }).filter((p) => Boolean(p.plateNumber))
-                : [],
-            },
-          });
-
-          setPendingRegisterPayload(null);
           navigate('/', { replace: true });
-        } else if (m === 'forgot_email') {
-          await requestJson({
-            path: '/users/auth/forgot-password',
-            method: 'POST',
-            body: { email: payload.email },
-          });
-        } else if (m === 'forgot_reset') {
-          await requestJson({
-            path: '/users/auth/reset-password',
-            method: 'POST',
-            body: {
-              token: payload.token,
-              newPassword: payload.newPassword,
-            },
-          });
         }
       } catch (error) {
-        const message = error instanceof Error ? mapAuthErrorMessage(error.message) : 'Unable to process request';
+        const message = error instanceof Error ? mapAuthErrorMessage(error.message) : 'không thể xử lý yêu cầu';
         setNotice({ message, type: 'error' });
         throw error;
       } finally {
         setLoading(false);
       }
     },
-    [login, navigate, pendingRegisterPayload],
+    [login, navigate],
   );
 
-  return { mode, notice, onModeChange, onBackHome, onSubmit, isLoading, pendingRegisterPayload };
+  return { mode, notice, onModeChange, onBackHome, onSubmit, isLoading };
 }
 
 export function PublicLoginRoute() {
@@ -201,10 +126,7 @@ export function PublicLoginRoute() {
   const flow = usePublicAuthFlow('login');
 
   if (token && user) {
-    const redirectPath =
-      user.role === 'admin' ? '/admin/dashboard' :
-      user.role === 'manager' ? '/manager/dashboard' :
-      user.role === 'staff' ? '/staff' : '/';
+    const redirectPath = user.role === 'admin' ? '/admin/dashboard' : user.role === 'manager' ? '/manager/dashboard' : user.role === 'staff' ? '/staff' : '/';
     return <Navigate to={redirectPath} replace />;
   }
 
@@ -216,12 +138,8 @@ export function PublicRegisterRoute() {
   return <AuthPage {...flow} />;
 }
 
-export function PublicRegisterOtpRoute() {
-  return <Navigate to="/auth/register" replace />;
-}
-
 export function PublicResetPasswordRoute() {
-  const flow = usePublicAuthFlow('forgot_reset');
+  const flow = usePublicAuthFlow('login'); // AuthPage sẽ tự động đọc token từ URL và chuyển sang chế độ đặt lại mật khẩu
   return <AuthPage {...flow} />;
 }
 

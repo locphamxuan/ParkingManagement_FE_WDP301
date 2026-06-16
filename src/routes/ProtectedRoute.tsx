@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import type { UserRole } from '@/store/authStore';
+import type { AuthSession } from '@/services/authService';
+
+type UserRole = AuthSession['role'];
 
 interface ProtectedRouteProps {
   role: Extract<UserRole, 'admin' | 'manager' | 'staff'>;
@@ -41,7 +43,7 @@ export function ProtectedRoute({ role }: ProtectedRouteProps) {
   if (refreshing) {
     return (
       <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
-        Verifying session...
+        Đang xác thực phiên...
       </div>
     );
   }

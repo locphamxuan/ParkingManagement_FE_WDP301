@@ -85,7 +85,7 @@ export function ManagerPricingPage() {
     setEditing(row);
     setForm({
       name: row.name,
-      vehicleType: typeof row.vehicleType === 'string' ? row.vehicleType : (row.vehicleType?._id || ''),
+      vehicleType: typeof row.vehicleType === 'string' ? row.vehicleType : row.vehicleType._id,
       type: row.type === 'peak' ? 'peak' : 'regular',
       hourlyRate: String(row.hourlyRate),
       fromTime: row.timeWindow?.from ?? '00:00',
@@ -140,7 +140,7 @@ export function ManagerPricingPage() {
     {
       key: 'vehicleType',
       title: 'Loại xe',
-      render: (row) => (typeof row.vehicleType === 'string' ? row.vehicleType : (row.vehicleType?.name || row.vehicleType?.code || '—')),
+      render: (row) => (typeof row.vehicleType === 'string' ? row.vehicleType : row.vehicleType.code),
     },
     {
       key: 'type',

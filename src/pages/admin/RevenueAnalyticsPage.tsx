@@ -2,9 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Building2, Crown, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { adminApi, type SubscriptionTransfer } from '@/services/admin/adminApi';
-
-type SubscriptionTransferReport = { items: SubscriptionTransfer[]; total: number; grandTotal: number };
+import { adminApi, type SubscriptionTransferReport } from '@/services/admin/adminApi';
 
 const fmtVnd = (n: number | undefined | null) =>
   n != null ? `${n.toLocaleString('vi-VN')} ₫` : '—';
@@ -21,7 +19,7 @@ export function RevenueAnalyticsPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await adminApi.subscriptionRevenue();
+      const res = await adminApi.revenue.subscriptions();
       setSubReport((res as { data?: SubscriptionTransferReport })?.data ?? null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Không thể tải doanh thu gói dịch vụ.');

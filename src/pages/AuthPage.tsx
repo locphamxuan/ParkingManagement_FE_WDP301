@@ -1,9 +1,10 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
 import type { FormEvent } from 'react';
-import { Home, X, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { Home, X, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { CartoonCar3D } from '@/components/shared/CartoonCar3D';
-import { requestJson } from '@/services/pbmsApi';
+import { useSearchParams } from 'react-router-dom';
+import { CartoonCar3D } from '@/components/map/CartoonCar3D';
+import { forgotPassword, resetPassword } from '@/services/authService';
 
 const initialForm = {
   fullName: '',
@@ -13,7 +14,7 @@ const initialForm = {
   confirmPassword: '',
 };
 
-type AuthMode = 'login' | 'register' | 'register_otp' | 'forgot_email' | 'forgot_reset';
+export type AuthMode = 'login' | 'register' | 'forgot-password' | 'reset-password';
 
 interface AuthPageProps {
   mode: AuthMode;
@@ -26,35 +27,52 @@ interface AuthPageProps {
 
 const promoPoints = [
   {
-    title: 'Easy to Use',
-    text: 'Bright, clean layout, fast operation, and perfectly color-coordinated with the home page.',
+    title: 'Dễ sử dụng',
+    text: 'Biểu mẫu sáng rõ, thao tác nhanh và đồng bộ màu sắc với landing page trang chủ.',
   },
   {
-    title: 'Contextual Design',
-    text: 'Parking lot theme and orange-amber colors make it instantly clear that this is a parking system.',
+    title: 'Đúng bối cảnh',
+    text: 'Hình nền bãi đỗ xe và tông màu cam kem giúp nhận diện rõ đây là hệ thống parking.',
   },
   {
-    title: 'Safe Access',
-    text: 'Account information and login/register flows are designed to be concise and easy to follow.',
+    title: 'An tâm truy cập',
+    text: 'Thông tin tài khoản và các luồng đăng nhập, đăng ký được trình bày ngắn gọn, dễ theo dõi.',
   },
 ];
 
-
 export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSubmit, isLoading }: AuthPageProps) {
+  const [searchParams] = useSearchParams();
   const [localNotice, setLocalNotice] = useState<{ message?: string; type?: string } | null>(null);
   const [form, setForm] = useState(initialForm);
-  const [savedAccounts, setSavedAccounts] = useState<{ email: string; password?: string }[]>([]);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [resetPasswordForm, setResetPasswordForm] = useState({ newPassword: '', confirmPassword: '' });
+  // Chỉ ghi nhớ EMAIL để gợi ý đăng nhập — KHÔNG bao giờ lưu mật khẩu ở client.
+  const [savedAccounts, setSavedAccounts] = useState<{ email: string }[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [lockTimeLeft, setLockTimeLeft] = useState<number>(0);
-  const [showPassword, setShowPassword] = useState(false);
+  const [resetToken, setResetToken] = useState<string | null>(null);
+  // Modal thông báo (thành công/thất bại) cho luồng quên & đặt lại mật khẩu.
+  const [modal, setModal] = useState<{
+    title: string;
+    message: string;
+    type: 'success' | 'error';
+    next?: () => void;
+  } | null>(null);
 
-  // OTP state for register_otp mode
-  const [otpValue, setOtpValue] = useState<string>('');
+  const closeModal = () => {
+    const next = modal?.next;
+    setModal(null);
+    next?.();
+  };
 
-  const [forgotEmail, setForgotEmail] = useState<string>('');
-  const [resetToken, setResetToken] = useState<string>('');
-  const [newPassword, setNewPassword] = useState<string>('');
-  const [confirmNewPassword, setConfirmNewPassword] = useState<string>('');
+  // Auto-detect reset-password mode from URL token
+  useEffect(() => {
+    const token = searchParams.get('token');
+    if (token) {
+      setResetToken(token);
+      onModeChange('reset-password');
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const checkLock = () => {
@@ -65,7 +83,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
       }
       const lockUntil = Number(localStorage.getItem(`pbms.lockUntil.${email}`) || '0');
       const timeLeft = Math.ceil((lockUntil - Date.now()) / 1000);
-
+      
       if (timeLeft > 0) {
         setLockTimeLeft(timeLeft);
       } else {
@@ -73,66 +91,48 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
       }
     };
 
+
     checkLock();
     const interval = setInterval(checkLock, 1000);
     return () => clearInterval(interval);
   }, [form.email]);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
-    if (token) {
-      setResetToken(token);
-      const pendingEmail = localStorage.getItem('pbms.forgotEmail_pending');
-      if (pendingEmail) {
-        setForgotEmail(pendingEmail);
-      } else {
-        const tokens = JSON.parse(localStorage.getItem('pbms.resetTokens') || '{}');
-        const email = tokens[token];
-        if (email) {
-          setForgotEmail(email);
-        }
-      }
-      onModeChange('forgot_reset');
-    }
-  }, [onModeChange]);
-
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const emailInputRef = useRef<HTMLInputElement | null>(null);
+  const passwordInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Load saved accounts from localStorage on mount and initialize phones
+  // Load saved emails from localStorage on mount and initialize phones
   useEffect(() => {
     try {
       const stored = localStorage.getItem('pbms_saved_accounts');
       if (stored) {
-        setSavedAccounts(JSON.parse(stored));
+        // Chỉ giữ email; loại bỏ mọi mật khẩu plaintext có thể còn sót từ bản cũ.
+        const parsed: { email?: string }[] = JSON.parse(stored);
+        const emailsOnly = parsed
+          .filter((acc) => acc?.email)
+          .map((acc) => ({ email: acc.email as string }));
+        setSavedAccounts(emailsOnly);
+        localStorage.setItem('pbms_saved_accounts', JSON.stringify(emailsOnly));
       }
     } catch (e) {
       console.error('Failed to load saved accounts', e);
     }
+
+    // Initialize mock database if not already present
+    if (!localStorage.getItem('pbms.allRegisteredPhones')) {
+      localStorage.setItem('pbms.allRegisteredPhones', JSON.stringify(["0911111111", "0922222222"]));
+    }
   }, []);
 
-  // Reset OTP value when entering register_otp mode
-  useEffect(() => {
-    if (mode === 'register_otp') {
-      setOtpValue('');
-    }
-  }, [mode]);
-
-  // Save account helper
-  const saveAccount = (email: string, password?: string) => {
+  // Save email helper (no password persisted)
+  const saveAccount = (email: string) => {
     if (!email) return;
     try {
       const stored = localStorage.getItem('pbms_saved_accounts');
-      let current: { email: string; password?: string }[] = stored ? JSON.parse(stored) : [];
+      let current: { email: string }[] = stored ? JSON.parse(stored) : [];
 
-      // Remove duplicates
-      current = current.filter(acc => acc.email !== email);
-
-      // Add to start of list
-      current.unshift({ email, password });
-
-      // Keep max 5 saved accounts
+      // Remove duplicates, add to front, keep max 5
+      current = current.filter((acc) => acc.email !== email);
+      current.unshift({ email });
       current = current.slice(0, 5);
 
       localStorage.setItem('pbms_saved_accounts', JSON.stringify(current));
@@ -155,14 +155,14 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
     }
   };
 
-  const handleSelectAccount = (e: React.MouseEvent, acc: { email: string; password?: string }) => {
-    e.preventDefault(); // Keep focus or let it blur, but keeping focus on input with filled details is great!
-    setForm(s => ({
-      ...s,
-      email: acc.email,
-      password: acc.password || '',
-    }));
+  const handleSelectAccount = (e: React.MouseEvent, acc: { email: string }) => {
+    e.preventDefault(); // Điền sẵn email, người dùng tự nhập mật khẩu.
+    setForm((s) => ({ ...s, email: acc.email }));
     setShowDropdown(false);
+    // Tự động focus vào ô mật khẩu sau khi điền email, giúp trình duyệt gợi ý mật khẩu tương ứng đã lưu
+    setTimeout(() => {
+      passwordInputRef.current?.focus();
+    }, 50);
   };
 
   // 3D Mouse Tracking Tilt Motion Values
@@ -178,31 +178,18 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
   const rotateX = useTransform(springY, [0, 1], [8, -8]);
 
   const title = useMemo(() => {
-    if (mode === 'login') return 'Sign In to PBMS';
-    if (mode === 'register') return 'Create PBMS Account';
-    if (mode === 'register_otp') return 'Verify OTP Code';
-    if (mode === 'forgot_email') return 'Forgot Password';
-    if (mode === 'forgot_reset') return 'Reset Password';
-    return 'PBMS';
+    if (mode === 'reset-password') return 'Đặt lại mật khẩu';
+    if (mode === 'forgot-password') return 'Khôi phục mật khẩu';
+    return mode === 'login' ? 'Đăng nhập vào PBMS' : 'Tạo tài khoản PBMS';
   }, [mode]);
-
   const description = useMemo(() => {
-    if (mode === 'login') {
-      return 'Log in to continue using the parking lot management system, track information, and access all key features.';
-    }
-    if (mode === 'register') {
-      return 'Create a new account to start using the parking lot management system with a beautifully consistent design.';
-    }
-    if (mode === 'register_otp') {
-      return 'An OTP has been sent to your email. Please enter the 6-digit code to verify your account.';
-    }
-    if (mode === 'forgot_email') {
-      return 'Enter your registered email address to receive a recovery link to reset your account password.';
-    }
-    if (mode === 'forgot_reset') {
-      return 'Create a new password for your account. The password must be at least 6 characters long.';
-    }
-    return '';
+    if (mode === 'reset-password')
+      return 'Nhập mật khẩu mới của bạn để hoàn tất quá trình đặt lại mật khẩu.';
+    if (mode === 'forgot-password')
+      return 'Nhập địa chỉ email liên kết với tài khoản của bạn để nhận link đặt lại mật khẩu.';
+    return mode === 'login'
+      ? 'Đăng nhập để tiếp tục sử dụng hệ thống quản lý bãi đỗ xe, theo dõi thông tin và truy cập các chức năng cần thiết.'
+      : 'Tạo tài khoản mới để bắt đầu sử dụng nền tảng quản lý bãi đỗ xe với giao diện đồng nhất cùng trang chủ.';
   }, [mode]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -214,118 +201,9 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
     e.preventDefault();
     setLocalNotice(null);
 
-    if (mode === 'forgot_email') {
-      const email = form.email.trim();
-      if (!email) {
-        setLocalNotice({ message: 'Please enter your Email address!', type: 'error' });
-        return;
-      }
-      setLocalNotice({ message: 'Sending password recovery link to your Gmail...', type: 'success' });
-      try {
-        await onSubmit({
-          mode: 'forgot_email',
-          payload: { email },
-        });
-        setForgotEmail(email);
-        localStorage.setItem('pbms.forgotEmail_pending', email);
-        setLocalNotice({
-          message: `Password reset link has been successfully sent to ${email}! Please check your inbox (and spam folder) to set your new password. 🌟`,
-          type: 'success',
-        });
-      } catch (err: any) {
-        const msg = err?.message || 'This email does not exist on our system or email delivery failed.';
-        setLocalNotice({ message: msg, type: 'error' });
-      }
-      return;
-    }
-
-    if (mode === 'forgot_reset') {
-      const emailToUse = forgotEmail.trim() || form.email.trim();
-      if (!emailToUse) {
-        setLocalNotice({ message: 'Please enter your account Email!', type: 'error' });
-        return;
-      }
-      if (newPassword !== confirmNewPassword) {
-        setLocalNotice({ message: 'New passwords do not match!', type: 'error' });
-        return;
-      }
-      if (newPassword.length < 6) {
-        setLocalNotice({ message: 'Password must be at least 6 characters long!', type: 'error' });
-        return;
-      }
-      setLocalNotice({ message: 'Resetting your password on the system...', type: 'success' });
-      try {
-        await onSubmit({
-          mode: 'forgot_reset',
-          payload: {
-            token: resetToken,
-            newPassword: newPassword,
-          },
-        });
-
-        // Save new password locally as fallback/sync for mock logins
-        const locallyReset = JSON.parse(localStorage.getItem('pbms.locallyResetPasswords') || '{}');
-        locallyReset[emailToUse.trim().toLowerCase()] = newPassword;
-        localStorage.setItem('pbms.locallyResetPasswords', JSON.stringify(locallyReset));
-
-        // Update in saved accounts list
-        const stored = localStorage.getItem('pbms_saved_accounts');
-        if (stored) {
-          try {
-            let current = JSON.parse(stored);
-            let updated = current.map((acc: any) => {
-              if (acc.email.trim().toLowerCase() === emailToUse.trim().toLowerCase()) {
-                return {
-                  ...acc,
-                  oldPassword: acc.oldPassword || acc.password, // preserve old password for backend validation
-                  password: newPassword,
-                };
-              }
-              return acc;
-            });
-            localStorage.setItem('pbms_saved_accounts', JSON.stringify(updated));
-            setSavedAccounts(updated);
-          } catch (e) {
-            console.error(e);
-          }
-        }
-
-        setLocalNotice({
-          message: 'Password reset successful! Please log in with your new password.',
-          type: 'success',
-        });
-        setForm((s) => ({ ...s, email: emailToUse, password: newPassword }));
-        localStorage.removeItem('pbms.forgotEmail_pending'); // Clean up pending flag
-        setNewPassword('');
-        setConfirmNewPassword('');
-        onModeChange('login');
-      } catch (err: any) {
-        const msg = err?.message || 'Failed to reset password. The token may be expired or invalid.';
-        setLocalNotice({ message: msg, type: 'error' });
-      }
-      return;
-    }
-
-    if (mode === 'register_otp') {
-      const otp = otpValue.trim();
-      if (!otp || otp.length !== 6) {
-        setLocalNotice({ message: 'Please enter a valid 6-digit OTP code!', type: 'error' });
-        return;
-      }
-      try {
-        await onSubmit({
-          mode: 'register_otp',
-          payload: { otp },
-        });
-      } catch (err) {
-        // Error already mapped in the hook
-      }
-      return;
-    }
-
     if (mode === 'register') {
       if (form.password !== form.confirmPassword) {
-        setLocalNotice({ message: 'Passwords do not match!', type: 'error' });
+        setLocalNotice({ message: 'Mật khẩu xác nhận không khớp!', type: 'error' });
         return;
       }
 
@@ -333,7 +211,20 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
       const phoneRegex = /^0[0-9]{9}$/;
       if (!phoneRegex.test(phoneTrimmed)) {
         setLocalNotice({
-          message: 'Phone number must start with 0 and contain exactly 10 digits!',
+          message: 'Số điện thoại phải bắt đầu bằng số 0 và có đúng 10 chữ số!',
+          type: 'error',
+        });
+        return;
+      }
+
+      const allRegisteredPhonesRaw = localStorage.getItem('pbms.allRegisteredPhones');
+      const allRegisteredPhones: string[] = allRegisteredPhonesRaw
+        ? JSON.parse(allRegisteredPhonesRaw)
+        : ['0911111111', '0922222222'];
+
+      if (allRegisteredPhones.includes(phoneTrimmed)) {
+        setLocalNotice({
+          message: 'Số điện thoại này đã được đăng ký bởi một tài khoản khác!',
           type: 'error',
         });
         return;
@@ -346,25 +237,24 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
         phone: phoneTrimmed,
       };
 
-      // Backend enforces phone/email uniqueness and returns an error if duplicated.
       try {
         await onSubmit({ mode, payload });
+        
+        // Add new phone to simulated registry on registration success
+        const updatedPhones = [...allRegisteredPhones, phoneTrimmed];
+        localStorage.setItem('pbms.allRegisteredPhones', JSON.stringify(updatedPhones));
       } catch (err) {
         // Error already mapped in public auth flow hook
       }
-      return;
-    }
-
-    // mode === 'login'
-    {
+    } else {
       const email = form.email.trim().toLowerCase();
-
+      
       // Strict frontend-side login lock check
       const lockUntil = Number(localStorage.getItem(`pbms.lockUntil.${email}`) || '0');
       const timeLeft = Math.ceil((lockUntil - Date.now()) / 1000);
       if (timeLeft > 0) {
         setLocalNotice({
-          message: `Account is temporarily locked. Please try again in ${Math.floor(timeLeft / 60)}m ${timeLeft % 60}s!`,
+          message: `Tài khoản đang bị khóa tạm thời. Vui lòng quay lại sau ${Math.floor(timeLeft / 60)} phút ${timeLeft % 60} giây!`,
           type: 'error',
         });
         return;
@@ -377,11 +267,11 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
 
       try {
         await onSubmit({ mode, payload });
-
+        
         // Login success: clear wrong attempts counters & lock periods
         localStorage.removeItem(`pbms.failedAttempts.${email}`);
         localStorage.removeItem(`pbms.lockUntil.${email}`);
-        saveAccount(form.email.trim(), form.password);
+        saveAccount(form.email.trim());
       } catch (err) {
         // Login failure: increment fail counters & lock for 5 mins if attempts >= 5
         const attempts = Number(localStorage.getItem(`pbms.failedAttempts.${email}`) || '0') + 1;
@@ -390,17 +280,117 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
           localStorage.removeItem(`pbms.failedAttempts.${email}`);
           setLockTimeLeft(300);
           setLocalNotice({
-            message: 'Account temporarily locked for 5 minutes due to 5 consecutive failed login attempts!',
+            message: 'Tài khoản đã bị tạm khóa 5 phút do nhập sai mật khẩu quá 5 lần!',
             type: 'error',
           });
         } else {
           localStorage.setItem(`pbms.failedAttempts.${email}`, String(attempts));
           setLocalNotice({
-            message: `Incorrect email or password. You have ${5 - attempts} attempts left before your account is locked!`,
+            message: `Mật khẩu hoặc Email không đúng. Bạn còn ${5 - attempts} lần thử trước khi bị khóa tài khoản!`,
             type: 'error',
           });
         }
       }
+    }
+  }
+
+  async function handleForgotPassword(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setLocalNotice(null);
+
+    const email = forgotEmail.trim();
+    
+    if (!email) {
+      setLocalNotice({ message: 'Vui lòng nhập email của bạn!', type: 'error' });
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setLocalNotice({ message: 'Email không hợp lệ!', type: 'error' });
+      return;
+    }
+
+    try {
+      await forgotPassword(email);
+      setModal({
+        title: 'Đã gửi email khôi phục',
+        message:
+          'Nếu email này có trong hệ thống, chúng tôi đã gửi link đặt lại mật khẩu. Vui lòng kiểm tra hộp thư (kể cả thư mục spam). Link có hiệu lực trong 15 phút.',
+        type: 'success',
+        next: () => {
+          setForgotEmail('');
+          setLocalNotice(null);
+          onModeChange('login');
+        },
+      });
+    } catch (error) {
+      setModal({
+        title: 'Gửi email thất bại',
+        message: error instanceof Error ? error.message : 'Gửi email thất bại. Vui lòng thử lại.',
+        type: 'error',
+      });
+    }
+  }
+
+  async function handleResetPassword(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setLocalNotice(null);
+
+    if (!resetToken) {
+      setLocalNotice({ message: 'Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn!', type: 'error' });
+      return;
+    }
+
+    const newPassword = resetPasswordForm.newPassword.trim();
+    const confirmPassword = resetPasswordForm.confirmPassword.trim();
+
+    // Validation: Mật khẩu không được bỏ trống
+    if (!newPassword || !confirmPassword) {
+      setLocalNotice({ message: 'Vui lòng nhập mật khẩu!', type: 'error' });
+      return;
+    }
+
+    // Validation: Độ dài mật khẩu >= 6
+    if (newPassword.length < 6) {
+      setLocalNotice({ message: 'Mật khẩu phải có ít nhất 6 ký tự!', type: 'error' });
+      return;
+    }
+
+    // Validation: Mật khẩu và xác nhận phải trùng khớp
+    if (newPassword !== confirmPassword) {
+      setLocalNotice({ message: 'Mật khẩu xác nhận không khớp!', type: 'error' });
+      return;
+    }
+
+    try {
+      await resetPassword(resetToken, newPassword);
+
+      // Mật khẩu là dữ liệu nhạy cảm — không lưu plaintext ở client. Nguồn chính
+      // thống là backend; chỉ dọn email pending còn sót lại.
+      localStorage.removeItem('pbms.forgotEmail_pending');
+
+      setModal({
+        title: 'Đặt lại mật khẩu thành công',
+        message: 'Mật khẩu của bạn đã được cập nhật. Vui lòng đăng nhập bằng mật khẩu mới.',
+        type: 'success',
+        next: () => {
+          setResetPasswordForm({ newPassword: '', confirmPassword: '' });
+          setResetToken(null);
+          setLocalNotice(null);
+          onModeChange('login');
+        },
+      });
+    } catch (error) {
+      setModal({
+        title: 'Đặt lại mật khẩu thất bại',
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Đặt lại mật khẩu thất bại. Vui lòng thử lại hoặc yêu cầu link mới.',
+        type: 'error',
+      });
     }
   }
 
@@ -419,32 +409,8 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
     mouseY.set(0.5);
   }
 
-  function handleOtpChange(e: React.ChangeEvent<HTMLInputElement>) {
-    // Only allow up to 6 digits
-    const value = e.target.value.replace(/\D/g, '').slice(0, 6);
-    setOtpValue(value);
-  }
-
-  function handleOtpKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    // Allow backspace to clear
-    if (e.key === 'Backspace' && otpValue.length > 0) {
-      setOtpValue(prev => prev.slice(0, -1));
-    }
-  }
-
-  const PasswordToggleButton = () => (
-    <button
-      type="button"
-      onClick={() => setShowPassword((prev) => !prev)}
-      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-orange-400 transition-colors p-0.5"
-      tabIndex={-1}
-    >
-      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-    </button>
-  );
-
   return (
-    <main
+    <main 
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       className="relative min-h-screen flex items-center justify-center bg-slate-950 text-slate-100 py-12 px-4 overflow-hidden selection:bg-orange-500 selection:text-white"
@@ -480,21 +446,21 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
           animation: scanline 2.5s linear infinite;
         }
       `}</style>
-
+      
       {/* Background Neon Glow Vectors */}
       <div className="absolute top-0 right-0 w-[550px] h-[550px] rounded-full bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.08),transparent_60%)] pointer-events-none blur-3xl z-0" />
       <div className="absolute bottom-0 left-0 w-[450px] h-[450px] rounded-full bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.06),transparent_60%)] pointer-events-none blur-3xl z-0" />
 
       {/* 3D Cyber-Grid Perspective Floor */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-        <div
+        <div 
           className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[200%] h-[50%] opacity-40"
           style={{
             perspective: '1000px',
             transformStyle: 'preserve-3d'
           }}
         >
-          <div
+          <div 
             className="w-full h-full cyber-grid-animate"
             style={{
               transform: 'rotateX(75deg)',
@@ -513,47 +479,47 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
 
       {/* Floating Sticky Back Button */}
       <div className="absolute top-6 left-6 z-20">
-        <a
-          href="/"
+        <a 
+          href="/" 
           className="inline-flex items-center gap-2 rounded-xl border border-white/5 bg-slate-900/60 backdrop-blur-md px-4 py-2.5 text-xs font-black uppercase tracking-widest text-orange-400 shadow-xl hover:border-orange-500/30 hover:shadow-[0_0_15px_rgba(249,115,22,0.25)] hover:scale-105 transition-all duration-300"
         >
           <Home size={14} className="stroke-[3]" />
-          Home
+          Về trang chủ
         </a>
       </div>
 
       {/* Core Center Auth Container with 3D Mouse Tilt */}
-      <motion.div
-        style={{
-          rotateX,
-          rotateY,
-          transformStyle: "preserve-3d"
+      <motion.div 
+        style={{ 
+          rotateX, 
+          rotateY, 
+          transformStyle: "preserve-3d" 
         }}
         initial={{ opacity: 0, scale: 0.96, z: -100 }}
         animate={{ opacity: 1, scale: 1, z: 0 }}
         transition={{ type: "spring", stiffness: 100, damping: 18 }}
-        className="w-full max-w-4xl glass-panel-dark border border-white/5 shadow-2xl rounded-3xl overflow-hidden grid grid-cols-1 md:grid-cols-2 relative z-10"
+        className="w-full max-w-4xl glass-panel-dark border border-white/5 shadow-2xl rounded-3xl overflow-y-auto md:overflow-hidden max-h-[90vh] md:max-h-none grid grid-cols-1 md:grid-cols-2 relative z-10"
       >
         {/* Left Interactive Promo Info Column */}
-        <div
+        <div 
           className="p-8 bg-gradient-to-br from-orange-600/90 via-orange-600 to-amber-600/85 text-white flex flex-col justify-between relative overflow-hidden preserve-3d"
           style={{ transformStyle: "preserve-3d" }}
         >
           <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none" />
-
+          
           <div className="relative z-10" style={{ transform: "translateZ(30px)" }}>
             <h2 className="text-3xl font-black tracking-tight">{title}</h2>
             <p className="mt-3.5 text-xs font-bold text-orange-100 leading-relaxed">{description}</p>
           </div>
-
+          
           {/* HOLOGRAPHIC 3D RADAR SCANNER CORE */}
-          <div
+          <div 
             className="relative my-6 py-8 flex flex-col items-center justify-center min-h-[180px] z-10 preserve-3d"
             style={{ transform: "translateZ(45px)", transformStyle: "preserve-3d" }}
           >
             {/* Ambient Background Glow behind the Radar */}
             <div className="absolute w-36 h-36 rounded-full bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.18),transparent_70%)] pointer-events-none blur-xl" />
-
+            
             {/* Holographic Spark Particles */}
             {[
               { id: 1, left: "25%", color: "#06b6d4", delay: 0 },
@@ -564,8 +530,8 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
               <motion.span
                 key={spark.id}
                 initial={{ y: 20, opacity: 0, scale: 0.4 }}
-                animate={{
-                  y: [20, -60],
+                animate={{ 
+                  y: [20, -60], 
                   opacity: [0, 0.9, 0],
                   scale: [0.4, 1.2, 0.3]
                 }}
@@ -586,7 +552,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
 
             {/* Rotating Holographic Radar SVG */}
             <div className="relative w-44 h-44 flex items-center justify-center preserve-3d">
-
+              
               {/* Outer Cyber Ring (Rotates Counter-Clockwise) */}
               <motion.div
                 animate={{ rotate: -360 }}
@@ -633,8 +599,8 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
               </motion.div>
 
               {/* Central Glowing Smart Hub Shield Icon */}
-              <motion.div
-                animate={{
+              <motion.div 
+                animate={{ 
                   scale: [1, 1.06, 1],
                   opacity: [0.85, 1, 0.85]
                 }}
@@ -643,12 +609,12 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
               >
                 {/* 3D Wireframe Cube/Hexagon SVG inside core */}
                 <svg viewBox="0 0 24 24" className="w-7 h-7 text-cyan-400">
-                  <path
-                    d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
+                  <path 
+                    d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="1.5" 
+                    strokeLinecap="round" 
                     strokeLinejoin="round"
                     className="animate-pulse"
                   />
@@ -658,19 +624,19 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
               {/* Small Glowing Target Node Pins (representing parked cars/slots detected by radar) */}
               <div className="absolute inset-0">
                 {/* Slot 1 Target */}
-                <motion.div
+                <motion.div 
                   animate={{ opacity: [0.2, 1, 0.2] }}
                   transition={{ repeat: Infinity, duration: 1.5, delay: 0.2 }}
                   className="absolute w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981] top-[24%] left-[28%]"
                 />
                 {/* Slot 2 Target */}
-                <motion.div
+                <motion.div 
                   animate={{ opacity: [1, 0.2, 1] }}
                   transition={{ repeat: Infinity, duration: 2, delay: 0.5 }}
                   className="absolute w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_6px_#06b6d4] bottom-[30%] right-[22%]"
                 />
                 {/* Slot 3 Target */}
-                <motion.div
+                <motion.div 
                   animate={{ opacity: [0.3, 1, 0.3] }}
                   transition={{ repeat: Infinity, duration: 1.8, delay: 0.8 }}
                   className="absolute w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_6px_#f97316] top-[40%] right-[32%]"
@@ -679,11 +645,11 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
 
             </div>
           </div>
-
+          
           <div className="mt-4 space-y-4 relative z-10" style={{ transform: "translateZ(25px)" }}>
             {promoPoints.map((p, idx) => (
-              <motion.div
-                key={p.title}
+              <motion.div 
+                key={p.title} 
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.1 + idx * 0.08 }}
@@ -699,306 +665,362 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
         {/* Right Input Form Column */}
         <div className="p-8 flex flex-col justify-center bg-slate-900/10 backdrop-blur-md">
           {lockTimeLeft > 0 ? (
-            <motion.div
+            <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               className="mb-5 rounded-xl border border-rose-500/25 bg-rose-950/30 text-rose-400 p-4 text-xs font-black uppercase tracking-wider font-mono shadow-[0_0_20px_rgba(239,68,68,0.15)] flex flex-col gap-2"
             >
               <div className="flex items-center gap-2.5">
                 <AlertCircle size={16} className="shrink-0 stroke-[2.5]" />
-                <span>Account Temporarily Locked</span>
+                <span>Tài khoản đã bị tạm khóa đăng nhập</span>
               </div>
               <p className="text-[10px] text-slate-400 font-sans tracking-normal font-semibold normal-case leading-relaxed">
-                Incorrect password entered 5 times. Please try again after: <span className="text-rose-400 font-black font-mono">{Math.floor(lockTimeLeft / 60)}m {lockTimeLeft % 60}s</span>.
+                Nhập sai mật khẩu quá 5 lần. Vui lòng quay lại sau: <span className="text-rose-400 font-black font-mono">{Math.floor(lockTimeLeft / 60)} phút {lockTimeLeft % 60} giây</span>.
               </p>
             </motion.div>
           ) : (localNotice || notice)?.message ? (
-            <motion.div
+            <motion.div 
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`mb-5 rounded-xl border p-3.5 text-xs font-black uppercase tracking-wider font-mono backdrop-blur-md flex items-center gap-2.5 ${(localNotice || notice).type === 'success'
-                  ? 'border-emerald-500/25 bg-emerald-950/20 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)]'
+              className={`mb-5 rounded-xl border p-3.5 text-xs font-black uppercase tracking-wider font-mono backdrop-blur-md flex items-center gap-2.5 ${
+                (localNotice || notice).type === 'success' 
+                  ? 'border-emerald-500/25 bg-emerald-950/20 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)]' 
                   : 'border-rose-500/25 bg-rose-950/20 text-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.1)]'
-                }`}
+              }`}
             >
               <AlertCircle size={14} className="shrink-0" />
               {(localNotice || notice).message}
             </motion.div>
           ) : null}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* ── REGISTER MODE FIELDS ── */}
+          {mode === 'forgot-password' ? (
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <div className="space-y-2 mb-4">
+                <h3 className="text-sm font-bold text-foreground">Nhập email để khôi phục mật khẩu</h3>
+                <p className="text-xs text-slate-400">
+                  Chúng tôi sẽ gửi link đặt lại mật khẩu đến email của bạn.
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">
+                  Email
+                </label>
+                <input 
+                  type="email"
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  required
+                  className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
+                  placeholder="user@pbms.vn"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onModeChange('login');
+                    setForgotEmail('');
+                    setLocalNotice(null);
+                  }}
+                  className="flex-1 h-11 rounded-xl border border-white/10 text-white font-black text-xs uppercase tracking-wider hover:bg-slate-900 transition-all"
+                >
+                  Quay lại
+                </button>
+                <motion.button 
+                  type="submit"
+                  disabled={isLoading}
+                  whileHover={{ scale: 1.015 }}
+                  whileTap={{ scale: 0.96 }}
+                  className="flex-1 h-11 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider hover:shadow-[0_0_25px_rgba(249,115,22,0.45)] disabled:opacity-50 transition-all"
+                >
+                  {isLoading ? 'Đang gửi...' : 'Gửi link đặt lại'}
+                </motion.button>
+              </div>
+            </form>
+          ) : mode === 'reset-password' ? (
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              {/* Hidden email field: helps browser associate the new password with the right account */}
+              <input type="hidden" autoComplete="username" value={forgotEmail || ''} />
+              <div className="space-y-2 mb-4">
+                <h3 className="text-sm font-bold text-foreground">Nhập mật khẩu mới</h3>
+                <p className="text-xs text-slate-400">
+                  Mật khẩu phải có ít nhất 6 ký tự.
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">
+                  Mật khẩu mới
+                </label>
+                <input 
+                  type="password"
+                  autoComplete="new-password"
+                  value={resetPasswordForm.newPassword}
+                  onChange={(e) => setResetPasswordForm(s => ({ ...s, newPassword: e.target.value }))}
+                  required
+                  className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
+                  placeholder="Ít nhất 6 ký tự"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">
+                  Xác nhận mật khẩu
+                </label>
+                <input 
+                  type="password"
+                  autoComplete="new-password"
+                  value={resetPasswordForm.confirmPassword}
+                  onChange={(e) => setResetPasswordForm(s => ({ ...s, confirmPassword: e.target.value }))}
+                  required
+                  className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
+                  placeholder="Nhập lại mật khẩu"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onModeChange('login');
+                    setResetPasswordForm({ newPassword: '', confirmPassword: '' });
+                    setResetToken(null);
+                    setLocalNotice(null);
+                  }}
+                  className="flex-1 h-11 rounded-xl border border-white/10 text-white font-black text-xs uppercase tracking-wider hover:bg-slate-900 transition-all"
+                >
+                  Hủy
+                </button>
+                <motion.button 
+                  type="submit"
+                  disabled={isLoading}
+                  whileHover={{ scale: 1.015 }}
+                  whileTap={{ scale: 0.96 }}
+                  className="flex-1 h-11 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider hover:shadow-[0_0_25px_rgba(249,115,22,0.45)] disabled:opacity-50 transition-all"
+                >
+                  {isLoading ? 'Đang xử lý...' : 'Đặt lại mật khẩu'}
+                </motion.button>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
             {mode === 'register' && (
               <>
                 <div className="space-y-1.5">
-                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Full Name</label>
-                  <input
-                    name="fullName"
-                    value={form.fullName}
-                    onChange={handleChange}
+                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Họ và tên</label>
+                  <input 
+                    name="fullName" 
+                    value={form.fullName} 
+                    onChange={handleChange} 
                     required
                     className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
-                    placeholder="John Doe"
+                    placeholder="Nguyễn Văn A" 
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Phone Number</label>
-                  <input
-                    name="phone"
-                    value={form.phone}
-                    onChange={handleChange}
+                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Số điện thoại</label>
+                  <input 
+                    name="phone" 
+                    value={form.phone} 
+                    onChange={handleChange} 
                     required
                     className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
-                    placeholder="0901234567"
+                    placeholder="0901234567" 
                   />
                 </div>
               </>
             )}
 
-            {/* ── REGISTER AND LOGIN EMAIL FIELDS ── */}
-            {(mode === 'login' || mode === 'register' || mode === 'forgot_email') && (
-              <div className="space-y-1.5 relative">
-                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">
-                  {mode === 'forgot_email' ? 'Account Email' : 'Email'}
-                </label>
-                <input
-                  ref={emailInputRef}
-                  name="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  type="email"
-                  required
-                  autoComplete="new-email"
-                  onFocus={() => mode !== 'forgot_email' && setShowDropdown(true)}
-                  onBlur={() => setShowDropdown(false)}
-                  className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
-                  placeholder={mode === 'forgot_email' ? 'Enter email to receive recovery link' : 'user@pbms.vn'}
-                />
+            <div className="space-y-1.5 relative">
+              <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Email</label>
+              {/* Hidden input to hold username for browser password manager association */}
+              <input 
+                type="text" 
+                name="username" 
+                autoComplete="username" 
+                value={form.email} 
+                readOnly 
+                tabIndex={-1}
+                aria-hidden="true"
+                style={{ position: 'absolute', opacity: 0, height: 0, width: 0, zIndex: -1, pointerEvents: 'none' }}
+              />
+              <input 
+                ref={emailInputRef}
+                name="email" 
+                value={form.email} 
+                onChange={handleChange} 
+                type="email" 
+                required 
+                autoComplete="one-time-code"
+                onFocus={() => setShowDropdown(true)}
+                onBlur={() => setShowDropdown(false)}
+                className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
+                placeholder="user@pbms.vn" 
+              />
 
-                {/* Custom Cyberpunk Saved Accounts Dropdown */}
-                {showDropdown && savedAccounts.length > 0 && mode !== 'forgot_email' && (
-                  <div
-                    ref={dropdownRef}
-                    className="absolute left-0 right-0 top-[68px] z-50 rounded-xl border border-white/10 bg-slate-950/95 shadow-2xl backdrop-blur-md overflow-hidden py-1.5 animate-fadeIn"
-                  >
-                    <div className="px-3.5 py-1.5 border-b border-white/5 text-[9px] font-mono text-slate-500 tracking-wider uppercase font-black">
-                      Saved Accounts
-                    </div>
-                    {savedAccounts.map((acc) => (
-                      <div
-                        key={acc.email}
-                        onMouseDown={(e) => handleSelectAccount(e, acc)}
-                        className="flex items-center justify-between px-3.5 py-2.5 hover:bg-slate-900 text-xs font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer group"
-                      >
-                        <span className="font-medium tracking-wide truncate max-w-[85%]">{acc.email}</span>
-                        <button
-                          type="button"
-                          onMouseDown={(e) => deleteSavedAccount(e, acc.email)}
-                          className="p-1 rounded text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all duration-200"
-                          title="Delete this account"
-                        >
-                          <X size={12} className="stroke-[3]" />
-                        </button>
-                      </div>
-                    ))}
+              {/* Custom Cyberpunk Saved Accounts Dropdown */}
+              {showDropdown && savedAccounts.length > 0 && (
+                <div 
+                  ref={dropdownRef}
+                  className="absolute left-0 right-0 top-[68px] z-50 rounded-xl border border-white/10 bg-slate-950/95 shadow-2xl backdrop-blur-md overflow-hidden py-1.5 animate-fadeIn"
+                >
+                  <div className="px-3.5 py-1.5 border-b border-white/5 text-[9px] font-mono text-slate-500 tracking-wider uppercase font-black">
+                    Tài khoản đã lưu
                   </div>
-                )}
-              </div>
-            )}
-
-            {/* ── REGISTER OTP INPUT FIELD ── */}
-            {mode === 'register_otp' && (
-              <div className="space-y-2">
-                <div className="text-center">
-                  <p className="text-xs font-bold text-slate-400">
-                    An OTP has been sent to your email
-                  </p>
-                </div>
-                <div className="flex justify-center">
-                  <input
-                    name="otp"
-                    type="text"
-                    inputMode="numeric"
-                    value={otpValue}
-                    onChange={handleOtpChange}
-                    onKeyDown={handleOtpKeyDown}
-                    maxLength={6}
-                    required
-                    autoFocus
-                    className="w-48 text-center text-2xl font-black tracking-[0.5em] rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
-                    placeholder="000000"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* ── FORGOT RESET FIELDS ── */}
-            {mode === 'forgot_reset' && (
-              <>
-                {!forgotEmail && (
-                  <div className="space-y-1.5 animate-fadeIn">
-                    <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Account Email</label>
-                    <input
-                      type="email"
-                      required
-                      className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
-                      placeholder="Enter your email"
-                    />
-                  </div>
-                )}
-                <div className="space-y-1.5">
-                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">New Password</label>
-                  <div className="relative">
-                    <input
-                      name="newPassword"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      type={showPassword ? "text" : "password"}
-                      required
-                      className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 pr-11 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
-                      placeholder="Minimum 6 characters"
-                    />
-                    <PasswordToggleButton />
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Confirm New Password</label>
-                  <div className="relative">
-                    <input
-                      name="confirmNewPassword"
-                      value={confirmNewPassword}
-                      onChange={(e) => setConfirmNewPassword(e.target.value)}
-                      type={showPassword ? "text" : "password"}
-                      required
-                      className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 pr-11 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
-                      placeholder="Re-enter new password"
-                    />
-                    <PasswordToggleButton />
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* ── PASSWORD FIELD (for login + register) ── */}
-            {(mode === 'login' || mode === 'register') && (
-              <div className="space-y-1.5">
-                <div className="flex justify-between items-center">
-                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Password</label>
-                  {mode === 'login' && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setLocalNotice(null);
-                        onModeChange('forgot_email');
-                      }}
-                      className="text-[10px] font-bold text-orange-400 hover:text-orange-300 hover:underline transition-colors"
+                  {savedAccounts.map((acc) => (
+                    <div
+                      key={acc.email}
+                      onMouseDown={(e) => handleSelectAccount(e, acc)}
+                      className="flex items-center justify-between px-3.5 py-2.5 hover:bg-slate-900 text-xs font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer group"
                     >
-                      Forgot password?
-                    </button>
-                  )}
+                      <span className="font-medium tracking-wide truncate max-w-[85%]">{acc.email}</span>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => deleteSavedAccount(e, acc.email)}
+                        className="p-1 rounded text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all duration-200"
+                        title="Xóa tài khoản này"
+                      >
+                        <X size={12} className="stroke-[3]" />
+                      </button>
+                    </div>
+                  ))}
                 </div>
-                <div className="relative">
-                  <input
-                    name="password"
-                    value={form.password}
-                    onChange={handleChange}
-                    type={showPassword ? "text" : "password"}
-                    required
-                    className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 pr-11 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
-                    placeholder="At least 6 characters"
-                  />
-                  <PasswordToggleButton />
-                </div>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Mật khẩu</label>
+              <input 
+                ref={passwordInputRef}
+                name="password" 
+                value={form.password} 
+                onChange={handleChange} 
+                type="password" 
+                required 
+                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
+                placeholder="Ít nhất 6 ký tự" 
+              />
+            </div>
+
+            {mode === 'login' && (
+              <div className="flex justify-end">
+                <button 
+                  type="button"
+                  onClick={() => onModeChange('forgot-password')}
+                  className="text-xs font-semibold text-slate-400 hover:text-orange-400 transition-colors"
+                >
+                  Quên mật khẩu?
+                </button>
               </div>
             )}
 
-            {/* ── CONFIRM PASSWORD FIELD (register only) ── */}
             {mode === 'register' && (
               <div className="space-y-1.5 animate-fadeIn">
-                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Confirm Password</label>
-                <div className="relative">
-                  <input
-                    name="confirmPassword"
-                    value={form.confirmPassword}
-                    onChange={handleChange}
-                    type={showPassword ? "text" : "password"}
-                    required
-                    className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 pr-11 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
-                    placeholder="Re-enter password"
-                  />
-                  <PasswordToggleButton />
-                </div>
+                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Xác nhận mật khẩu</label>
+                <input 
+                  name="confirmPassword" 
+                  value={form.confirmPassword} 
+                  onChange={handleChange} 
+                  type="password" 
+                  required 
+                  className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
+                  placeholder="Nhập lại mật khẩu" 
+                />
               </div>
             )}
 
-            {/* ── SUBMIT BUTTON ── */}
             <div className="flex flex-col gap-4 pt-3">
-              <motion.button
-                type="submit"
-                disabled={isLoading || (mode === 'login' && lockTimeLeft > 0)}
-                whileHover={(mode === 'login' && lockTimeLeft > 0) ? {} : { scale: 1.015 }}
-                whileTap={(mode === 'login' && lockTimeLeft > 0) ? {} : { scale: 0.96 }}
-                className={`w-full h-11 rounded-xl text-slate-950 font-black text-xs uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 ${mode === 'login' && lockTimeLeft > 0
+              <motion.button 
+                type="submit" 
+                disabled={isLoading || (mode === 'login' && lockTimeLeft > 0)} 
+                whileHover={mode === 'login' && lockTimeLeft > 0 ? {} : { scale: 1.015 }}
+                whileTap={mode === 'login' && lockTimeLeft > 0 ? {} : { scale: 0.96 }}
+                className={`w-full h-11 rounded-xl text-slate-950 font-black text-xs uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 ${
+                  mode === 'login' && lockTimeLeft > 0
                     ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30 cursor-not-allowed shadow-[0_0_15px_rgba(239,68,68,0.05)]'
                     : 'bg-gradient-to-r from-orange-500 to-amber-500 hover:shadow-[0_0_25px_rgba(249,115,22,0.45)] disabled:opacity-50'
-                  }`}
+                }`}
               >
-                {isLoading
-                  ? 'Processing...'
-                  : mode === 'login' && lockTimeLeft > 0
-                    ? `Locked (Try again in ${Math.floor(lockTimeLeft / 60)}m ${lockTimeLeft % 60}s)`
-                    : mode === 'login'
-                      ? 'Sign In'
-                      : mode === 'register'
-                        ? 'Create Account'
-                        : mode === 'register_otp'
-                          ? 'Verify OTP'
-                          : mode === 'forgot_email'
-                            ? 'Send recovery link'
-                            : 'Reset Password'}
+                {isLoading 
+                  ? 'Đang xử lý...' 
+                  : mode === 'login' && lockTimeLeft > 0 
+                  ? `Bị khóa (Thử lại sau ${Math.floor(lockTimeLeft / 60)}m ${lockTimeLeft % 60}s)` 
+                  : mode === 'login' 
+                  ? 'Đăng nhập' 
+                  : 'Tạo tài khoản'}
               </motion.button>
-
-              {/* ── BOTTOM NAVIGATION ── */}
+              
               <div className="text-center">
-                {['forgot_email', 'forgot_reset'].includes(mode) ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setLocalNotice(null);
-                      onModeChange('login');
-                    }}
-                    className="text-xs font-bold text-slate-400 hover:text-orange-400 underline transition-colors"
-                  >
-                    Back to Sign In
-                  </button>
-                ) : mode === 'register_otp' ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setLocalNotice(null);
-                      onModeChange('register');
-                    }}
-                    className="text-xs font-bold text-slate-400 hover:text-orange-400 underline transition-colors"
-                  >
-                    Back to Registration
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setLocalNotice(null);
-                      onModeChange(mode === 'login' ? 'register' : 'login');
-                    }}
-                    className="text-xs font-bold text-slate-400 hover:text-orange-400 underline transition-colors"
-                  >
-                    {mode === 'login' ? 'Create a new account' : 'Already have an account? Sign In'}
-                  </button>
-                )}
+                <button 
+                  type="button" 
+                  onClick={() => onModeChange(mode === 'login' ? 'register' : 'login')} 
+                  className="text-xs font-bold text-slate-400 hover:text-orange-400 underline transition-colors"
+                >
+                  {mode === 'login' ? 'Tạo tài khoản mới' : 'Đã có tài khoản? Đăng nhập'}
+                </button>
               </div>
             </div>
           </form>
+          )}
         </div>
       </motion.div>
+
+      {/* Modal thông báo (quên/đặt lại mật khẩu) */}
+      {modal ? (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 backdrop-blur-md px-4"
+          onClick={closeModal}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.92, y: 12 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-sm rounded-3xl border border-white/10 bg-slate-900 p-6 text-center shadow-2xl"
+          >
+            <button
+              type="button"
+              onClick={closeModal}
+              className="absolute right-3.5 top-3.5 rounded-full p-1.5 text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
+              aria-label="Đóng"
+            >
+              <X size={16} />
+            </button>
+
+            <div
+              className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl ${
+                modal.type === 'success'
+                  ? 'bg-emerald-500/15 text-emerald-400'
+                  : 'bg-rose-500/15 text-rose-400'
+              }`}
+            >
+              {modal.type === 'success' ? (
+                <CheckCircle2 size={30} className="stroke-[2.2]" />
+              ) : (
+                <AlertCircle size={30} className="stroke-[2.2]" />
+              )}
+            </div>
+
+            <h3 className="text-base font-black tracking-tight text-white">{modal.title}</h3>
+            <p className="mt-2 text-sm leading-relaxed text-slate-400">{modal.message}</p>
+
+            <button
+              type="button"
+              onClick={closeModal}
+              className={`mt-5 h-11 w-full rounded-xl font-black text-xs uppercase tracking-wider transition-all ${
+                modal.type === 'success'
+                  ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 hover:shadow-[0_0_25px_rgba(249,115,22,0.45)]'
+                  : 'border border-white/10 text-white hover:bg-slate-800'
+              }`}
+            >
+              Đã hiểu
+            </button>
+          </motion.div>
+        </div>
+      ) : null}
     </main>
   );
 }

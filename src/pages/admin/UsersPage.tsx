@@ -308,7 +308,7 @@ export function UsersPage() {
         title="Tạo người dùng"
         onSubmit={saveCreate}
       >
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-2">
           <Input
             placeholder="Họ tên"
             value={form.fullName}

@@ -55,8 +55,7 @@ export function ManagerWalletPage() {
   const [error, setError] = useState<string | null>(null);
   const [subscribingId, setSubscribingId] = useState<string | null>(null);
   const [subMessage, setSubMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
-  const [buyModalOpen, setBuyModalOpen] = useState(false);
-  const [selectedPkg, setSelectedPkg] = useState<AdminSubscriptionPackage | null>(null);
+
   const [topupOpen, setTopupOpen] = useState(false);
   const [topupAmount, setTopupAmount] = useState('');
   const [topupBusy, setTopupBusy] = useState(false);
@@ -71,7 +70,7 @@ export function ManagerWalletPage() {
         managerApi.wallet.get(buildingId),
         managerApi.wallet.getDailyRevenue(buildingId),
         managerApi.wallet.listTransactions(buildingId),
-        managerApi.wallet.getSubscriptionStatus(buildingId),
+        managerApi.getSubscriptionStatus(buildingId),
         managerApi.wallet.listSubscriptionPackages(buildingId),
       ]);
       setWallet((walletRes as { data?: { wallet: BuildingWallet } })?.data?.wallet ?? null);
@@ -90,18 +89,12 @@ export function ManagerWalletPage() {
     refresh();
   }, [refresh]);
 
-  const handleSubscribeClick = (pkg: AdminSubscriptionPackage) => {
-    setSelectedPkg(pkg);
-    setBuyModalOpen(true);
-  };
-
-  const confirmSubscribe = useCallback(
-    async () => {
-      if (!buildingId || !selectedPkg) return;
-      const pkg = selectedPkg;
-      setBuyModalOpen(false);
-      setSelectedPkg(null);
-
+  const handleSubscribe = useCallback(
+    async (pkg: AdminSubscriptionPackage) => {
+      if (!buildingId) return;
+      if (!window.confirm(
+        `Mua gói "${pkg.name}" với giá ${fmtVnd(pkg.price)}? Số tiền sẽ được trừ từ ví tòa nhà và chuyển cho Admin.`,
+      )) return;
       setSubscribingId(pkg._id);
       setSubMessage(null);
       try {
@@ -115,7 +108,7 @@ export function ManagerWalletPage() {
         setSubscribingId(null);
       }
     },
-    [buildingId, selectedPkg, refresh, refreshSubscription],
+    [buildingId, refresh, refreshSubscription],
   );
 
   const handleInitiateTopup = useCallback(async () => {
@@ -350,7 +343,7 @@ export function ManagerWalletPage() {
                     <Button
                       className="mt-3 w-full gap-2"
                       disabled={subscribingId === pkg._id}
-                      onClick={() => handleSubscribeClick(pkg)}
+                      onClick={() => handleSubscribe(pkg)}
                     >
                       {subscribingId === pkg._id ? (
                         <RefreshCw size={13} className="animate-spin" />
@@ -418,49 +411,6 @@ export function ManagerWalletPage() {
           )}
         </CardContent>
       </Card>
-      {/* Modal xác nhận mua gói */}
-      {buyModalOpen && selectedPkg && (
-        <div
-          className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 backdrop-blur-sm"
-          onClick={() => {
-            setBuyModalOpen(false);
-            setSelectedPkg(null);
-          }}
-        >
-          <div
-            className="w-full max-w-md rounded-xl border border-slate-800 bg-slate-900 p-6 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-lg font-bold text-white">Xác nhận mua gói</h3>
-            <p className="mt-2 text-sm text-slate-300">
-              Bạn có chắc chắn muốn {subActive ? 'gia hạn/đổi sang' : 'mua'} gói{' '}
-              <span className="font-semibold text-white">{selectedPkg.name}</span> với giá{' '}
-              <span className="font-bold text-orange-500">{fmtVnd(selectedPkg.price)}</span>?
-            </p>
-            <p className="mt-1 text-xs text-slate-400">
-              Số tiền này sẽ được trừ trực tiếp từ ví tòa nhà và chuyển cho hệ thống Admin.
-            </p>
-            <div className="mt-6 flex justify-end gap-3">
-              <Button
-                variant="ghost"
-                className="text-slate-300 hover:bg-slate-800 hover:text-white border border-transparent hover:border-slate-700"
-                onClick={() => {
-                  setBuyModalOpen(false);
-                  setSelectedPkg(null);
-                }}
-              >
-                Hủy
-              </Button>
-              <Button
-                className="rounded-lg bg-orange-500 px-5 py-2.5 font-medium text-white hover:bg-orange-600"
-                onClick={confirmSubscribe}
-              >
-                Xác nhận mua
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

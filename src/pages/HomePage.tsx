@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform, useScroll } from 'framer-motion';
 import type { LucideIcon } from 'lucide-react';
 import {
@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   Clock3,
   CreditCard,
+  History,
   Mail,
   MapPinned,
   PhoneCall,
@@ -24,28 +25,26 @@ import {
   LogOut,
   X,
 } from 'lucide-react';
-import AdminUserDropdown from '@/components/shared/AdminUserDropdown';
-import FeedbackModal from '@/components/shared/FeedbackModal';
-import NotificationBell from '@/components/shared/NotificationBell';
-import { useFeedbackPending } from '@/hooks/useFeedbackNotifications';
 import type { LegacyModule } from '../data/mainFlow';
-import { AnimatedParkingMap3D } from '@/components/shared/AnimatedParkingMap3D';
+import { AnimatedParkingMap3D } from '@/components/map/AnimatedParkingMap3D';
+import { notificationApi } from '@/services/notificationApi';
 
 interface HomePageProps {
   modules: LegacyModule[];
   onOpenAuth: (mode?: 'login' | 'register') => void;
   onViewProfile: () => void;
+  onViewReservationHistory: () => void;
   onAction: (module: LegacyModule) => void;
   user?: { fullName?: string; email?: string; phone?: string; role?: string; licensePlates?: Array<{ plateNumber: string; vehicleType: 'car' | 'motorcycle' }> } | null;
   onLogout?: () => void;
 }
 
 const navigationLinks = [
-  { label: 'Home', href: '#top' },
-  { label: 'About', href: '#gioi-thieu' },
-  { label: 'Solutions', href: '#giai-phap' },
-  { label: 'Services', href: '#dich-vu' },
-  { label: 'Contact', href: '#lien-he' },
+  { label: 'Trang chủ', href: '#top' },
+  { label: 'Giới thiệu', href: '#gioi-thieu' },
+  { label: 'Giải pháp', href: '#giai-phap' },
+  { label: 'Dịch vụ', href: '#dich-vu' },
+  { label: 'Liên hệ', href: '#lien-he' },
 ];
 
 const moduleIcons: Record<string, LucideIcon> = {
@@ -53,6 +52,7 @@ const moduleIcons: Record<string, LucideIcon> = {
   profile: CheckCircle2,
   wallet: Wallet,
   buildings: Building2,
+  packages: Ticket,
   reservations: CalendarClock,
   sessions: ScanLine,
   payments: CreditCard,
@@ -60,46 +60,57 @@ const moduleIcons: Record<string, LucideIcon> = {
 };
 
 const heroHighlights = [
-  { value: '24/7', label: 'Continuous monitoring and operational support' },
-  { value: '01', label: 'Unified platform for residents and management' },
-  { value: '99.9%', label: 'Clear and structured check-in/out process' },
+  { value: '24/7', label: 'Giám sát và hỗ trợ vận hành liên tục' },
+  { value: '01', label: 'Nền tảng thống nhất cho cư dân và ban quản lý' },
+  { value: '99.9%', label: 'Quy trình check-in, check-out rõ ràng' },
 ];
 
 const benefits = [
   {
     icon: Clock3,
-    title: 'Real-Time Access Control',
-    description: 'Track vehicle entries, parking status, and parking sessions on a single intuitive dashboard.',
+    title: 'Kiểm soát ra vào theo thời gian thực',
+    description: 'Theo dõi lượt xe, trạng thái bãi và phiên gửi ngay trên một màn hình vận hành trực quan.',
   },
   {
     icon: BarChart3,
-    title: 'Transparent Revenue Reporting',
-    description: 'Centralize transaction data, revenue, and occupancy performance for easier decision-making.',
+    title: 'Báo cáo doanh thu rõ ràng',
+    description: 'Tập trung số liệu giao dịch, doanh thu và hiệu suất khai thác để quản lý dễ ra quyết định hơn.',
   },
   {
     icon: CarFront,
-    title: 'User-Friendly Experience',
-    description: 'Login, track info, and seamlessly access features like reservations, payments, and notifications.',
+    title: 'Trải nghiệm thân thiện cho người dùng',
+    description: 'Đăng nhập, theo dõi thông tin và mở rộng tính năng đặt chỗ, thanh toán, thông báo theo lộ trình.',
   },
 ];
 
 // Interactive 3D Parking Building Component with Parallax Tilt Effect
 
 
-export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction, user, onLogout }: HomePageProps) {
-  const isStaffUser = user?.role === 'staff';
+export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewReservationHistory, onAction, user, onLogout }: HomePageProps) {
   const hasMissingInfo = Boolean(
     user &&
     user.role === 'user' &&
     (!user.phone || user.phone.trim() === '' || !user.licensePlates || user.licensePlates.length === 0)
   );
 
-  const productModules = isStaffUser ? [] : modules.slice(0, 4);
-  const serviceModules = isStaffUser ? [] : modules.slice(4);
+  const productModules = useMemo(() => modules.filter((m) => m.available && !(m.id === 'auth' && user)), [modules, user]);
+  const serviceModules = useMemo(() => modules.filter((m) => !m.available), [modules]);
   const [showPlateBanner, setShowPlateBanner] = useState(true);
-  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
-  const feedbackPending = useFeedbackPending(Boolean(user && user.role === 'user'));
+
+  // Số thông báo chưa đọc — hiện badge trên nút tài khoản (chỉ khi đã đăng nhập là user).
+  const [unreadNotif, setUnreadNotif] = useState(0);
+  useEffect(() => {
+    if (!user || user.role !== 'user') return;
+    notificationApi
+      .list()
+      .then((res) => {
+        const d = (res as { data?: { unread?: number } })?.data;
+        setUnreadNotif(d?.unread ?? 0);
+      })
+      .catch(() => undefined);
+  }, [user]);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -123,8 +134,8 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
   });
 
   // Stage 1 (Hero: 0% to 25%): Default isometric overview
-  // Stage 2 (Äáº·c Ä‘iá»ƒm: 25% to 60%): 180deg rotation (Z: -45 -> 135) + zoom details
-  // Stage 3 (Giáº£i phÃ¡p: 60% to 100%): Down shift and shrink (scale: 0.85)
+  // Stage 2 (Đặc điểm: 25% to 60%): 180deg rotation (Z: -45 -> 135) + zoom details
+  // Stage 3 (Giải pháp: 60% to 100%): Down shift and shrink (scale: 0.85)
   const rotateZ = useTransform(smoothScroll, [0, 0.25, 0.60, 1.0], [-45, -45, 135, -45]);
   const rotateX = useTransform(smoothScroll, [0, 0.25, 0.60, 1.0], [55, 55, 48, 55]);
   const scale = useTransform(smoothScroll, [0, 0.25, 0.60, 1.0], [1.0, 1.0, 1.45, 0.85]);
@@ -132,25 +143,34 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
   const y = useTransform(smoothScroll, [0, 0.25, 0.60, 1.0], [0, 0, 20, -50]);
 
   const heroButtonText = useMemo(() => {
-    if (!user) return 'Login Now';
-    if (user.role === 'admin') return 'Admin Dashboard';
-    if (user.role === 'manager') return 'Manager Dashboard';
-    if (user.role === 'staff') return 'Staff Operations Gate';
-    return 'Experience Services';
+    if (!user) return 'Đăng nhập ngay';
+    if (user.role === 'admin') return 'Bảng điều khiển Admin';
+    if (user.role === 'manager') return 'Bảng quản trị Manager';
+    if (user.role === 'staff') return 'Cổng nhân viên ca trực';
+    return 'Trải nghiệm dịch vụ';
   }, [user]);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (!menuRef.current) return;    }
+      if (!menuRef.current) return;
+      if (!menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
 
     document.addEventListener('click', handleClick);
     return () => document.removeEventListener('click', handleClick);
   }, []);
 
+  const onViewWallet = () => {
+    const walletModule = modules.find((module) => module.id === 'wallet');
+    if (walletModule) onAction(walletModule);
+  };
+
   return (
     <main id="top" className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-orange-500 selection:text-white relative">
 
-      {/* Background Neon Glow Spheres â€” fixed so they never cause scroll issues */}
+      {/* Background Neon Glow Spheres — fixed so they never cause scroll issues */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10" aria-hidden="true">
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[55%] rounded-full bg-[radial-gradient(circle_at_center,hsla(24,95%,53%,0.08),transparent_55%)] blur-3xl" />
         <div className="absolute top-[35%] right-[-15%] w-[60%] h-[60%] rounded-full bg-[radial-gradient(circle_at_center,hsla(263,90%,51%,0.07),transparent_55%)] blur-3xl" />
@@ -161,7 +181,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
       {/* Cyber Header Navigation */}
       <header className="border-b border-white/5 bg-slate-950/60 sticky top-0 z-40 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <a href="#top" aria-label="PBMS Trang chá»§" className="flex items-center gap-3 group">
+          <a href="#top" aria-label="PBMS Trang chủ" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 grid place-items-center shadow-[0_0_15px_rgba(249,115,22,0.3)] transition-all group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(249,115,22,0.5)]">
               <span className="w-2.5 h-2.5 bg-slate-950 rounded-full" />
             </div>
@@ -185,20 +205,101 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
 
           <div className="flex items-center gap-5">
             <div className="text-right hidden sm:block">
-              <span className="text-[10px] uppercase font-mono tracking-wider text-slate-500 font-bold block">Support 24/7</span>
+              <span className="text-[10px] uppercase font-mono tracking-wider text-slate-500 font-bold block">Hỗ trợ 24/7</span>
               <strong className="text-xs font-black text-slate-300">1900 636 447</strong>
             </div>
 
             {user ? (
-              <div className="relative flex items-center gap-2 animate-fadeIn" ref={menuRef}>
-                <NotificationBell enabled={user.role === 'user'} />
-                <AdminUserDropdown email={user.email} onLogout={onLogout ?? (() => { localStorage.removeItem('pbms.token'); localStorage.removeItem('pbms.user'); window.location.href = '/auth/login'; })} />
+              <div className="relative animate-fadeIn" ref={menuRef}>
+                <button
+                  type="button"
+                  aria-expanded={menuOpen}
+                  onClick={() => setMenuOpen((v) => !v)}
+                  className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl bg-slate-900 border border-white/10 hover:border-orange-500/30 text-white transition-all shadow-md"
+                >
+                  <User size={14} className="text-orange-400" />
+                  <span className="text-xs font-bold">{user.fullName ?? user.email}</span>
+                  <ChevronDown size={12} className="text-slate-400" />
+                </button>
+
+                {unreadNotif > 0 && (
+                  <span className="absolute -top-1 -left-1 z-30 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[8px] font-black text-white shadow-[0_0_8px_rgba(244,63,94,0.6)]">
+                    {unreadNotif > 9 ? '9+' : unreadNotif}
+                  </span>
+                )}
+
+                {hasMissingInfo && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 z-30 pointer-events-none">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-4 w-4 bg-rose-600 text-[8px] font-mono font-black text-white items-center justify-center animate-bounce shadow-[0_0_8px_rgba(225,29,72,0.6)]">
+                      1
+                    </span>
+                  </span>
+                )}
+
+                {menuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="absolute right-0 mt-2 w-48 bg-slate-900/95 border border-white/10 rounded-xl shadow-2xl py-2 backdrop-blur-md z-50"
+                  >
+                    <button
+                      className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-between"
+                      onClick={() => { setMenuOpen(false); onViewProfile(); }}
+                    >
+                      <span>Hồ sơ của tôi</span>
+                      {hasMissingInfo && (
+                        <span className="flex h-2 w-2 rounded-full bg-rose-500 animate-pulse shadow-[0_0_6px_#f43f5e]" />
+                      )}
+                    </button>
+                    <a
+                      href="/notifications"
+                      onClick={() => setMenuOpen(false)}
+                      className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-between"
+                    >
+                      <span className="flex items-center"><BellRing size={12} className="mr-2" /> Thông báo</span>
+                      {unreadNotif > 0 && (
+                        <span className="rounded-full bg-rose-500 px-1.5 text-[9px] font-bold text-white">
+                          {unreadNotif > 9 ? '9+' : unreadNotif}
+                        </span>
+                      )}
+                    </a>
+                    <button
+                      className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white"
+                      onClick={() => { setMenuOpen(false); onViewWallet(); }}
+                    >
+                      <Wallet size={12} className="inline-block mr-2" /> Ví tiền
+                    </button>
+                    <button
+                      className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white"
+                      onClick={() => { setMenuOpen(false); onViewReservationHistory(); }}
+                    >
+                      <History size={12} className="inline-block mr-2" /> Lịch sử đặt chỗ
+                    </button>
+                    <a
+                      href="/parking-history"
+                      className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white flex items-center"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      <MapPinned size={12} className="inline-block mr-2" /> Lịch sử gửi xe
+                    </a>
+                    <button className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-rose-400 hover:text-rose-300 border-t border-white/5 mt-1" onClick={onLogout}>
+                      <LogOut size={12} className="inline-block mr-2" /> Đăng xuất
+                    </button>
+                  </motion.div>
+                )}
               </div>
             ) : (
-              <a href="/auth/login" className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-xs transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(249,115,22,0.4)]">
-                Login
-              </a>
+              <motion.button
+                onClick={() => onOpenAuth('login')}
+                whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(249,115,22,0.45)' }}
+                whileTap={{ scale: 0.95 }}
+                className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider transition-all duration-300"
+              >
+                Đăng nhập
+              </motion.button>
             )}
+
           </div>
         </div>
       </header>
@@ -222,20 +323,20 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
                 <div className="flex items-center gap-1.5 flex-1 min-w-0">
                   <AlertTriangle size={12} className="text-amber-400 flex-shrink-0" />
                   <p className="text-[11px] font-semibold text-amber-200/90 truncate">
-                    No registered license plate â€” Automatic check-in/out is currently unavailable.
+                    Tài khoản chưa có biển số xe — Hệ thống không thể tự động check-in/out cho bạn.
                   </p>
                 </div>
                 <a
                   href="/profile"
                   className="flex-shrink-0 px-3 py-1 rounded-lg bg-amber-500/20 border border-amber-500/30 text-amber-300 font-black text-[10px] uppercase tracking-wider hover:bg-amber-500/30 transition-all duration-200 whitespace-nowrap"
                 >
-                  Update Now
+                  Cập nhật ngay
                 </a>
                 <button
                   type="button"
                   onClick={() => setShowPlateBanner(false)}
                   className="flex-shrink-0 p-1 rounded-lg text-amber-500/50 hover:text-amber-300 hover:bg-amber-500/10 transition-all duration-200"
-                  aria-label="Close Notice"
+                  aria-label="Đóng thông báo"
                 >
                   <X size={13} className="stroke-[3]" />
                 </button>
@@ -263,21 +364,20 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
             >
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 mb-4 w-fit animate-pulse">
                 <span className="w-2 h-2 rounded-full bg-orange-500" />
-                <span className="text-[10px] font-black uppercase tracking-wider text-orange-400 font-mono">Next-Gen Management Platform</span>
+                <span className="text-[10px] font-black uppercase tracking-wider text-orange-400 font-mono">Platform Quản Trị Tương Lai</span>
               </div>
 
               <h1 className="text-4xl md:text-5xl font-black leading-[1.12] tracking-tight text-white">
-                Intelligent Parking <br />
-                <span className="bg-gradient-to-r from-orange-400 via-amber-400 to-purple-400 bg-clip-text text-transparent">Management Platform</span>
+                Nền tảng kiểm soát <br />
+                <span className="bg-gradient-to-r from-orange-400 via-amber-400 to-purple-400 bg-clip-text text-transparent">Bãi đỗ xe thông minh</span>
               </h1>
               <p className="mt-5 text-sm text-slate-400 leading-relaxed max-w-lg font-semibold">
-                PBMS redefines building operations. Monitor entries and exits in real time, automate payments, track occupancy levels intelligently, and enjoy a state-of-the-art visual 3D simulation.
+                PBMS định nghĩa lại hoạt động vận hành tòa nhà. Giám sát ra vào thời gian thực, tự động hóa thanh toán, theo dõi công suất thông minh và cung cấp giải pháp 3D trực quan vượt trội.
               </p>
-
               <div className="mt-8 flex flex-wrap gap-4 items-center">
                 {user ? (
                   <>
-                    <a
+                    <motion.a
                       href={
                         user.role === 'admin'
                           ? '/admin/dashboard'
@@ -287,40 +387,45 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
                               ? '/staff'
                               : '/'
                       }
-                      className="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider transition-all duration-300 hover:scale-105 hover:shadow-[0_0_25px_rgba(249,115,22,0.4)] inline-flex items-center gap-2"
+                      whileHover={{ scale: 1.05, boxShadow: '0 0 25px rgba(249,115,22,0.45)' }}
+                      whileTap={{ scale: 0.95 }}
+                      className="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider transition-all duration-300 inline-flex items-center gap-2"
                     >
                       {heroButtonText} <ArrowRight size={14} />
-                    </a>
-                    <button
-                      onClick={() => { if (feedbackPending.count > 0) setFeedbackModalOpen(true); else onViewProfile(); }}
-                      className="relative px-6 py-3 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 hover:border-orange-500/30 hover:bg-slate-900/60 inline-flex items-center"
+                    </motion.a>
+                    <motion.button
+                      onClick={onViewProfile}
+                      whileHover={{ scale: 1.05, borderColor: 'rgba(249,115,22,0.3)' }}
+                      whileTap={{ scale: 0.95 }}
+                      className="px-6 py-3 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 hover:bg-slate-900/60 inline-flex items-center"
                     >
-                      View Personal Profile
-                      {feedbackPending.count > 0 ? (
-                        <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-black text-white ring-4 ring-slate-950">{feedbackPending.count > 9 ? '9+' : feedbackPending.count}</span>
-                      ) : null}
-                    </button>
+                      Xem hồ sơ cá nhân
+                    </motion.button>
                   </>
                 ) : (
                   <>
-                    <a
+                    <motion.a
                       href="/auth/login"
-                      className="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider transition-all duration-300 hover:scale-105 hover:shadow-[0_0_25px_rgba(249,115,22,0.4)] inline-flex items-center gap-2"
+                      whileHover={{ scale: 1.05, boxShadow: '0 0 25px rgba(249,115,22,0.45)' }}
+                      whileTap={{ scale: 0.95 }}
+                      className="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider transition-all duration-300 inline-flex items-center gap-2"
                     >
-                      Login Now <ArrowRight size={14} />
-                    </a>
-                    <a
+                      Đăng nhập ngay <ArrowRight size={14} />
+                    </motion.a>
+                    <motion.a
                       href="/auth/register"
-                      className="px-6 py-3 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 hover:border-orange-500/30 hover:bg-slate-900/60 inline-flex items-center"
+                      whileHover={{ scale: 1.05, borderColor: 'rgba(249,115,22,0.3)' }}
+                      whileTap={{ scale: 0.95 }}
+                      className="px-6 py-3 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 hover:bg-slate-900/60 inline-flex items-center"
                     >
-                      Register Account
-                    </a>
+                      Đăng ký tài khoản
+                    </motion.a>
                   </>
                 )}
               </div>
             </motion.section>
 
-            {/* Story Deck Item 2: Giá»›i thiá»‡u & Quáº£n lÃ½ táº§ng & slot */}
+            {/* Story Deck Item 2: Giới thiệu & Quản lý tầng & slot */}
             <motion.section
               id="gioi-thieu"
               className="min-h-[70vh] flex flex-col justify-center scroll-mt-24"
@@ -331,10 +436,10 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
             >
               <div className="glass-premium glow-border-pulse p-8 rounded-3xl relative overflow-hidden shadow-2xl">
                 <div className="absolute -right-12 -top-12 h-36 w-36 rounded-full bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.12),transparent_70%)] pointer-events-none blur-2xl" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-cyan-400 font-mono">Outstanding Features</span>
-                <h2 className="text-2xl md:text-3xl font-black mt-2 text-white">Smart Level & Slot Management</h2>
+                <span className="text-[10px] font-black uppercase tracking-widest text-cyan-400 font-mono">Đặc Điểm Vượt Trội</span>
+                <h2 className="text-2xl md:text-3xl font-black mt-2 text-white">Quản lý tầng & slot thông minh</h2>
                 <p className="mt-3 text-sm text-slate-400 font-semibold leading-relaxed">
-                  Real-time 3D parking layout mapping. Precisely monitor every individual parking slot by building level (Floor), visually displaying occupied/vacant states, and enabling automated smart routing.
+                  Hệ thống lập bản đồ 3D thời gian thực. Giám sát chính xác từng vị trí đỗ (Slot) theo từng tầng (Floor), hiển thị trực quan trạng thái Trống/Đầy và tự động định tuyến xe thông minh.
                 </p>
                 <div className="mt-6 grid gap-4">
                   {benefits.map((benefit) => {
@@ -353,7 +458,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
               </div>
             </motion.section>
 
-            {/* Story Deck Item 3: Check-in/Check-out & Cá»•ng kiá»ƒm soÃ¡t */}
+            {/* Story Deck Item 3: Check-in/Check-out & Cổng kiểm soát */}
             <motion.section
               id="check-in-gate"
               className="min-h-[70vh] flex flex-col justify-center scroll-mt-24"
@@ -364,10 +469,10 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
             >
               <div className="glass-premium glow-border-pulse p-8 rounded-3xl relative overflow-hidden shadow-2xl">
                 <div className="absolute -left-12 -bottom-12 h-36 w-36 rounded-full bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.1),transparent_70%)] pointer-events-none blur-2xl" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-orange-400 font-mono">Automated Check-In</span>
-                <h2 className="text-2xl md:text-3xl font-black mt-2 text-white">24/7 Automated Access Control</h2>
+                <span className="text-[10px] font-black uppercase tracking-widest text-orange-400 font-mono">Tự Động Hóa Check-In</span>
+                <h2 className="text-2xl md:text-3xl font-black mt-2 text-white">Kiểm soát ra vào tự động 24/7</h2>
                 <p className="mt-3 text-sm text-slate-400 font-semibold leading-relaxed">
-                  Integrated high-accuracy license plate recognition (LPR), smart RFID card scanning, and fully automated barrier gate operations. Drastically reduces check-in/out times to under 2 seconds, mitigating peak-hour gridlocks.
+                  Nhận diện biển số, quét RFID thẻ thông minh và vận hành thanh chắn cổng soát vé (Gate) hoàn toàn tự động. Đẩy nhanh thời gian check-in/out xuống dưới 2 giây, giảm thiểu ùn tắc.
                 </p>
 
                 {/* Floating highlight block */}
@@ -397,7 +502,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
                 y={isMobile ? undefined : y}
               />
 
-              {/* Floating highlight status badges overlay around the model â€” stacked on the left side to prevent bottom overlapping */}
+              {/* Floating highlight status badges overlay around the model — stacked on the left side to prevent bottom overlapping */}
               <div className="absolute -left-28 md:-left-36 lg:-left-44 top-[10%] flex flex-col gap-4 max-w-[140px] pointer-events-none z-20">
                 {heroHighlights.slice(0, 1).map((item, idx) => (
                   <motion.article
@@ -419,14 +524,13 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
       </div>
 
       {/* Core Solutions Modules */}
-      {!isStaffUser ? (
       <section id="giai-phap" className="py-20 relative z-10">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
             <div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-orange-400 font-mono">System Features</span>
-                <h2 className="text-2xl md:text-3xl font-black mt-2 text-white">Core Management Solutions</h2>
-                <p className="text-sm text-slate-400 font-semibold mt-2">Multi-zone data synchronization with flexible user-flow access controls.</p>
+              <span className="text-[10px] font-black uppercase tracking-widest text-orange-400 font-mono">Tính Năng Hệ Thống</span>
+              <h2 className="text-2xl md:text-3xl font-black mt-2 text-white">Các module giải pháp trọng tâm</h2>
+              <p className="text-sm text-slate-400 font-semibold mt-2">Đồng bộ dữ liệu đa phân khu, phân quyền linh hoạt theo luồng người dùng.</p>
             </div>
           </div>
 
@@ -440,14 +544,21 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: index * 0.08 }}
-                  className={`p-5 rounded-2xl border backdrop-blur-md flex flex-col justify-between h-[230px] transition-all duration-300 ${module.available
-                      ? 'border-white/5 bg-slate-900/40 hover:border-orange-500/20 hover:shadow-[0_0_20px_rgba(249,115,22,0.06)]'
+                  whileHover={module.available ? { 
+                    scale: 1.03, 
+                    y: -4, 
+                    boxShadow: '0 0 25px rgba(249, 115, 22, 0.15)',
+                    borderColor: 'rgba(249, 115, 22, 0.35)' 
+                  } : { scale: 1.01 }}
+                  className={`p-5 rounded-2xl border backdrop-blur-md flex flex-col justify-between h-[230px] transition-all duration-300 ${
+                    module.available
+                      ? 'border-white/5 bg-slate-900/40'
                       : 'border-white/5 bg-slate-900/10 opacity-75'
-                    }`}
+                  }`}
                 >
                   <div>
                     <div className="flex items-center gap-3">
-                      <div className={`p-2.5 rounded-lg ${module.available ? 'bg-orange-500/10 text-orange-400' : 'bg-slate-800 text-slate-500'}`}>
+                      <div className={`p-2.5 rounded-lg ${module.available ? 'bg-orange-500/10 text-orange-400 shadow-[0_0_10px_rgba(249,115,22,0.1)]' : 'bg-slate-800 text-slate-500'}`}>
                         <Icon size={20} />
                       </div>
                       <div>
@@ -462,19 +573,18 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
                   </div>
 
                   <div className="mt-4">
-                    <button
-                      className={`relative w-full py-2.5 px-4 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-1.5 ${module.available
-                          ? 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-slate-950 hover:shadow-[0_0_15px_rgba(249,115,22,0.2)]'
-                          : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                    <motion.button
+                      whileHover={module.available ? { scale: 1.02, boxShadow: '0 0 15px rgba(249,115,22,0.3)' } : {}}
+                      whileTap={module.available ? { scale: 0.98 } : {}}
+                      className={`w-full py-2.5 px-4 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-1.5 ${module.available
+                          ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 hover:shadow-[0_0_15px_rgba(249,115,22,0.2)] border-0'
+                          : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-white/5'
                         }`}
-                      onClick={() => { if ((module.id === 'reservations' || module.id === 'profile') && feedbackPending.count > 0) return setFeedbackModalOpen(true); if (module.id === 'profile') return onViewProfile(); onAction(module); }}
+                      onClick={() => { if (module.id === 'profile') return onViewProfile(); onAction(module); }}
                       disabled={!module.available}
                     >
-                      {module.available ? module.actionLabel : 'Coming Soon'} <ArrowRight size={12} />
-                      {(module.id === 'reservations' || module.id === 'profile') && feedbackPending.count > 0 ? (
-                        <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-black text-white ring-4 ring-slate-900">{feedbackPending.count > 9 ? '9+' : feedbackPending.count}</span>
-                      ) : null}
-                    </button>
+                      {module.available ? module.actionLabel : 'Sắp ra mắt'} <ArrowRight size={12} />
+                    </motion.button>
                   </div>
                 </motion.article>
               );
@@ -482,18 +592,17 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
           </div>
         </div>
       </section>
-      ) : null}
 
-      {!isStaffUser ? (
+      {/* Services Roadmap Section */}
       <section id="dich-vu" className="py-20 relative z-10 bg-slate-950/40">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center max-w-xl mx-auto mb-12">
-            <span className="text-[10px] font-black uppercase tracking-widest text-purple-400 font-mono">Value-Added Services</span>
-            <h2 className="text-2xl md:text-3xl font-black mt-2 text-white">Scalable Roadmap Extensions</h2>
-            <p className="text-sm text-slate-400 font-semibold mt-2">Perfectly adapt to future growth in traffic volume and organizational management scope.</p>
+            <span className="text-[10px] font-black uppercase tracking-widest text-purple-400 font-mono">Dịch Vụ Gia Tăng</span>
+            <h2 className="text-2xl md:text-3xl font-black mt-2 text-white">Mở rộng theo lộ trình vận hành</h2>
+            <p className="text-sm text-slate-400 font-semibold mt-2">Đáp ứng đầy đủ sự gia tăng lưu lượng và quy mô quản lý bãi đỗ trong tương lai.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {serviceModules.map((module, index) => {
               const Icon = moduleIcons[module.id] || Ticket;
               return (
@@ -523,37 +632,20 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
           </div>
         </div>
       </section>
-      ) : (
-      <section className="py-20 relative z-10 bg-slate-950/40">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-8 md:p-10">
-            <span className="text-[10px] font-black uppercase tracking-widest text-orange-400 font-mono">Staff Mode</span>
-            <h2 className="mt-2 text-2xl md:text-3xl font-black text-white">Quick Portal Access for Shifts</h2>
-            <p className="mt-2 max-w-2xl text-sm text-slate-400 font-semibold">
-              Staff accounts are directed straight to operations to bypass public introductory sections and marketing modules.
-            </p>
-            <div className="mt-5 flex flex-wrap gap-3">
-              <a href="/staff" className="px-5 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider hover:shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all duration-200">Enter Staff Portal</a>
-              <a href="/staff/operations" className="px-5 py-3 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-xs uppercase tracking-wider hover:border-orange-500/25 transition-all duration-200">Operations Control</a>
-            </div>
-          </div>
-        </div>
-      </section>
-      )}
 
       {/* CTA Footer banner */}
       <section className="py-16 relative z-10 border-t border-white/5 bg-gradient-to-b from-slate-950 to-slate-900">
         <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-6">
           <div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-orange-400 font-mono">Get Started</span>
-            <h2 className="text-2xl font-black mt-1 text-white">Deploy a Fully Integrated Smart Parking Solution</h2>
+            <span className="text-[10px] font-black uppercase tracking-widest text-orange-400 font-mono">Bắt Đầu Trải Nghiệm</span>
+            <h2 className="text-2xl font-black mt-1 text-white">Triển khai bãi đỗ xe thông minh toàn diện</h2>
           </div>
           <div className="flex gap-4">
-            <a href="/auth/register" className="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider hover:shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all duration-200">Create Account</a>
+            <a href="/auth/register" className="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider hover:shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all duration-200">Tạo tài khoản</a>
             {user ? (
-              <button className="px-6 py-3 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-xs uppercase tracking-wider hover:border-orange-500/25 transition-all duration-200" onClick={onViewProfile}>View Profile</button>
+              <button className="px-6 py-3 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-xs uppercase tracking-wider hover:border-orange-500/25 transition-all duration-200" onClick={onViewProfile}>Xem hồ sơ</button>
             ) : (
-              <a href="/auth/login" className="px-6 py-3 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-xs uppercase tracking-wider hover:border-orange-500/25 transition-all duration-200 inline-flex items-center">Login</a>
+              <a href="/auth/login" className="px-6 py-3 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-xs uppercase tracking-wider hover:border-orange-500/25 transition-all duration-200 inline-flex items-center">Đăng nhập</a>
             )}
           </div>
         </div>
@@ -564,12 +656,12 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
         <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-3 gap-10">
           <div>
             <p className="text-sm font-black text-white tracking-wider font-mono">PBMS PLATFORM</p>
-            <h3 className="mt-3 text-xs leading-relaxed font-semibold">Professional smart parking management systems tailored for modern buildings and large enterprises.</h3>
-            <p className="mt-2 text-[10px] text-slate-500 font-mono">UI Version V2.5.0 - Cyberpunk Glassmorphism Protocol</p>
+            <h3 className="mt-3 text-xs leading-relaxed font-semibold">Hệ thống quản lý bãi đỗ xe chuyên nghiệp dành cho tòa nhà và tổ chức doanh nghiệp lớn.</h3>
+            <p className="mt-2 text-[10px] text-slate-500 font-mono">Phiên bản UI V2.5.0 - Cyberpunk Glassmorphism</p>
           </div>
 
           <div>
-            <h4 className="font-black text-white text-xs uppercase tracking-wider">Quick Links</h4>
+            <h4 className="font-black text-white text-xs uppercase tracking-wider">Liên kết nhanh</h4>
             <nav className="mt-3 flex flex-col gap-2">
               {navigationLinks.map((link) => (
                 <a key={link.href} href={link.href} className="text-xs hover:text-orange-400 transition-colors">{link.label}</a>
@@ -578,27 +670,18 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction,
           </div>
 
           <div>
-            <h4 className="font-black text-white text-xs uppercase tracking-wider">Access Portals</h4>
+            <h4 className="font-black text-white text-xs uppercase tracking-wider">Truy cập cổng</h4>
             <div className="mt-3 flex flex-wrap gap-2">
-              <a href="/auth/login" className="px-3.5 py-2 bg-orange-500/10 border border-orange-500/20 text-orange-400 hover:bg-orange-500 hover:text-slate-950 rounded-xl text-xs font-black uppercase transition-all">Login</a>
-              <a href="/auth/register" className="px-3.5 py-2 bg-slate-900 border border-white/5 text-slate-300 hover:border-white/20 rounded-xl text-xs font-bold uppercase transition-all">Register</a>
-              {user ? <button onClick={onViewProfile} className="px-3.5 py-2 bg-slate-900 border border-white/5 text-slate-300 hover:border-white/20 rounded-xl text-xs font-bold uppercase transition-all">Profile</button> : null}
+              <a href="/auth/login" className="px-3.5 py-2 bg-orange-500/10 border border-orange-500/20 text-orange-400 hover:bg-orange-500 hover:text-slate-950 rounded-xl text-xs font-black uppercase transition-all">Đăng nhập</a>
+              <a href="/auth/register" className="px-3.5 py-2 bg-slate-900 border border-white/5 text-slate-300 hover:border-white/20 rounded-xl text-xs font-bold uppercase transition-all">Đăng ký</a>
+              {user ? <button onClick={onViewProfile} className="px-3.5 py-2 bg-slate-900 border border-white/5 text-slate-300 hover:border-white/20 rounded-xl text-xs font-bold uppercase transition-all">Hồ sơ</button> : null}
             </div>
           </div>
         </div>
         <div className="mt-10 border-t border-white/5 pt-6 text-center">
-          <small className="text-[10px] font-bold text-slate-500 font-mono">Â© {new Date().getFullYear()} PBMS PARKING. PREMIUM INTERFACE DESIGN UNDER DECENTRALIZED PROTOCOLS.</small>
+          <small className="text-[10px] font-bold text-slate-500 font-mono">© {new Date().getFullYear()} PBMS PARKING. THIẾT KẾ GIAO DIỆN PREMIUM DƯỚI GIAO THỨC TẬP TRUNG.</small>
         </div>
       </footer>
-
-      <FeedbackModal
-        open={feedbackModalOpen}
-        targets={feedbackPending.items}
-        onClose={() => setFeedbackModalOpen(false)}
-        onSubmitted={() => feedbackPending.refresh()}
-      />
     </main>
   );
 }
-
-

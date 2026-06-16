@@ -41,10 +41,11 @@ export function ManagerLayout() {
   const title = useMemo(() => titles[location.pathname] ?? 'Manager Dashboard', [location.pathname]);
   const isProfileRoute = Boolean(useMatch('/manager/profile'));
 
-  // Gate: an inactive subscription locks every page except wallet + profile.
-  const isUngatedPath = UNGATED_PATHS.includes(location.pathname);
-  const subscriptionBlocked =
-    !!selectedBuildingId && !subLoading && subscription !== null && !subscription.active && !isUngatedPath;
+  // Gate temporarily disabled because subscription APIs are missing
+  // const isUngatedPath = UNGATED_PATHS.includes(location.pathname);
+  // const subscriptionBlocked =
+  //   !!selectedBuildingId && !subLoading && subscription !== null && !subscription.active && !isUngatedPath;
+  const subscriptionBlocked = false;
 
   return (
     <div className="admin-theme relative min-h-screen bg-slate-950 text-foreground">

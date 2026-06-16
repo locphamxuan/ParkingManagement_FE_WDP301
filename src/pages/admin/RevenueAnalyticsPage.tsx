@@ -40,7 +40,7 @@ export function RevenueAnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Doanh thu từ gói dịch vụ hệ thống (Manager mua gói của Admin) */}
+      {/* Doanh thu từ gói dịch vụ hệ thống (Manager mua gói của Admin) - Hidden temporarily due to missing API
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -81,7 +81,6 @@ export function RevenueAnalyticsPage() {
             </CardContent>
           </Card>
 
-          {/* Danh sách lượt mua gói */}
           <Card className="sm:col-span-2">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-sm">
@@ -119,6 +118,7 @@ export function RevenueAnalyticsPage() {
           </Card>
         </div>
       </section>
+      */}
     </div>
   );
 }

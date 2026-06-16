@@ -22,9 +22,6 @@ const modules = [
   { to: '', label: 'Tổng quan', icon: LayoutDashboard },
   { to: 'buildings', label: 'Tòa nhà', icon: Building2 },
   { to: 'users', label: 'Người dùng', icon: Users },
-  { to: 'revenue-analytics', label: 'Phân tích doanh thu', icon: CircleDollarSign },
-  { to: 'subscription-packages', label: 'Gói dịch vụ', icon: Crown },
-  { to: 'wallet-governance', label: 'Ví hệ thống', icon: Wallet },
   { to: 'audit-logs', label: 'Nhật ký kiểm tra', icon: FileSearch },
 ] as const;
 

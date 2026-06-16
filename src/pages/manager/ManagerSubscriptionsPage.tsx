@@ -48,6 +48,7 @@ export function ManagerSubscriptionsPage() {
     refresh();
   }, [refresh]);
 
+  /* Feature temporarily disabled due to missing BE API
   const onReleaseSlot = async (sub: Subscription) => {
     if (!window.confirm(`Thu hồi chỗ đỗ cố định của biển ${sub.plateNumber}? Khách sẽ được thông báo.`)) return;
     setReleasingId(sub._id);
@@ -60,6 +61,7 @@ export function ManagerSubscriptionsPage() {
       setReleasingId(null);
     }
   };
+  */
 
   return (
     <Card>
@@ -92,7 +94,7 @@ export function ManagerSubscriptionsPage() {
                   <th className="py-2 pr-3">Hiệu lực</th>
                   <th className="py-2 pr-3">Slot cố định</th>
                   <th className="py-2 pr-3">Trạng thái</th>
-                  <th className="py-2 pr-3 text-right">Thao tác</th>
+                  {/* <th className="py-2 pr-3 text-right">Thao tác</th> */}
                 </tr>
               </thead>
               <tbody>
@@ -125,6 +127,7 @@ export function ManagerSubscriptionsPage() {
                         })()}
                       </td>
                       <td className="py-2 pr-3"><StatusBadge status={s.status} /></td>
+                      {/* Thao tác column hidden
                       <td className="py-2 pr-3 text-right">
                         {hasSlot ? (
                           <Button
@@ -139,6 +142,7 @@ export function ManagerSubscriptionsPage() {
                           <span className="text-xs text-muted-foreground">—</span>
                         )}
                       </td>
+                      */}
                     </tr>
                   );
                 })}

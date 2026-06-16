@@ -277,12 +277,23 @@ export async function getApiAdminDataset(token: string): Promise<AdminDataset> {
       sessions: value.sessions,
     }));
 
-  const paymentMethodDistribution = Object.entries(overviewRes.data.revenue.byMethod || {}).map(
+  let paymentMethodDistribution = Object.entries(overviewRes.data.revenue.byMethod || {}).map(
     ([method, summary]) => ({
       name: METHOD_LABELS[method] || method,
       value: Number(summary.amount || 0),
     }),
   );
+
+  const totalValue = paymentMethodDistribution.reduce((acc, curr) => acc + curr.value, 0);
+  if (totalValue > 0) {
+    // Convert to percentage
+    paymentMethodDistribution = paymentMethodDistribution.map((item) => ({
+      ...item,
+      value: Math.round((item.value / totalValue) * 100),
+    }));
+  } else {
+    paymentMethodDistribution = [];
+  }
 
   const dashboardStats = [
     {

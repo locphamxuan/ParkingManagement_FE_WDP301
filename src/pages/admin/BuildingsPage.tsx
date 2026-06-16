@@ -394,7 +394,7 @@ export function BuildingsPage() {
               <p className="text-sm text-red-600">{membersError}</p>
             ) : (
               <div className="grid gap-4">
-                {/* Gói dịch vụ hệ thống */}
+                {/* Gói dịch vụ hệ thống - hidden temporarily due to missing APIs
                 <section className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3">
                   <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-amber-500">
                     Gói dịch vụ hệ thống
@@ -442,6 +442,7 @@ export function BuildingsPage() {
                     Cấp gói thủ công (miễn phí) — không trừ tiền ví tòa nhà.
                   </p>
                 </section>
+                */}
 
                 <section>
                   <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">

@@ -23,7 +23,7 @@ import {
   adminApi,
   type AdminUser,
   type AdminSubscriptionPackage,
-  type ManagerSubscriptionStatus,
+  type BuildingSubscriptionStatus,
 } from '@/services/admin/adminApi';
 import type { Building } from '@/types';
 
@@ -38,7 +38,7 @@ interface MembersState {
   buildingName: string;
   manager: AdminUser | null;
   staff: AdminUser[];
-  subscription: ManagerSubscriptionStatus | null;
+  subscription: BuildingSubscriptionStatus | null;
 }
 
 export function BuildingsPage() {

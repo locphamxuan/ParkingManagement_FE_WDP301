@@ -1,4 +1,4 @@
-{
+﻿{
   "compilerOptions": {
     "target": "ES2020",
     "useDefineForClassFields": true,
@@ -17,5 +17,6 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["src/**/*.bak-codex", "src/**/*.bak-codex/**", "src/**/*.bak-codex.ts", "src/**/*.bak-codex.tsx", "src/**/*.bak-codex.js"]
 }

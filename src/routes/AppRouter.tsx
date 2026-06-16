@@ -1,164 +1,183 @@
-import { Navigate, Route, Routes } from "react-router-dom";
-import { ScrollToTop } from "@/components/shared/ScrollToTop";
-import { AdminLayout } from "@/layouts/AdminLayout";
-import { DashboardOverviewPage } from "@/pages/admin/DashboardOverviewPage";
-import { BuildingsPage } from "@/pages/admin/BuildingsPage";
-import { UsersPage } from "@/pages/admin/UsersPage";
-import { RevenueAnalyticsPage } from "@/pages/admin/RevenueAnalyticsPage";
-import { AuditLogsPage } from "@/pages/admin/AuditLogsPage";
-import { SystemWalletPage } from "@/pages/admin/SystemWalletPage";
-import { SubscriptionPackagesPage } from "@/pages/admin/SubscriptionPackagesPage";
-import { ModulePlaceholderPage } from "@/pages/admin/ModulePlaceholderPage";
-import { HomeRoute } from "@/pages/public/HomeRoute";
-import ProfilePage from "@/pages/public/ProfilePage";
-import ReservationsPage from "@/pages/public/ReservationsPage";
-import {
-  PublicLoginRoute,
-  PublicRegisterRoute,
-  PublicResetPasswordRoute,
-} from "@/pages/public/AuthRoutes";
-import { ProtectedRoute } from "@/routes/ProtectedRoute";
-import { ManagerLayout } from "@/layouts/ManagerLayout";
-import { ManagerBuildingsPage } from "@/pages/manager/ManagerBuildingsPage";
-import { ManagerDashboardPage } from "@/pages/manager/ManagerDashboardPage";
-import { ManagerWalletPage } from "@/pages/manager/ManagerWalletPage";
-import { ManagerFeedbackPage } from "@/pages/manager/ManagerFeedbackPage";
-import { ManagerProfilePage } from "@/pages/manager/ManagerProfilePage";
-import { ManagerProtectedRoute } from "@/routes/ManagerProtectedRoute";
-import { ManagerVehicleTypesPage } from "@/pages/manager/ManagerVehicleTypesPage";
-import { ManagerFloorsGatesPage } from "@/pages/manager/ManagerFloorsGatesPage";
-import { ManagerSlotsPage } from "@/pages/manager/ManagerSlotsPage";
-import { ManagerPricingPage } from "@/pages/manager/ManagerPricingPage";
-import { ManagerReservationPolicyPage } from "@/pages/manager/ManagerReservationPolicyPage";
-import { ManagerPackagesPage } from "@/pages/manager/ManagerPackagesPage";
-import { ManagerShiftManagementPage } from "@/pages/manager/ManagerShiftManagementPage";
-import { ManagerOperatingHoursPage } from "@/pages/manager/ManagerOperatingHoursPage";
-import { ManagerSubscriptionsPage } from "@/pages/manager/ManagerSubscriptionsPage";
-import { ManagerReviewsPage } from "@/pages/manager/ManagerReviewsPage";
-import { ManagerStaffPage } from "@/pages/manager/ManagerStaffPage";
-import { StaffLayout } from "@/layouts/StaffLayout";
-import { StaffDashboardPage } from "@/pages/staff/StaffDashboardPage";
-import { StaffShiftsPage } from "@/pages/staff/StaffShiftsPage";
-import { StaffSessionsPage } from "@/pages/staff/StaffSessionsPage";
-import { StaffOperationsPage } from "@/pages/staff/StaffOperationsPage";
-import { StaffIncidentsPage } from "@/pages/staff/StaffIncidentsPage";
-import { StaffReservationsPage } from "@/pages/staff/StaffReservationsPage";
+import { lazy, Suspense } from 'react';
+import { Navigate, Route, Routes } from 'react-router-dom';
+import { ScrollToTop } from '@/components/common/ScrollToTop';
+// Guards + layouts: eager (nhỏ, là khung luôn cần). Page: lazy để tách chunk.
+import { ProtectedRoute } from '@/routes/ProtectedRoute';
+import { ManagerProtectedRoute } from '@/routes/ManagerProtectedRoute';
+import { StaffProtectedRoute } from '@/routes/StaffProtectedRoute';
+import { AdminLayout } from '@/layouts/AdminLayout';
+import { ManagerLayout } from '@/layouts/ManagerLayout';
+import { StaffLayout } from '@/layouts/StaffLayout';
+
+// ── Public ──────────────────────────────────────────────────────────────────
+const HomeRoute = lazy(() => import('@/pages/public/HomeRoute').then((m) => ({ default: m.HomeRoute })));
+const ReviewsPage = lazy(() => import('@/pages/public/ReviewsPage'));
+const KioskCheckInPage = lazy(() => import('@/pages/public/KioskCheckInPage'));
+const PublicLoginRoute = lazy(() => import('@/pages/public/AuthRoutes').then((m) => ({ default: m.PublicLoginRoute })));
+const PublicRegisterRoute = lazy(() => import('@/pages/public/AuthRoutes').then((m) => ({ default: m.PublicRegisterRoute })));
+const PublicResetPasswordRoute = lazy(() => import('@/pages/public/AuthRoutes').then((m) => ({ default: m.PublicResetPasswordRoute })));
+
+// ── User ────────────────────────────────────────────────────────────────────
+const BuildingsUserPage = lazy(() => import('@/pages/user/BuildingsPage'));
+const ProfilePage = lazy(() => import('@/pages/user/ProfilePage'));
+const ReservationsPage = lazy(() => import('@/pages/user/ReservationsPage'));
+const LongTermSubscriptionsPage = lazy(() => import('@/pages/user/LongTermSubscriptionsPage'));
+const UserNotificationsPage = lazy(() => import('@/pages/user/UserNotificationsPage'));
+const WalletPage = lazy(() => import('@/pages/user/WalletPage'));
+const ParkingHistoryPage = lazy(() => import('@/pages/user/ParkingHistoryPage'));
+const UserDashboardPage = lazy(() => import('@/pages/user/UserDashboardPage'));
+
+// ── Manager ─────────────────────────────────────────────────────────────────
+const ManagerBuildingsPage = lazy(() => import('@/pages/manager/ManagerBuildingsPage').then((m) => ({ default: m.ManagerBuildingsPage })));
+const ManagerDashboardPage = lazy(() => import('@/pages/manager/ManagerDashboardPage').then((m) => ({ default: m.ManagerDashboardPage })));
+const ManagerPlaceholderPage = lazy(() => import('@/pages/manager/ManagerPlaceholderPage').then((m) => ({ default: m.ManagerPlaceholderPage })));
+const ManagerProfilePage = lazy(() => import('@/pages/manager/ManagerProfilePage').then((m) => ({ default: m.ManagerProfilePage })));
+const ManagerVehicleTypesPage = lazy(() => import('@/pages/manager/ManagerVehicleTypesPage').then((m) => ({ default: m.ManagerVehicleTypesPage })));
+const ManagerFloorsPage = lazy(() => import('@/pages/manager/ManagerFloorsPage').then((m) => ({ default: m.ManagerFloorsPage })));
+const ManagerGatesPage = lazy(() => import('@/pages/manager/ManagerGatesPage').then((m) => ({ default: m.ManagerGatesPage })));
+const ManagerSlotsPage = lazy(() => import('@/pages/manager/ManagerSlotsPage').then((m) => ({ default: m.ManagerSlotsPage })));
+const ManagerPricingPage = lazy(() => import('@/pages/manager/ManagerPricingPage').then((m) => ({ default: m.ManagerPricingPage })));
+const ManagerReservationPolicyPage = lazy(() => import('@/pages/manager/ManagerReservationPolicyPage').then((m) => ({ default: m.ManagerReservationPolicyPage })));
+const ManagerPackagesPage = lazy(() => import('@/pages/manager/ManagerPackagesPage').then((m) => ({ default: m.ManagerPackagesPage })));
+const ManagerSubscriptionsPage = lazy(() => import('@/pages/manager/ManagerSubscriptionsPage').then((m) => ({ default: m.ManagerSubscriptionsPage })));
+const ManagerShiftManagementPage = lazy(() => import('@/pages/manager/ManagerShiftManagementPage').then((m) => ({ default: m.ManagerShiftManagementPage })));
+const ManagerOperatingHoursPage = lazy(() => import('@/pages/manager/ManagerOperatingHoursPage').then((m) => ({ default: m.ManagerOperatingHoursPage })));
+const ManagerStaffPage = lazy(() => import('@/pages/manager/ManagerStaffPage').then((m) => ({ default: m.ManagerStaffPage })));
+const ManagerWalletPage = lazy(() => import('@/pages/manager/ManagerWalletPage').then((m) => ({ default: m.ManagerWalletPage })));
+const ManagerReviewsPage = lazy(() => import('@/pages/manager/ManagerReviewsPage').then((m) => ({ default: m.ManagerReviewsPage })));
+
+// ── Staff ───────────────────────────────────────────────────────────────────
+const StaffDashboardPage = lazy(() => import('@/pages/staff/StaffDashboardPage').then((m) => ({ default: m.StaffDashboardPage })));
+const StaffOperationsPage = lazy(() => import('@/pages/staff/StaffOperationsPage').then((m) => ({ default: m.StaffOperationsPage })));
+const StaffParkedPage = lazy(() => import('@/pages/staff/StaffParkedPage').then((m) => ({ default: m.StaffParkedPage })));
+const StaffReservationsPage = lazy(() => import('@/pages/staff/StaffReservationsPage').then((m) => ({ default: m.StaffReservationsPage })));
+const StaffSessionsPage = lazy(() => import('@/pages/staff/StaffSessionsPage').then((m) => ({ default: m.StaffSessionsPage })));
+const StaffShiftsPage = lazy(() => import('@/pages/staff/StaffShiftsPage').then((m) => ({ default: m.StaffShiftsPage })));
+const StaffIncidentsPage = lazy(() => import('@/pages/staff/StaffIncidentsPage').then((m) => ({ default: m.StaffIncidentsPage })));
+const StaffProfilePage = lazy(() => import('@/pages/staff/StaffProfilePage').then((m) => ({ default: m.StaffProfilePage })));
+
+// ── Admin ───────────────────────────────────────────────────────────────────
+const DashboardOverviewPage = lazy(() => import('@/pages/admin/DashboardOverviewPage').then((m) => ({ default: m.DashboardOverviewPage })));
+const BuildingsPage = lazy(() => import('@/pages/admin/BuildingsPage').then((m) => ({ default: m.BuildingsPage })));
+const UsersPage = lazy(() => import('@/pages/admin/UsersPage').then((m) => ({ default: m.UsersPage })));
+const RevenueAnalyticsPage = lazy(() => import('@/pages/admin/RevenueAnalyticsPage').then((m) => ({ default: m.RevenueAnalyticsPage })));
+const AuditLogsPage = lazy(() => import('@/pages/admin/AuditLogsPage').then((m) => ({ default: m.AuditLogsPage })));
+const AdminProfilePage = lazy(() => import('@/pages/admin/AdminProfilePage').then((m) => ({ default: m.AdminProfilePage })));
+const SystemWalletPage = lazy(() => import('@/pages/admin/SystemWalletPage').then((m) => ({ default: m.SystemWalletPage })));
+const SubscriptionPackagesPage = lazy(() => import('@/pages/admin/SubscriptionPackagesPage').then((m) => ({ default: m.SubscriptionPackagesPage })));
+const ModulePlaceholderPage = lazy(() => import('@/pages/admin/ModulePlaceholderPage').then((m) => ({ default: m.ModulePlaceholderPage })));
+
+/** Fallback hiển thị khi chunk của page đang được tải. */
+function RouteFallback() {
+  return (
+    <div className="flex min-h-[40vh] items-center justify-center text-sm text-slate-400">
+      Đang tải…
+    </div>
+  );
+}
 
 export function AppRouter() {
   return (
     <>
       <ScrollToTop />
+      <Suspense fallback={<RouteFallback />}>
       <Routes>
-        <Route path="/" element={<HomeRoute />} />
-        <Route path="/dashboard" element={<Navigate to="/" replace />} />
-        <Route path="/auth/login" element={<PublicLoginRoute />} />
-        <Route path="/auth/register" element={<PublicRegisterRoute />} />
-        <Route
-          path="/auth/reset-password"
-          element={<PublicResetPasswordRoute />}
-        />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/reservations" element={<ReservationsPage />} />
+      <Route path="/" element={<HomeRoute />} />
+      <Route path="/dashboard" element={<Navigate to="/" replace />} />
+      <Route path="/auth/login" element={<PublicLoginRoute />} />
+      <Route path="/auth/register" element={<PublicRegisterRoute />} />
+      <Route path="/auth/reset-password" element={<PublicResetPasswordRoute />} />
+      <Route path="/auth/reset_password" element={<PublicResetPasswordRoute />} />
+      <Route path="/buildings" element={<BuildingsUserPage />} />
+      <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/wallet" element={<WalletPage />} />
+      <Route path="/reservations" element={<ReservationsPage />} />
+      <Route path="/long-term-subscriptions" element={<LongTermSubscriptionsPage />} />
+      <Route path="/notifications" element={<UserNotificationsPage />} />
+      <Route path="/parking-history" element={<ParkingHistoryPage />} />
+      <Route path="/reviews" element={<ReviewsPage />} />
+      <Route path="/user-dashboard" element={<UserDashboardPage />} />
+      <Route path="/kiosk" element={<KioskCheckInPage />} />
 
-        <Route
-          path="/manager/login"
-          element={<Navigate to="/auth/login" replace />}
-        />
-        <Route
-          path="/manager"
-          element={<Navigate to="/manager/dashboard" replace />}
-        />
-        <Route element={<ManagerProtectedRoute />}>
-          <Route path="/manager" element={<ManagerLayout />}>
-            <Route index element={<ManagerDashboardPage />} />
-            <Route path="dashboard" element={<ManagerDashboardPage />} />
-            <Route path="buildings" element={<ManagerBuildingsPage />} />
-            <Route path="vehicle-types" element={<ManagerVehicleTypesPage />} />
-            <Route path="feedbacks" element={<ManagerFeedbackPage />} />
-            <Route path="profile" element={<ManagerProfilePage />} />
-            <Route path="floors" element={<ManagerFloorsGatesPage />} />
-            <Route path="gates" element={<ManagerFloorsGatesPage />} />
-            <Route path="slots" element={<ManagerSlotsPage />} />
-            <Route path="price-policies" element={<ManagerPricingPage />} />
-            <Route
-              path="reservation-policy"
-              element={<ManagerReservationPolicyPage />}
-            />
-            <Route path="packages" element={<ManagerPackagesPage />} />
-            <Route path="shifts" element={<ManagerShiftManagementPage />} />
-            <Route path="staff"  element={<ManagerStaffPage />} />
-            <Route path="wallet" element={<ManagerWalletPage />} />
-            <Route path="operating-hours" element={<ManagerOperatingHoursPage />} />
-            <Route path="subscriptions" element={<ManagerSubscriptionsPage />} />
-            <Route path="reviews" element={<ManagerReviewsPage />} />
-          </Route>
+      <Route path="/manager/login" element={<Navigate to="/auth/login" replace />} />
+      <Route path="/manager" element={<Navigate to="/manager/dashboard" replace />} />
+      <Route element={<ManagerProtectedRoute />}>
+        <Route path="/manager" element={<ManagerLayout />}>
+          <Route index element={<ManagerDashboardPage />} />
+          <Route path="dashboard" element={<ManagerDashboardPage />} />
+          <Route path="buildings" element={<ManagerBuildingsPage />} />
+          <Route path="vehicle-types" element={<ManagerVehicleTypesPage />} />
+          <Route path="profile" element={<ManagerProfilePage />} />
+          <Route path="floors" element={<ManagerFloorsPage />} />
+          <Route path="gates" element={<ManagerGatesPage />} />
+          <Route path="slots" element={<ManagerSlotsPage />} />
+          <Route path="price-policies" element={<ManagerPricingPage />} />
+          <Route path="reservation-policy" element={<ManagerReservationPolicyPage />} />
+          <Route path="packages" element={<ManagerPackagesPage />} />
+          <Route path="subscriptions" element={<ManagerSubscriptionsPage />} />
+          <Route path="shifts" element={<ManagerShiftManagementPage />} />
+          <Route path="staff-shifts" element={<Navigate to="/manager/shifts" replace />} />
+          <Route path="operating-hours" element={<ManagerOperatingHoursPage />} />
+          <Route path="staff" element={<ManagerStaffPage />} />
+          <Route path="reviews" element={<ManagerReviewsPage />} />
+          <Route path="wallet" element={<ManagerWalletPage />} />
+          <Route
+            path="settings"
+            element={
+              <ManagerPlaceholderPage
+                title="Cài đặt"
+                description="Cấu hình bảo mật, thông báo và tham số vận hành cho manager."
+              />
+            }
+          />
         </Route>
+      </Route>
 
-        <Route
-          path="/admin/login"
-          element={<Navigate to="/auth/login" replace />}
-        />
-        <Route path="/admin" element={<Navigate to="/auth/login" replace />} />
-
-
-        <Route
-          path="/staff/login"
-          element={<Navigate to="/auth/login" replace />}
-        />
-
-        <Route element={<ProtectedRoute role="staff" />}>
-          <Route path="/staff" element={<StaffLayout />}>
-            <Route index element={<StaffDashboardPage />} />
-            <Route path="dashboard" element={<StaffDashboardPage />} />
-            <Route path="operations" element={<StaffOperationsPage />} />
-            <Route path="reservations" element={<StaffReservationsPage />} />
-            <Route path="my-shifts" element={<StaffShiftsPage />} />
-            <Route path="sessions" element={<StaffSessionsPage />} />
-            <Route path="incidents" element={<StaffIncidentsPage />} />
-          </Route>
+      <Route path="/staff/login" element={<Navigate to="/auth/login" replace />} />
+      <Route path="/staff" element={<Navigate to="/staff/dashboard" replace />} />
+      <Route element={<StaffProtectedRoute />}>
+        <Route path="/staff" element={<StaffLayout />}>
+          <Route index element={<StaffDashboardPage />} />
+          <Route path="dashboard" element={<StaffDashboardPage />} />
+          <Route path="operations" element={<StaffOperationsPage />} />
+          <Route path="checkout" element={<StaffParkedPage />} />
+          <Route path="parked" element={<StaffParkedPage readOnly />} />
+          <Route path="reservations" element={<StaffReservationsPage />} />
+          <Route path="my-shifts" element={<StaffShiftsPage />} />
+          <Route path="sessions" element={<StaffSessionsPage />} />
+          <Route path="incidents" element={<StaffIncidentsPage />} />
+          <Route path="profile" element={<StaffProfilePage />} />
         </Route>
+      </Route>
 
-        <Route element={<ProtectedRoute role="admin" />}>
-          <Route path="/admin/dashboard" element={<AdminLayout />}>
-            <Route index element={<DashboardOverviewPage />} />
-            <Route path="buildings" element={<BuildingsPage />} />
-            <Route path="users" element={<UsersPage />} />
-            <Route
-              path="revenue-analytics"
-              element={<RevenueAnalyticsPage />}
-            />
-            <Route path="subscription-packages" element={<SubscriptionPackagesPage />} />
-            <Route path="system-wallet" element={<SystemWalletPage />} />
-            <Route path="audit-logs" element={<AuditLogsPage />} />
-            <Route
-              path="system-health"
-              element={<Navigate to="/admin/dashboard" replace />}
-            />
-            <Route
-              path="notifications"
-              element={
-                <ModulePlaceholderPage
-                  title="Notifications"
-                  description="Notification templates, queue monitoring, and delivery channels."
-                />
-              }
-            />
-            {/* Admins do not have a profile page — redirect to dashboard. */}
-            <Route path="profile" element={<Navigate to="/admin/dashboard" replace />} />
-            <Route
-              path="settings"
-              element={
-                <ModulePlaceholderPage
-                  title="Settings"
-                  description="Platform configuration, access policies, and operational preferences."
-                />
-              }
-            />
-          </Route>
+      <Route path="/admin/login" element={<Navigate to="/auth/login" replace />} />
+      <Route path="/admin" element={<Navigate to="/auth/login" replace />} />
+      <Route path="/admin/direct" element={<AdminLayout />} />
+
+      <Route element={<ProtectedRoute role="admin" />}>
+        <Route path="/admin/dashboard" element={<AdminLayout />}>
+          <Route index element={<DashboardOverviewPage />} />
+          <Route path="buildings" element={<BuildingsPage />} />
+          <Route path="users" element={<UsersPage />} />
+          <Route path="revenue-analytics" element={<RevenueAnalyticsPage />} />
+          <Route path="subscription-packages" element={<SubscriptionPackagesPage />} />
+          <Route path="wallet-governance" element={<SystemWalletPage />} />
+          <Route path="audit-logs" element={<AuditLogsPage />} />
+          <Route path="profile" element={<AdminProfilePage />} />
+          <Route
+            path="notifications"
+            element={<ModulePlaceholderPage title="Thông báo" description="Mẫu thông báo, giám sát hàng đợi và kênh gửi." />}
+          />
+          <Route
+            path="settings"
+            element={<ModulePlaceholderPage title="Cài đặt" description="Cấu hình nền tảng, chính sách truy cập và tùy chọn vận hành." />}
+          />
         </Route>
+      </Route>
 
-        <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </Suspense>
     </>
   );
 }

@@ -42,19 +42,19 @@ export function CustomSelect({
   }, []);
 
   return (
-    <div ref={containerRef} className={cn('relative w-full', className)}>
+    <div ref={containerRef} className={cn('relative w-full h-12', className)}>
       <button
         type="button"
         disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex h-10 w-full items-center justify-between rounded-lg border border-slate-700 bg-slate-800/60 px-3 text-sm text-white outline-none transition focus:border-orange-500 focus:ring-1 focus:ring-orange-500",
-          isOpen && "border-orange-500 ring-1 ring-orange-500",
+          "flex h-full w-full items-center justify-between rounded-xl border border-slate-700/80 bg-[#070b12] px-4 text-sm font-semibold text-white outline-none transition-all duration-300 hover:border-slate-500",
+          isOpen && "border-orange-300/60 ring-4 ring-orange-300/10",
           disabled && "cursor-not-allowed opacity-50"
         )}
       >
         <span className="truncate text-left block w-full">
-          {selectedOption ? selectedOption.label : <span className="text-slate-400">{placeholder}</span>}
+          {selectedOption ? selectedOption.label : <span className="text-slate-500">{placeholder}</span>}
         </span>
         <motion.div
           animate={{ rotate: isOpen ? 180 : 0 }}
@@ -72,11 +72,11 @@ export function CustomSelect({
             animate={{ opacity: 1, y: 4, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.98 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
-            className="absolute z-[999] w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg shadow-2xl max-h-60 overflow-y-auto custom-scrollbar"
+            className="pointer-events-auto absolute left-0 z-50 max-h-60 w-full overflow-y-auto rounded-2xl border border-slate-700/80 bg-[#070b12]/95 p-1.5 shadow-[0_18px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl custom-scrollbar"
             style={{ top: '100%' }}
           >
             {options.length === 0 ? (
-              <li className="p-2.5 text-sm text-slate-500 text-center">
+              <li className="px-3.5 py-2.5 text-xs font-semibold text-slate-500 text-center">
                 Không có lựa chọn nào
               </li>
             ) : (
@@ -92,9 +92,9 @@ export function CustomSelect({
                       setIsOpen(false);
                     }}
                     className={cn(
-                      "p-2.5 text-slate-200 hover:bg-orange-500 hover:text-white cursor-pointer transition-colors text-sm",
-                      isSelected && "bg-orange-500 text-white font-bold",
-                      isDisabled && "cursor-not-allowed opacity-40 hover:bg-transparent hover:text-slate-200"
+                      "relative flex cursor-pointer select-none items-center rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-300 transition-all duration-150 hover:bg-white/[0.06] hover:text-white",
+                      isSelected && "bg-orange-300 text-slate-950 hover:bg-orange-200 hover:text-slate-950 font-black",
+                      isDisabled && "cursor-not-allowed opacity-40 hover:bg-transparent hover:text-slate-300"
                     )}
                   >
                     {opt.label}

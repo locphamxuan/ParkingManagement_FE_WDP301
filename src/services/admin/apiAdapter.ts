@@ -1,4 +1,4 @@
-import { requestJson } from '@/services/pbmsApi';
+import { requestJson } from '@/services/client/apiClient';
 import type { AdminDataset } from '@/services/admin/types';
 import type {
   AuditLog,
@@ -23,8 +23,10 @@ interface AdminOverviewData {
     activeSessions: number;
   };
   revenue: {
-    today?: number;
+    /** Revenue over the selected period (backend field). */
     total?: number;
+    /** @deprecated legacy alias — backend now returns `total`. */
+    today?: number;
     byMethod: Record<string, { amount: number; count: number }>;
   };
 }
@@ -48,7 +50,7 @@ interface ApiBuilding {
   };
   totalFloors?: number;
   status?: 'active' | 'inactive' | 'maintenance';
-  manager?: string | null;
+  manager?: string | null | { fullName?: string; _id?: string };
 }
 
 interface ApiUser {
@@ -90,33 +92,25 @@ interface ManagerOverviewData {
 }
 
 const OPERATIONAL_GUARDRAILS = [
-  'Online passes must be linked to an authenticated user account with a registered plate.',
-  'Walk-in guests may only enter via a valid parking session and must pay before leaving.',
-  'All pricing policy changes, account locks, and fee adjustments must have an audit log.',
+  'Mã thẻ online phải gắn với tài khoản người dùng đã xác thực và biển số liên kết.',
+  'Khách walk-in chỉ được vào qua phiên gửi xe hợp lệ và đóng phí trước khi rời bãi.',
+  'Mọi thay đổi chính sách giá, khóa tài khoản, điều chỉnh phí đều phải có audit log.',
 ];
 
 const METHOD_LABELS: Record<string, string> = {
-  wallet: 'Wallet',
+  wallet: 'Ví ứng dụng',
   qr: 'QR',
-  cash: 'Cash',
-  card: 'Bank card',
+  cash: 'Tiền mặt',
+  card: 'Thẻ ngân hàng',
 };
 
-const formatCompactCurrency = (amount: any): string => {
-  const numericAmount = Number(amount);
-  if (amount === null || amount === undefined || Number.isNaN(numericAmount)) {
-    return '0 ₫';
-  }
-  if (numericAmount >= 1_000_000) {
-    return `${(numericAmount / 1_000_000).toFixed(1)}M VND`;
-  }
-  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(numericAmount);
-};
+const formatCompactCurrency = (amount: number): string =>
+  `${(amount / 1_000_000).toFixed(1)}M VND`;
 
 const formatChartDate = (dateValue: string): string => {
   const date = new Date(dateValue);
   if (Number.isNaN(date.getTime())) return dateValue;
-  return date.toLocaleDateString('en-US', { day: '2-digit', month: '2-digit' });
+  return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
 };
 
 const toBuilding = (
@@ -124,19 +118,29 @@ const toBuilding = (
   managerNameById: Map<string, string>,
   overview?: ManagerOverviewData,
 ): Building => {
-  const managerId = item.manager ? String(item.manager) : '';
-  const managerName = managerNameById.get(managerId) || (managerId ? `ID: ${managerId.slice(0, 8)}` : 'Not assigned');
+  // Handle manager field that can be a populated object, a string ID, or null
+  let managerName = 'Chưa gán';
+  
+  if (item.manager) {
+    if (typeof item.manager === 'object' && 'fullName' in item.manager) {
+      // Manager is a populated object with fullName
+      managerName = item.manager.fullName || 'Chưa gán';
+    } else if (typeof item.manager === 'string') {
+      // Manager is a string ID, look up in the map or show truncated ID
+      managerName = managerNameById.get(item.manager) || `ID: ${item.manager.slice(0, 8)}`;
+    }
+  }
 
   return {
     id: item.code || item._id,
     backendId: item._id,
     name: item.name,
-    address: item.address?.fullAddress || 'Address not set',
+    address: item.address?.fullAddress || 'Chưa cập nhật địa chỉ',
     floors: item.totalFloors || 0,
     occupancyRate: Number(overview?.slots?.occupancyRate || 0),
     status: item.status || 'inactive',
     manager: managerName,
-    revenueToday: Number(overview?.revenue?.today || 0),
+    revenueToday: Number(overview?.revenue?.today ?? 0),
   };
 };
 
@@ -194,8 +198,8 @@ const toAudit = (item: ApiAudit): AuditLog => ({
   action: item.action,
   target: item.targetTable,
   severity: item.severity || 'low',
-  timestamp: item.createdAt ? new Date(item.createdAt).toLocaleString('en-GB') : '-',
-  details: item.description || `${item.action} on ${item.targetTable}`,
+  timestamp: item.createdAt ? new Date(item.createdAt).toLocaleString('vi-VN') : '-',
+  details: item.description || `${item.action} trên ${item.targetTable}`,
 });
 
 async function getManagerOverview(token: string, buildingId: string): Promise<ManagerOverviewData | null> {
@@ -283,50 +287,50 @@ export async function getApiAdminDataset(token: string): Promise<AdminDataset> {
   const dashboardStats = [
     {
       key: 'buildings',
-      label: 'Total buildings',
+      label: 'Tổng số tòa nhà',
       value: String(overviewRes.data.counts.buildings),
-      delta: `${buildings.filter((b) => b.status === 'active').length} active`,
+      delta: `${buildings.filter((b) => b.status === 'active').length} đang hoạt động`,
     },
     {
       key: 'sessions',
-      label: 'Parking sessions active',
-      value: overviewRes.data.counts.activeSessions.toLocaleString('en-US'),
-      delta: `${overviewRes.data.counts.staff}  operators on duty`,
+      label: 'Phiên đỗ đang hoạt động',
+      value: overviewRes.data.counts.activeSessions.toLocaleString('vi-VN'),
+      delta: `${overviewRes.data.counts.staff} nhân sự vận hành`,
     },
     {
       key: 'revenue',
-      label: 'Today revenue',
-      value: formatCompactCurrency(overviewRes.data.revenue?.today ?? overviewRes.data.revenue?.total ?? 0),
-      delta: `${paymentMethodDistribution.length} payment methods`,
+      label: 'Doanh thu hôm nay',
+      value: formatCompactCurrency(overviewRes.data.revenue.total ?? overviewRes.data.revenue.today ?? 0),
+      delta: `${paymentMethodDistribution.length} phương thức thanh toán`,
     },
     {
       key: 'users',
-      label: 'Total users',
-      value: overviewRes.data.counts.users.toLocaleString('en-US'),
-      delta: `${overviewRes.data.counts.managers} managers / ${overviewRes.data.counts.staff} staff`,
+      label: 'Người dùng toàn hệ thống',
+      value: overviewRes.data.counts.users.toLocaleString('vi-VN'),
+      delta: `${overviewRes.data.counts.managers} quản lý / ${overviewRes.data.counts.staff} nhân viên`,
     },
   ];
 
   const monitoringMetrics: MonitoringMetric[] = [
     {
       id: 'active-buildings',
-      label: 'Total active buildings',
+      label: 'Tòa nhà hoạt động',
       value: `${buildings.filter((b) => b.status === 'active').length}/${buildings.length}`,
-      trend: 'Based on current status',
+      trend: 'Theo trạng thái hiện tại',
       status: buildings.some((b) => b.status === 'maintenance') ? 'warning' : 'ok',
     },
     {
       id: 'active-sessions',
-      label: 'Parking sessions active',
-      value: overviewRes.data.counts.activeSessions.toLocaleString('en-US'),
-      trend: 'Updated in real-time',
+      label: 'Phiên đang hoạt động',
+      value: overviewRes.data.counts.activeSessions.toLocaleString('vi-VN'),
+      trend: 'Cập nhật theo thời gian thực',
       status: overviewRes.data.counts.activeSessions > 0 ? 'ok' : 'warning',
     },
     {
       id: 'ops-staff',
-      label: 'Operating staff',
-      value: overviewRes.data.counts.staff.toLocaleString('en-US'),
-      trend: `${overviewRes.data.counts.managers} managers`,
+      label: 'Nhân sự vận hành',
+      value: overviewRes.data.counts.staff.toLocaleString('vi-VN'),
+      trend: `${overviewRes.data.counts.managers} quản lý`,
       status: overviewRes.data.counts.staff > 0 ? 'ok' : 'critical',
     },
   ];

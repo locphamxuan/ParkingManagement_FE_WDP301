@@ -17,7 +17,7 @@ export function useSubscriptionStatus(buildingId: string | undefined) {
     }
     setLoading(true);
     try {
-      const res = await managerApi.wallet.getSubscriptionStatus(buildingId);
+      const res = await managerApi.getSubscriptionStatus(buildingId);
       setStatus((res as { data?: SubscriptionStatus })?.data ?? null);
     } catch {
       // On error, treat as unknown — do not lock the manager out on a transient failure.

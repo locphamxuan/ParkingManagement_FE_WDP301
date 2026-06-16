@@ -1,10 +1,9 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { loginWithBackend, type AuthSession } from '@/services/authService';
-export type UserRole = AuthSession['role'];
-import { saveSession, clearSession, loadSession } from '@/services/storage';
+import { saveSession, clearSession, loadSession } from '@/services/client/storage';
 import { AUTH_STORAGE_KEY } from '@/utils/constants';
-import { api } from '@/services/apiClient';
+import { api } from '@/services/client/apiClient';
 
 interface AuthState {
   session: AuthSession | null;
@@ -12,7 +11,7 @@ interface AuthState {
   error: string | null;
   login: (email: string, password: string) => Promise<AuthSession>;
   logout: () => void;
-  updateProfile: (profile: { fullName: string; phone: string; licensePlates: Array<{ _id?: string; plateNumber: string; vehicleType: 'car' | 'motorcycle'; isDefault?: boolean }> }) => void;
+  updateProfile: (profile: { fullName: string; phone: string; licensePlates: Array<{ _id?: string; plateNumber: string; vehicleType: 'car' | 'motorcycle'; brand?: string | null; isDefault?: boolean }> }) => void;
   setDefaultLicensePlate: (plateId: string) => Promise<void>;
 }
 
@@ -35,7 +34,8 @@ function mapLegacySession(): AuthSession | null {
 
   const finalName = localData?.fullName || String(user.fullName ?? user.displayName ?? '');
   const finalPhone = localData?.phone || String(user.phone ?? '');
-  const rawPlates = localData?.licensePlates || (Array.isArray(user.licensePlates) ? user.licensePlates : []);
+  const rawPlates = localData?.licensePlates
+    || (Array.isArray(user.licensePlates) ? user.licensePlates : []);
 
   return {
     token: legacy.token,
@@ -47,29 +47,29 @@ function mapLegacySession(): AuthSession | null {
       ? user.assignedBuildings.map((item) => String(typeof item === 'string' ? item : (item as { _id?: string })._id ?? '')).filter(Boolean)
       : [],
     phone: finalPhone,
-    licensePlates: (() => {
-      const mapped = (rawPlates as unknown[]).map((item) => {
+    licensePlates: (rawPlates as unknown[])
+      .map((item): { _id?: string; plateNumber: string; vehicleType: 'car' | 'motorcycle'; brand?: string | null; isDefault?: boolean } | null => {
         if (!item) return null;
         if (typeof item === 'string') {
           const plate = item.toUpperCase().trim();
-          return plate ? { plateNumber: plate, vehicleType: 'car' as const, isDefault: false } : null;
+          return plate ? { plateNumber: plate, vehicleType: 'car', brand: null, isDefault: false } : null;
         }
         if (typeof item === 'object') {
-          const p = item as Record<string, any>;
+          const p = item as Record<string, unknown>;
           const plate = String(p.plateNumber ?? '').toUpperCase().trim();
           return plate
             ? {
                 _id: p._id ? String(p._id) : undefined,
                 plateNumber: plate,
-                vehicleType: p.vehicleType === 'motorcycle' ? ('motorcycle' as const) : ('car' as const),
+                vehicleType: p.vehicleType === 'motorcycle' ? 'motorcycle' : 'car',
+                brand: typeof p.brand === 'string' && p.brand.trim() ? p.brand.trim() : null,
                 isDefault: p.isDefault === true || p.isDefault === 'true',
               }
             : null;
         }
         return null;
-      }).filter(Boolean) as { _id?: string; plateNumber: string; vehicleType: 'car' | 'motorcycle'; isDefault?: boolean }[];
-      return mapped;
-    })(),
+      })
+      .filter((p): p is { _id?: string; plateNumber: string; vehicleType: 'car' | 'motorcycle'; brand?: string | null; isDefault?: boolean } => Boolean(p && p.plateNumber)),
   };
 }
 
@@ -82,43 +82,7 @@ export const useAuthStore = create<AuthState>()(
       async login(email, password) {
         set({ isAuthenticating: true, error: null });
         try {
-          let session = {} as AuthSession;
-
-          // ── Login Interceptor for Reset Passwords ───────────────────
-          const locallyReset = JSON.parse(localStorage.getItem('pbms.locallyResetPasswords') || '{}');
-          const emailNormalized = email.trim().toLowerCase();
-          const hasReset = locallyReset[emailNormalized] !== undefined;
-
-          try {
-            // Luôn ưu tiên đăng nhập trực tiếp bằng email & mật khẩu mới nhập
-            session = await loginWithBackend({ email, password });
-
-            // Nếu đăng nhập thành công và tài khoản này từng reset mật khẩu, dọn dẹp cờ reset
-            if (hasReset) {
-              const expectedResetPassword = locallyReset[emailNormalized];
-              if (password === expectedResetPassword) {
-                delete locallyReset[emailNormalized];
-                localStorage.setItem('pbms.locallyResetPasswords', JSON.stringify(locallyReset));
-              }
-            }
-          } catch (backendErr) {
-            // For a locally-reset account, retry once with the previously-saved password
-            // against the real backend; otherwise surface the backend error.
-            if (hasReset) {
-              const expectedResetPassword = locallyReset[emailNormalized];
-              if (password !== expectedResetPassword) {
-                throw new Error('Mật khẩu hoặc Email không đúng.');
-              }
-              const stored = localStorage.getItem('pbms_saved_accounts');
-              const saved = stored ? JSON.parse(stored) : [];
-              const savedAccount = saved.find((acc: any) => acc.email.trim().toLowerCase() === emailNormalized);
-              const oldPassword = savedAccount?.oldPassword || savedAccount?.password;
-              if (!oldPassword) throw backendErr;
-              session = await loginWithBackend({ email, password: oldPassword });
-            } else {
-              throw backendErr;
-            }
-          }
+          let session = await loginWithBackend({ email, password });
 
           // Đồng bộ: Merge thông tin đã lưu cục bộ vào session mới đăng nhập
           const locallyUpdated = JSON.parse(localStorage.getItem('pbms.locallyUpdatedUsers') || '{}');
@@ -129,11 +93,12 @@ export const useAuthStore = create<AuthState>()(
 
           if (localData) {
             // Merge local profile data on top of fresh backend session
-            const localPlates: Array<{ _id?: string; plateNumber: string; vehicleType: 'car' | 'motorcycle'; isDefault?: boolean }> =
+            const localPlates: Array<{ _id?: string; plateNumber: string; vehicleType: 'car' | 'motorcycle'; brand?: string | null; isDefault?: boolean }> =
               (localData.licensePlates || []).map((p: any) => ({
                 _id: p?._id ? String(p._id) : undefined,
                 plateNumber: String(p?.plateNumber || p || '').toUpperCase().trim(),
                 vehicleType: p?.vehicleType === 'motorcycle' ? ('motorcycle' as const) : ('car' as const),
+                brand: typeof p?.brand === 'string' && p.brand.trim() ? p.brand.trim() : null,
                 isDefault: p?.isDefault === true || p?.isDefault === 'true',
               })).filter((p: any) => p.plateNumber);
 
@@ -271,3 +236,10 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('auth-unauthorized', () => {
+    useAuthStore.getState().logout();
+  });
+}
+

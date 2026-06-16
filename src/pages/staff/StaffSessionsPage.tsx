@@ -1,310 +1,388 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { DollarSign, Filter, Search } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { DataTable, type DataColumn } from '@/components/shared/DataTable';
-import { StatusBadge } from '@/components/shared/StatusBadge';
+import {
+  CalendarCheck2,
+  Car,
+  Clock,
+  RefreshCw,
+  Wallet,
+} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { DataTable, type DataColumn } from '@/components/common/DataTable';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { staffApi, type ParkingSession, type StaffReservation } from '@/services/staff/staffApi';
 
-type PaymentEntry =
-  | { kind: 'session'; data: ParkingSession }
-  | { kind: 'reservation'; data: StaffReservation };
+const fmtMoney = (n?: number | null) =>
+  n != null ? `${n.toLocaleString('vi-VN')} ₫` : '—';
 
-const fmtCurrency = (n: number | null | undefined) =>
-  n != null ? `${n.toLocaleString('en-US')} ₫` : '—';
+const fmtTime = (s?: string | null) =>
+  s ? new Date(s).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' }) : '—';
 
-const fmtTime = (s: string | null | undefined) =>
-  s ? new Date(s).toLocaleString('en-US') : '—';
+const STATUS_LABELS: Record<string, string> = {
+  checked_in: 'Đã check-in',
+  completed: 'Hoàn thành',
+  active: 'Đang gửi',
+};
+
+type ViewFilter = 'all' | 'reservation' | 'session';
 
 export function StaffSessionsPage() {
-  const { building, buildingId } = useBuildingContext();
-  const [sessions, setSessions] = useState<ParkingSession[]>([]);
-  const [reservations, setReservations] = useState<StaffReservation[]>([]);
+  const { buildingId } = useBuildingContext();
+
+  const [activeSessions, setActiveSessions] = useState<ParkingSession[]>([]);
+  const [paidReservations, setPaidReservations] = useState<StaffReservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [typeFilter, setTypeFilter] = useState<'all' | 'session' | 'reservation'>('all');
-  const [query, setQuery] = useState('');
+  const [viewFilter, setViewFilter] = useState<ViewFilter>('all');
 
-  const refresh = useCallback(() => {
+  const refresh = useCallback(async () => {
+    if (!buildingId) return;
     setLoading(true);
-    const q: Record<string, string | undefined> = {};
-    if (buildingId) q.buildingId = buildingId;
-    Promise.all([
-      staffApi.getActiveSessions(),
-      staffApi.listReservations(q),
-    ])
-      .then(([sessRes, resRes]) => {
-        const sessRows = (sessRes as any)?.data?.items ?? (sessRes as any)?.data ?? [];
-        const resRows = (resRes as any)?.data?.items ?? [];
-        setSessions(Array.isArray(sessRows) ? sessRows : []);
-        setReservations(Array.isArray(resRows) ? resRows : []);
-        setError(null);
-      })
-      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load'))
-      .finally(() => setLoading(false));
+    setError(null);
+    try {
+      const [sessRes, checkedInRes, completedRes] = await Promise.all([
+        staffApi.sessions.list(buildingId),
+        staffApi.listReservations({ buildingId, status: 'checked_in' }),
+        staffApi.listReservations({ buildingId, status: 'completed' }),
+      ]);
+
+      const rawSessions =
+        (sessRes as { data?: { items?: ParkingSession[] } })?.data?.items ?? [];
+      setActiveSessions(Array.isArray(rawSessions) ? rawSessions : []);
+
+      const checkedIn =
+        (checkedInRes as { data?: { items?: StaffReservation[] } })?.data?.items ?? [];
+      const completed =
+        (completedRes as { data?: { items?: StaffReservation[] } })?.data?.items ?? [];
+      const allPaid = [...checkedIn, ...completed].sort(
+        (a, b) =>
+          new Date(b.createdAt ?? '').getTime() - new Date(a.createdAt ?? '').getTime(),
+      );
+      setPaidReservations(allPaid);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Tải dữ liệu thất bại');
+    } finally {
+      setLoading(false);
+    }
   }, [buildingId]);
 
   useEffect(() => {
-    refresh();
+    void refresh();
+    const timer = setInterval(() => void refresh(), 30_000);
+    return () => clearInterval(timer);
   }, [refresh]);
 
-  // Only show paid sessions and completed/checked-in reservations
-  const paidSessions = useMemo(
-    () => sessions.filter((s) => s.paymentStatus === 'paid'),
-    [sessions],
+  const totalRevenue = useMemo(
+    () => paidReservations.reduce((sum, r) => sum + (r.amountPaid ?? r.fee ?? 0), 0),
+    [paidReservations],
   );
-  const completedReservations = useMemo(
-    () => reservations.filter((r) => ['checked_in', 'completed'].includes(r.status)),
-    [reservations],
+  const checkedInCount = useMemo(
+    () => paidReservations.filter((r) => r.status === 'checked_in').length,
+    [paidReservations],
   );
-
-  const summary = useMemo(
-    () => [
-      { label: 'Paid Sessions', value: paidSessions.length },
-      { label: 'Completed Reservations', value: completedReservations.length },
-      {
-        label: 'Total Revenue',
-        value: fmtCurrency(
-          paidSessions.reduce((sum, s) => sum + (s.fee ?? 0), 0) +
-            completedReservations.reduce((sum, r) => sum + (r.fee ?? 0), 0),
-        ),
-      },
-    ],
-    [paidSessions, completedReservations],
+  const completedCount = useMemo(
+    () => paidReservations.filter((r) => r.status === 'completed').length,
+    [paidReservations],
   );
-
-  const sessionColumns: DataColumn<ParkingSession>[] = [
-    { key: 'plateNumber', title: 'Plate' },
-    {
-      key: 'vehicleType',
-      title: 'Vehicle',
-      render: (row) =>
-        row.vehicleType ? `${row.vehicleType.name} (${row.vehicleType.code})` : '—',
-    },
-    {
-      key: 'floor',
-      title: 'Floor',
-      render: (row) => (row as any).slot?.floor?.name ?? '—',
-    },
-    {
-      key: 'slot',
-      title: 'Slot',
-      render: (row) => (row as any).slot?.code ?? '—',
-    },
-    { key: 'entryGate', title: 'Gate', render: (row) => row.entryGate?.name ?? '—' },
-    { key: 'checkIn', title: 'Entry', render: (row) => fmtTime(row.checkIn) },
-    { key: 'checkOut', title: 'Exit', render: (row) => fmtTime(row.checkOut) },
-    { key: 'fee', title: 'Amount', render: (row) => fmtCurrency(row.fee) },
-    {
-      key: 'paymentMethod',
-      title: 'Method',
-      render: (row) => row.paymentMethod?.toUpperCase() ?? '—',
-    },
-    {
-      key: 'paymentStatus',
-      title: 'Payment',
-      render: (row) => <StatusBadge status={row.paymentStatus} />,
-    },
-  ];
 
   const reservationColumns: DataColumn<StaffReservation>[] = [
     {
       key: 'code',
-      title: 'Code',
+      title: 'Mã đặt chỗ',
       render: (row) => (
-        <span className="font-mono text-xs font-bold text-orange-300">{row.code ?? '—'}</span>
+        <span className="font-mono text-xs font-bold text-primary">{row.code ?? '—'}</span>
       ),
     },
     {
-      key: 'user',
-      title: 'Customer',
-      render: (row) =>
-        row.user ? (
-          <div>
-            <p className="font-semibold text-white">{row.user.fullName ?? '—'}</p>
-            <p className="text-xs text-slate-400">{row.user.email ?? ''}</p>
-          </div>
-        ) : (
-          <span className="text-slate-500">—</span>
-        ),
-    },
-    {
       key: 'plateNumber',
-      title: 'Plate',
+      title: 'Biển số',
       render: (row) => (
-        <span className="font-mono font-semibold text-white">{row.plateNumber ?? '—'}</span>
+        <span className="rounded border border-amber-500/25 bg-amber-500/10 px-2 py-0.5 font-mono text-xs font-bold text-amber-300">
+          {row.plateNumber ?? '—'}
+        </span>
       ),
     },
     {
       key: 'slot',
-      title: 'Slot',
+      title: 'Tầng / Ô đỗ',
+      render: (row) => {
+        const floor = (
+          row.slot as { floor?: { code?: string; name?: string } } | null
+        )?.floor;
+        const floorLabel = floor?.code ?? floor?.name;
+        const slotCode = row.slot?.code;
+        return (
+          <div className="flex items-center gap-1 flex-wrap">
+            {floorLabel && (
+              <span className="rounded border border-blue-500/30 bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-bold text-blue-400">
+                T.{floorLabel}
+              </span>
+            )}
+            {slotCode && (
+              <span className="rounded border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-bold text-emerald-400">
+                {slotCode}
+              </span>
+            )}
+            {!floorLabel && !slotCode && (
+              <span className="text-muted-foreground text-xs">—</span>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      key: 'fee',
+      title: 'Số tiền',
       render: (row) => (
-        <span className="rounded bg-white/5 px-2 py-0.5 text-xs font-bold text-white">
-          {row.slot?.code ?? '—'}
+        <span className="font-bold text-emerald-400">
+          {fmtMoney(row.amountPaid ?? row.fee)}
         </span>
       ),
     },
-    { key: 'startTime', title: 'Start', render: (row) => fmtTime(row.startTime) },
-    { key: 'fee', title: 'Amount', render: (row) => fmtCurrency(row.fee) },
+    {
+      key: 'startTime',
+      title: 'Thời gian',
+      render: (row) => (
+        <span className="text-xs text-muted-foreground">{fmtTime(row.startTime)}</span>
+      ),
+    },
     {
       key: 'status',
-      title: 'Status',
-      render: (row) => <StatusBadge status={row.status} />,
+      title: 'Trạng thái',
+      render: (row) => (
+        <div className="flex flex-col gap-0.5">
+          <StatusBadge status={row.status} />
+          <span className="text-[10px] text-muted-foreground">
+            {STATUS_LABELS[row.status] ?? row.status}
+          </span>
+        </div>
+      ),
     },
   ];
 
-  const lowerQuery = query.trim().toLowerCase();
+  const sessionColumns: DataColumn<ParkingSession>[] = [
+    {
+      key: 'plateNumber',
+      title: 'Biển số',
+      render: (row) => (
+        <span className="rounded border border-amber-500/25 bg-amber-500/10 px-2 py-0.5 font-mono text-xs font-bold text-amber-300">
+          {row.plateNumber}
+        </span>
+      ),
+    },
+    {
+      key: 'vehicleType',
+      title: 'Loại xe',
+      render: (row) => (
+        <span className="text-xs text-muted-foreground">
+          {row.vehicleType ? `${row.vehicleType.code} — ${row.vehicleType.name}` : '—'}
+        </span>
+      ),
+    },
+    {
+      key: 'slot',
+      title: 'Vị trí',
+      render: (row) => {
+        const floor = row.slot?.floor;
+        const slotCode = row.slot?.code;
+        return (
+          <div className="flex items-center gap-1 flex-wrap">
+            {floor?.code && (
+              <span className="rounded border border-blue-500/30 bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-bold text-blue-400">
+                T.{floor.code}
+              </span>
+            )}
+            {slotCode && (
+              <span className="rounded border border-violet-500/30 bg-violet-500/10 px-1.5 py-0.5 text-[10px] font-bold text-violet-400">
+                {slotCode}
+              </span>
+            )}
+            {!floor?.code && !slotCode && (
+              <span className="text-muted-foreground text-xs">—</span>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      key: 'entryTime',
+      title: 'Vào lúc',
+      render: (row) => (
+        <span className="text-xs text-muted-foreground">{fmtTime(row.entryTime)}</span>
+      ),
+    },
+    {
+      key: 'entryGate',
+      title: 'Cổng vào',
+      render: (row) => (
+        <span className="text-xs text-muted-foreground">
+          {row.entryGate?.name ?? row.entryGate?.code ?? '—'}
+        </span>
+      ),
+    },
+    {
+      key: 'status',
+      title: 'Trạng thái',
+      render: () => (
+        <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
+          Đang gửi
+        </span>
+      ),
+    },
+  ];
 
-  const filteredSessions = useMemo(
-    () =>
-      paidSessions.filter((s) => {
-        if (!lowerQuery) return true;
-        return `${s.plateNumber} ${s.entryGate?.name ?? ''} ${s.vehicleType?.name ?? ''}`
-          .toLowerCase()
-          .includes(lowerQuery);
-      }),
-    [paidSessions, lowerQuery],
-  );
+  const VIEW_TABS: { value: ViewFilter; label: string }[] = [
+    { value: 'all', label: 'Tất cả' },
+    { value: 'reservation', label: `Đặt chỗ (${paidReservations.length})` },
+    { value: 'session', label: `Gửi trực tiếp (${activeSessions.length})` },
+  ];
 
-  const filteredReservations = useMemo(
-    () =>
-      completedReservations.filter((r) => {
-        if (!lowerQuery) return true;
-        return [r.code ?? '', r.plateNumber ?? '', r.user?.fullName ?? '', r.user?.email ?? '']
-          .join(' ')
-          .toLowerCase()
-          .includes(lowerQuery);
-      }),
-    [completedReservations, lowerQuery],
-  );
+  const statCards = [
+    {
+      label: 'Thu từ đặt chỗ',
+      value: fmtMoney(totalRevenue),
+      icon: Wallet,
+      color: 'text-emerald-500',
+      border: 'border-emerald-500/20 bg-emerald-500/5',
+    },
+    {
+      label: 'Đã check-in',
+      value: String(checkedInCount),
+      icon: CalendarCheck2,
+      color: 'text-blue-500',
+      border: 'border-blue-500/20 bg-blue-500/5',
+    },
+    {
+      label: 'Hoàn thành',
+      value: String(completedCount),
+      icon: Clock,
+      color: 'text-amber-500',
+      border: 'border-amber-500/20 bg-amber-500/5',
+    },
+    {
+      label: 'Xe đang gửi',
+      value: String(activeSessions.length),
+      icon: Car,
+      color: 'text-violet-500',
+      border: 'border-violet-500/20 bg-violet-500/5',
+    },
+  ];
 
   return (
-    <div className="grid gap-6">
+    <div className="space-y-5">
       {/* Header */}
-      <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-slate-950 via-slate-950 to-emerald-950/40 p-6 shadow-[0_22px_54px_rgba(15,23,42,0.45)]">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(16,185,129,0.14),transparent_22%),radial-gradient(circle_at_82%_14%,rgba(34,211,238,0.10),transparent_18%)]" />
-        <div className="relative z-10 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Wallet size={18} className="text-primary" />
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.24em] text-emerald-300">
-              <DollarSign size={12} /> Payment Tracking
-            </div>
-            <h2 className="mt-3 text-3xl font-semibold text-white">
-              {building ? building.name : 'Payment Tracking'}
-            </h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
-              Track all successful payments — direct parking sessions and advance reservations.
+            <h2 className="text-base font-semibold text-foreground">Theo dõi thanh toán</h2>
+            <p className="text-xs text-muted-foreground">
+              Đặt chỗ trước đã thu tiền và xe đang gửi trực tiếp
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <StatusBadge status="paid" />
-            <StatusBadge status="completed" />
-          </div>
         </div>
-      </section>
-
-      {/* Summary cards */}
-      <section className="grid gap-3 md:grid-cols-3">
-        {summary.map((card) => (
-          <Card key={card.label} className="border-white/10 bg-white/5">
-            <CardContent className="p-5">
-              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-400">
-                {card.label}
-              </p>
-              <p className="mt-2 text-3xl font-semibold text-white">{card.value}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </section>
-
-      {/* Search and type filter */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 md:flex-row md:items-center md:justify-between">
-        <div className="relative w-full md:max-w-md">
-          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by plate, gate, name..."
-            className="h-11 w-full rounded-xl border border-white/10 bg-slate-950/50 pl-9 pr-3 text-sm text-white outline-none placeholder:text-slate-500"
-          />
-        </div>
-        <div className="flex gap-2">
-          {(
-            [
-              { key: 'all', label: 'All' },
-              { key: 'session', label: 'Direct Parking' },
-              { key: 'reservation', label: 'Reservations' },
-            ] as const
-          ).map(({ key, label }) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setTypeFilter(key)}
-              className={`rounded-full border px-4 py-1 text-xs font-bold transition ${
-                typeFilter === key
-                  ? 'border-emerald-400/50 bg-emerald-500/15 text-emerald-300'
-                  : 'border-white/10 bg-white/5 text-slate-400 hover:border-emerald-400/30'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        <Button variant="secondary" size="sm" onClick={refresh} className="gap-1.5">
+          <RefreshCw size={13} className={loading ? 'animate-spin' : ''} /> Làm mới
+        </Button>
       </div>
 
-      {loading ? (
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-slate-400">
-          Loading...
-        </div>
-      ) : error ? (
-        <div className="rounded-2xl border border-rose-400/20 bg-rose-500/10 p-6 text-sm text-rose-200">
+      {error && (
+        <div className="rounded-lg border border-rose-500/25 bg-rose-500/10 px-3 py-2 text-sm text-rose-500">
           {error}
         </div>
-      ) : (
-        <div className="space-y-5">
-          {/* Direct parking sessions */}
-          {(typeFilter === 'all' || typeFilter === 'session') && (
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.24em] text-emerald-300">
-                <Filter size={12} /> Direct Parking Payments ({filteredSessions.length})
-              </div>
-              {filteredSessions.length === 0 ? (
-                <Card className="border-white/10 bg-white/5">
-                  <CardContent className="p-6 text-sm text-slate-400">
-                    No paid direct parking sessions.
-                  </CardContent>
-                </Card>
-              ) : (
-                <DataTable
-                  title={`Paid Sessions (${filteredSessions.length})`}
-                  rows={filteredSessions}
-                  columns={sessionColumns}
-                />
-              )}
-            </div>
-          )}
+      )}
 
-          {/* Reservation payments */}
-          {(typeFilter === 'all' || typeFilter === 'reservation') && (
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 rounded-full border border-orange-400/20 bg-orange-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.24em] text-orange-300">
-                <Filter size={12} /> Reservation Payments ({filteredReservations.length})
+      {/* Stat cards */}
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {statCards.map((stat) => {
+          const Icon = stat.icon;
+          return (
+            <Card key={stat.label} className={`border ${stat.border}`}>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Icon size={14} className={stat.color} />
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    {stat.label}
+                  </p>
+                </div>
+                <p className="text-xl font-bold text-foreground">{loading ? '—' : stat.value}</p>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {/* View filter tabs */}
+      <div className="flex gap-1.5 rounded-lg border border-border bg-card p-1 w-fit">
+        {VIEW_TABS.map((tab) => (
+          <button
+            key={tab.value}
+            type="button"
+            onClick={() => setViewFilter(tab.value)}
+            className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
+              viewFilter === tab.value
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Reservations table */}
+      {(viewFilter === 'all' || viewFilter === 'reservation') && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <CalendarCheck2 size={14} className="text-primary" />
+              Đặt chỗ đã thu tiền
+              <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                {paidReservations.length}
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <p className="py-6 text-center text-sm text-muted-foreground">Đang tải...</p>
+            ) : paidReservations.length === 0 ? (
+              <div className="py-8 text-center">
+                <CalendarCheck2 size={28} className="mx-auto mb-2 text-muted-foreground/40" />
+                <p className="text-sm text-muted-foreground">Chưa có đặt chỗ nào đã thu tiền.</p>
               </div>
-              {filteredReservations.length === 0 ? (
-                <Card className="border-white/10 bg-white/5">
-                  <CardContent className="p-6 text-sm text-slate-400">
-                    No completed reservation payments.
-                  </CardContent>
-                </Card>
-              ) : (
-                <DataTable
-                  title={`Reservations (${filteredReservations.length})`}
-                  rows={filteredReservations}
-                  columns={reservationColumns}
-                />
-              )}
-            </div>
-          )}
-        </div>
+            ) : (
+              <DataTable title="" rows={paidReservations} columns={reservationColumns} />
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Active sessions table */}
+      {(viewFilter === 'all' || viewFilter === 'session') && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <Car size={14} className="text-violet-500" />
+              Xe đang gửi trực tiếp
+              <span className="ml-1 rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-bold text-violet-400">
+                {activeSessions.length}
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <p className="py-6 text-center text-sm text-muted-foreground">Đang tải...</p>
+            ) : activeSessions.length === 0 ? (
+              <div className="py-8 text-center">
+                <Car size={28} className="mx-auto mb-2 text-muted-foreground/40" />
+                <p className="text-sm text-muted-foreground">Không có xe đang gửi.</p>
+              </div>
+            ) : (
+              <DataTable title="" rows={activeSessions} columns={sessionColumns} />
+            )}
+          </CardContent>
+        </Card>
       )}
     </div>
   );

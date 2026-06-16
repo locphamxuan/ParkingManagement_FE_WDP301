@@ -66,18 +66,18 @@ export function ManagerWalletPage() {
     setLoading(true);
     setError(null);
     try {
-      const [walletRes, dailyRes, txRes, subRes, pkgRes] = await Promise.all([
+      const [walletRes, dailyRes, txRes] = await Promise.all([
         managerApi.wallet.get(buildingId),
         managerApi.wallet.getDailyRevenue(buildingId),
         managerApi.wallet.listTransactions(buildingId),
-        managerApi.getSubscriptionStatus(buildingId),
-        managerApi.wallet.listSubscriptionPackages(buildingId),
+        // managerApi.getSubscriptionStatus(buildingId), // Missing API
+        // managerApi.wallet.listSubscriptionPackages(buildingId), // Missing API
       ]);
       setWallet((walletRes as { data?: { wallet: BuildingWallet } })?.data?.wallet ?? null);
       setDaily((dailyRes as { data?: DailyRevenueResult })?.data ?? null);
       setTransactions((txRes as { data?: { items: BuildingWalletTransaction[] } })?.data?.items ?? []);
-      setSubscription((subRes as { data?: SubscriptionStatus })?.data ?? null);
-      setPackages((pkgRes as { data?: { items: AdminSubscriptionPackage[] } })?.data?.items ?? []);
+      setSubscription(null);
+      setPackages([]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Tải dữ liệu ví thất bại');
     } finally {
@@ -255,6 +255,7 @@ export function ManagerWalletPage() {
           </CardContent>
         </Card>
 
+        {/* Subscription status card hidden temporarily due to missing APIs
         <Card className={subActive ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-amber-500/20 bg-amber-500/5'}>
           <CardContent className="p-5">
             <p className={`text-[10px] font-black uppercase tracking-widest ${subActive ? 'text-emerald-400/70' : 'text-amber-400/70'}`}>
@@ -270,6 +271,7 @@ export function ManagerWalletPage() {
             </p>
           </CardContent>
         </Card>
+        */}
       </div>
 
       {subMessage && (
@@ -285,7 +287,7 @@ export function ManagerWalletPage() {
         </div>
       )}
 
-      {/* Gói dịch vụ hệ thống (mua từ Admin) */}
+      {/* Gói dịch vụ hệ thống (mua từ Admin) hidden temporarily due to missing APIs
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-sm">
@@ -359,6 +361,7 @@ export function ManagerWalletPage() {
           )}
         </CardContent>
       </Card>
+      */}
 
       {/* Lịch sử giao dịch */}
       <Card>

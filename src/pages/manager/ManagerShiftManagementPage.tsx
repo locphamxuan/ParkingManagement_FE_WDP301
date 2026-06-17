@@ -11,8 +11,8 @@ const TABS: { value: Tab; label: string; icon: React.ElementType }[] = [
 ];
 
 /**
- * Combined "Shifts & Assignments" tab — định nghĩa ca trực và phân công nhân viên
- * vào ca (kèm cổng phụ trách) trong cùng một trang.
+ * Combined "Shifts & Assignments" tab — define shifts and assign staff
+ * to shifts (with assigned gate) on a single page.
  */
 export function ManagerShiftManagementPage() {
   const [tab, setTab] = useState<Tab>('shifts');

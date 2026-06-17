@@ -60,7 +60,7 @@ export function ManagerOperatingHoursPage() {
         <div>
           <h1 className="text-xl font-bold text-foreground">Operating hours</h1>
           <p className="text-sm text-muted-foreground">
-            Đặt giờ mở cửa và đóng cửa của tòa nhà. Ngoài khung giờ này, khách hàng sẽ thấy “đang đóng cửa”.
+            Set the building open and close times. Outside this window, customers see "closed".
           </p>
         </div>
       </div>
@@ -97,7 +97,7 @@ export function ManagerOperatingHoursPage() {
           </div>
 
           <p className="text-[11px] text-muted-foreground">
-            Mẹo: nếu bãi mở qua đêm (ví dụ mở 22:00, đóng 06:00 hôm sau), hệ thống tự hiểu là khung giờ qua ngày.
+            Tip: if the lot is open overnight (e.g. open 22:00, close 06:00 next day), the system treats it as an overnight window.
           </p>
 
           {notice && (

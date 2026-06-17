@@ -141,7 +141,7 @@ export function MultiSlotForm({ isOpen, onClose, onSubmit, floors, loading = fal
 
                 {/* Row Content */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                  {/* Mã Ô */}
+                  {/* Slot code */}
                   <div className="space-y-1.5">
                     <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wide">Slot code *</label>
                     <Input
@@ -153,7 +153,7 @@ export function MultiSlotForm({ isOpen, onClose, onSubmit, floors, loading = fal
                     />
                   </div>
 
-                  {/* Tầng */}
+                  {/* Floor */}
                   <div className="space-y-1.5">
                     <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wide">Floor *</label>
                     <CustomSelect
@@ -171,7 +171,7 @@ export function MultiSlotForm({ isOpen, onClose, onSubmit, floors, loading = fal
                     />
                   </div>
 
-                  {/* Trạng Thái */}
+                  {/* Status */}
                   <div className="space-y-1.5">
                     <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wide">Status</label>
                     <CustomSelect
@@ -187,7 +187,7 @@ export function MultiSlotForm({ isOpen, onClose, onSubmit, floors, loading = fal
                     />
                   </div>
 
-                  {/* Cho Đặt Chỗ */}
+                  {/* Reservable */}
                   <div className="space-y-1.5">
                     <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wide">Reservable</label>
                     <CustomSelect

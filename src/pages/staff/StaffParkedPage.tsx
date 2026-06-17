@@ -367,7 +367,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
                           <img src={s.plateImage} alt="Plate number" className="h-12 w-16 rounded border border-border object-cover" />
                         )}
                         {s.portraitImage && (
-                          <img src={s.portraitImage} alt="Chân dung" className="h-12 w-16 rounded border border-border object-cover" />
+                          <img src={s.portraitImage} alt="Portrait" className="h-12 w-16 rounded border border-border object-cover" />
                         )}
                       </div>
                     )}
@@ -435,13 +435,13 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
                 <div className="space-y-1.5">
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">At entry (saved)</p>
                   <CompareImg src={checkoutTarget.plateImage} label="Plate number" />
-                  <CompareImg src={checkoutTarget.portraitImage} label="Chân dung" />
+                  <CompareImg src={checkoutTarget.portraitImage} label="Portrait" />
                 </div>
                 {/* Cột: lúc ra */}
                 <div className="space-y-1.5">
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">At exit (just scanned)</p>
                   <CompareImg src={capturedPlateImage} label="Plate number" />
-                  <CompareImg src={capturedPortraitImage} label="Chân dung" />
+                  <CompareImg src={capturedPortraitImage} label="Portrait" />
                 </div>
               </div>
               <p className="mt-2 text-[11px] text-muted-foreground">Staff verify whether they match. If they do not, click<strong className="text-rose-400">Từ chối</strong>.
@@ -454,7 +454,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
               <div className="flex justify-between"><span className="text-muted-foreground">At</span><span className="font-medium text-foreground">{fmtTime(checkoutTarget.entryTime)}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Parking duration</span><span className="font-medium text-foreground">{fmtDuration(checkoutTarget.entryTime)}</span></div>
               <div className="flex justify-between border-t border-border/60 pt-1.5"><span className="text-muted-foreground">NV check-in</span><span className="font-medium text-foreground">{checkoutTarget.staff?.fullName ?? '—'}{checkoutTarget.entryGate?.code ? ` · cổng ${checkoutTarget.entryGate.code}` : ''}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Check-out staff</span><span className="font-medium text-emerald-400">{user?.fullName || user?.email || 'Bạn'}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Check-out staff</span><span className="font-medium text-emerald-400">{user?.fullName || user?.email || 'You'}</span></div>
             </div>
 
             <div className="mt-4 rounded-xl border border-primary/30 bg-primary/10 p-4 flex items-center justify-between">
@@ -524,7 +524,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
             <h3 className="mt-1 text-xl font-semibold text-foreground">Thu phí gửi xe</h3>
             <div className="mt-4 rounded-xl border border-border bg-card/50 p-4 space-y-2">
               <div className="flex justify-between text-sm"><span className="text-muted-foreground">Plate number</span><span className="font-semibold text-foreground">{bankTransfer.plate}</span></div>
-              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Amount</span><span className="font-mono text-lg font-bold text-amber-400">{bankTransfer.amount.toLocaleString('vi-VN')} đ</span></div>
+              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Amount</span><span className="font-mono text-lg font-bold text-amber-400">{bankTransfer.amount.toLocaleString('vi-VN')} ₫</span></div>
             </div>
             <p className="mt-4 text-sm text-muted-foreground">Open the payment page and let the customer scan the QR. After they transfer, click<strong className="text-foreground">Confirm</strong>.</p>
             <Button onClick={() => window.open(bankTransfer.checkoutUrl, '_blank', 'noopener')} variant="secondary" className="mt-4 w-full gap-2">Open payment QR page</Button>

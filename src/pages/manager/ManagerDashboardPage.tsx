@@ -228,7 +228,7 @@ export function ManagerDashboardPage() {
                   <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">Occupied slots</p>
                   <div className="mt-2 flex items-baseline justify-between">
                     <p className="text-2xl font-black text-white font-mono">{overview?.slots?.occupied ?? 0}</p>
-                    <p className="text-xs font-bold text-slate-500 font-mono">/ {overview?.slots?.total ?? 0} ô</p>
+                    <p className="text-xs font-bold text-slate-500 font-mono">/ {overview?.slots?.total ?? 0} slots</p>
                   </div>
                   <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-800">
                     <div
@@ -254,7 +254,7 @@ export function ManagerDashboardPage() {
             </Card>
           </motion.div>
 
-          {/* Đăng ký */}
+          {/* Subscriptions */}
           <motion.div variants={itemVariants}>
             <Card className="border border-white/5 bg-slate-900/40 shadow-2xl backdrop-blur-md overflow-hidden rounded-3xl">
               <CardHeader className="border-b border-white/5 bg-slate-950/30 p-5">

@@ -176,7 +176,7 @@ export function ManagerReservationPolicyPage() {
 
           {policy?._id ? (
             <p className="text-xs text-muted-foreground">
-              Đang chỉnh sửa chính sách hiện hành ({policy._id.slice(-6)}).
+              Editing the current policy ({policy._id.slice(-6)}).
             </p>
           ) : null}
 

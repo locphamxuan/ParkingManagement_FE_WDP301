@@ -503,7 +503,7 @@ export function ManagerSlotsPage() {
                               TẦNG {floor.code}
                             </span>
                             <span className="text-[9px] font-bold text-slate-500 font-mono">
-                              CÔNG SUẤT: {floorSlots.filter(s => s.status === 'occupied').length}/{floorSlots.length} SLOT
+                              CAPACITY: {floorSlots.filter(s => s.status === 'occupied').length}/{floorSlots.length} SLOT
                             </span>
                           </div>
 
@@ -537,7 +537,7 @@ export function ManagerSlotsPage() {
                 <div className="absolute left-6 top-6 flex flex-col gap-1.5 z-20 pointer-events-none">
                   <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-slate-400">
                     <Layers size={12} className="text-orange-400" />
-                    <span>Sơ đồ 3D Phân Khu ({items.length} Ô đỗ)</span>
+                    <span>3D Zone Map ({items.length} slots)</span>
                   </div>
                 </div>
               </div>

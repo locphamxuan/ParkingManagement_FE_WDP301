@@ -257,7 +257,7 @@ export function ManagerPricingPage() {
             />
           </div>
           <p className="md:col-span-2 text-[11px] text-muted-foreground">
-            “Giờ thường” áp dụng mặc định; “Cao điểm” áp dụng trong khung giờ Từ–Đến. Phí = tổng giờ đỗ × giá/giờ theo khung.
+            "Regular" applies by default; "Peak" applies within the From–To window. Fee = total hours × hourly rate for that window.
           </p>
           <div className="grid gap-1.5">
             <label className="text-xs uppercase text-muted-foreground">Effective from</label>

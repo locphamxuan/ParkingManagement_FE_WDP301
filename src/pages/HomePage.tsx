@@ -134,8 +134,8 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
   });
 
   // Stage 1 (Hero: 0% to 25%): Default isometric overview
-  // Stage 2 (Đặc điểm: 25% to 60%): 180deg rotation (Z: -45 -> 135) + zoom details
-  // Stage 3 (Giải pháp: 60% to 100%): Down shift and shrink (scale: 0.85)
+  // Stage 2 (Features: 25% to 60%): 180deg rotation (Z: -45 -> 135) + zoom details
+  // Stage 3 (Solutions: 60% to 100%): Down shift and shrink (scale: 0.85)
   const rotateZ = useTransform(smoothScroll, [0, 0.25, 0.60, 1.0], [-45, -45, 135, -45]);
   const rotateX = useTransform(smoothScroll, [0, 0.25, 0.60, 1.0], [55, 55, 48, 55]);
   const scale = useTransform(smoothScroll, [0, 0.25, 0.60, 1.0], [1.0, 1.0, 1.45, 0.85]);
@@ -412,7 +412,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
               </div>
             </motion.section>
 
-            {/* Story Deck Item 2: Giới thiệu & Quản lý tầng & slot */}
+            {/* Story Deck Item 2: Intro & floor & slot management */}
             <motion.section
               id="gioi-thieu"
               className="min-h-[70vh] flex flex-col justify-center scroll-mt-24"
@@ -445,7 +445,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
               </div>
             </motion.section>
 
-            {/* Story Deck Item 3: Check-in/Check-out & Cổng kiểm soát */}
+            {/* Story Deck Item 3: Check-in/Check-out & control gate */}
             <motion.section
               id="check-in-gate"
               className="min-h-[70vh] flex flex-col justify-center scroll-mt-24"

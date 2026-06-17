@@ -166,7 +166,7 @@ export function StaffIncidentsPage() {
           </CardContent>
         </Card>
 
-        {/* Tạo sự cố nhanh */}
+        {/* Quick incident report */}
         <Card>
           <CardHeader>
             <CardTitle>Quick incident report</CardTitle>
@@ -203,7 +203,7 @@ export function StaffIncidentsPage() {
         </Card>
       </section>
 
-      {/* Lỗi tải */}
+      {/* Load error */}
       {!loading && error && (
         <div className="rounded-xl border border-amber-400/20 bg-amber-500/10 p-4 text-sm text-amber-300">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -283,7 +283,7 @@ export function StaffIncidentsPage() {
         </CardContent>
       </Card>
 
-      {/* Ghi chú trạng thái */}
+      {/* Status legend */}
       <section className="grid gap-4 md:grid-cols-3">
         {[
           { label: 'Open', description: 'New incident — needs logging and handling', icon: AlertTriangle },

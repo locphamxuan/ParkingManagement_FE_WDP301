@@ -460,7 +460,7 @@ export default function ProfilePage() {
                       </p>
                     )}
                     {typeof s.package?.maxHoursPerDay === 'number' && s.package.maxHoursPerDay > 0 && (
-                      <p className="mt-1 text-[11px] text-slate-400">Free hours: {s.package.maxHoursPerDay}h/ngày</p>
+                      <p className="mt-1 text-[11px] text-slate-400">Free hours: {s.package.maxHoursPerDay}h/day</p>
                     )}
                   </div>
                 );
@@ -799,7 +799,7 @@ export default function ProfilePage() {
                       )}
                     </AnimatePresence>
 
-                    <p className="text-[9px] text-slate-500 font-semibold leading-relaxed">* Format: 2 digits + series (1 letter + 1 digit like<span className="font-mono text-slate-400">G2</span>, or 2 letters like<span className="font-mono text-slate-400">LD</span>) + a hyphen + 4-5 digits. e.g.:<span className="font-mono text-slate-400">59G2-03880</span>, <span className="font-mono text-slate-400">59G2-038.80</span>. Nhấn <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[8px]">Enter</kbd>or the Add button to confirm.</p>
+                    <p className="text-[9px] text-slate-500 font-semibold leading-relaxed">* Format: 2 digits + series (1 letter + 1 digit like<span className="font-mono text-slate-400">G2</span>, or 2 letters like<span className="font-mono text-slate-400">LD</span>) + a hyphen + 4-5 digits. e.g.:<span className="font-mono text-slate-400">59G2-03880</span>, <span className="font-mono text-slate-400">59G2-038.80</span>. Press <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[8px]">Enter</kbd>or the Add button to confirm.</p>
                   </div>
                 )}
                 {/* ── End License Plate Tag Manager ────────────── */}

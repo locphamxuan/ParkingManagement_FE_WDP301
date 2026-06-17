@@ -29,9 +29,9 @@ import { normalizePlate } from '@/utils/plate';
 type VehicleKind = 'car' | 'motorcycle';
 type OperationMode = 'check-in' | 'check-out';
 
-// Loại xe tòa nhà hỗ trợ (staff luôn có thể chọn cả 2). Đặt ở module scope để
-// tham chiếu ổn định — tránh effect tự-nhận-diện chạy lại mỗi lần render và ghi
-// đè lựa chọn loại xe thủ công của nhân viên.
+// Vehicle types the building supports (staff can always pick both). Placed at module scope to
+// keep a stable reference — avoid the auto-detect effect re-running on each render and
+// overwriting the staff's manual vehicle-type choice.
 const ALLOWED_TYPES = ['CAR', 'MOTORCYCLE'];
 
 export function StaffOperationsPage() {
@@ -54,18 +54,18 @@ export function StaffOperationsPage() {
   const qrCamRef = useRef<LiveCameraHandle>(null);
   const portraitCamRef = useRef<LiveCameraHandle>(null);
 
-  // Plate → account info (chỉ để hiển thị; khách vãng lai khi không có tài khoản)
+  // Plate → account info (display only; guest when no account)
   const [plateAccountInfo, setPlateAccountInfo] = useState<{ hasAccount: boolean; registeredVehicleType?: 'car' | 'motorcycle' | null; user: { id: string; fullName: string; email: string } | null } | null>(null);
   // Reject (từ chối) check-in flow
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
 
-  // Popup đối chiếu biển số sau khi quét
+  // Plate verification popup after scanning
   const [scannedPlateInfo, setScannedPlateInfo] = useState<PlateInfo | null>(null);
   const [isPlateInfoModalOpen, setIsPlateInfoModalOpen] = useState(false);
   const [isPlateInfoLoading, setIsPlateInfoLoading] = useState(false);
 
-  // Check-in đặt chỗ trước
+  // Reservation check-in
   const [reservationCode, setReservationCode] = useState('');
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
 
@@ -86,7 +86,7 @@ export function StaffOperationsPage() {
     return 'car';
   };
 
-  // Tự nhận diện loại xe khi BIỂN SỐ thay đổi (không ghi đè khi nhân viên tự đổi).
+  // Auto-detect vehicle type when the PLATE changes (do not overwrite a manual change).
   useEffect(() => {
     const clean = plateNumber.trim().toUpperCase();
     if (clean.length >= 3) {
@@ -101,7 +101,7 @@ export function StaffOperationsPage() {
     const clean = plateNumber.trim().toUpperCase();
     if (clean.length >= 3) {
       const detected = detectTypeFromPlate(clean);
-      if (detected !== vehicleType) return `Cảnh báo: Biển số có vẻ là ${detected === 'car' ? 'car' : 'motorcycle'}, nhưng bạn chọn ${vehicleType === 'car' ? 'car' : 'motorcycle'}.`;
+      if (detected !== vehicleType) return `Warning: the plate looks like a ${detected === 'car' ? 'car' : 'motorcycle'}, but you selected ${vehicleType === 'car' ? 'car' : 'motorcycle'}.`;
     }
     return null;
   }, [plateNumber, vehicleType]);
@@ -114,7 +114,7 @@ export function StaffOperationsPage() {
     return null;
   }, [allowedTypes, vehicleType]);
 
-  // Tự động tra cứu chủ biển số
+  // Auto-look up the plate owner
   useEffect(() => {
     const clean = plateNumber.trim().toUpperCase();
     if (clean.length >= 7) {
@@ -129,13 +129,13 @@ export function StaffOperationsPage() {
     }
   }, [plateNumber]);
 
-  // Camera 1 nhận diện biển số → lưu ảnh biển số + mở popup đối chiếu.
+  // Camera 1 recognizes the plate → save the plate photo + open the verification popup.
   const handlePlateDetected = ({ plateNumber: plate, brand, plateImage: img }: PlateScanResult) => {
     setPlateImage(img);
     void openPlateInfo(plate, brand);
   };
 
-  // Tra cứu biển số rồi mở popup đối chiếu (dùng cho cả Camera 1 và Camera 2/QR).
+  // Look up the plate then open the verification popup (used by both Camera 1 and Camera 2/QR).
   const openPlateInfo = async (plate: string, brand: string | null = null) => {
     const clean = normalizePlate(plate) || plate.trim().toUpperCase();
     setPlateNumber(clean);
@@ -153,8 +153,8 @@ export function StaffOperationsPage() {
     }
   };
 
-  // Camera 3: quét QR (token biển số PLT- hoặc ID tài khoản) → mở popup. Ảnh chân
-  // dung do camera chân dung (Camera 1) chụp riêng lúc check-in.
+  // Camera 3: scan QR (plate token PLT- or account ID) → open popup. The portrait photo
+  // is captured by the portrait camera (Camera 1) separately at check-in.
   const handleResolveIdQr = async (code: string) => {
     try {
       const res = await staffApi.resolveQr(code);
@@ -174,7 +174,7 @@ export function StaffOperationsPage() {
         else if (data.plate.vehicleType) setVehicleType('car');
         await openPlateInfo(data.plate.plateNumber, data.plate.brand ?? null);
       } else if (data.user) {
-        setOpMessage({ type: 'ok', text: `Đã nhận diện tài khoản: ${data.user.fullName} (${data.user.email}). Đã lưu ảnh chân dung.` });
+        setOpMessage({ type: 'ok', text: `Account identified: ${data.user.fullName} (${data.user.email}). Portrait photo saved.` });
       } else {
         setOpMessage({ type: 'err', text: 'QR code does not match any account or vehicle.' });
       }
@@ -199,7 +199,7 @@ export function StaffOperationsPage() {
     // if present, otherwise grab a fresh frame from the live camera. This way the
     // checkout staff always sees a full plate + portrait set.
     const plateImg = plateImage ?? plateCamRef.current?.capture() ?? null;
-    // Ảnh chân dung lấy từ camera chân dung riêng (Camera 1).
+    // The portrait photo comes from the separate portrait camera (Camera 1).
     const portraitImg = portraitImage ?? portraitCamRef.current?.capture() ?? null;
     try {
       await staffApi.checkIn({
@@ -219,7 +219,7 @@ export function StaffOperationsPage() {
     }
   };
 
-  // Staff từ chối check-in (vd loại xe không khớp đăng ký) → BE gửi thông báo cho khách.
+  // Staff reject check-in (e.g. vehicle type does not match registration) → BE notifies the customer.
   const onReject = async () => {
     const plate = normalizePlate(plateNumber) || plateNumber.trim().toUpperCase();
     const stage: OperationMode = 'check-in';
@@ -234,7 +234,7 @@ export function StaffOperationsPage() {
       const notified = (res as { data?: { notified?: boolean } })?.data?.notified;
       setOpMessage({
         type: 'ok',
-        text: `Đã từ chối cho xe vào biển ${plate}.${notified ? ' Đã gửi thông báo cho khách.' : ' (Biển chưa có tài khoản nên không gửi được thông báo.)'}`,
+        text: `Rejected entry for plate ${plate}.${notified ? ' The customer has been notified.' : ' (The plate has no account, so no notification was sent.)'}`,
       });
       setRejectOpen(false);
       setRejectReason('');
@@ -243,7 +243,7 @@ export function StaffOperationsPage() {
     }
   };
 
-  // Loại xe nhận diện/đang chọn có lệch với loại đã đăng ký không?
+  // Does the detected/selected vehicle type differ from the registered one?
   const vehicleTypeMismatch = Boolean(
     plateAccountInfo?.registeredVehicleType && plateAccountInfo.registeredVehicleType !== vehicleType
   );
@@ -280,7 +280,7 @@ export function StaffOperationsPage() {
         </div>
       </section>
 
-      {/* 3 camera riêng biệt: Chân dung · Biển số · QR */}
+      {/* 3 separate cameras: Portrait · Plate · QR */}
       <section className="grid gap-4 lg:grid-cols-3">
         <LivePortraitCamera ref={portraitCamRef} paused={isPlateInfoModalOpen} />
         <LivePlateCamera ref={plateCamRef} onDetected={handlePlateDetected} busy={loading || isPlateInfoLoading} />
@@ -289,7 +289,7 @@ export function StaffOperationsPage() {
 
       {/* Main panel */}
       <section className="grid gap-6 xl:grid-cols-[1.05fr,0.95fr]">
-        {/* Form vận hành */}
+        {/* Operations form */}
         <Card>
           <CardHeader>
             <CardTitle>Incoming vehicle info</CardTitle>
@@ -310,7 +310,7 @@ export function StaffOperationsPage() {
                 />
                 {vehicleBrand && (
                   <span className="inline-flex w-fit items-center gap-1 rounded-full border border-sky-500/30 bg-sky-500/10 px-2.5 py-1 text-[11px] font-semibold text-sky-300">
-                    <Car size={11} /> Hãng xe: {vehicleBrand}
+                    <Car size={11} /> Brand: {vehicleBrand}
                   </span>
                 )}
                 {plateNumber.trim().length >= 7 && plateAccountInfo?.hasAccount && (
@@ -385,7 +385,7 @@ export function StaffOperationsPage() {
               </div>
             </div>
 
-            {/* Nút hành động */}
+            {/* Action buttons */}
             <div className="flex gap-2">
               <Button
                 onClick={onCheckIn}
@@ -404,7 +404,7 @@ export function StaffOperationsPage() {
               </Button>
             </div>
 
-            {/* Phản hồi thao tác */}
+            {/* Operation feedback */}
             {opMessage && (
               <div className={`rounded-xl border p-4 text-sm ${opMessage.type === 'ok' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' : 'border-rose-500/30 bg-rose-500/10 text-rose-400'}`}>
                 {opMessage.text}
@@ -413,15 +413,15 @@ export function StaffOperationsPage() {
           </CardContent>
         </Card>
 
-        {/* Đặt chỗ trước + hướng dẫn */}
+        {/* Reservation + instructions */}
         <Card>
           <CardHeader>
             <CardTitle>Reservation check-in</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-xs text-muted-foreground">
-              Khách đặt chỗ trước có thể tự check-in tại cổng bằng cách quét QR phương tiện (không cần qua nhân viên).
-              Nhân viên cũng có thể nhập/quét mã đặt chỗ tại đây.
+              Customers with a reservation can self check-in at the gate by scanning the vehicle QR (no staff needed).
+              Staff can also enter/scan the reservation code here.
             </p>
             <div className="flex gap-2">
               <Input
@@ -431,7 +431,7 @@ export function StaffOperationsPage() {
                 onKeyDown={(e) => e.key === 'Enter' && onCheckInReservation()}
               />
               <Button type="button" onClick={() => setIsQrModalOpen(true)} variant="secondary" className="shrink-0 gap-1.5">
-                Quét QR
+                Scan QR
               </Button>
               <Button
                 type="button"
@@ -449,7 +449,7 @@ export function StaffOperationsPage() {
         </Card>
       </section>
 
-      {/* QR Scanner Modal (mã đặt chỗ) */}
+      {/* QR Scanner Modal (reservation code) */}
       <QRCodeScannerModal
         isOpen={isQrModalOpen}
         onClose={() => setIsQrModalOpen(false)}
@@ -490,7 +490,7 @@ export function StaffOperationsPage() {
         </div>
       )}
 
-      {/* Modal đối chiếu thông tin biển số xe sau khi quét */}
+      {/* Plate verification modal after scanning */}
       {isPlateInfoModalOpen && scannedPlateInfo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
           <motion.div
@@ -571,7 +571,7 @@ export function StaffOperationsPage() {
                       </div>
                       <div>
                         <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Wallet balance</p>
-                        <p className="text-base font-black text-emerald-400">{scannedPlateInfo.user.walletBalance.toLocaleString('vi-VN')} đ</p>
+                        <p className="text-base font-black text-emerald-400">{scannedPlateInfo.user.walletBalance.toLocaleString('vi-VN')} ₫</p>
                       </div>
                     </div>
                   </div>
@@ -584,7 +584,7 @@ export function StaffOperationsPage() {
                 </div>
               )}
 
-              {/* Active Session Status — xe đang đỗ → sang tab Xe đang đỗ */}
+              {/* Active Session Status — parked → go to the Parked tab */}
               {scannedPlateInfo.activeSession && (
                 <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-3 flex gap-2.5 items-start">
                   <div className="rounded-lg bg-rose-500/10 p-2 text-rose-400 shrink-0">
@@ -593,7 +593,7 @@ export function StaffOperationsPage() {
                   <div>
                     <p className="text-xs font-bold text-rose-400">Vehicles parked in the lot — exit-gate staff will release them</p>
                     <p className="text-[11px] text-muted-foreground mt-0.5">
-                      Vào lúc: {new Date(scannedPlateInfo.activeSession.entryTime).toLocaleString('vi-VN')}
+                      At: {new Date(scannedPlateInfo.activeSession.entryTime).toLocaleString('vi-VN')}
                     </p>
                   </div>
                 </div>

@@ -684,7 +684,7 @@ export default function LongTermSubscriptionsPage() {
                         )}
                         {typeof item.package.maxHoursPerDay === 'number' && item.package.maxHoursPerDay > 0 && (
                           <p className="mt-1 text-[10px] text-slate-400">
-                            Free hours: <span className="font-bold text-slate-200">{item.package.maxHoursPerDay}h/ngày</span>
+                            Free hours: <span className="font-bold text-slate-200">{item.package.maxHoursPerDay}h/day</span>
                           </p>
                         )}
                         {item.status === 'expired' && (

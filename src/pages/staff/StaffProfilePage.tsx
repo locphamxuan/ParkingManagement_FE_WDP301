@@ -125,7 +125,7 @@ export function StaffProfilePage() {
 
           {isEditing ? (
             <form onSubmit={handleSave} className="grid gap-5 md:grid-cols-2 relative z-10">
-              {/* Họ tên */}
+              {/* Full name */}
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Full name</label>
                 <div className="relative">
@@ -164,7 +164,7 @@ export function StaffProfilePage() {
                 </div>
               </div>
 
-              {/* Số điện thoại */}
+              {/* Phone number */}
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Phone number</label>
                 <div className="relative">

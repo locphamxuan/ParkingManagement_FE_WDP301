@@ -362,7 +362,7 @@ export function StaffDashboardPage() {
           <ShieldAlert size={16} className="mt-0.5 shrink-0 text-rose-400" />
           <div>
             <p className="text-sm font-extrabold text-rose-300">
-              {openIncidents.length} sự cố đang mở
+              {openIncidents.length} open incidents
             </p>
             <p className="text-xs text-slate-400 mt-0.5 font-medium">Go to the Incidents tab to view details and handle them promptly.</p>
           </div>
@@ -371,7 +371,7 @@ export function StaffDashboardPage() {
 
       {/* Main grid */}
       <div className="grid gap-6 xl:grid-cols-2">
-        {/* Ca làm việc */}
+        {/* Shift */}
         <div className="rounded-3xl border border-white/8 bg-slate-900/40 p-6 backdrop-blur-md shadow-lg relative overflow-hidden">
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-[radial-gradient(circle_at_center,rgba(20,184,166,0.03),transparent_60%)] pointer-events-none blur-2xl" />
 
@@ -439,7 +439,7 @@ export function StaffDashboardPage() {
           </div>
         </div>
 
-        {/* Xe đang đỗ */}
+        {/* Parked vehicles */}
         <div className="rounded-3xl border border-white/8 bg-slate-900/40 p-6 backdrop-blur-md shadow-lg relative overflow-hidden">
           <div className="absolute bottom-0 right-0 w-48 h-48 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.03),transparent_60%)] pointer-events-none blur-2xl" />
 
@@ -485,7 +485,7 @@ export function StaffDashboardPage() {
                       {formatSlotLocation(session)}
                     </p>
                     <p className="mt-0.5 text-[11px] text-slate-500 font-mono">
-                      Vào lúc {fmtTime(session.entryTime)}
+                      At {fmtTime(session.entryTime)}
                     </p>
                   </div>
                   <StatusBadge status={session.status} />

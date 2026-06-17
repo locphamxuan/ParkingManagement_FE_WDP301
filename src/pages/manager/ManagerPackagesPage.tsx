@@ -108,7 +108,7 @@ export function ManagerPackagesPage() {
       durationDays: Number(form.durationDays),
       price: Number(form.price),
       reservedSlots: Number(form.reservedSlots),
-      // Để trống → BE tự đặt mặc định theo thời hạn (tuần 5 / tháng 7 / năm 10).
+      // Leave empty → BE sets a default by duration (week 5 / month 7 / year 10).
       ...(form.maxHoursPerDay.trim() !== '' ? { maxHoursPerDay: Number(form.maxHoursPerDay) } : {}),
       ...(form.graceDays.trim() !== '' ? { graceDays: Number(form.graceDays) } : {}),
       description: form.description.trim(),
@@ -294,7 +294,7 @@ export function ManagerPackagesPage() {
               className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-orange-500/40 placeholder-slate-600"
             />
             <p className="text-[11px] text-slate-400">
-              Số giờ đỗ miễn phí/ngày. Vượt sẽ tính phí theo giá thường. Để trống → mặc định tuần 5h / tháng 7h / năm 10h. 0 = không giới hạn.
+              Free parking hours/day. Excess is charged at the normal rate. Leave empty → default week 5h / month 7h / year 10h. 0 = unlimited.
             </p>
           </div>
           <div className="grid gap-1.5">
@@ -307,7 +307,7 @@ export function ManagerPackagesPage() {
               className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-orange-500/40"
             />
             <p className="text-[11px] text-slate-400">
-              Sau khi gói hết hạn, giữ chỗ cố định cho khách thêm số ngày này (grace) trước khi thu hồi. Mặc định 7.
+              After the package expires, keep the dedicated slot for this many extra days (grace) before releasing. Default 7.
             </p>
           </div>
           <div className="grid gap-1.5 md:col-span-2">
@@ -324,7 +324,7 @@ export function ManagerPackagesPage() {
               value={form.benefits}
               onChange={(e) => setForm((f) => ({ ...f, benefits: e.target.value }))}
               rows={4}
-              placeholder={'Miễn phí giữ xe không giới hạn lượt\nƯu tiên chỗ gần thang máy\nMiễn phí rửa xe 1 lần/tháng'}
+              placeholder={'Unlimited free parking sessions\nPriority slots near the elevator\nFree car wash once a month'}
               className="rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-orange-500/40 placeholder-slate-600"
             />
             <p className="text-[11px] text-slate-400">These benefits will be shown to customers when choosing a package.</p>

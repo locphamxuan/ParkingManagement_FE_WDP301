@@ -311,10 +311,6 @@ export const userApi = {
     /** Get user's parking history */
     list: (query?: { limit?: number; page?: number; fromDate?: string; toDate?: string }) =>
       api.get<Wrap<ListResult<ParkingHistory>>>('/users/parking-history', { query }),
-
-    /** Get parking session detail */
-    get: (id: string) =>
-      api.get<Wrap<{ session: ParkingHistory }>>(`/users/parking-history/${id}`),
   },
 
   // ========== LONG-TERM PACKAGES ==========
@@ -322,13 +318,6 @@ export const userApi = {
     /** Get list of available long-term packages (BE returns { packages }). */
     list: (query?: { buildingId?: string; limit?: number; page?: number }) =>
       api.get<Wrap<{ packages: LongTermPackage[] }>>('/users/long-term/packages', { query }),
-
-    /**
-     * Get package detail. NOTE: the backend has no GET /packages/:id endpoint;
-     * kept for the demo hook only — prefer filtering the list result.
-     */
-    get: (id: string) =>
-      api.get<Wrap<{ package: LongTermPackage }>>(`/users/long-term/packages/${id}`),
   },
 
   // ========== LONG-TERM SUBSCRIPTIONS ==========
@@ -338,10 +327,6 @@ export const userApi = {
       api.get<Wrap<ListResult<LongTermSubscription>>>('/users/long-term/subscriptions', {
         query,
       }),
-
-    /** Get subscription detail */
-    get: (id: string) =>
-      api.get<Wrap<{ subscription: LongTermSubscription }>>(`/users/long-term/subscriptions/${id}`),
 
     /** Subscribe to a long-term package (BE expects { packageId, plateNumber, slotId?, startDate? }). */
     create: (body: { packageId: string; plateNumber: string; slotId?: string; startDate?: string }) =>

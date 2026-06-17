@@ -1,4 +1,4 @@
-﻿import { api } from '@/services/apiClient';
+﻿import { api } from '@/services/client/apiClient';
 
 export interface FeedbackTargetItem {
   _id?: string;
@@ -58,11 +58,45 @@ function unwrapData<T>(payload: any, fallback: T): T {
   return (payload?.data ?? payload ?? fallback) as T;
 }
 
+/**
+ * The backend has no dedicated "pending feedback" endpoint. We derive it on the
+ * client: completed parking sessions that the user has not reviewed yet
+ * (parking-history minus the sessions already present in their feedback list).
+ */
 export async function fetchPendingFeedback(): Promise<PendingFeedbackResponse> {
-  const payload = await api.get<any>('/users/feedbacks/pending');
-  const data = unwrapData<any>(payload, { count: 0, items: [] });
-  const items = Array.isArray(data?.items) ? data.items : [];
-  return { count: Number(data?.count ?? items.length ?? 0), items };
+  const [histPayload, fbPayload] = await Promise.all([
+    api.get<any>('/users/parking-history', { query: { limit: 50 } }),
+    api.get<any>('/users/feedbacks/me', { query: { limit: 100 } }),
+  ]);
+
+  const sessions: any[] = unwrapData<any>(histPayload, { items: [] })?.items ?? [];
+  const feedbacks: any[] = unwrapData<any>(fbPayload, { items: [] })?.items ?? [];
+
+  const reviewedIds = new Set(
+    feedbacks
+      .map((f) => (f?.parkingSession && typeof f.parkingSession === 'object' ? f.parkingSession._id : f?.parkingSession))
+      .filter(Boolean)
+      .map((id: unknown) => String(id)),
+  );
+
+  const items: PendingFeedbackTarget[] = sessions
+    .filter((s) => s?.status === 'completed' && !reviewedIds.has(String(s?._id)))
+    .map((s) => ({
+      type: 'parkingSession' as const,
+      parkingSessionId: String(s._id),
+      item: {
+        _id: String(s._id),
+        plateNumber: s.plateNumber,
+        building: s.building,
+        entryTime: s.checkIn ?? s.check_in ?? s.entryTime,
+        exitTime: s.checkOut ?? s.check_out ?? s.exitTime,
+        fee: s.fee,
+        status: s.status,
+        createdAt: s.createdAt,
+      },
+    }));
+
+  return { count: items.length, items };
 }
 
 export async function submitFeedback(payload: SubmitFeedbackPayload) {

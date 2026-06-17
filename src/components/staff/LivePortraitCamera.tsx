@@ -54,7 +54,7 @@ export const LivePortraitCamera = forwardRef<LiveCameraHandle, LivePortraitCamer
           }
           setError(null);
         } catch {
-          if (!cancelled) setError('Không thể truy cập camera chân dung. Vui lòng cấp quyền.');
+          if (!cancelled) setError('Cannot access the portrait camera. Please grant permission.');
         }
       })();
 

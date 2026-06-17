@@ -39,7 +39,7 @@ export function ManagerOperatingHoursPage() {
   const handleSave = async () => {
     setNotice(null);
     if (open === close) {
-      setNotice({ type: 'err', text: 'Giờ mở và giờ đóng không được trùng nhau.' });
+      setNotice({ type: 'err', text: 'Opening and closing times must not be the same.' });
       return;
     }
     setSaving(true);
@@ -47,7 +47,7 @@ export function ManagerOperatingHoursPage() {
       await managerApi.updateOperatingHours(buildingId, { open, close });
       setNotice({ type: 'ok', text: 'Đã cập nhật giờ hoạt động. Khách hàng sẽ thấy trạng thái mở/đóng theo giờ này.' });
     } catch (err) {
-      setNotice({ type: 'err', text: err instanceof Error ? err.message : 'Cập nhật thất bại.' });
+      setNotice({ type: 'err', text: err instanceof Error ? err.message : 'Update failed.' });
     } finally {
       setSaving(false);
     }
@@ -71,7 +71,7 @@ export function ManagerOperatingHoursPage() {
           {openNow ? <DoorOpen size={24} className="text-emerald-400" /> : <DoorClosed size={24} className="text-rose-400" />}
           <div>
             <p className={`text-base font-bold ${openNow ? 'text-emerald-400' : 'text-rose-400'}`}>
-              {openNow ? 'Hiện đang mở cửa' : 'Hiện đang đóng cửa'}
+              {openNow ? 'Currently open' : 'Currently closed'}
             </p>
             <p className="text-xs text-muted-foreground">
               {building ? `${building.code} · ${building.name}` : ''} · Khung giờ: {open} – {close}
@@ -82,7 +82,7 @@ export function ManagerOperatingHoursPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Cấu hình giờ mở / đóng cửa</CardTitle>
+          <CardTitle className="text-sm">Configure opening / closing hours</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
@@ -91,7 +91,7 @@ export function ManagerOperatingHoursPage() {
               <TimePicker value={open} onChange={setOpen} />
             </div>
             <div className="grid gap-1.5">
-              <label className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Giờ đóng cửa</label>
+              <label className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Closing time</label>
               <TimePicker value={close} onChange={setClose} />
             </div>
           </div>
@@ -108,7 +108,7 @@ export function ManagerOperatingHoursPage() {
 
           <Button onClick={handleSave} disabled={saving} className="gap-2">
             {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
-            {saving ? 'Saving...' : 'Lưu giờ hoạt động'}
+            {saving ? 'Saving...' : 'Save operating hours'}
           </Button>
         </CardContent>
       </Card>

@@ -23,7 +23,7 @@ const directionIcon: Record<Gate['direction'], React.ReactNode> = {
 const GATE_STATUSES: Gate['status'][] = ['active', 'inactive', 'maintenance'];
 const statusLabel: Record<Gate['status'], string> = {
   active: 'Active',
-  inactive: 'Tạm ngưng',
+  inactive: 'Suspended',
   maintenance: 'Maintenance',
 };
 
@@ -97,7 +97,7 @@ export function ManagerGatesPage() {
     e.preventDefault();
     setFormError(null);
     if (!form.code.trim()) {
-      setFormError('Vui lòng nhập mã cổng');
+      setFormError('Please enter the gate code');
       return;
     }
     setSubmitting(true);
@@ -138,7 +138,7 @@ export function ManagerGatesPage() {
     { key: 'name', title: 'Name', render: (row) => row.name || '—' },
     {
       key: 'direction',
-      title: 'Loại cổng',
+      title: 'Gate type',
       render: (row) => (
         <span className="inline-flex items-center gap-1.5 text-sm">
           {directionIcon[row.direction]} {directionLabel[row.direction]}
@@ -193,9 +193,7 @@ export function ManagerGatesPage() {
       ) : error ? (
         <div className="text-sm text-red-600">{error}</div>
       ) : items.length === 0 ? (
-        <div className="rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
-          Chưa có cổng nào. Nhấn “Thêm cổng” để tạo.
-        </div>
+        <div className="rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">No gates yet. Click "Add gate" to create one.</div>
       ) : (
         <DataTable title="Entry / exit gate" rows={items} columns={columns} />
       )}
@@ -203,7 +201,7 @@ export function ManagerGatesPage() {
       <Modal isOpen={modalOpen} onClose={() => !submitting && setModalOpen(false)}>
         <div className="w-full max-w-md rounded-lg bg-card p-6 shadow-lg">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-foreground">{editing ? 'Sửa cổng' : 'Add gate'}</h2>
+            <h2 className="text-lg font-semibold text-foreground">{editing ? 'Edit gate' : 'Add gate'}</h2>
             <button onClick={() => !submitting && setModalOpen(false)} className="text-muted-foreground hover:text-foreground">
               <X size={20} />
             </button>
@@ -211,7 +209,7 @@ export function ManagerGatesPage() {
 
           <form onSubmit={onSubmit} className="grid gap-4">
             <div className="grid gap-2">
-              <label className="text-sm font-medium text-foreground">Mã cổng <span className="text-red-500">*</span></label>
+              <label className="text-sm font-medium text-foreground">Gate code<span className="text-red-500">*</span></label>
               <Input
                 value={form.code}
                 onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
@@ -221,17 +219,17 @@ export function ManagerGatesPage() {
             </div>
 
             <div className="grid gap-2">
-              <label className="text-sm font-medium text-foreground">Tên cổng</label>
+              <label className="text-sm font-medium text-foreground">Gate name</label>
               <Input
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                placeholder="VD: Cổng vào chính"
+                placeholder="e.g. Main entrance gate"
                 disabled={submitting}
               />
             </div>
 
             <div className="grid gap-2">
-              <label className="text-sm font-medium text-foreground">Thể loại cổng <span className="text-red-500">*</span></label>
+              <label className="text-sm font-medium text-foreground">Gate type<span className="text-red-500">*</span></label>
               <CustomSelect
                 value={form.direction}
                 onChange={(val) => setForm((f) => ({ ...f, direction: val as Gate['direction'] }))}
@@ -265,7 +263,7 @@ export function ManagerGatesPage() {
               <Button type="button" variant="outline" onClick={() => setModalOpen(false)} disabled={submitting} className="flex-1">Cancel</Button>
               <Button type="submit" disabled={submitting} className="flex-1 gap-2">
                 {submitting && <Loader size={16} className="animate-spin" />}
-                {submitting ? 'Saving...' : editing ? 'Cập nhật' : 'Add gate'}
+                {submitting ? 'Saving...' : editing ? 'Update' : 'Add gate'}
               </Button>
             </div>
           </form>

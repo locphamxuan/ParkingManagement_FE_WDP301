@@ -158,23 +158,23 @@ export function ManagerPackagesPage() {
     },
     {
       key: 'maxHoursPerDay',
-      title: 'Giờ tối đa/ngày',
+      title: 'Max hours/day',
       render: (row) =>
-        row.maxHoursPerDay && row.maxHoursPerDay > 0 ? `${row.maxHoursPerDay}h` : 'Không giới hạn',
+        row.maxHoursPerDay && row.maxHoursPerDay > 0 ? `${row.maxHoursPerDay}h` : 'Unlimited',
     },
     {
       key: 'graceDays',
-      title: 'Grace (ngày)',
+      title: 'Grace (days)',
       render: (row) => `${row.graceDays ?? 7} ngày`,
     },
-    { key: 'reservedSlots', title: 'Slot dành riêng' },
+    { key: 'reservedSlots', title: 'Dedicated slot' },
     {
       key: 'benefits',
       title: 'Benefits',
       render: (row) => (
         <span className="text-xs text-slate-400">
           {(row.benefits?.length ?? 0) > 0 ? `${row.benefits!.length} ưu đãi` : '—'}
-          {row.allowDedicatedSlot ? ' · chỗ riêng' : ''}
+          {row.allowDedicatedSlot ? ' · dedicated' : ''}
         </span>
       ),
     },
@@ -203,12 +203,11 @@ export function ManagerPackagesPage() {
     <div className="grid gap-4">
       <div className="flex justify-end">
         <Button onClick={openCreate} className="gap-2">
-          <Plus size={14} /> Thêm gói
-        </Button>
+          <Plus size={14} />Add package</Button>
       </div>
       {loading ? (
         <div className="flex justify-center py-10">
-          <Spinner label="Đang tải danh sách gói..." />
+          <Spinner label="Loading packages..." />
         </div>
       ) : error ? (
         <div className="text-sm text-red-600">{error}</div>
@@ -219,7 +218,7 @@ export function ManagerPackagesPage() {
       <ModalForm
         open={modalOpen}
         onOpenChange={setModalOpen}
-        title={editing ? 'Sửa gói dài hạn' : 'Thêm gói dài hạn'}
+        title={editing ? 'Edit long-term package' : 'Add long-term package'}
         onSubmit={onSubmit}
       >
         <div className="grid gap-3 md:grid-cols-2 text-slate-100">
@@ -245,7 +244,7 @@ export function ManagerPackagesPage() {
               value={form.vehicleType}
               onChange={(val) => setForm((f) => ({ ...f, vehicleType: val }))}
               options={[
-                { value: '', label: 'Chọn' },
+                { value: '', label: 'Select' },
                 ...vts.map((vt) => ({
                   value: vt._id,
                   label: `${vt.code} - ${vt.name}`,
@@ -265,7 +264,7 @@ export function ManagerPackagesPage() {
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Giá (VND)</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Price (VND)</label>
             <Input
               type="number"
               min={0}
@@ -275,7 +274,7 @@ export function ManagerPackagesPage() {
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Số slot dành riêng</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Number of dedicated slots</label>
             <Input
               type="number"
               min={0}
@@ -285,11 +284,11 @@ export function ManagerPackagesPage() {
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Giờ tối đa / ngày</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Max hours / day</label>
             <Input
               type="number"
               min={0}
-              placeholder="Để trống = tự theo thời hạn"
+              placeholder="Leave empty = follow the duration"
               value={form.maxHoursPerDay}
               onChange={(e) => setForm((f) => ({ ...f, maxHoursPerDay: e.target.value }))}
               className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-orange-500/40 placeholder-slate-600"
@@ -299,7 +298,7 @@ export function ManagerPackagesPage() {
             </p>
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Giữ slot sau hết hạn (ngày)</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Hold slot after expiry (days)</label>
             <Input
               type="number"
               min={1}
@@ -320,9 +319,7 @@ export function ManagerPackagesPage() {
             />
           </div>
           <div className="grid gap-1.5 md:col-span-2">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">
-              Ưu đãi của gói (mỗi dòng 1 ưu đãi)
-            </label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Package benefits (one per line)</label>
             <textarea
               value={form.benefits}
               onChange={(e) => setForm((f) => ({ ...f, benefits: e.target.value }))}
@@ -341,7 +338,7 @@ export function ManagerPackagesPage() {
               onChange={(e) => setForm((f) => ({ ...f, allowDedicatedSlot: e.target.checked }))}
               className="w-4 h-4 rounded border-white/10 bg-slate-950 text-orange-500 focus:ring-0 cursor-pointer"
             />
-            <span>Cho phép giữ chỗ đỗ dành riêng (dedicated slot)</span>
+            <span>Allow holding a dedicated parking slot</span>
           </label>
           <label className="flex items-center gap-3 text-xs font-bold text-slate-300 md:col-span-2 select-none">
             <input
@@ -350,7 +347,7 @@ export function ManagerPackagesPage() {
               onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))}
               className="w-4 h-4 rounded border-white/10 bg-slate-950 text-orange-500 focus:ring-0 cursor-pointer"
             />
-            <span>Đang mở bán</span>
+            <span>On sale</span>
           </label>
         </div>
       </ModalForm>

@@ -72,7 +72,7 @@ export function QRCodeScannerModal({
         const message =
           err instanceof Error
             ? err.message
-            : 'Không thể truy cập camera. Vui lòng cấp quyền truy cập.';
+            : 'Cannot access the camera. Please grant access permission.';
         setError(message);
         setIsScanning(false);
       }
@@ -394,9 +394,7 @@ export function QRCodeScannerModal({
                   )}
                 </div>
 
-                <p className="text-xs text-slate-500 text-center">
-                  Cho phép truy cập camera để sử dụng tính năng này
-                </p>
+                <p className="text-xs text-slate-500 text-center">Allow camera access to use this feature</p>
 
                 {/* Hidden canvas for QR parsing */}
                 <canvas ref={canvasRef} className="hidden" />

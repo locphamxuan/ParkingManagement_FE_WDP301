@@ -40,10 +40,10 @@ interface HomePageProps {
 }
 
 const navigationLinks = [
-  { label: 'Trang chủ', href: '#top' },
-  { label: 'Giới thiệu', href: '#gioi-thieu' },
-  { label: 'Giải pháp', href: '#giai-phap' },
-  { label: 'Dịch vụ', href: '#dich-vu' },
+  { label: 'Home', href: '#top' },
+  { label: 'About', href: '#gioi-thieu' },
+  { label: 'Solutions', href: '#giai-phap' },
+  { label: 'Services', href: '#dich-vu' },
   { label: 'Contact', href: '#lien-he' },
 ];
 
@@ -60,25 +60,25 @@ const moduleIcons: Record<string, LucideIcon> = {
 };
 
 const heroHighlights = [
-  { value: '24/7', label: 'Giám sát và hỗ trợ vận hành liên tục' },
-  { value: '01', label: 'Nền tảng thống nhất cho cư dân và ban quản lý' },
-  { value: '99.9%', label: 'Quy trình check-in, check-out rõ ràng' },
+  { value: '24/7', label: 'Continuous monitoring and operational support' },
+  { value: '01', label: 'A unified platform for residents and management' },
+  { value: '99.9%', label: 'Clear check-in and check-out process' },
 ];
 
 const benefits = [
   {
     icon: Clock3,
-    title: 'Kiểm soát ra vào theo thời gian thực',
+    title: 'Real-time access control',
     description: 'Theo dõi lượt xe, trạng thái bãi và phiên gửi ngay trên một màn hình vận hành trực quan.',
   },
   {
     icon: BarChart3,
-    title: 'Báo cáo doanh thu rõ ràng',
+    title: 'Clear revenue reports',
     description: 'Tập trung số liệu giao dịch, doanh thu và hiệu suất khai thác để quản lý dễ ra quyết định hơn.',
   },
   {
     icon: CarFront,
-    title: 'Trải nghiệm thân thiện cho người dùng',
+    title: 'A friendly user experience',
     description: 'Đăng nhập, theo dõi thông tin và mở rộng tính năng đặt chỗ, thanh toán, thông báo theo lộ trình.',
   },
 ];
@@ -144,10 +144,10 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
 
   const heroButtonText = useMemo(() => {
     if (!user) return 'Sign in now';
-    if (user.role === 'admin') return 'Bảng điều khiển Admin';
-    if (user.role === 'manager') return 'Bảng quản trị Manager';
-    if (user.role === 'staff') return 'Cổng nhân viên ca trực';
-    return 'Trải nghiệm dịch vụ';
+    if (user.role === 'admin') return 'Admin dashboard';
+    if (user.role === 'manager') return 'Manager dashboard';
+    if (user.role === 'staff') return 'Staff shift portal';
+    return 'Service experience';
   }, [user]);
 
   useEffect(() => {
@@ -181,7 +181,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
       {/* Cyber Header Navigation */}
       <header className="border-b border-white/5 bg-slate-950/60 sticky top-0 z-40 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <a href="#top" aria-label="PBMS Trang chủ" className="flex items-center gap-3 group">
+          <a href="#top" aria-label="PBMS Home" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 grid place-items-center shadow-[0_0_15px_rgba(249,115,22,0.3)] transition-all group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(249,115,22,0.5)]">
               <span className="w-2.5 h-2.5 bg-slate-950 rounded-full" />
             </div>
@@ -331,7 +331,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
                   type="button"
                   onClick={() => setShowPlateBanner(false)}
                   className="flex-shrink-0 p-1 rounded-lg text-amber-500/50 hover:text-amber-300 hover:bg-amber-500/10 transition-all duration-200"
-                  aria-label="Đóng thông báo"
+                  aria-label="Dismiss notification"
                 >
                   <X size={13} className="stroke-[3]" />
                 </button>
@@ -359,11 +359,10 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
             >
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 mb-4 w-fit animate-pulse">
                 <span className="w-2 h-2 rounded-full bg-orange-500" />
-                <span className="text-[10px] font-black uppercase tracking-wider text-orange-400 font-mono">Platform Quản Trị Tương Lai</span>
+                <span className="text-[10px] font-black uppercase tracking-wider text-orange-400 font-mono">Future Management Platform</span>
               </div>
 
-              <h1 className="text-4xl md:text-5xl font-black leading-[1.12] tracking-tight text-white">
-                Nền tảng kiểm soát <br />
+              <h1 className="text-4xl md:text-5xl font-black leading-[1.12] tracking-tight text-white">Control platform<br />
                 <span className="bg-gradient-to-r from-orange-400 via-amber-400 to-purple-400 bg-clip-text text-transparent">Smart parking lot</span>
               </h1>
               <p className="mt-5 text-sm text-slate-400 leading-relaxed max-w-lg font-semibold">
@@ -393,9 +392,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
                       whileHover={{ scale: 1.05, borderColor: 'rgba(249,115,22,0.3)' }}
                       whileTap={{ scale: 0.95 }}
                       className="px-6 py-3 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 hover:bg-slate-900/60 inline-flex items-center"
-                    >
-                      Xem hồ sơ cá nhân
-                    </motion.button>
+                    >View profile</motion.button>
                   </>
                 ) : (
                   <>
@@ -411,9 +408,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
                       whileHover={{ scale: 1.05, borderColor: 'rgba(249,115,22,0.3)' }}
                       whileTap={{ scale: 0.95 }}
                       className="px-6 py-3 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 hover:bg-slate-900/60 inline-flex items-center"
-                    >
-                      Đăng ký tài khoản
-                    </motion.a>
+                    >Sign up</motion.a>
                   </>
                 )}
               </div>
@@ -430,8 +425,8 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
             >
               <div className="glass-premium glow-border-pulse p-8 rounded-3xl relative overflow-hidden shadow-2xl">
                 <div className="absolute -right-12 -top-12 h-36 w-36 rounded-full bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.12),transparent_70%)] pointer-events-none blur-2xl" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-cyan-400 font-mono">Đặc Điểm Vượt Trội</span>
-                <h2 className="text-2xl md:text-3xl font-black mt-2 text-white">Quản lý tầng & slot thông minh</h2>
+                <span className="text-[10px] font-black uppercase tracking-widest text-cyan-400 font-mono">Outstanding Features</span>
+                <h2 className="text-2xl md:text-3xl font-black mt-2 text-white">Smart floor & slot management</h2>
                 <p className="mt-3 text-sm text-slate-400 font-semibold leading-relaxed">
                   Hệ thống lập bản đồ 3D thời gian thực. Giám sát chính xác từng vị trí đỗ (Slot) theo từng tầng (Floor), hiển thị trực quan trạng thái Trống/Đầy và tự động định tuyến xe thông minh.
                 </p>
@@ -463,8 +458,8 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
             >
               <div className="glass-premium glow-border-pulse p-8 rounded-3xl relative overflow-hidden shadow-2xl">
                 <div className="absolute -left-12 -bottom-12 h-36 w-36 rounded-full bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.1),transparent_70%)] pointer-events-none blur-2xl" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-orange-400 font-mono">Tự Động Hóa Check-In</span>
-                <h2 className="text-2xl md:text-3xl font-black mt-2 text-white">Kiểm soát ra vào tự động 24/7</h2>
+                <span className="text-[10px] font-black uppercase tracking-widest text-orange-400 font-mono">Check-In Automation</span>
+                <h2 className="text-2xl md:text-3xl font-black mt-2 text-white">Automated 24/7 access control</h2>
                 <p className="mt-3 text-sm text-slate-400 font-semibold leading-relaxed">
                   Nhận diện biển số, quét RFID thẻ thông minh và vận hành thanh chắn cổng soát vé (Gate) hoàn toàn tự động. Đẩy nhanh thời gian check-in/out xuống dưới 2 giây, giảm thiểu ùn tắc.
                 </p>
@@ -522,8 +517,8 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
             <div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-orange-400 font-mono">Tính Năng Hệ Thống</span>
-              <h2 className="text-2xl md:text-3xl font-black mt-2 text-white">Các module giải pháp trọng tâm</h2>
+              <span className="text-[10px] font-black uppercase tracking-widest text-orange-400 font-mono">System Features</span>
+              <h2 className="text-2xl md:text-3xl font-black mt-2 text-white">Core solution modules</h2>
               <p className="text-sm text-slate-400 font-semibold mt-2">Đồng bộ dữ liệu đa phân khu, phân quyền linh hoạt theo luồng người dùng.</p>
             </div>
           </div>
@@ -591,8 +586,8 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
       <section id="dich-vu" className="py-20 relative z-10 bg-slate-950/40">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center max-w-xl mx-auto mb-12">
-            <span className="text-[10px] font-black uppercase tracking-widest text-purple-400 font-mono">Dịch Vụ Gia Tăng</span>
-            <h2 className="text-2xl md:text-3xl font-black mt-2 text-white">Mở rộng theo lộ trình vận hành</h2>
+            <span className="text-[10px] font-black uppercase tracking-widest text-purple-400 font-mono">Value-Added Services</span>
+            <h2 className="text-2xl md:text-3xl font-black mt-2 text-white">Scale along your operational roadmap</h2>
             <p className="text-sm text-slate-400 font-semibold mt-2">Đáp ứng đầy đủ sự gia tăng lưu lượng và quy mô quản lý bãi đỗ trong tương lai.</p>
           </div>
 
@@ -631,8 +626,8 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
       <section className="py-16 relative z-10 border-t border-white/5 bg-gradient-to-b from-slate-950 to-slate-900">
         <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-6">
           <div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-orange-400 font-mono">Bắt Đầu Trải Nghiệm</span>
-            <h2 className="text-2xl font-black mt-1 text-white">Triển khai bãi đỗ xe thông minh toàn diện</h2>
+            <span className="text-[10px] font-black uppercase tracking-widest text-orange-400 font-mono">Get Started</span>
+            <h2 className="text-2xl font-black mt-1 text-white">Deploy a complete smart parking solution</h2>
           </div>
           <div className="flex gap-4">
             <a href="/auth/register" className="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider hover:shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all duration-200">Create account</a>
@@ -651,7 +646,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
           <div>
             <p className="text-sm font-black text-white tracking-wider font-mono">PBMS PLATFORM</p>
             <h3 className="mt-3 text-xs leading-relaxed font-semibold">Hệ thống quản lý bãi đỗ xe chuyên nghiệp dành cho tòa nhà và tổ chức doanh nghiệp lớn.</h3>
-            <p className="mt-2 text-[10px] text-slate-500 font-mono">Phiên bản UI V2.5.0 - Cyberpunk Glassmorphism</p>
+            <p className="mt-2 text-[10px] text-slate-500 font-mono">UI version V2.5.0 - Cyberpunk Glassmorphism</p>
           </div>
 
           <div>

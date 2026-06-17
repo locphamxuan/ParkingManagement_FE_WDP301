@@ -551,9 +551,7 @@ export default function LongTermSubscriptionsPage() {
             onClick={() => navigate('/')}
             className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-slate-950 px-4 py-2 text-xs font-black uppercase tracking-wider text-orange-300 hover:border-orange-400/50"
           >
-            <ArrowLeft size={14} />
-            Trang chủ
-          </button>
+            <ArrowLeft size={14} />Home</button>
         </motion.div>
 
         {/* Title */}

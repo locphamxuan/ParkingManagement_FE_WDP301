@@ -96,7 +96,7 @@ export function ManagerProfilePage() {
             <User size={20} className="text-amber-400" />
           </div>
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-500 font-mono">Quản lý vận hành</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-500 font-mono">Operations management</p>
             <h1 className="text-xl font-bold text-white mt-0.5 tracking-tight">Profile</h1>
           </div>
         </div>
@@ -107,8 +107,7 @@ export function ManagerProfilePage() {
               onClick={handleStartEdit}
               className="gap-2 rounded-xl border border-white/10 bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 hover:text-white px-6 h-11 text-xs font-black uppercase tracking-wider transition-all duration-300 hover:scale-[1.02] cursor-pointer"
             >
-              <Edit size={14} className="text-amber-400" /> Chỉnh sửa
-            </Button>
+              <Edit size={14} className="text-amber-400" />Edit</Button>
           )}
           <Button
             variant="ghost"

@@ -159,8 +159,7 @@ export function AdminProfilePage() {
               onClick={handleStartEdit}
               className="gap-2 rounded-xl border border-white/10 bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 hover:text-white px-6 h-11 text-xs font-black uppercase tracking-wider transition-all duration-300 hover:scale-[1.02] cursor-pointer"
             >
-              <Edit size={14} className="text-rose-400" /> Chỉnh sửa
-            </Button>
+              <Edit size={14} className="text-rose-400" />Edit</Button>
           )}
           <Button
             variant="ghost"

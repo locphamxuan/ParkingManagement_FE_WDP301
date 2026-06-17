@@ -435,7 +435,7 @@ export default function ProfilePage() {
             <div className="grid gap-3 sm:grid-cols-2">
               {subscriptions.map((s) => {
                 const statusMap: Record<string, { label: string; cls: string }> = {
-                  active: { label: 'Đang hoạt động', cls: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
+                  active: { label: 'Active', cls: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
                   pending: { label: 'Chờ kích hoạt', cls: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
                   expired: { label: 'Expired', cls: 'bg-slate-500/10 text-slate-400 border-slate-500/20' },
                   cancelled: { label: 'Cancelled', cls: 'bg-rose-500/10 text-rose-400 border-rose-500/20' },

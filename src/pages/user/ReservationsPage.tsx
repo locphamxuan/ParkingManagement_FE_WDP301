@@ -459,8 +459,7 @@ export default function ReservationsPage() {
           <button type="button" onClick={() => navigate('/')}
             className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-xs font-black uppercase tracking-wider text-slate-300 transition hover:border-orange-300/30 hover:text-orange-200"
           >
-            <ArrowLeft size={14} /> Trang chủ
-          </button>
+            <ArrowLeft size={14} />Home</button>
           <div className="flex gap-2">
             <button type="button" onClick={() => setShowHistory(true)}
               className="inline-flex items-center gap-2 rounded-xl border border-yellow-500/20 bg-yellow-500/5 px-4 py-2 text-xs font-black uppercase tracking-wider text-yellow-400 transition hover:border-yellow-400/40 hover:bg-yellow-500/10 hover:text-yellow-300"

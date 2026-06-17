@@ -57,7 +57,7 @@ export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps
         }
         setError(null);
       } catch {
-        if (!cancelled) setError('Không thể truy cập camera biển số. Vui lòng cấp quyền.');
+        if (!cancelled) setError('Cannot access the plate camera. Please grant permission.');
       }
     })();
 

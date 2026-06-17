@@ -356,9 +356,7 @@ export default function BuildingsPage() {
             onClick={() => navigate('/')}
             className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-xs font-black uppercase tracking-wider text-orange-300/90 transition hover:border-orange-400/30 hover:bg-orange-400/5"
           >
-            <ArrowLeft size={14} />
-            Trang chủ
-          </button>
+            <ArrowLeft size={14} />Home</button>
           <div className="hidden items-center gap-2 text-xs font-bold text-slate-500 sm:flex">
             <PhoneCall size={14} className="text-emerald-400/60" />
             Hỗ trợ 1900 636 447

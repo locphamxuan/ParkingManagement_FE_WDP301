@@ -315,8 +315,7 @@ export default function WalletPage() {
             onClick={() => navigate('/')}
             className="inline-flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-xs font-black uppercase tracking-wider text-orange-400 transition-all duration-300 hover:border-orange-500/40 hover:bg-orange-500/10 active:scale-95"
           >
-            <ArrowLeft size={14} /> Trang chủ
-          </button>
+            <ArrowLeft size={14} />Home</button>
           <div className="flex items-center gap-2">
             <button
               type="button"

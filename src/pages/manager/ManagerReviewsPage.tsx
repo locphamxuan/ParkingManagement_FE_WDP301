@@ -56,7 +56,7 @@ export function ManagerReviewsPage() {
 
   const handleReplySubmit = async () => {
     if (!replyForm.staffReply.trim()) {
-      alert('Vui lòng nhập phản hồi');
+      alert('Please enter a response');
       return;
     }
 
@@ -122,7 +122,7 @@ export function ManagerReviewsPage() {
     },
     {
       key: 'rating',
-      title: 'Đánh giá',
+      title: 'Rating',
       render: (item) => (
         <div className="flex items-center gap-1">
           {Array.from({ length: 5 }).map((_, i) => (
@@ -138,7 +138,7 @@ export function ManagerReviewsPage() {
     },
     {
       key: 'comment',
-      title: 'Bình luận',
+      title: 'Comment',
       render: (item) => (
         <p className="line-clamp-2 text-sm text-slate-300">{item.comment}</p>
       ),
@@ -183,7 +183,7 @@ export function ManagerReviewsPage() {
           className="text-xs hover:bg-orange-500/10"
         >
           <MessageSquare size={14} className="mr-1" />
-          {item.status === 'resolved' ? 'Chỉnh sửa' : 'Trả lời'}
+          {item.status === 'resolved' ? 'Edit' : 'Reply'}
         </Button>
       ),
     },
@@ -194,12 +194,12 @@ export function ManagerReviewsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-100">Xem Đánh giá</h1>
-          <p className="mt-1 text-sm text-slate-400">Quản lý và trả lời đánh giá từ người dùng</p>
+          <h1 className="text-2xl font-bold text-slate-100">Reviews</h1>
+          <p className="mt-1 text-sm text-slate-400">Manage and reply to user reviews</p>
         </div>
         <div className="text-right">
           <div className="text-3xl font-bold text-orange-500">{filteredReviews.length}</div>
-          <p className="text-xs text-slate-400">tổng số đánh giá</p>
+          <p className="text-xs text-slate-400">total reviews</p>
         </div>
       </div>
 
@@ -207,7 +207,7 @@ export function ManagerReviewsPage() {
       <div className="flex flex-col gap-4 rounded-xl border border-white/8 bg-slate-800/30 p-4 md:flex-row md:items-center md:justify-between">
         <div className="flex-1">
           <Input
-            placeholder="Tìm kiếm theo tên, email, biển số hoặc nội dung..."
+            placeholder="Search by name, email, plate or content..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="max-w-md"
@@ -250,10 +250,10 @@ export function ManagerReviewsPage() {
         ) : filteredReviews.length === 0 ? (
           <div className="py-12 text-center">
             <MessageSquare size={32} className="mx-auto mb-2 text-slate-600" />
-            <p className="text-slate-400">Không có đánh giá nào</p>
+            <p className="text-slate-400">No reviews</p>
           </div>
         ) : (
-          <DataTable title="Danh sách đánh giá" columns={columns} rows={filteredReviews} />
+          <DataTable title="Reviews list" columns={columns} rows={filteredReviews} />
         )}
       </div>
 
@@ -261,15 +261,15 @@ export function ManagerReviewsPage() {
       <Modal isOpen={replyModalOpen} onClose={() => !replying && setReplyModalOpen(false)}>
         <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto">
           <div className="border-b border-white/8 p-6">
-            <h2 className="text-xl font-bold text-slate-100">Trả lời đánh giá</h2>
+            <h2 className="text-xl font-bold text-slate-100">Reply to review</h2>
             {selectedReview && (
               <div className="mt-4 space-y-3 rounded-lg bg-slate-800/40 p-4">
                 <div>
-                  <p className="text-xs font-semibold text-slate-400">NGƯỜI DÙNG</p>
+                  <p className="text-xs font-semibold text-slate-400">USER</p>
                   <p className="mt-1 font-medium text-slate-100">{selectedReview.user.fullName}</p>
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-slate-400">ĐÁNH GIÁ</p>
+                  <p className="text-xs font-semibold text-slate-400">RATING</p>
                   <div className="mt-1 flex items-center gap-2">
                     {Array.from({ length: 5 }).map((_, i) => (
                       <Star
@@ -293,15 +293,13 @@ export function ManagerReviewsPage() {
 
           <div className="space-y-4 p-6">
             <div>
-              <label className="block text-sm font-semibold text-slate-200 mb-2">
-                Phản hồi của bạn *
-              </label>
+              <label className="block text-sm font-semibold text-slate-200 mb-2">Your response *</label>
               <textarea
                 value={replyForm.staffReply}
                 onChange={(e) =>
                   setReplyForm({ ...replyForm, staffReply: e.target.value })
                 }
-                placeholder="Nhập phản hồi cho đánh giá này..."
+                placeholder="Enter a response to this review..."
                 rows={5}
                 className="w-full rounded-lg border border-white/10 bg-slate-800/60 px-4 py-2 text-slate-100 placeholder-slate-500 focus:border-orange-500/50 focus:outline-none focus:ring-1 focus:ring-orange-500/20"
               />
@@ -318,7 +316,7 @@ export function ManagerReviewsPage() {
                 disabled={replying || !replyForm.staffReply.trim()}
                 className="bg-orange-500 hover:bg-orange-600"
               >
-                {replying ? 'Sending...' : 'Gửi phản hồi'}
+                {replying ? 'Sending...' : 'Submit response'}
               </Button>
             </div>
           </div>

@@ -87,7 +87,7 @@ export function SlotSelectionModal({
                 !selectedFloorIdModal ? (
                   <div className="flex flex-col items-center justify-center py-20 text-slate-400">
                     <MapPin size={36} className="text-slate-600 mb-3 animate-pulse" />
-                    <span className="text-sm font-medium">Vui lòng chọn tầng để hiển thị sơ đồ ô đỗ</span>
+                    <span className="text-sm font-medium">Please select a floor to view the slot map</span>
                   </div>
                 ) : isLoadingSlots ? (
                   <div className="flex flex-col items-center justify-center py-20 text-slate-400">

@@ -131,12 +131,12 @@ export function ManagerPricingPage() {
       await managerApi.pricePolicies.deactivate(buildingId, row._id);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Thất bại');
+      alert(err instanceof Error ? err.message : 'Failed');
     }
   };
 
   const columns: DataColumn<PricePolicy>[] = [
-    { key: 'name', title: 'Tên chính sách' },
+    { key: 'name', title: 'Policy name' },
     {
       key: 'vehicleType',
       title: 'Vehicle type',
@@ -149,12 +149,12 @@ export function ManagerPricingPage() {
     },
     {
       key: 'hourlyRate',
-      title: 'Giá/giờ',
+      title: 'Price/hour',
       render: (row) => `${row.hourlyRate.toLocaleString('vi-VN')} đ`,
     },
     {
       key: 'timeWindow',
-      title: 'Khung giờ',
+      title: 'Time range',
       render: (row) =>
         row.timeWindow ? `${row.timeWindow.from} – ${row.timeWindow.to}` : '—',
     },
@@ -196,7 +196,7 @@ export function ManagerPricingPage() {
       <ModalForm
         open={modalOpen}
         onOpenChange={setModalOpen}
-        title={editing ? 'Sửa chính sách giá' : 'Create pricing policy'}
+        title={editing ? 'Edit pricing policy' : 'Create pricing policy'}
         onSubmit={onSubmit}
       >
         <div className="grid gap-3 md:grid-cols-2">
@@ -213,7 +213,7 @@ export function ManagerPricingPage() {
               value={form.vehicleType}
               onChange={(val) => setForm((f) => ({ ...f, vehicleType: val }))}
               options={[
-                { value: '', label: 'Chọn loại xe' },
+                { value: '', label: 'Select vehicle type' },
                 ...vts.map((vt) => ({
                   value: vt._id,
                   label: `${vt.code} - ${vt.name}`,
@@ -234,7 +234,7 @@ export function ManagerPricingPage() {
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Giá/giờ (VND)</label>
+            <label className="text-xs uppercase text-muted-foreground">Price/hour (VND)</label>
             <Input
               type="number"
               min={0}
@@ -250,7 +250,7 @@ export function ManagerPricingPage() {
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Đến</label>
+            <label className="text-xs uppercase text-muted-foreground">To</label>
             <TimePicker
               value={form.toTime}
               onChange={(val) => setForm((f) => ({ ...f, toTime: val }))}
@@ -260,20 +260,20 @@ export function ManagerPricingPage() {
             “Giờ thường” áp dụng mặc định; “Cao điểm” áp dụng trong khung giờ Từ–Đến. Phí = tổng giờ đỗ × giá/giờ theo khung.
           </p>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Hiệu lực từ</label>
+            <label className="text-xs uppercase text-muted-foreground">Effective from</label>
             <DatePicker
               value={form.effectiveFrom}
               onChange={(val) => setForm((f) => ({ ...f, effectiveFrom: val }))}
             />
-            <p className="text-[11px] text-muted-foreground">Để trống = áp dụng ngay.</p>
+            <p className="text-[11px] text-muted-foreground">Leave empty = apply immediately.</p>
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Hiệu lực đến</label>
+            <label className="text-xs uppercase text-muted-foreground">Effective to</label>
             <DatePicker
               value={form.effectiveTo}
               onChange={(val) => setForm((f) => ({ ...f, effectiveTo: val }))}
             />
-            <p className="text-[11px] text-muted-foreground">Để trống = không giới hạn.</p>
+            <p className="text-[11px] text-muted-foreground">Leave empty = no limit.</p>
           </div>
           <label className="flex items-center gap-2 text-sm md:col-span-2">
             <input
@@ -281,7 +281,7 @@ export function ManagerPricingPage() {
               checked={form.isActive}
               onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))}
             />
-            <span>Đang áp dụng</span>
+            <span>Active</span>
           </label>
         </div>
       </ModalForm>

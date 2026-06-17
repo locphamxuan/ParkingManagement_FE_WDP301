@@ -10,7 +10,7 @@ export default function Footer() {
         <div className="space-y-3">
           <h4>Quick links</h4>
           <ul>
-            <li><a href="/">Trang chủ</a></li>
+            <li><a href="/">Home</a></li>
             <li><a href="/auth/login">Sign in</a></li>
             <li><a href="/auth/register">Register</a></li>
             <li><a href="/">My profile</a></li>

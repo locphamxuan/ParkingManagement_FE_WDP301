@@ -58,7 +58,7 @@ function Slot3DBox({
     },
     occupied: {
       faceColor: 'bg-red-500/25 border-red-500/45 text-red-300',
-      label: 'Có xe',
+      label: 'Occupied',
       glow: 'shadow-[0_0_14px_rgba(239,68,68,0.35),0_0_4px_rgba(239,68,68,0.15)] hover:shadow-[0_0_28px_rgba(239,68,68,0.65),0_0_8px_rgba(239,68,68,0.3)]'
     },
     reserved: {
@@ -78,7 +78,7 @@ function Slot3DBox({
 
   // Resolve vehicle type name
   const vtName = useMemo(() => {
-    if (!slot.vehicleType) return '— Không cố định —';
+    if (!slot.vehicleType) return '— Not fixed —';
     if (typeof slot.vehicleType === 'object') return slot.vehicleType.name;
     const found = vehicleTypes.find(v => v._id === slot.vehicleType);
     return found ? found.name : 'Vehicle type';
@@ -260,7 +260,7 @@ export function ManagerSlotsPage() {
 
   const onSubmit = async () => {
     if (!form.floor) {
-      alert('Chọn tầng trước');
+      alert('Select a floor first');
       return;
     }
     const payload = {
@@ -316,7 +316,7 @@ export function ManagerSlotsPage() {
       await managerApi.slots.updateStatus(buildingId, row._id, status);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Cập nhật thất bại');
+      alert(err instanceof Error ? err.message : 'Update failed');
     }
   };
 
@@ -333,12 +333,12 @@ export function ManagerSlotsPage() {
     },
     {
       key: 'vehicleType',
-      title: 'Loại xe (theo tầng)',
+      title: 'Vehicle type (by floor)',
       render: (row) => {
         const id = typeof row.floor === 'string' ? row.floor : row.floor._id;
         const fl = floorMap.get(id);
         const types = (fl?.allowedVehicleTypes ?? []) as Array<{ code?: string } | string>;
-        if (!types.length) return 'Mọi loại';
+        if (!types.length) return 'All types';
         return types.map((t) => (typeof t === 'object' ? t.code : t)).filter(Boolean).join(', ');
       },
     },
@@ -359,7 +359,7 @@ export function ManagerSlotsPage() {
     },
     {
       key: 'reservable',
-      title: 'Cho đặt',
+      title: 'Reservable',
       render: (row) => (row.reservable ? 'Yes' : 'No'),
     },
     {
@@ -388,7 +388,7 @@ export function ManagerSlotsPage() {
             value={floorFilter}
             onChange={setFloorFilter}
             options={[
-              { value: '', label: 'Tất cả tầng' },
+              { value: '', label: 'All floors' },
               ...floors.map((f) => ({
                 value: f._id,
                 label: f.code,
@@ -401,10 +401,10 @@ export function ManagerSlotsPage() {
             value={statusFilter}
             onChange={setStatusFilter}
             options={[
-              { value: '', label: 'Tất cả trạng thái' },
+              { value: '', label: 'All statuses' },
               ...SLOT_STATUSES.map((s) => ({
                 value: s,
-                label: s === 'available' ? 'Trống (Green)' : s === 'occupied' ? 'Đầy (Orange)' : s === 'reserved' ? 'Đặt chỗ (Blue)' : 'Bảo trì (Amber)',
+                label: s === 'available' ? 'Available (Green)' : s === 'occupied' ? 'Full (Orange)' : s === 'reserved' ? 'Reserved (Blue)' : 'Maintenance (Amber)',
               })),
             ]}
             className="w-48"
@@ -636,7 +636,7 @@ export function ManagerSlotsPage() {
       <ModalForm
         open={modalOpen}
         onOpenChange={setModalOpen}
-        title={editing ? 'Sửa ô đỗ' : 'Add slot'}
+        title={editing ? 'Edit slot' : 'Add slot'}
         onSubmit={onSubmit}
       >
         <div className="grid gap-4 md:grid-cols-2 text-slate-100">

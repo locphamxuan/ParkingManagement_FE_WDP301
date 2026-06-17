@@ -126,8 +126,7 @@ export function ManagerShiftsPage() {
     <div className="grid gap-4">
       <div className="flex justify-end">
         <Button onClick={openCreate} className="gap-2">
-          <Plus size={14} /> Thêm ca
-        </Button>
+          <Plus size={14} />Add shift</Button>
       </div>
       {loading ? (
         <div className="text-sm text-muted-foreground">Loading...</div>
@@ -140,7 +139,7 @@ export function ManagerShiftsPage() {
       <ModalForm
         open={modalOpen}
         onOpenChange={setModalOpen}
-        title={editing ? 'Sửa ca trực' : 'Thêm ca trực'}
+        title={editing ? 'Edit shift' : 'Add shift'}
         onSubmit={onSubmit}
       >
         <div className="grid gap-3 md:grid-cols-2">

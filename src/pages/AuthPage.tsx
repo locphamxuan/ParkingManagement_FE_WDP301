@@ -356,7 +356,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
 
     // Validation: Độ dài mật khẩu >= 6
     if (newPassword.length < 6) {
-      setLocalNotice({ message: 'Mật khẩu phải có ít nhất 6 ký tự!', type: 'error' });
+      setLocalNotice({ message: 'Password must be at least 6 characters!', type: 'error' });
       return;
     }
 
@@ -374,7 +374,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
       localStorage.removeItem('pbms.forgotEmail_pending');
 
       setModal({
-        title: 'Đặt lại mật khẩu thành công',
+        title: 'Password reset successfully',
         message: 'Mật khẩu của bạn đã được cập nhật. Vui lòng đăng nhập bằng mật khẩu mới.',
         type: 'success',
         next: () => {
@@ -386,7 +386,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
       });
     } catch (error) {
       setModal({
-        title: 'Đặt lại mật khẩu thất bại',
+        title: 'Password reset failed',
         message:
           error instanceof Error
             ? error.message
@@ -674,10 +674,9 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
             >
               <div className="flex items-center gap-2.5">
                 <AlertCircle size={16} className="shrink-0 stroke-[2.5]" />
-                <span>Tài khoản đã bị tạm khóa đăng nhập</span>
+                <span>Account is temporarily locked</span>
               </div>
-              <p className="text-[10px] text-slate-400 font-sans tracking-normal font-semibold normal-case leading-relaxed">
-                Nhập sai mật khẩu quá 5 lần. Vui lòng quay lại sau: <span className="text-rose-400 font-black font-mono">{Math.floor(lockTimeLeft / 60)} phút {lockTimeLeft % 60} giây</span>.
+              <p className="text-[10px] text-slate-400 font-sans tracking-normal font-semibold normal-case leading-relaxed">Wrong password more than 5 times. Please come back later:<span className="text-rose-400 font-black font-mono">{Math.floor(lockTimeLeft / 60)} phút {lockTimeLeft % 60} giây</span>.
               </p>
             </motion.div>
           ) : (localNotice || notice)?.message ? (
@@ -698,7 +697,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
           {mode === 'forgot-password' ? (
             <form onSubmit={handleForgotPassword} className="space-y-4">
               <div className="space-y-2 mb-4">
-                <h3 className="text-sm font-bold text-foreground">Nhập email để khôi phục mật khẩu</h3>
+                <h3 className="text-sm font-bold text-foreground">Enter your email to recover your password</h3>
                 <p className="text-xs text-slate-400">
                   Chúng tôi sẽ gửi link đặt lại mật khẩu đến email của bạn.
                 </p>
@@ -735,7 +734,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                   whileTap={{ scale: 0.96 }}
                   className="flex-1 h-11 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider hover:shadow-[0_0_25px_rgba(249,115,22,0.45)] disabled:opacity-50 transition-all"
                 >
-                  {isLoading ? 'Sending...' : 'Gửi link đặt lại'}
+                  {isLoading ? 'Sending...' : 'Send reset link'}
                 </motion.button>
               </div>
             </form>
@@ -878,9 +877,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                   ref={dropdownRef}
                   className="absolute left-0 right-0 top-[68px] z-50 rounded-xl border border-white/10 bg-slate-950/95 shadow-2xl backdrop-blur-md overflow-hidden py-1.5 animate-fadeIn"
                 >
-                  <div className="px-3.5 py-1.5 border-b border-white/5 text-[9px] font-mono text-slate-500 tracking-wider uppercase font-black">
-                    Tài khoản đã lưu
-                  </div>
+                  <div className="px-3.5 py-1.5 border-b border-white/5 text-[9px] font-mono text-slate-500 tracking-wider uppercase font-black">Saved accounts</div>
                   {savedAccounts.map((acc) => (
                     <div
                       key={acc.email}
@@ -892,7 +889,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                         type="button"
                         onMouseDown={(e) => deleteSavedAccount(e, acc.email)}
                         className="p-1 rounded text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all duration-200"
-                        title="Xóa tài khoản này"
+                        title="Delete this account"
                       >
                         <X size={12} className="stroke-[3]" />
                       </button>
@@ -932,9 +929,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                   type="button"
                   onClick={() => onModeChange('forgot-password')}
                   className="text-xs font-semibold text-slate-400 hover:text-orange-400 transition-colors"
-                >
-                  Quên mật khẩu?
-                </button>
+                >Forgot password?</button>
               </div>
             )}
 
@@ -989,7 +984,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                   onClick={() => onModeChange(mode === 'login' ? 'register' : 'login')} 
                   className="text-xs font-bold text-slate-400 hover:text-orange-400 underline transition-colors"
                 >
-                  {mode === 'login' ? 'Tạo tài khoản mới' : 'Đã có tài khoản? Đăng nhập'}
+                  {mode === 'login' ? 'Create new account' : 'Already have an account? Sign in'}
                 </button>
               </div>
             </div>

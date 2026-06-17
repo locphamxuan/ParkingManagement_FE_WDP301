@@ -113,10 +113,10 @@ export function ManagerFloorsPage() {
   const columns: DataColumn<Floor>[] = useMemo(
     () => [
       { key: 'code', title: 'Floor code' },
-      { key: 'capacity', title: 'Sức chứa' },
+      { key: 'capacity', title: 'Capacity' },
       {
         key: 'allowedVehicleTypes',
-        title: 'Loại xe cho phép',
+        title: 'Allowed vehicle types',
         render: (row) =>
           row.allowedVehicleTypes
             .map((v) => (typeof v === 'string' ? v : `${v.code}`))
@@ -161,7 +161,7 @@ export function ManagerFloorsPage() {
       <ModalForm
         open={modalOpen}
         onOpenChange={setModalOpen}
-        title={editing ? 'Sửa tầng' : 'Add floor'}
+        title={editing ? 'Edit floor' : 'Add floor'}
         onSubmit={onSubmit}
       >
         <div className="grid gap-3 md:grid-cols-2">
@@ -173,7 +173,7 @@ export function ManagerFloorsPage() {
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Sức chứa</label>
+            <label className="text-xs uppercase text-muted-foreground">Capacity</label>
             <Input
               type="number"
               min={0}
@@ -194,10 +194,10 @@ export function ManagerFloorsPage() {
             />
           </div>
           <div className="grid gap-1.5 md:col-span-2">
-            <label className="text-xs uppercase text-muted-foreground">Loại xe được phép</label>
+            <label className="text-xs uppercase text-muted-foreground">Allowed vehicle types</label>
             <div className="flex flex-wrap gap-2">
               {vehicleTypes.length === 0 ? (
-                <p className="text-xs text-muted-foreground">Chưa có loại xe. Hãy tạo trước.</p>
+                <p className="text-xs text-muted-foreground">No vehicle types yet. Please create one first.</p>
               ) : (
                 vehicleTypes.map((vt) => {
                   const active = form.allowedVehicleTypes.includes(vt._id);

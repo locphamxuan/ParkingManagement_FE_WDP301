@@ -109,8 +109,7 @@ export function PlateQRModal({ isOpen, onClose, qrToken, plateNumber, brand }: P
 
                 <div className="rounded-2xl bg-purple-500/5 border border-purple-500/20 p-4">
                   <p className="text-xs text-purple-200 leading-relaxed font-semibold">
-                    🛵 <strong>Instructions:</strong>For staff use<strong>Camera 2 (Quét QR)</strong> quét mã này để nhận diện phương tiện khi không đọc được biển số.
-                  </p>
+                    🛵 <strong>Instructions:</strong>For staff use<strong>Camera 2 (Quét QR)</strong>scan this code to identify the vehicle when the plate cannot be read.</p>
                 </div>
 
                 <div className="flex gap-3">

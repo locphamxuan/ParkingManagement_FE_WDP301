@@ -718,9 +718,7 @@ export default function LongTermSubscriptionsPage() {
                         )}
 
                         {isPendingOrActive && !canCancel && (
-                          <p className="mt-2 text-[10px] text-slate-400/80 italic leading-relaxed border-t border-white/5 pt-1.5">
-                            Quá thời hạn tự hủy (3 ngày). Vui lòng liên hệ Admin để hỗ trợ.
-                          </p>
+                          <p className="mt-2 text-[10px] text-slate-400/80 italic leading-relaxed border-t border-white/5 pt-1.5">Past the auto-cancel window (3 days). Please contact Admin for support.</p>
                         )}
                       </div>
                     );

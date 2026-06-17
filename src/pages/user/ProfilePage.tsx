@@ -220,7 +220,7 @@ export default function ProfilePage() {
     // Step 1: Format check
     const phoneRegex = /^0[0-9]{9}$/;
     if (!phoneRegex.test(newPhone)) {
-      setProfileError('Số điện thoại phải bắt đầu bằng số 0 và có đúng 10 chữ số!');
+      setProfileError('Phone number must start with 0 and be exactly 10 digits!');
       return;
     }
 
@@ -231,7 +231,7 @@ export default function ProfilePage() {
       : ['0911111111', '0922222222'];
 
     if (newPhone !== oldPhone && allRegisteredPhones.includes(newPhone)) {
-      setProfileError('Số điện thoại này đã được đăng ký bởi một tài khoản khác!');
+      setProfileError('This phone number is already registered by another account!');
       return;
     }
 
@@ -800,8 +800,7 @@ export default function ProfilePage() {
                     </AnimatePresence>
 
                     <p className="text-[9px] text-slate-500 font-semibold leading-relaxed">
-                      * Định dạng: 2 số + seri (1 chữ + 1 số như <span className="font-mono text-slate-400">G2</span>, hoặc 2 chữ như <span className="font-mono text-slate-400">LD</span>) + dấu gạch ngang + 4-5 số. Ví dụ: <span className="font-mono text-slate-400">59G2-03880</span>, <span className="font-mono text-slate-400">59G2-038.80</span>. Nhấn <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[8px]">Enter</kbd> hoặc nút Thêm để xác nhận.
-                    </p>
+                      * Định dạng: 2 số + seri (1 chữ + 1 số như <span className="font-mono text-slate-400">G2</span>, or 2 letters like<span className="font-mono text-slate-400">LD</span>) + dấu gạch ngang + 4-5 số. Ví dụ: <span className="font-mono text-slate-400">59G2-03880</span>, <span className="font-mono text-slate-400">59G2-038.80</span>. Nhấn <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[8px]">Enter</kbd>or the Add button to confirm.</p>
                   </div>
                 )}
                 {/* ── End License Plate Tag Manager ────────────── */}

@@ -264,7 +264,7 @@ export default function WalletPage() {
         setPendingTopUp(null);
         await refreshWallet();
       } else {
-        setMessage({ type: 'err', text: 'Chưa nhận được thanh toán. Vui lòng hoàn tất giao dịch và thử lại.' });
+        setMessage({ type: 'err', text: 'Payment not received yet. Please complete the transaction and try again.' });
       }
     } catch (err) {
       setMessage({ type: 'err', text: err instanceof Error ? err.message : 'Confirmation failed.' });
@@ -515,8 +515,7 @@ export default function WalletPage() {
         <section className="rounded-3xl border border-white/[0.06] bg-white/[0.02] p-6 shadow-glass backdrop-blur-xl">
           <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.06] pb-5">
             <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-white">
-              <ReceiptText size={16} className="text-cyan-400" /> Lịch sử giao dịch
-            </h2>
+              <ReceiptText size={16} className="text-cyan-400" />Transaction history</h2>
 
             {/* Sliding Pill Tab Filter */}
             <div className="relative flex rounded-2xl border border-white/[0.08] bg-slate-950/60 p-1">

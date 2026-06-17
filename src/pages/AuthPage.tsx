@@ -213,7 +213,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
       const phoneRegex = /^0[0-9]{9}$/;
       if (!phoneRegex.test(phoneTrimmed)) {
         setLocalNotice({
-          message: 'Số điện thoại phải bắt đầu bằng số 0 và có đúng 10 chữ số!',
+          message: 'Phone number must start with 0 and be exactly 10 digits!',
           type: 'error',
         });
         return;
@@ -226,7 +226,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
 
       if (allRegisteredPhones.includes(phoneTrimmed)) {
         setLocalNotice({
-          message: 'Số điện thoại này đã được đăng ký bởi một tài khoản khác!',
+          message: 'This phone number is already registered by another account!',
           type: 'error',
         });
         return;
@@ -282,7 +282,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
           localStorage.removeItem(`pbms.failedAttempts.${email}`);
           setLockTimeLeft(300);
           setLocalNotice({
-            message: 'Tài khoản đã bị tạm khóa 5 phút do nhập sai mật khẩu quá 5 lần!',
+            message: 'Account locked for 5 minutes due to more than 5 failed password attempts!',
             type: 'error',
           });
         } else {

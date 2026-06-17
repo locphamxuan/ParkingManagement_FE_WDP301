@@ -97,9 +97,7 @@ export const LivePortraitCamera = forwardRef<LiveCameraHandle, LivePortraitCamer
           )}
         </div>
 
-        <p className="text-center text-[11px] text-muted-foreground">
-          Ảnh chân dung được chụp khi check-in để đối chiếu lúc lấy xe.
-        </p>
+        <p className="text-center text-[11px] text-muted-foreground">The portrait photo is taken at check-in to verify when picking up the vehicle.</p>
 
         <canvas ref={canvasRef} className="hidden" />
       </div>

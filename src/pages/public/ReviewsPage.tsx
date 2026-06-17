@@ -287,7 +287,7 @@ export default function ReviewsPage() {
             <p className="mt-1.5 text-xs text-slate-500 leading-relaxed">
               {selectedBuilding !== 'all' || selectedRating !== 'all'
                 ? 'No reviews match the current filters.'
-                : 'Hãy là người đầu tiên gửi đánh giá trải nghiệm gửi xe của bạn!'}
+                : 'Be the first to review your parking experience!'}
             </p>
           </div>
         ) : (
@@ -445,7 +445,7 @@ export default function ReviewsPage() {
                 <CheckCircle size={32} />
               </div>
               <p className="font-black text-stone-850 text-base">Thank you for your review!</p>
-              <p className="text-xs text-stone-500">Ý kiến đóng góp đã được gửi lên hệ thống và đang chờ phê duyệt.</p>
+              <p className="text-xs text-stone-500">Your feedback has been submitted and is awaiting approval.</p>
             </div>
           ) : (
             <form onSubmit={handleSubmitFeedback} className="space-y-4">

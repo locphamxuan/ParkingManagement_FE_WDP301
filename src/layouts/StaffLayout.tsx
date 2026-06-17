@@ -267,9 +267,7 @@ export function StaffLayout() {
             {bootstrapping && !isProfileRoute ? (
               <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-slate-400">Loading...</div>
             ) : !selectedBuildingId && !isProfileRoute ? (
-              <div className="rounded-2xl border border-amber-500/20 bg-amber-500/8 p-6 text-sm text-amber-200">
-                Tài khoản này chưa được gán tòa nhà nào. Vui lòng liên hệ quản lý.
-              </div>
+              <div className="rounded-2xl border border-amber-500/20 bg-amber-500/8 p-6 text-sm text-amber-200">This account has not been assigned to any building. Please contact a manager.</div>
             ) : (
               <Outlet
                 context={{ buildingId: selectedBuildingId ?? '', building: selectedBuilding ?? null }}

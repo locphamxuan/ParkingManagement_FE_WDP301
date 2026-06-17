@@ -215,9 +215,7 @@ export function StaffDashboardPage() {
         <div className="max-w-sm rounded-3xl border border-amber-500/30 bg-amber-500/10 p-8 text-center backdrop-blur-md shadow-lg">
           <Building2 size={36} className="mx-auto mb-3 text-amber-400" />
           <p className="text-base font-extrabold text-amber-300">No building selected</p>
-          <p className="mt-1 text-sm text-slate-400 font-medium">
-            Vui lòng chọn tòa nhà từ menu bên trái để bắt đầu ca làm việc.
-          </p>
+          <p className="mt-1 text-sm text-slate-400 font-medium">Please select a building from the left menu to start your shift.</p>
         </div>
       </div>
     );

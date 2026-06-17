@@ -583,9 +583,7 @@ export function StaffOperationsPage() {
                   <p className="text-sm text-amber-200/90 leading-relaxed">
                     Hệ thống không tìm thấy tài khoản thành viên nào được liên kết với biển số <strong className="text-amber-400 font-mono">{scannedPlateInfo.plateNumber}</strong>.
                   </p>
-                  <p className="text-xs text-muted-foreground italic">
-                    Khách vãng lai — nhân viên xử lý check-in thủ công như bình thường.
-                  </p>
+                  <p className="text-xs text-muted-foreground italic">Guest — staff handle check-in manually as usual.</p>
                 </div>
               )}
 

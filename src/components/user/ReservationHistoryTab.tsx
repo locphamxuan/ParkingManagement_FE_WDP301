@@ -600,7 +600,7 @@ export function ReservationHistoryTab() {
                   try {
                     await userApi.longTermSubscriptions.cancel(cancellingSub._id, { cancelReason, cancelNote });
                     setSuccessMessage(
-                      'Hủy gói dài hạn thành công! Số tiền hoàn lại (95%) đã được cộng vào ví tài khoản.'
+                      'Long-term package cancelled! The refund (95%) has been credited to your wallet.'
                     );
                     load(page, activeMode, statusFilter);
                     setCancellingSub(null);

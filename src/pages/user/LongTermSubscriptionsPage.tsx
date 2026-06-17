@@ -282,9 +282,7 @@ function PackageSelectModal({
                     : ''}
                 </p>
               )}
-              <p className="text-[10px] text-slate-500">
-                Ô đỏ = đã có chủ (không chọn được). Bỏ trống = không giữ chỗ cố định.
-              </p>
+              <p className="text-[10px] text-slate-500">Red slot = already owned (not selectable). Leave empty = no dedicated slot.</p>
             </div>
           )}
 
@@ -690,9 +688,7 @@ export default function LongTermSubscriptionsPage() {
                           </p>
                         )}
                         {item.status === 'expired' && (
-                          <p className="mt-2 text-[10px] text-amber-400/90 leading-relaxed border-t border-white/5 pt-1.5">
-                            Gói đã hết hạn — đang tính phí theo giờ. Gia hạn để giữ chỗ cố định.
-                          </p>
+                          <p className="mt-2 text-[10px] text-amber-400/90 leading-relaxed border-t border-white/5 pt-1.5">Package expired — now charging hourly. Renew to keep your dedicated slot.</p>
                         )}
 
                         {/* Gia hạn: cho gói đang hoạt động, hoặc vừa hết hạn còn giữ slot (grace). */}
@@ -879,7 +875,7 @@ export default function LongTermSubscriptionsPage() {
                     await refreshSubscriptions();
                     setMessage({
                       type: 'success',
-                      text: 'Hủy gói dài hạn thành công! Số tiền hoàn lại (95%) đã được cộng vào ví tài khoản.',
+                      text: 'Long-term package cancelled! The refund (95%) has been credited to your wallet.',
                     });
                     setCancellingSub(null);
                     setCancelReason('change_slot');

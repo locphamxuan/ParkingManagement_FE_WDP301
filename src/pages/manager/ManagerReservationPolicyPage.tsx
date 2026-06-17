@@ -128,9 +128,7 @@ export function ManagerReservationPolicyPage() {
                 disabled
                 className="cursor-not-allowed opacity-70"
               />
-              <p className="text-[11px] text-muted-foreground">
-                Hệ thống tự tính = 100% − % đặt cọc. Khách thanh toán phần này khi xe ra (checkout).
-              </p>
+              <p className="text-[11px] text-muted-foreground">Auto-calculated = 100% − deposit %. The customer pays this portion at exit (checkout).</p>
             </div>
             <div className="grid gap-1.5">
               <label className="text-xs uppercase text-muted-foreground">Max advance booking (days)</label>
@@ -162,9 +160,7 @@ export function ManagerReservationPolicyPage() {
                   setForm((f) => ({ ...f, overstayPenaltyPercent: e.target.value }))
                 }
               />
-              <p className="text-[11px] text-muted-foreground">
-                Phụ phí phạt áp lên phần đỗ quá giờ đặt. 0 = chỉ thu theo giá thường, không phạt.
-              </p>
+              <p className="text-[11px] text-muted-foreground">Penalty surcharge applied to overstay time. 0 = charge normal rate only, no penalty.</p>
             </div>
             <label className="flex items-center gap-2 text-sm md:col-span-2">
               <input

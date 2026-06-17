@@ -45,7 +45,7 @@ export function ManagerOperatingHoursPage() {
     setSaving(true);
     try {
       await managerApi.updateOperatingHours(buildingId, { open, close });
-      setNotice({ type: 'ok', text: 'Đã cập nhật giờ hoạt động. Khách hàng sẽ thấy trạng thái mở/đóng theo giờ này.' });
+      setNotice({ type: 'ok', text: 'Operating hours updated. Customers will see the open/closed status based on these hours.' });
     } catch (err) {
       setNotice({ type: 'err', text: err instanceof Error ? err.message : 'Update failed.' });
     } finally {

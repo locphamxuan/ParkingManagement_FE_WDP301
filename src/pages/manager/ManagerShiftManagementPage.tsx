@@ -21,9 +21,7 @@ export function ManagerShiftManagementPage() {
     <div className="grid gap-5">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Shifts &amp; Assignments</h1>
-        <p className="text-sm text-muted-foreground">
-          Quản lý danh sách ca trực và phân công nhân viên vào ca (kèm cổng phụ trách).
-        </p>
+        <p className="text-sm text-muted-foreground">Manage shifts and assign staff to them (with their assigned gate).</p>
       </div>
 
       {/* Sub-tabs */}

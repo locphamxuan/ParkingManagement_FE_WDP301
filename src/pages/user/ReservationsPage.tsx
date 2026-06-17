@@ -393,7 +393,7 @@ export default function ReservationsPage() {
 
     if (mode === 'hourly') {
       if (startDateTime.getTime() < Date.now() - 5 * 60 * 1000) {
-        setBookingError('Thời gian nhận bãi không được ở trong quá khứ. Vui lòng chọn thời gian khác.');
+        setBookingError('The check-in time cannot be in the past. Please choose another time.');
         return;
       }
     }

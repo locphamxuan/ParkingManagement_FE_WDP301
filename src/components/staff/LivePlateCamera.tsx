@@ -104,7 +104,7 @@ export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps
         onDetected({ plateNumber, brand, plateImage: dataUrl });
         setTimeout(() => setSuccess(null), 2500);
       } else {
-        setError('Không đọc được biển số — dùng Camera 2 (QR) bên cạnh để nhận diện.');
+        setError('Cannot read the plate — use the adjacent Camera 2 (QR) to identify.');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'License plate recognition error');

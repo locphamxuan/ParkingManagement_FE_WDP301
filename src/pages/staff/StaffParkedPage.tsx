@@ -298,7 +298,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
       )}
 
       {!canCheckout && (
-        <div className="rounded-xl border border-sky-500/25 bg-sky-500/5 px-4 py-3 text-sm text-sky-300">Mode<strong>chỉ xem</strong> danh sách xe đang đỗ. Việc cho xe ra &amp; thu phí được thực hiện ở tab <strong>“Check-out xe ra”</strong>(exit-gate staff).</div>
+        <div className="rounded-xl border border-sky-500/25 bg-sky-500/5 px-4 py-3 text-sm text-sky-300">Mode<strong>chỉ xem</strong>the parked vehicles list. Releasing &amp; charging is done in the tab<strong>“Check-out xe ra”</strong>(exit-gate staff).</div>
       )}
 
       {opMessage && (
@@ -526,7 +526,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
               <div className="flex justify-between text-sm"><span className="text-muted-foreground">Plate number</span><span className="font-semibold text-foreground">{bankTransfer.plate}</span></div>
               <div className="flex justify-between text-sm"><span className="text-muted-foreground">Amount</span><span className="font-mono text-lg font-bold text-amber-400">{bankTransfer.amount.toLocaleString('vi-VN')} đ</span></div>
             </div>
-            <p className="mt-4 text-sm text-muted-foreground">Mở trang thanh toán và để khách quét QR. Sau khi khách chuyển khoản, nhấn <strong className="text-foreground">Confirm</strong>.</p>
+            <p className="mt-4 text-sm text-muted-foreground">Open the payment page and let the customer scan the QR. After they transfer, click<strong className="text-foreground">Confirm</strong>.</p>
             <Button onClick={() => window.open(bankTransfer.checkoutUrl, '_blank', 'noopener')} variant="secondary" className="mt-4 w-full gap-2">Open payment QR page</Button>
             <div className="mt-2 grid grid-cols-2 gap-2">
               <Button onClick={onVerifyBankTransfer} disabled={verifying} className="gap-2 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60">

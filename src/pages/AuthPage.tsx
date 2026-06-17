@@ -28,11 +28,11 @@ interface AuthPageProps {
 const promoPoints = [
   {
     title: 'Easy to use',
-    text: 'Biểu mẫu sáng rõ, thao tác nhanh và đồng bộ màu sắc với landing page trang chủ.',
+    text: 'Clean, fast forms with colors synced to the landing page.',
   },
   {
     title: 'Context-aware',
-    text: 'Hình nền bãi đỗ xe và tông màu cam kem giúp nhận diện rõ đây là hệ thống parking.',
+    text: 'The parking background and cream-orange tones clearly identify this as a parking system.',
   },
   {
     title: 'Secure access',
@@ -186,7 +186,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
   }, [mode]);
   const description = useMemo(() => {
     if (mode === 'reset-password')
-      return 'Nhập mật khẩu mới của bạn để hoàn tất quá trình đặt lại mật khẩu.';
+      return 'Enter your new password to complete the reset process.';
     if (mode === 'forgot-password')
       return 'Nhập địa chỉ email liên kết với tài khoản của bạn để nhận link đặt lại mật khẩu.';
     return mode === 'login'
@@ -375,7 +375,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
 
       setModal({
         title: 'Password reset successfully',
-        message: 'Mật khẩu của bạn đã được cập nhật. Vui lòng đăng nhập bằng mật khẩu mới.',
+        message: 'Your password has been updated. Please sign in with your new password.',
         type: 'success',
         next: () => {
           setResetPasswordForm({ newPassword: '', confirmPassword: '' });
@@ -390,7 +390,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
         message:
           error instanceof Error
             ? error.message
-            : 'Đặt lại mật khẩu thất bại. Vui lòng thử lại hoặc yêu cầu link mới.',
+            : 'Password reset failed. Please try again or request a new link.',
         type: 'error',
       });
     }
@@ -746,9 +746,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
               </div>
 
               <div className="space-y-1.5 relative">
-                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">
-                  Mật khẩu mới
-                </label>
+                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">New password</label>
                 <div className="relative">
                   <input 
                     type={showPassword ? "text" : "password"}

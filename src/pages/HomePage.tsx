@@ -69,7 +69,7 @@ const benefits = [
   {
     icon: Clock3,
     title: 'Real-time access control',
-    description: 'Theo dõi lượt xe, trạng thái bãi và phiên gửi ngay trên một màn hình vận hành trực quan.',
+    description: 'Track vehicle flow, lot status and sessions on a single visual operations screen.',
   },
   {
     icon: BarChart3,
@@ -317,9 +317,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
                 </div>
                 <div className="flex items-center gap-1.5 flex-1 min-w-0">
                   <AlertTriangle size={12} className="text-amber-400 flex-shrink-0" />
-                  <p className="text-[11px] font-semibold text-amber-200/90 truncate">
-                    Tài khoản chưa có biển số xe — Hệ thống không thể tự động check-in/out cho bạn.
-                  </p>
+                  <p className="text-[11px] font-semibold text-amber-200/90 truncate">The account has no plate — the system cannot auto check-in/out for you.</p>
                 </div>
                 <a
                   href="/profile"
@@ -519,7 +517,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
             <div>
               <span className="text-[10px] font-black uppercase tracking-widest text-orange-400 font-mono">System Features</span>
               <h2 className="text-2xl md:text-3xl font-black mt-2 text-white">Core solution modules</h2>
-              <p className="text-sm text-slate-400 font-semibold mt-2">Đồng bộ dữ liệu đa phân khu, phân quyền linh hoạt theo luồng người dùng.</p>
+              <p className="text-sm text-slate-400 font-semibold mt-2">Multi-zone data sync with flexible role-based permissions per user flow.</p>
             </div>
           </div>
 
@@ -588,7 +586,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
           <div className="text-center max-w-xl mx-auto mb-12">
             <span className="text-[10px] font-black uppercase tracking-widest text-purple-400 font-mono">Value-Added Services</span>
             <h2 className="text-2xl md:text-3xl font-black mt-2 text-white">Scale along your operational roadmap</h2>
-            <p className="text-sm text-slate-400 font-semibold mt-2">Đáp ứng đầy đủ sự gia tăng lưu lượng và quy mô quản lý bãi đỗ trong tương lai.</p>
+            <p className="text-sm text-slate-400 font-semibold mt-2">Fully supports future growth in traffic and parking management scale.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">

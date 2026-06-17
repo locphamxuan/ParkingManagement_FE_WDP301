@@ -196,9 +196,7 @@ export default function ReviewsPage() {
             <Sparkles size={11} />Real reviews</span>
           <h2 className="mt-3 text-3xl font-black text-white tracking-tight">What customers say about<span className="bg-gradient-to-r from-orange-400 to-amber-500 bg-clip-text text-transparent">us</span>
           </h2>
-          <p className="mt-2 text-sm text-slate-400 max-w-md mx-auto">
-            Hệ thống luôn ghi nhận phản hồi để không ngừng cải thiện chất lượng bãi đỗ xe.
-          </p>
+          <p className="mt-2 text-sm text-slate-400 max-w-md mx-auto">The system always records feedback to continuously improve parking quality.</p>
         </div>
 
         {/* Stats & Filters Box */}
@@ -449,9 +447,7 @@ export default function ReviewsPage() {
             </div>
           ) : (
             <form onSubmit={handleSubmitFeedback} className="space-y-4">
-              <p className="text-xs text-stone-500">
-                Ý kiến của bạn giúp chúng tôi cải thiện chất lượng bãi đỗ xe tốt hơn mỗi ngày.
-              </p>
+              <p className="text-xs text-stone-500">Your feedback helps us improve parking quality every day.</p>
 
               {/* Sessions Select */}
               <div className="space-y-1.5">

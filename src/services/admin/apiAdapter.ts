@@ -92,9 +92,9 @@ interface ManagerOverviewData {
 }
 
 const OPERATIONAL_GUARDRAILS = [
-  'Mã thẻ online phải gắn với tài khoản người dùng đã xác thực và biển số liên kết.',
-  'Khách walk-in chỉ được vào qua phiên gửi xe hợp lệ và đóng phí trước khi rời bãi.',
-  'Mọi thay đổi chính sách giá, khóa tài khoản, điều chỉnh phí đều phải có audit log.',
+  'An online card code must be tied to a verified user account and a linked plate.',
+  'Walk-in customers may only enter via a valid parking session and must pay before leaving.',
+  'Every pricing change, account lock and fee adjustment must have an audit log.',
 ];
 
 const METHOD_LABELS: Record<string, string> = {

@@ -749,8 +749,7 @@ export default function WalletPage() {
                 <div className="rounded-2xl border border-amber-500/10 bg-amber-500/[0.02] p-4 text-slate-400 flex items-start gap-3 shadow-inner">
                   <AlertCircle size={16} className="text-amber-400 shrink-0 mt-0.5 animate-pulse" />
                   <p className="text-[10px] leading-relaxed font-medium">
-                    <strong className="text-amber-300">Chú ý:</strong> Vui lòng thực hiện quét QR hoặc nhập chính xác thông tin chuyển khoản (bao gồm cả <strong className="text-white">Amount</strong>and<strong className="text-white">Nội dung</strong>) để hệ thống tự động nhận diện và ghi nhận số dư của bạn ngay lập tức.
-                  </p>
+                    <strong className="text-amber-300">Chú ý:</strong>Please scan the QR or enter the transfer details accurately (including<strong className="text-white">Amount</strong>and<strong className="text-white">Nội dung</strong>) so the system automatically detects and credits your balance immediately.</p>
                 </div>
               </div>
 

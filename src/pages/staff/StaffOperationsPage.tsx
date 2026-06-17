@@ -443,8 +443,7 @@ export function StaffOperationsPage() {
               </Button>
             </div>
             <div className="rounded-xl border border-border bg-card/50 p-4 text-xs text-muted-foreground">
-              <p className="font-semibold text-foreground mb-1">Exit / payment</p>
-              Việc thu phí &amp; cho xe ra do nhân viên cổng ra thực hiện. Xem danh sách tại tab <Link to="/staff/parked" className="font-semibold text-primary hover:underline">"Parked vehicles"</Link>.
+              <p className="font-semibold text-foreground mb-1">Exit / payment</p>Charging &amp; releasing vehicles is done by exit-gate staff. See the list in the tab<Link to="/staff/parked" className="font-semibold text-primary hover:underline">"Parked vehicles"</Link>.
             </div>
           </CardContent>
         </Card>
@@ -475,13 +474,12 @@ export function StaffOperationsPage() {
               </div>
               <button onClick={() => { setRejectOpen(false); setRejectReason(''); }} className="text-muted-foreground hover:text-foreground transition">✕</button>
             </div>
-            <p className="text-xs text-muted-foreground mb-3">Plate number<strong className="text-foreground font-mono">{normalizePlate(plateNumber) || plateNumber || '—'}</strong>. Hệ thống sẽ gửi thông báo kèm lý do đến tài khoản khách (nếu biển đã đăng ký).
-            </p>
+            <p className="text-xs text-muted-foreground mb-3">Plate number<strong className="text-foreground font-mono">{normalizePlate(plateNumber) || plateNumber || '—'}</strong>. The system will send a notification with the reason to the customer's account (if the plate is registered).</p>
             <textarea
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               rows={3}
-              placeholder="Vd: Đăng ký xe máy nhưng thực tế là ô tô; thông tin phương tiện không khớp..."
+              placeholder="e.g. Registered a motorcycle but it is actually a car; vehicle info does not match..."
               className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-rose-500/50"
             />
             <div className="mt-4 grid grid-cols-2 gap-3">
@@ -580,8 +578,7 @@ export function StaffOperationsPage() {
                 </div>
               ) : (
                 <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 space-y-3 text-center">
-                  <p className="text-sm text-amber-200/90 leading-relaxed">
-                    Hệ thống không tìm thấy tài khoản thành viên nào được liên kết với biển số <strong className="text-amber-400 font-mono">{scannedPlateInfo.plateNumber}</strong>.
+                  <p className="text-sm text-amber-200/90 leading-relaxed">The system found no member account linked to the plate<strong className="text-amber-400 font-mono">{scannedPlateInfo.plateNumber}</strong>.
                   </p>
                   <p className="text-xs text-muted-foreground italic">Guest — staff handle check-in manually as usual.</p>
                 </div>

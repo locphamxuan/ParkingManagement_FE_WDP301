@@ -1,0 +1,4 @@
+{
+  "Xóa tài khoản ${pendingDeleteMember?.role === 'manager' ? 'quản lý' : 'nhân viên'}": "Delete ${pendingDeleteMember?.role === 'manager' ? 'manager' : 'staff'} account",
+  "Đã nạp ${fmtMoney(pendingTopUp.amount)} vào ví thành công.": "Topped up ${fmtMoney(pendingTopUp.amount)} to your wallet."
+}

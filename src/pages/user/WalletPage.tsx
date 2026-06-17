@@ -169,7 +169,7 @@ export default function WalletPage() {
         const res = await userApi.wallet.verifyTopup(pendingTopUp.orderCode);
         const status = (res as { data?: { status: string } })?.data?.status;
         if (status === 'success' || status === 'PAID') {
-          setMessage({ type: 'ok', text: `Đã nạp ${fmtMoney(pendingTopUp.amount)} vào ví thành công.` });
+          setMessage({ type: 'ok', text: `Topped up ${fmtMoney(pendingTopUp.amount)} to your wallet.` });
           setPendingTopUp(null);
           refreshWallet();
           clearInterval(pollInterval);
@@ -260,7 +260,7 @@ export default function WalletPage() {
       const res = await userApi.wallet.verifyTopup(pendingTopUp.orderCode);
       const status = (res as { data?: { status: string } })?.data?.status;
       if (status === 'success' || status === 'PAID') {
-        setMessage({ type: 'ok', text: `Đã nạp ${fmtMoney(pendingTopUp.amount)} vào ví thành công.` });
+        setMessage({ type: 'ok', text: `Topped up ${fmtMoney(pendingTopUp.amount)} to your wallet.` });
         setPendingTopUp(null);
         await refreshWallet();
       } else {

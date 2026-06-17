@@ -433,7 +433,7 @@ export function BuildingsPage() {
 
       <ConfirmModal
         open={Boolean(pendingDeleteMember)}
-        title={`Xóa tài khoản ${pendingDeleteMember?.role === 'manager' ? 'quản lý' : 'nhân viên'}`}
+        title={`Delete ${pendingDeleteMember?.role === 'manager' ? 'manager' : 'staff'} account`}
         description={`Xóa vĩnh viễn tài khoản "${pendingDeleteMember?.fullName || pendingDeleteMember?.email || ''}" (${pendingDeleteMember?.email || ''})? Hành động này không thể hoàn tác.`}
         confirmLabel="Delete"
         isConfirming={isDeletingMember}

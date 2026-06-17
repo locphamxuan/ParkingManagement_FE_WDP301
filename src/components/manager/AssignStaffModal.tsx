@@ -189,8 +189,7 @@ export function AssignStaffModal({
 
             {/* Shift Selection */}
             <div className="grid gap-2">
-              <label className="text-sm font-medium text-foreground">
-                Ca Trực <span className="text-red-500">*</span>
+              <label className="text-sm font-medium text-foreground">Shift<span className="text-red-500">*</span>
               </label>
               <CustomSelect
                 value={selectedShift}

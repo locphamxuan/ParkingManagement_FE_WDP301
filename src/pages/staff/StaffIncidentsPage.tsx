@@ -68,7 +68,7 @@ export function StaffIncidentsPage() {
         setItems(apiItems.map(mapIncident));
       })
       .catch((err) => {
-        setError(err instanceof Error ? err.message : 'Tải dữ liệu sự cố thất bại');
+        setError(err instanceof Error ? err.message : 'Failed to load incident data');
         setItems([]);
       })
       .finally(() => setLoading(false));
@@ -86,13 +86,13 @@ export function StaffIncidentsPage() {
         note: incidentNote.trim() || undefined,
         buildingId: buildingId || undefined,
       });
-      setIncidentMessage({ type: 'ok', text: 'Tạo sự cố thành công.' });
+      setIncidentMessage({ type: 'ok', text: 'Incident created successfully.' });
       setIncidentType('');
       setIncidentTarget('');
       setIncidentNote('');
       refresh();
     } catch (err) {
-      setIncidentMessage({ type: 'err', text: err instanceof Error ? err.message : 'Tạo sự cố thất bại' });
+      setIncidentMessage({ type: 'err', text: err instanceof Error ? err.message : 'Failed to create incident' });
     } finally {
       setIsCreating(false);
     }
@@ -169,23 +169,23 @@ export function StaffIncidentsPage() {
         {/* Tạo sự cố nhanh */}
         <Card>
           <CardHeader>
-            <CardTitle>Báo cáo sự cố nhanh</CardTitle>
+            <CardTitle>Quick incident report</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3">
             <Input
               value={incidentType}
               onChange={(e) => setIncidentType(e.target.value)}
-              placeholder="Loại sự cố: mất vé, rào chắn hỏng, đỗ sai..."
+              placeholder="Incident type: lost ticket, broken barrier, wrong parking..."
             />
             <Input
               value={incidentTarget}
               onChange={(e) => setIncidentTarget(e.target.value)}
-              placeholder="Biển số / cổng / khu vực"
+              placeholder="Plate / gate / area"
             />
             <Input
               value={incidentNote}
               onChange={(e) => setIncidentNote(e.target.value)}
-              placeholder="Ghi chú ban đầu"
+              placeholder="Initial note"
             />
             <Button
               type="button"
@@ -193,8 +193,7 @@ export function StaffIncidentsPage() {
               disabled={isCreating || !incidentType.trim()}
               className="gap-2 bg-gradient-to-r from-emerald-500 to-cyan-400 text-slate-950 hover:brightness-110 disabled:opacity-60"
             >
-              <Plus size={14} /> Tạo phiếu sự cố
-            </Button>
+              <Plus size={14} />Create incident ticket</Button>
             {incidentMessage && (
               <p className={`text-xs ${incidentMessage.type === 'ok' ? 'text-emerald-400' : 'text-rose-400'}`}>
                 {incidentMessage.text}
@@ -209,7 +208,7 @@ export function StaffIncidentsPage() {
         <div className="rounded-xl border border-amber-400/20 bg-amber-500/10 p-4 text-sm text-amber-300">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="font-semibold text-foreground">Không thể tải dữ liệu sự cố</p>
+              <p className="font-semibold text-foreground">Unable to load incident data</p>
               <p className="mt-1">{error}</p>
             </div>
             <Button onClick={refresh} variant="secondary" className="gap-2">
@@ -230,7 +229,7 @@ export function StaffIncidentsPage() {
               <Input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Tìm theo ID, loại, ghi chú..."
+                placeholder="Search by ID, type, note..."
                 className="pl-9"
               />
             </div>
@@ -239,7 +238,7 @@ export function StaffIncidentsPage() {
               onChange={(e) => setSeverity(e.target.value)}
               className="h-10 rounded-xl border border-border bg-card px-3 text-sm text-foreground outline-none"
             >
-              <option value="all">Tất cả mức độ</option>
+              <option value="all">All severities</option>
               <option value="medium">Medium</option>
               <option value="high">Cao</option>
               <option value="critical">Severe</option>
@@ -247,13 +246,11 @@ export function StaffIncidentsPage() {
           </div>
 
           {loading ? (
-            <p className="text-sm text-muted-foreground py-6 text-center">Đang tải sự cố...</p>
+            <p className="text-sm text-muted-foreground py-6 text-center">Loading incidents...</p>
           ) : (
             <div className="grid gap-3">
               {filtered.length === 0 ? (
-                <div className="rounded-xl border border-border bg-card/50 p-6 text-sm text-muted-foreground text-center">
-                  Không tìm thấy sự cố nào.
-                </div>
+                <div className="rounded-xl border border-border bg-card/50 p-6 text-sm text-muted-foreground text-center">No incidents found.</div>
               ) : (
                 filtered.map((incident) => (
                   <div
@@ -289,9 +286,9 @@ export function StaffIncidentsPage() {
       {/* Ghi chú trạng thái */}
       <section className="grid gap-4 md:grid-cols-3">
         {[
-          { label: 'Open', description: 'Sự cố mới — cần ghi nhận và xử lý', icon: AlertTriangle },
-          { label: 'Processing', description: 'Đang điều tra tại hiện trường', icon: ShieldAlert },
-          { label: 'Resolved', description: 'Đã xử lý xong và kiểm tra lại', icon: CheckCircle2 },
+          { label: 'Open', description: 'New incident — needs logging and handling', icon: AlertTriangle },
+          { label: 'Processing', description: 'Investigating on site', icon: ShieldAlert },
+          { label: 'Resolved', description: 'Resolved and re-checked', icon: CheckCircle2 },
         ].map((item) => {
           const Icon = item.icon;
           return (

@@ -90,7 +90,7 @@ export function BookingSummarySidebar({
           </div>
 
           <div className="flex items-center justify-between rounded-xl border border-emerald-400/20 bg-emerald-400/5 p-3">
-            <span className="text-xs font-bold text-emerald-200">Số tiền</span>
+            <span className="text-xs font-bold text-emerald-200">Amount</span>
             <span className="font-mono text-sm font-black text-emerald-300">
               {estimatedAmount ? fmtMoney(estimatedAmount) : '—'}
             </span>

@@ -80,7 +80,7 @@ function formatSlotLocation(session: ParkingSession): string {
   const floor = session.slot?.floor?.name || session.slot?.floor?.code || null;
   const slotCode = session.slot?.code || null;
   
-  if (!floor && !slotCode) return 'Vị trí —';
+  if (!floor && !slotCode) return 'Location —';
   if (!floor) return `Ô ${slotCode}`;
   if (!slotCode) return `Tầng ${floor}`;
   return `Tầng ${floor} • Ô ${slotCode}`;
@@ -172,7 +172,7 @@ export function StaffDashboardPage() {
 
   const stats = [
     {
-      label: 'Ca hôm nay',
+      label: 'Today\'s shift',
       value: todayShifts.length,
       icon: CalendarClock,
       accent: 'border-teal-500/20 bg-teal-500/10',
@@ -181,7 +181,7 @@ export function StaffDashboardPage() {
       loading,
     },
     {
-      label: 'Đang đỗ xe',
+      label: 'Parked',
       value: activeSessions.length,
       icon: Gauge,
       accent: 'border-emerald-500/20 bg-emerald-500/10',
@@ -199,7 +199,7 @@ export function StaffDashboardPage() {
       loading,
     },
     {
-      label: 'Sự cố mở',
+      label: 'Open incidents',
       value: openIncidents.length,
       icon: ShieldAlert,
       accent: openIncidents.length > 0 ? 'border-rose-500/30 bg-rose-500/10' : 'border-white/5 bg-slate-950/20',
@@ -264,8 +264,7 @@ export function StaffDashboardPage() {
                 ))
               ) : (
                 <div className="flex items-center gap-1.5 rounded-xl border border-white/5 bg-slate-950/40 px-3.5 py-2 text-xs font-black uppercase tracking-wider text-slate-400">
-                  <DoorOpen size={13} /> Chưa được gán cổng
-                </div>
+                  <DoorOpen size={13} />No gate assigned</div>
               )
             )}
             {building?.operatingHours && (
@@ -302,10 +301,10 @@ export function StaffDashboardPage() {
                 </div>
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 font-mono">
-                    {assignedGates.length > 0 ? 'Cổng vào được gán' : 'Tasks'}
+                    {assignedGates.length > 0 ? 'Assigned entry gate' : 'Tasks'}
                   </p>
                   <h3 className="mt-0.5 text-base font-extrabold text-white tracking-tight">Check in vehicle</h3>
-                  <p className="text-xs text-slate-400 mt-0.5 font-medium">Quét biển số / QR để cho xe vào bãi</p>
+                  <p className="text-xs text-slate-400 mt-0.5 font-medium">Scan plate / QR to admit a vehicle</p>
                 </div>
               </div>
             </Link>
@@ -323,10 +322,10 @@ export function StaffDashboardPage() {
                 </div>
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500 font-mono">
-                    {assignedGates.length > 0 ? 'Cổng ra được gán' : 'Tasks'}
+                    {assignedGates.length > 0 ? 'Assigned exit gate' : 'Tasks'}
                   </p>
                   <h3 className="mt-0.5 text-base font-extrabold text-white tracking-tight">Check-out xe ra</h3>
-                  <p className="text-xs text-slate-400 mt-0.5 font-medium">Quét biển số / QR → đối chiếu ảnh → thu phí & cho ra</p>
+                  <p className="text-xs text-slate-400 mt-0.5 font-medium">Scan plate / QR → verify photo → charge & release</p>
                 </div>
               </div>
             </Link>
@@ -342,9 +341,9 @@ export function StaffDashboardPage() {
                 <Car size={20} className="text-slate-350" />
               </div>
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 font-mono">Giám sát</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 font-mono">Monitoring</p>
                 <h3 className="mt-0.5 text-base font-extrabold text-white tracking-tight">Parked vehicles</h3>
-                <p className="text-xs text-slate-400 mt-0.5 font-medium">Xem danh sách xe đang đỗ (chỉ xem)</p>
+                <p className="text-xs text-slate-400 mt-0.5 font-medium">View parked vehicles (read-only)</p>
               </div>
             </div>
           </Link>
@@ -383,7 +382,7 @@ export function StaffDashboardPage() {
           <div className="mb-5 flex items-center justify-between relative z-10">
             <div className="flex items-center gap-2">
               <CalendarClock size={16} className="text-teal-400" />
-              <h2 className="text-sm font-bold text-white tracking-tight">Ca làm việc hôm nay</h2>
+              <h2 className="text-sm font-bold text-white tracking-tight">Today's shift</h2>
             </div>
             <span className="rounded-md border border-white/5 bg-slate-950/40 px-2 py-0.5 text-[11px] font-bold text-slate-400 font-mono">
               {loading ? '…' : todayShifts.length}
@@ -399,7 +398,7 @@ export function StaffDashboardPage() {
             ) : todayShifts.length === 0 ? (
               <div className="flex flex-col items-center gap-2.5 py-12 text-center border border-dashed border-white/5 rounded-2xl bg-slate-950/20">
                 <Circle size={28} className="text-slate-700 opacity-60" />
-                <p className="text-sm text-slate-500 font-medium">Không có ca nào hôm nay</p>
+                <p className="text-sm text-slate-500 font-medium">No shifts today</p>
               </div>
             ) : (
               todayShifts.map((s) => (
@@ -431,7 +430,7 @@ export function StaffDashboardPage() {
                         {s.gate.direction === 'in' ? 'Entry gate' : s.gate.direction === 'out' ? 'Exit gate' : 'Two-way'}
                       </p>
                     ) : (
-                      <p className="mt-1.5 text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono italic">Chưa phân công cổng</p>
+                      <p className="mt-1.5 text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono italic">No gate assigned</p>
                     )}
                     {s.note && (
                       <p className="mt-1 truncate text-[11px] text-slate-500 italic">Ghi chú: {s.note}</p>
@@ -467,7 +466,7 @@ export function StaffDashboardPage() {
             ) : activeSessions.length === 0 ? (
               <div className="flex flex-col items-center gap-2.5 py-12 text-center border border-dashed border-white/5 rounded-2xl bg-slate-950/20">
                 <CheckCircle2 size={28} className="text-slate-700 opacity-60" />
-                <p className="text-sm text-slate-500 font-medium">Không có xe nào đang đỗ</p>
+                <p className="text-sm text-slate-500 font-medium">No vehicles parked</p>
               </div>
             ) : (
               activeSessions.slice(0, 5).map((session) => (

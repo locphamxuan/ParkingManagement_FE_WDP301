@@ -45,14 +45,14 @@ export function StaffShiftsPage() {
       title: 'Status',
       render: (row) => <StatusBadge status={row.status} />,
     },
-    { key: 'note', title: 'Ghi chú', render: (row) => row.note ?? '—' },
+    { key: 'note', title: 'Note', render: (row) => row.note ?? '—' },
   ];
 
   return (
     <div className="grid gap-4">
       <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-3">
         <div className="grid gap-1">
-          <label className="text-xs uppercase text-muted-foreground">Từ ngày</label>
+          <label className="text-xs uppercase text-muted-foreground">From date</label>
           <input
             type="date"
             className="h-9 rounded-md border border-border bg-card px-3 text-sm"
@@ -61,7 +61,7 @@ export function StaffShiftsPage() {
           />
         </div>
         <div className="grid gap-1">
-          <label className="text-xs uppercase text-muted-foreground">Đến ngày</label>
+          <label className="text-xs uppercase text-muted-foreground">To date</label>
           <input
             type="date"
             className="h-9 rounded-md border border-border bg-card px-3 text-sm"
@@ -82,9 +82,7 @@ export function StaffShiftsPage() {
         <div className="text-sm text-red-600">{error}</div>
       ) : items.length === 0 ? (
         <Card>
-          <CardContent className="p-6 text-sm text-muted-foreground">
-            Không có ca nào trong khoảng thời gian này.
-          </CardContent>
+          <CardContent className="p-6 text-sm text-muted-foreground">No shifts in this period.</CardContent>
         </Card>
       ) : (
         <DataTable title={`Ca làm việc (${items.length})`} rows={items} columns={columns} />

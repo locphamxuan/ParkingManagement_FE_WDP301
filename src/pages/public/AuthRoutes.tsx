@@ -17,28 +17,28 @@ function mapAuthErrorMessage(message: string): string {
   const normalized = message.trim().toLowerCase();
 
   if (normalized.includes('invalid email or password')) {
-    return 'Email hoặc mật khẩu không đúng.';
+    return 'Incorrect email or password.';
   }
   if (normalized.includes('account is deactivated')) {
     return 'Tài khoản đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.';
   }
   if (normalized.includes('email already registered')) {
-    return 'Email đã được đăng ký.';
+    return 'Email is already registered.';
   }
   if (normalized.includes('password must be at least 6 characters')) {
     return 'Password must be at least 6 characters.';
   }
   if (normalized.includes('valid email is required')) {
-    return 'Email không hợp lệ.';
+    return 'Invalid email.';
   }
   if (normalized.includes('full name is required')) {
-    return 'Vui lòng nhập họ và tên.';
+    return 'Please enter your full name.';
   }
   if (normalized.includes('invalid phone number')) {
-    return 'Số điện thoại không hợp lệ.';
+    return 'Invalid phone number.';
   }
 
-  return message || 'Không thể xử lý yêu cầu, vui lòng thử lại.';
+  return message || 'Unable to process the request, please try again.';
 }
 
 function usePublicAuthFlow(initialMode: 'login' | 'register') {
@@ -73,7 +73,7 @@ function usePublicAuthFlow(initialMode: 'login' | 'register') {
           const session = await login(payload.email, payload.password);
 
           setNotice({
-            message: 'Đăng nhập thành công.',
+            message: 'Signed in successfully.',
             type: 'success',
           });
 
@@ -102,13 +102,13 @@ function usePublicAuthFlow(initialMode: 'login' | 'register') {
           }
 
           setNotice({
-            message: 'Đăng ký thành công.',
+            message: 'Registered successfully.',
             type: 'success',
           });
           navigate('/', { replace: true });
         }
       } catch (error) {
-        const message = error instanceof Error ? mapAuthErrorMessage(error.message) : 'không thể xử lý yêu cầu';
+        const message = error instanceof Error ? mapAuthErrorMessage(error.message) : 'unable to process the request';
         setNotice({ message, type: 'error' });
         throw error;
       } finally {

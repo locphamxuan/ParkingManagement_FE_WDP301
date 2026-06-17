@@ -42,7 +42,7 @@ function CompareImg({ src, label }: { src?: string | null; label: string }) {
         {src ? (
           <img src={src} alt={label} className="h-full w-full object-cover" />
         ) : (
-          <span className="text-[10px] text-muted-foreground/60">Chưa có</span>
+          <span className="text-[10px] text-muted-foreground/60">None</span>
         )}
       </div>
       <p className="mt-0.5 text-center text-[10px] text-muted-foreground">{label}</p>
@@ -153,7 +153,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
         setOpMessage({ type: 'err', text: 'Không tìm thấy xe đang đỗ gắn với mã QR này.' });
       }
     } catch (err) {
-      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Lỗi tra cứu mã QR.' });
+      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'QR code lookup error.' });
     }
   };
 
@@ -214,7 +214,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
       setCapturedPlateImage(null);
       setCapturedPortraitImage(null);
     } catch (err) {
-      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Từ chối thất bại' });
+      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Rejection failed' });
     }
   };
 
@@ -270,13 +270,13 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
       <section className="grid gap-3 sm:grid-cols-2">
         <Card>
           <CardContent className="p-5">
-            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-muted-foreground">Đang đỗ</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-muted-foreground">Parked</p>
             <p className="mt-3 text-3xl font-semibold text-foreground">{loading ? '–' : sessions.length}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-5">
-            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-muted-foreground">Tổng phí tạm tính</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-muted-foreground">Estimated total fee</p>
             <p className="mt-3 text-3xl font-semibold text-primary">{loading ? '–' : fmtMoney(totalFee)}</p>
           </CardContent>
         </Card>
@@ -298,8 +298,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
       )}
 
       {!canCheckout && (
-        <div className="rounded-xl border border-sky-500/25 bg-sky-500/5 px-4 py-3 text-sm text-sky-300">Mode<strong>chỉ xem</strong> danh sách xe đang đỗ. Việc cho xe ra &amp; thu phí được thực hiện ở tab <strong>“Check-out xe ra”</strong> (nhân viên cổng ra).
-        </div>
+        <div className="rounded-xl border border-sky-500/25 bg-sky-500/5 px-4 py-3 text-sm text-sky-300">Mode<strong>chỉ xem</strong> danh sách xe đang đỗ. Việc cho xe ra &amp; thu phí được thực hiện ở tab <strong>“Check-out xe ra”</strong>(exit-gate staff).</div>
       )}
 
       {opMessage && (
@@ -311,7 +310,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
       {/* Parked list */}
       <Card>
         <CardHeader>
-          <CardTitle>Danh sách xe đang đỗ</CardTitle>
+          <CardTitle>Parked vehicles list</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -321,7 +320,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
           ) : sessions.length === 0 ? (
             <div className="py-10 text-center">
               <Car size={28} className="mx-auto mb-2 text-muted-foreground/40" />
-              <p className="text-sm text-muted-foreground">Không có xe đang đỗ.</p>
+              <p className="text-sm text-muted-foreground">No parked vehicles.</p>
             </div>
           ) : (
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -391,7 +390,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
                         <p className="font-medium text-foreground">{slotCode}</p>
                       </div>
                       <div>
-                        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Giờ vào</span>
+                        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Entry time</span>
                         <p className="font-medium text-foreground">{fmtTime(s.entryTime)}</p>
                       </div>
                       <div>
@@ -400,11 +399,11 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
                       </div>
                     </div>
                     <div className="mt-2 flex items-center justify-between">
-                      <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Phí tạm tính</span>
+                      <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Estimated fee</span>
                       <span className="font-bold text-primary">{fmtMoney(s.currentFee ?? s.fee)}</span>
                     </div>
                     {canCheckout && (
-                      <p className="mt-2 text-center text-[11px] font-semibold text-primary">Nhấp để thanh toán & cho xe ra →</p>
+                      <p className="mt-2 text-center text-[11px] font-semibold text-primary">Click to charge & release →</p>
                     )}
                   </button>
                 );
@@ -422,7 +421,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
           >
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary">Thanh toán · Xe ra</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary">Payment · Exit</p>
                 <h3 className="text-xl font-semibold text-foreground font-mono">{checkoutTarget.plateNumber}</h3>
               </div>
               <button onClick={() => { setCheckoutTarget(null); setPaymentMethod('cash'); setCapturedPlateImage(null); setCapturedPortraitImage(null); }} className="text-muted-foreground hover:text-foreground transition">✕</button>
@@ -430,13 +429,11 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
 
             {/* Đối chiếu ảnh: lúc vào (đã lưu) vs lúc ra (vừa quét) */}
             <div className="mb-4 rounded-xl border border-amber-500/25 bg-amber-500/5 p-3">
-              <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-amber-400">
-                Đối chiếu ảnh biển số &amp; chân dung
-              </p>
+              <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-amber-400">Verify plate &amp; portrait photos</p>
               <div className="grid grid-cols-2 gap-3">
                 {/* Cột: lúc vào */}
                 <div className="space-y-1.5">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Lúc vào (đã lưu)</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">At entry (saved)</p>
                   <CompareImg src={checkoutTarget.plateImage} label="Plate number" />
                   <CompareImg src={checkoutTarget.portraitImage} label="Chân dung" />
                 </div>
@@ -453,7 +450,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
             </div>
 
             <div className="rounded-xl border border-border bg-card/50 p-4 space-y-1.5 text-sm">
-              <div className="flex justify-between"><span className="text-muted-foreground">Khách</span><span className="font-medium text-foreground">{(checkoutTarget.isMember ?? checkoutTarget.user) ? (checkoutTarget.user?.fullName || 'Members') : 'Guest'}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Guest</span><span className="font-medium text-foreground">{(checkoutTarget.isMember ?? checkoutTarget.user) ? (checkoutTarget.user?.fullName || 'Members') : 'Guest'}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Vehicle type</span><span className="font-medium text-foreground">{checkoutTarget.vehicleType?.name ?? '—'}{checkoutTarget.vehicleBrand ? ` · ${checkoutTarget.vehicleBrand}` : ''}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">At</span><span className="font-medium text-foreground">{fmtTime(checkoutTarget.entryTime)}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Parking duration</span><span className="font-medium text-foreground">{fmtDuration(checkoutTarget.entryTime)}</span></div>
@@ -462,13 +459,13 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
             </div>
 
             <div className="mt-4 rounded-xl border border-primary/30 bg-primary/10 p-4 flex items-center justify-between">
-              <span className="text-sm font-semibold text-foreground">Số tiền phải trả</span>
+              <span className="text-sm font-semibold text-foreground">Amount due</span>
               <span className="font-mono text-2xl font-black text-primary">{fmtMoney(checkoutTarget.currentFee ?? checkoutTarget.fee)}</span>
             </div>
 
             <p className="mt-4 mb-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">Payment method</p>
             <div className="grid gap-2 sm:grid-cols-3">
-              {[{ value: 'cash', label: 'Cash' }, { value: 'bank_transfer', label: 'Chuyển khoản' }, { value: 'wallet', label: 'Trừ ví' }].map((m) => (
+              {[{ value: 'cash', label: 'Cash' }, { value: 'bank_transfer', label: 'Bank transfer' }, { value: 'wallet', label: 'Trừ ví' }].map((m) => (
                 <button
                   key={m.value}
                   type="button"
@@ -524,16 +521,14 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
       {bankTransfer && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
           <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl">
-            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary">Chuyển khoản</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary">Bank transfer</p>
             <h3 className="mt-1 text-xl font-semibold text-foreground">Thu phí gửi xe</h3>
             <div className="mt-4 rounded-xl border border-border bg-card/50 p-4 space-y-2">
               <div className="flex justify-between text-sm"><span className="text-muted-foreground">Plate number</span><span className="font-semibold text-foreground">{bankTransfer.plate}</span></div>
-              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Số tiền</span><span className="font-mono text-lg font-bold text-amber-400">{bankTransfer.amount.toLocaleString('vi-VN')} đ</span></div>
+              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Amount</span><span className="font-mono text-lg font-bold text-amber-400">{bankTransfer.amount.toLocaleString('vi-VN')} đ</span></div>
             </div>
             <p className="mt-4 text-sm text-muted-foreground">Mở trang thanh toán và để khách quét QR. Sau khi khách chuyển khoản, nhấn <strong className="text-foreground">Confirm</strong>.</p>
-            <Button onClick={() => window.open(bankTransfer.checkoutUrl, '_blank', 'noopener')} variant="secondary" className="mt-4 w-full gap-2">
-              Mở trang QR thanh toán
-            </Button>
+            <Button onClick={() => window.open(bankTransfer.checkoutUrl, '_blank', 'noopener')} variant="secondary" className="mt-4 w-full gap-2">Open payment QR page</Button>
             <div className="mt-2 grid grid-cols-2 gap-2">
               <Button onClick={onVerifyBankTransfer} disabled={verifying} className="gap-2 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60">
                 {verifying ? 'Đang xác nhận...' : 'Xác nhận thanh toán'}

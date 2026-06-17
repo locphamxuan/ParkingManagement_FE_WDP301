@@ -133,7 +133,7 @@ export function StaffSessionsPage() {
     },
     {
       key: 'fee',
-      title: 'Số tiền',
+      title: 'Amount',
       render: (row) => (
         <span className="font-bold text-emerald-400">
           {fmtMoney(row.amountPaid ?? row.fee)}
@@ -238,7 +238,7 @@ export function StaffSessionsPage() {
 
   const statCards = [
     {
-      label: 'Thu từ đặt chỗ',
+      label: 'Collected from reservations',
       value: fmtMoney(totalRevenue),
       icon: Wallet,
       color: 'text-emerald-500',
@@ -275,9 +275,7 @@ export function StaffSessionsPage() {
           <Wallet size={18} className="text-primary" />
           <div>
             <h2 className="text-base font-semibold text-foreground">Payment tracking</h2>
-            <p className="text-xs text-muted-foreground">
-              Đặt chỗ trước đã thu tiền và xe đang gửi trực tiếp
-            </p>
+            <p className="text-xs text-muted-foreground">Paid reservations and direct walk-in parking</p>
           </div>
         </div>
         <Button variant="secondary" size="sm" onClick={refresh} className="gap-1.5">
@@ -333,9 +331,7 @@ export function StaffSessionsPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-sm">
-              <CalendarCheck2 size={14} className="text-primary" />
-              Đặt chỗ đã thu tiền
-              <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+              <CalendarCheck2 size={14} className="text-primary" />Paid reservations<span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
                 {paidReservations.length}
               </span>
             </CardTitle>
@@ -346,7 +342,7 @@ export function StaffSessionsPage() {
             ) : paidReservations.length === 0 ? (
               <div className="py-8 text-center">
                 <CalendarCheck2 size={28} className="mx-auto mb-2 text-muted-foreground/40" />
-                <p className="text-sm text-muted-foreground">Chưa có đặt chỗ nào đã thu tiền.</p>
+                <p className="text-sm text-muted-foreground">No paid reservations yet.</p>
               </div>
             ) : (
               <DataTable title="" rows={paidReservations} columns={reservationColumns} />
@@ -360,9 +356,7 @@ export function StaffSessionsPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-sm">
-              <Car size={14} className="text-violet-500" />
-              Xe đang gửi trực tiếp
-              <span className="ml-1 rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-bold text-violet-400">
+              <Car size={14} className="text-violet-500" />Direct walk-in parking<span className="ml-1 rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-bold text-violet-400">
                 {activeSessions.length}
               </span>
             </CardTitle>
@@ -373,7 +367,7 @@ export function StaffSessionsPage() {
             ) : activeSessions.length === 0 ? (
               <div className="py-8 text-center">
                 <Car size={28} className="mx-auto mb-2 text-muted-foreground/40" />
-                <p className="text-sm text-muted-foreground">Không có xe đang gửi.</p>
+                <p className="text-sm text-muted-foreground">No parked vehicles.</p>
               </div>
             ) : (
               <DataTable title="" rows={activeSessions} columns={sessionColumns} />

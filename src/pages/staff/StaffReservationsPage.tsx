@@ -14,7 +14,7 @@ const fmtMoney = (n?: number | null) =>
   n != null ? `${n.toLocaleString('vi-VN')} đ` : '—';
 
 const STATUS_LABELS: Record<StaffReservation['status'], string> = {
-  pending: 'Chờ xác nhận',
+  pending: 'Awaiting confirmation',
   confirmed: 'Confirmed',
   checked_in: 'Checked in',
   completed: 'Completed',
@@ -43,7 +43,7 @@ export function StaffReservationsPage() {
         const rows = (res as { data?: { items?: StaffReservation[] } })?.data?.items ?? [];
         setItems(Array.isArray(rows) ? rows : []);
       })
-      .catch((err) => setError(err instanceof Error ? err.message : 'Tải dữ liệu đặt chỗ thất bại'))
+      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load reservation data'))
       .finally(() => setLoading(false));
   }, [buildingId]);
 
@@ -98,7 +98,7 @@ export function StaffReservationsPage() {
     },
     {
       key: 'user',
-      title: 'Khách hàng',
+      title: 'Customer',
       render: (row) =>
         row.user ? (
           <div>
@@ -150,12 +150,12 @@ export function StaffReservationsPage() {
     },
     {
       key: 'startTime',
-      title: 'Thời gian vào',
+      title: 'Entry time',
       render: (row) => <span className="text-xs text-muted-foreground">{fmtTime(row.startTime)}</span>,
     },
     {
       key: 'fee',
-      title: 'Tiền đặt cọc',
+      title: 'Deposit',
       render: (row) => (
         <span className="font-bold text-emerald-400 text-sm">
           {fmtMoney(row.amountPaid ?? row.fee)}
@@ -225,7 +225,7 @@ export function StaffReservationsPage() {
             <CalendarCheck2 size={22} className="text-primary" />
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary">Reservation</p>
-              <h2 className="mt-0.5 text-xl font-semibold text-foreground">Danh sách đặt chỗ</h2>
+              <h2 className="mt-0.5 text-xl font-semibold text-foreground">Reservations list</h2>
               <p className="mt-0.5 text-sm text-muted-foreground">
                 {building ? `${building.code} · ${building.name}` : 'All buildings'}
               </p>
@@ -239,7 +239,7 @@ export function StaffReservationsPage() {
       {/* Thống kê nhanh */}
       <section className="grid gap-3 sm:grid-cols-3">
         {[
-          { label: 'Tổng đặt chỗ', value: items.length },
+          { label: 'Total reservations', value: items.length },
           { label: 'Confirmed', value: items.filter((i) => i.status === 'confirmed').length },
           { label: 'Checked in', value: items.filter((i) => i.status === 'checked_in').length },
         ].map((m) => (
@@ -259,7 +259,7 @@ export function StaffReservationsPage() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Tìm theo mã, biển số, tên khách, email..."
+            placeholder="Search by code, plate, customer name, email..."
             className="h-10 w-full rounded-xl border border-border bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
           />
         </CardContent>
@@ -282,7 +282,7 @@ export function StaffReservationsPage() {
                 <RefreshCcw size={13} />Retry</Button>
             </div>
           ) : filtered.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-6 text-center">Không tìm thấy đặt chỗ nào.</p>
+            <p className="text-sm text-muted-foreground py-6 text-center">No reservations found.</p>
           ) : (
             <DataTable
               title={`Đặt chỗ (${filtered.length})`}

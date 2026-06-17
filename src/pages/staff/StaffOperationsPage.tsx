@@ -166,7 +166,7 @@ export function StaffOperationsPage() {
         };
       })?.data;
       if (!data) {
-        setOpMessage({ type: 'err', text: 'Không nhận diện được mã QR.' });
+        setOpMessage({ type: 'err', text: 'QR code not recognized.' });
         return;
       }
       if (data.kind === 'plate' && data.plate?.plateNumber) {
@@ -176,10 +176,10 @@ export function StaffOperationsPage() {
       } else if (data.user) {
         setOpMessage({ type: 'ok', text: `Đã nhận diện tài khoản: ${data.user.fullName} (${data.user.email}). Đã lưu ảnh chân dung.` });
       } else {
-        setOpMessage({ type: 'err', text: 'Mã QR không khớp với tài khoản hoặc phương tiện nào.' });
+        setOpMessage({ type: 'err', text: 'QR code does not match any account or vehicle.' });
       }
     } catch (err) {
-      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Lỗi tra cứu mã QR.' });
+      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'QR code lookup error.' });
     }
   };
 
@@ -239,7 +239,7 @@ export function StaffOperationsPage() {
       setRejectOpen(false);
       setRejectReason('');
     } catch (err) {
-      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Từ chối thất bại' });
+      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Rejection failed' });
     }
   };
 
@@ -253,10 +253,10 @@ export function StaffOperationsPage() {
     setOpMessage(null);
     try {
       await staffApi.checkInReservation(reservationCode.trim());
-      setOpMessage({ type: 'ok', text: 'Check-in đặt chỗ trước thành công.' });
+      setOpMessage({ type: 'ok', text: 'Reservation check-in successful.' });
       setReservationCode('');
     } catch (err) {
-      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Check-in đặt chỗ thất bại' });
+      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Reservation check-in failed' });
     }
   };
 
@@ -266,7 +266,7 @@ export function StaffOperationsPage() {
       <section className="relative overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-sm">
         <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary">Ca vận hành</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary">Operations shift</p>
             <h2 className="mt-1 text-xl font-semibold text-foreground">Check in vehicle</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               {building ? `${building.code} · ${building.name}` : 'No building selected'}
@@ -292,7 +292,7 @@ export function StaffOperationsPage() {
         {/* Form vận hành */}
         <Card>
           <CardHeader>
-            <CardTitle>Thông tin xe vào</CardTitle>
+            <CardTitle>Incoming vehicle info</CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
             <div className="space-y-4">
@@ -316,16 +316,14 @@ export function StaffOperationsPage() {
                 {plateNumber.trim().length >= 7 && plateAccountInfo?.hasAccount && (
                   <div className="mt-1 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-2.5 flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                    <p className="text-xs text-emerald-400">
-                      Thành viên: <strong className="text-foreground">{plateAccountInfo.user?.fullName}</strong> ({plateAccountInfo.user?.email})
+                    <p className="text-xs text-emerald-400">Member:<strong className="text-foreground">{plateAccountInfo.user?.fullName}</strong> ({plateAccountInfo.user?.email})
                     </p>
                   </div>
                 )}
                 {plateNumber.trim().length >= 7 && plateAccountInfo && !plateAccountInfo.hasAccount && (
                   <div className="mt-1 rounded-lg border border-amber-500/20 bg-amber-500/10 p-2.5 flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full bg-amber-500" />
-                    <p className="text-xs text-amber-300">Plate number<strong className="text-foreground">{plateNumber.toUpperCase()}</strong> — <strong>Guest</strong> (chưa có tài khoản).
-                    </p>
+                    <p className="text-xs text-amber-300">Plate number<strong className="text-foreground">{plateNumber.toUpperCase()}</strong> — <strong>Guest</strong>(no account).</p>
                   </div>
                 )}
               </div>
@@ -333,10 +331,10 @@ export function StaffOperationsPage() {
               {/* Captured snapshots preview */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Ảnh biển số</p>
+                  <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Plate photo</p>
                   <div className="aspect-[4/3] overflow-hidden rounded-lg border border-border bg-muted/40 flex items-center justify-center">
                     {plateImage ? (
-                      <img src={plateImage} alt="Ảnh biển số" className="h-full w-full object-cover" />
+                      <img src={plateImage} alt="Plate photo" className="h-full w-full object-cover" />
                     ) : (
                       <ImageIcon size={20} className="text-muted-foreground/40" />
                     )}
@@ -377,7 +375,7 @@ export function StaffOperationsPage() {
                 {vehicleTypeMismatch && (
                   <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-2.5 text-[11px] text-rose-300 flex items-center justify-between gap-2">
                     <span className="flex items-center gap-1">
-                      <AlertCircle size={12} /> Loại xe không khớp đăng ký (đã đăng ký: <strong>{plateAccountInfo?.registeredVehicleType === 'car' ? 'Car' : 'Motorcycle'}</strong>).
+                      <AlertCircle size={12} />Vehicle type does not match registration (registered:<strong>{plateAccountInfo?.registeredVehicleType === 'car' ? 'Car' : 'Motorcycle'}</strong>).
                     </span>
                     <button type="button" onClick={() => setRejectOpen(true)} className="shrink-0 rounded-md bg-rose-500 px-2.5 py-1 text-[10px] font-bold text-white hover:bg-rose-400">
                       Từ chối
@@ -394,8 +392,7 @@ export function StaffOperationsPage() {
                 disabled={!plateNumber.trim() || loading || !!buildingSupportWarning}
                 className="flex-1 h-11 gap-2 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60"
               >
-                <ScanLine size={16} /> Check-in (xe vào)
-              </Button>
+                <ScanLine size={16} />Check-in (entry)</Button>
               <Button
                 type="button"
                 variant="outline"
@@ -419,7 +416,7 @@ export function StaffOperationsPage() {
         {/* Đặt chỗ trước + hướng dẫn */}
         <Card>
           <CardHeader>
-            <CardTitle>Check-in đặt chỗ trước</CardTitle>
+            <CardTitle>Reservation check-in</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-xs text-muted-foreground">
@@ -430,7 +427,7 @@ export function StaffOperationsPage() {
               <Input
                 value={reservationCode}
                 onChange={(e) => setReservationCode(e.target.value)}
-                placeholder="Mã đặt chỗ / ID"
+                placeholder="Reservation code / ID"
                 onKeyDown={(e) => e.key === 'Enter' && onCheckInReservation()}
               />
               <Button type="button" onClick={() => setIsQrModalOpen(true)} variant="secondary" className="shrink-0 gap-1.5">
@@ -446,8 +443,8 @@ export function StaffOperationsPage() {
               </Button>
             </div>
             <div className="rounded-xl border border-border bg-card/50 p-4 text-xs text-muted-foreground">
-              <p className="font-semibold text-foreground mb-1">Xe ra / thanh toán</p>
-              Việc thu phí &amp; cho xe ra do nhân viên cổng ra thực hiện. Xem danh sách tại tab <Link to="/staff/parked" className="font-semibold text-primary hover:underline">“Xe đang đỗ”</Link>.
+              <p className="font-semibold text-foreground mb-1">Exit / payment</p>
+              Việc thu phí &amp; cho xe ra do nhân viên cổng ra thực hiện. Xem danh sách tại tab <Link to="/staff/parked" className="font-semibold text-primary hover:underline">"Parked vehicles"</Link>.
             </div>
           </CardContent>
         </Card>
@@ -462,7 +459,7 @@ export function StaffOperationsPage() {
           setIsQrModalOpen(false);
           setOpMessage({ type: 'ok', text: `Đã quét mã đặt chỗ: ${code}` });
         }}
-        title="Quét mã đặt chỗ"
+        title="Scan reservation code"
       />
 
       {/* Từ chối check-in */}
@@ -473,7 +470,7 @@ export function StaffOperationsPage() {
           >
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-rose-400">Từ chối cho xe vào</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-rose-400">Reject entry</p>
                 <h3 className="text-xl font-semibold text-foreground">Lý do từ chối</h3>
               </div>
               <button onClick={() => { setRejectOpen(false); setRejectReason(''); }} className="text-muted-foreground hover:text-foreground transition">✕</button>
@@ -517,10 +514,10 @@ export function StaffOperationsPage() {
               )}
               <div>
                 <p className="text-[9px] font-black uppercase tracking-[0.24em] opacity-80">
-                  {scannedPlateInfo.hasAccount ? 'Thành viên hệ thống' : 'Guest'}
+                  {scannedPlateInfo.hasAccount ? 'System member' : 'Guest'}
                 </p>
                 <h3 className="text-base font-bold text-foreground">
-                  {scannedPlateInfo.hasAccount ? 'Đối chiếu thành công' : 'Chưa liên kết tài khoản'}
+                  {scannedPlateInfo.hasAccount ? 'Verified successfully' : 'No linked account'}
                 </h3>
               </div>
             </div>
@@ -599,7 +596,7 @@ export function StaffOperationsPage() {
                     <Calendar size={15} />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-rose-400">Xe đang đỗ trong bãi — nhân viên cổng ra sẽ cho xe ra</p>
+                    <p className="text-xs font-bold text-rose-400">Vehicles parked in the lot — exit-gate staff will release them</p>
                     <p className="text-[11px] text-muted-foreground mt-0.5">
                       Vào lúc: {new Date(scannedPlateInfo.activeSession.entryTime).toLocaleString('vi-VN')}
                     </p>
@@ -623,9 +620,7 @@ export function StaffOperationsPage() {
                 <Link
                   to="/staff/parked"
                   className="flex-1 inline-flex h-10 items-center justify-center rounded-md bg-gradient-to-r from-orange-500 to-amber-400 text-xs font-bold text-slate-950"
-                >
-                  Xem xe đang đỗ
-                </Link>
+                >View parked vehicles</Link>
               ) : (
                 <Button
                   onClick={async () => {

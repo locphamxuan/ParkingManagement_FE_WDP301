@@ -204,7 +204,7 @@ export function MultiSlotForm({ isOpen, onClose, onSubmit, floors, loading = fal
 
                 {/* Ghi Chú */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wide">Ghi Chú</label>
+                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wide">Note</label>
                   <Input
                     value={row.note}
                     onChange={(e) => handleRowChange(row.id, 'note', e.target.value)}

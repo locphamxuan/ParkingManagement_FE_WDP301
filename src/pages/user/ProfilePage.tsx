@@ -965,7 +965,7 @@ export default function ProfilePage() {
                     <div className="rounded-2xl border border-white/5 bg-slate-950/70 p-4">
                       <p className="text-[10px] font-black uppercase text-slate-500 font-mono">Biển số đã liên kết</p>
                       <p className={`mt-1 font-mono font-black text-sm ${user.licensePlates.length > 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
-                        {user.licensePlates.length > 0 ? `${user.licensePlates.length}/${MAX_PLATES} biển số` : 'Chưa có'}
+                        {user.licensePlates.length > 0 ? `${user.licensePlates.length}/${MAX_PLATES} biển số` : 'None'}
                       </p>
                     </div>
                   )}

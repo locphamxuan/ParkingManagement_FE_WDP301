@@ -154,8 +154,8 @@ function Slot3DBox({
               </span>
             </div>
             <div className="space-y-1 text-[9px] text-slate-400 font-semibold leading-relaxed">
-              <p>Loại: <span className="text-white font-black">{vtName}</span></p>
-              <p>Đặt chỗ: <span className="text-white font-black">{slot.reservable ? 'Yes' : 'Lock'}</span></p>
+              <p>Type:<span className="text-white font-black">{vtName}</span></p>
+              <p>Reservation:<span className="text-white font-black">{slot.reservable ? 'Yes' : 'Lock'}</span></p>
               {slot.note && <p className="border-t border-white/5 pt-1 mt-1 text-slate-500 italic">Note: {slot.note}</p>}
             </div>
           </motion.div>
@@ -420,9 +420,7 @@ export function ManagerSlotsPage() {
                 ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 shadow-[0_0_10px_rgba(249,115,22,0.25)]' 
                 : 'text-slate-400 hover:text-white'
             }`}
-          >
-            Danh sách bảng
-          </button>
+          >Table view</button>
           <button
             onClick={() => setViewMode('3d')}
             className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
@@ -430,9 +428,7 @@ export function ManagerSlotsPage() {
                 ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 shadow-[0_0_10px_rgba(249,115,22,0.25)]' 
                 : 'text-slate-400 hover:text-white'
             }`}
-          >
-            Bản đồ 3D Hologram
-          </button>
+          >3D Hologram map</button>
         </div>
 
         <div className="flex items-center gap-3">
@@ -443,9 +439,7 @@ export function ManagerSlotsPage() {
 
       {loading ? (
         <div className="text-sm text-slate-400 flex items-center justify-center p-24 glass-panel-dark rounded-3xl border border-white/5">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-orange-500 border-t-transparent mr-2" />
-          Đang tải dữ liệu ô đỗ...
-        </div>
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-orange-500 border-t-transparent mr-2" />Loading slot data...</div>
       ) : error ? (
         <div className="text-sm text-rose-400 glass-panel-dark p-6 rounded-3xl border border-rose-500/10 bg-rose-950/15">{error}</div>
       ) : (
@@ -516,7 +510,7 @@ export function ManagerSlotsPage() {
                           {/* Grid Layout of Slot blocks */}
                           <div className="grid grid-cols-4 sm:grid-cols-5 gap-6 my-auto items-center justify-items-center preserve-3d" style={{ transform: 'translateZ(10px)' }}>
                             {floorSlots.length === 0 ? (
-                              <div className="col-span-full text-center text-slate-600 text-xs py-10 uppercase tracking-widest font-mono">Chưa cấu hình ô đỗ</div>
+                              <div className="col-span-full text-center text-slate-600 text-xs py-10 uppercase tracking-widest font-mono">No slots configured</div>
                             ) : (
                               floorSlots.map((slot) => (
                                 <Slot3DBox 
@@ -552,15 +546,13 @@ export function ManagerSlotsPage() {
               <div className="glass-premium glow-border-pulse rounded-3xl p-6 shadow-2xl flex flex-col justify-between">
                 <div>
                   <h3 className="text-xs font-black uppercase tracking-widest text-white font-mono mb-4 flex items-center gap-1.5 pb-2.5 border-b border-white/5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-ping" />
-                    Góc nhìn Không Gian
-                  </h3>
+                    <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-ping" />Spatial view</h3>
                   
                   {/* Cockpit Angle Tilt Controls */}
                   <div className="space-y-6">
                     <div className="space-y-2">
                       <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400 font-mono">
-                        <span>Độ Nghiêng X</span>
+                        <span>X Tilt</span>
                         <span className="text-orange-400 font-mono">{rx}°</span>
                       </div>
                       <input 
@@ -598,7 +590,7 @@ export function ManagerSlotsPage() {
                 </div>
 
                 <div className="mt-8 pt-4 border-t border-white/5 space-y-3">
-                  <div className="text-[9px] font-black uppercase tracking-widest text-slate-500 font-mono mb-2">Chú thích trạng thái</div>
+                  <div className="text-[9px] font-black uppercase tracking-widest text-slate-500 font-mono mb-2">Status legend</div>
                   <div className="flex items-center justify-between text-[10px] font-bold text-slate-300 bg-slate-950/40 p-2.5 rounded-xl border border-white/5">
                     <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-emerald-500/20 border border-emerald-500/40" />Available</span>
                     <span className="font-mono text-emerald-400 font-black">
@@ -606,7 +598,7 @@ export function ManagerSlotsPage() {
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-[10px] font-bold text-slate-300 bg-slate-950/40 p-2.5 rounded-xl border border-white/5">
-                    <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-red-500/20 border border-red-500/40" /> Có xe đỗ</span>
+                    <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-red-500/20 border border-red-500/40" />Occupied</span>
                     <span className="font-mono text-red-400 font-black">
                       {items.filter(s => s.status === 'occupied').length}
                     </span>
@@ -660,13 +652,11 @@ export function ManagerSlotsPage() {
                   label: fl.code,
                 })),
               ]}
-              placeholder="Chọn tầng..."
+              placeholder="Select floor..."
             />
           </div>
           <div className="grid gap-1.5 sm:col-span-2">
-            <p className="rounded-xl border border-sky-500/20 bg-sky-500/5 px-3 py-2 text-[11px] text-sky-300">
-              Loại xe của ô đỗ <strong>tự lấy theo loại xe cho phép của tầng</strong> (cấu hình ở tab Tầng), không cần set ở đây.
-            </p>
+            <p className="rounded-xl border border-sky-500/20 bg-sky-500/5 px-3 py-2 text-[11px] text-sky-300">Slot vehicle type<strong>automatically taken from the floor's allowed vehicle types</strong>(configured in the Floors tab), no need to set here.</p>
           </div>
           <div className="grid gap-1.5">
             <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Status</label>
@@ -686,10 +676,10 @@ export function ManagerSlotsPage() {
               onChange={(e) => setForm((f) => ({ ...f, reservable: e.target.checked }))}
               className="w-4 h-4 rounded border-white/10 bg-slate-950 text-orange-500 focus:ring-0 focus:ring-offset-0 cursor-pointer"
             />
-            <span>Cho phép đặt chỗ trước</span>
+            <span>Allow advance booking</span>
           </label>
           <div className="grid gap-1.5 md:col-span-2">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Ghi chú</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Note</label>
             <Input
               value={form.note}
               onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}

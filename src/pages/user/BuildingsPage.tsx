@@ -69,7 +69,7 @@ function StatusBadge({ open }: { open: boolean }) {
         )}
         <span className={`relative inline-flex h-1.5 w-1.5 rounded-full ${open ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
       </span>
-      {open ? 'Open' : 'Tạm đóng'}
+      {open ? 'Open' : 'Closed'}
     </span>
   );
 }

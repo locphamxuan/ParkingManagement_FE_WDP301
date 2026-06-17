@@ -85,7 +85,7 @@ export function ManagerStaffShiftsPage() {
   const columns: DataColumn<StaffShift>[] = [
     {
       key: 'shift',
-      title: 'Ca Trực',
+      title: 'Shift',
       render: (row) => (
         <div>
           <div className="font-medium">{row.shift?.code ?? '—'}</div>
@@ -105,7 +105,7 @@ export function ManagerStaffShiftsPage() {
             <div className="text-xs text-muted-foreground">{row.staff.email}</div>
           </div>
         ) : (
-          <span className="text-xs italic text-muted-foreground">Nhân viên đã bị xóa</span>
+          <span className="text-xs italic text-muted-foreground">Staff removed</span>
         ),
     },
     {
@@ -125,7 +125,7 @@ export function ManagerStaffShiftsPage() {
     },
     {
       key: 'workDate',
-      title: 'Ngày Làm',
+      title: 'Work date',
       render: (row) => new Date(row.workDate).toLocaleDateString('vi-VN'),
     },
     {
@@ -135,7 +135,7 @@ export function ManagerStaffShiftsPage() {
     },
     {
       key: 'note',
-      title: 'Ghi Chú',
+      title: 'Note',
       render: (row) => row.note ? <span className="text-sm">{row.note}</span> : <span className="text-muted-foreground">—</span>,
     },
     {
@@ -167,7 +167,7 @@ export function ManagerStaffShiftsPage() {
   return (
     <div className="grid gap-4">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Gán Staff Vào Ca Trực</h1>
+        <h1 className="text-2xl font-bold">Assign staff to shift</h1>
         <Button onClick={openCreate} className="gap-2" disabled={loading}>
           <Plus size={16} />Assign staff</Button>
       </div>
@@ -183,13 +183,12 @@ export function ManagerStaffShiftsPage() {
         </div>
       ) : items.length === 0 ? (
         <div className="rounded-lg border border-border bg-card p-8 text-center">
-          <p className="text-muted-foreground mb-4">Chưa có staff được gán vào ca trực</p>
+          <p className="text-muted-foreground mb-4">No staff assigned to shifts yet</p>
           <Button onClick={openCreate} className="gap-2">
-            <Plus size={16} /> Gán Staff Đầu Tiên
-          </Button>
+            <Plus size={16} />Assign first staff</Button>
         </div>
       ) : (
-        <DataTable title="Danh Sách Gán Ca" rows={items} columns={columns} />
+        <DataTable title="Shift assignments" rows={items} columns={columns} />
       )}
 
       <AssignStaffModal

@@ -93,7 +93,7 @@ export function StaffProfilePage() {
             <User size={20} className="text-emerald-400" />
           </div>
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 font-mono">Hệ thống điều hành</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 font-mono">Operations system</p>
             <h1 className="text-xl font-bold text-white mt-0.5 tracking-tight">Profile</h1>
           </div>
         </div>

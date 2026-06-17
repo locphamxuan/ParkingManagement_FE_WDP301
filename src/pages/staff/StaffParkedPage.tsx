@@ -395,7 +395,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
                         <p className="font-medium text-foreground">{fmtTime(s.entryTime)}</p>
                       </div>
                       <div>
-                        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Thời gian đỗ</span>
+                        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Parking duration</span>
                         <p className="font-medium text-primary">{fmtDuration(s.entryTime, s.exitTime)}</p>
                       </div>
                     </div>
@@ -455,8 +455,8 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
             <div className="rounded-xl border border-border bg-card/50 p-4 space-y-1.5 text-sm">
               <div className="flex justify-between"><span className="text-muted-foreground">Khách</span><span className="font-medium text-foreground">{(checkoutTarget.isMember ?? checkoutTarget.user) ? (checkoutTarget.user?.fullName || 'Members') : 'Guest'}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Vehicle type</span><span className="font-medium text-foreground">{checkoutTarget.vehicleType?.name ?? '—'}{checkoutTarget.vehicleBrand ? ` · ${checkoutTarget.vehicleBrand}` : ''}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Vào lúc</span><span className="font-medium text-foreground">{fmtTime(checkoutTarget.entryTime)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Thời gian đỗ</span><span className="font-medium text-foreground">{fmtDuration(checkoutTarget.entryTime)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">At</span><span className="font-medium text-foreground">{fmtTime(checkoutTarget.entryTime)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Parking duration</span><span className="font-medium text-foreground">{fmtDuration(checkoutTarget.entryTime)}</span></div>
               <div className="flex justify-between border-t border-border/60 pt-1.5"><span className="text-muted-foreground">NV check-in</span><span className="font-medium text-foreground">{checkoutTarget.staff?.fullName ?? '—'}{checkoutTarget.entryGate?.code ? ` · cổng ${checkoutTarget.entryGate.code}` : ''}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">NV check-out</span><span className="font-medium text-emerald-400">{user?.fullName || user?.email || 'Bạn'}</span></div>
             </div>
@@ -466,9 +466,9 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
               <span className="font-mono text-2xl font-black text-primary">{fmtMoney(checkoutTarget.currentFee ?? checkoutTarget.fee)}</span>
             </div>
 
-            <p className="mt-4 mb-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">Phương thức thanh toán</p>
+            <p className="mt-4 mb-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">Payment method</p>
             <div className="grid gap-2 sm:grid-cols-3">
-              {[{ value: 'cash', label: 'Tiền mặt' }, { value: 'bank_transfer', label: 'Chuyển khoản' }, { value: 'wallet', label: 'Trừ ví' }].map((m) => (
+              {[{ value: 'cash', label: 'Cash' }, { value: 'bank_transfer', label: 'Chuyển khoản' }, { value: 'wallet', label: 'Trừ ví' }].map((m) => (
                 <button
                   key={m.value}
                   type="button"
@@ -514,9 +514,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
             />
             <div className="mt-4 grid grid-cols-2 gap-3">
               <Button variant="secondary" onClick={() => { setRejectOpen(false); setRejectReason(''); }} className="text-xs">Hủy</Button>
-              <Button onClick={onReject} disabled={!rejectReason.trim()} className="bg-rose-500 text-white hover:bg-rose-400 text-xs disabled:opacity-60">
-                Xác nhận từ chối
-              </Button>
+              <Button onClick={onReject} disabled={!rejectReason.trim()} className="bg-rose-500 text-white hover:bg-rose-400 text-xs disabled:opacity-60">Confirm rejection</Button>
             </div>
           </motion.div>
         </div>

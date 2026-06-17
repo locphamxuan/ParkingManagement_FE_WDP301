@@ -21,8 +21,8 @@ const optionMap: Record<string, string> = {
   manager: 'Management',
   staff: 'Staff',
   user: 'Users',
-  blocked: 'Đã khóa',
-  pending: 'Chờ duyệt',
+  blocked: 'Locked',
+  pending: 'Pending approval',
   low: 'Low',
   medium: 'Medium',
   high: 'Cao',
@@ -51,7 +51,7 @@ export function SearchFilterBar({
         <Input
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
-          placeholder="Tìm kiếm..."
+          placeholder="Search..."
           className="pl-9"
         />
       </div>

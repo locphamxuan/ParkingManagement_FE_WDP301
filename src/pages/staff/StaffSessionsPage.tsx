@@ -89,7 +89,7 @@ export function StaffSessionsPage() {
   const reservationColumns: DataColumn<StaffReservation>[] = [
     {
       key: 'code',
-      title: 'Mã đặt chỗ',
+      title: 'Reservation code',
       render: (row) => (
         <span className="font-mono text-xs font-bold text-primary">{row.code ?? '—'}</span>
       ),
@@ -105,7 +105,7 @@ export function StaffSessionsPage() {
     },
     {
       key: 'slot',
-      title: 'Tầng / Ô đỗ',
+      title: 'Floor / Slot',
       render: (row) => {
         const floor = (
           row.slot as { floor?: { code?: string; name?: string } } | null
@@ -182,7 +182,7 @@ export function StaffSessionsPage() {
     },
     {
       key: 'slot',
-      title: 'Vị trí',
+      title: 'Location',
       render: (row) => {
         const floor = row.slot?.floor;
         const slotCode = row.slot?.code;
@@ -207,7 +207,7 @@ export function StaffSessionsPage() {
     },
     {
       key: 'entryTime',
-      title: 'Vào lúc',
+      title: 'At',
       render: (row) => (
         <span className="text-xs text-muted-foreground">{fmtTime(row.entryTime)}</span>
       ),
@@ -259,7 +259,7 @@ export function StaffSessionsPage() {
       border: 'border-amber-500/20 bg-amber-500/5',
     },
     {
-      label: 'Xe đang gửi',
+      label: 'Parked vehicles',
       value: String(activeSessions.length),
       icon: Car,
       color: 'text-violet-500',

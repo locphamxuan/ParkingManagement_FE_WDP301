@@ -3,7 +3,10 @@
  * ('x' / "x" / `x`) or a COMPLETE JSX text node (>x<). Never partial substrings,
  * so short keys cannot corrupt longer untranslated strings. */
 const fs = require('fs'), path = require('path');
-const dict = JSON.parse(fs.readFileSync('scripts_vn_dict.json', 'utf8'));
+const dict = {};
+for (const fn of fs.readdirSync('.').filter((n) => /^scripts_vn_dict.*\.json$/.test(n)).sort()) {
+  Object.assign(dict, JSON.parse(fs.readFileSync(fn, 'utf8')));
+}
 const entries = Object.entries(dict).filter(([k, v]) => v && v !== k).sort((a, b) => b[0].length - a[0].length);
 const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const root = 'src';

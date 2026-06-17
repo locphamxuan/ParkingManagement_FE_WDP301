@@ -26,7 +26,7 @@ function mapAuthErrorMessage(message: string): string {
     return 'Email đã được đăng ký.';
   }
   if (normalized.includes('password must be at least 6 characters')) {
-    return 'Mật khẩu phải có ít nhất 6 ký tự.';
+    return 'Password must be at least 6 characters.';
   }
   if (normalized.includes('valid email is required')) {
     return 'Email không hợp lệ.';
@@ -98,7 +98,7 @@ function usePublicAuthFlow(initialMode: 'login' | 'register') {
           const user = response?.data?.user;
 
           if (!token || !user) {
-            throw new Error('Phản hồi xác thực không hợp lệ từ máy chủ.');
+            throw new Error('Invalid authentication response from server.');
           }
 
           setNotice({

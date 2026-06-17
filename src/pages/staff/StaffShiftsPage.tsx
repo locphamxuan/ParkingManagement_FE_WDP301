@@ -31,7 +31,7 @@ export function StaffShiftsPage() {
   const columns: DataColumn<MyShift>[] = [
     {
       key: 'workDate',
-      title: 'Ngày',
+      title: 'Date',
       render: (row) => new Date(row.workDate).toLocaleDateString('vi-VN'),
     },
     {

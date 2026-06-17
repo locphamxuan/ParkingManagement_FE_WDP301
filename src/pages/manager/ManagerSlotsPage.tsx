@@ -321,7 +321,7 @@ export function ManagerSlotsPage() {
   };
 
   const columns: DataColumn<ParkingSlot>[] = [
-    { key: 'code', title: 'Mã ô' },
+    { key: 'code', title: 'Slot code' },
     {
       key: 'floor',
       title: 'Floor',
@@ -437,8 +437,7 @@ export function ManagerSlotsPage() {
 
         <div className="flex items-center gap-3">
           <Button onClick={openCreate} className="rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider hover:shadow-[0_0_15px_rgba(249,115,22,0.3)] gap-2">
-            <Plus size={14} className="stroke-[3]" /> Thêm ô đỗ
-          </Button>
+            <Plus size={14} className="stroke-[3]" />Add slot</Button>
         </div>
       </div>
 
@@ -637,12 +636,12 @@ export function ManagerSlotsPage() {
       <ModalForm
         open={modalOpen}
         onOpenChange={setModalOpen}
-        title={editing ? 'Sửa ô đỗ' : 'Thêm ô đỗ'}
+        title={editing ? 'Sửa ô đỗ' : 'Add slot'}
         onSubmit={onSubmit}
       >
         <div className="grid gap-4 md:grid-cols-2 text-slate-100">
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Mã ô</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Slot code</label>
             <Input
               value={form.code}
               onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
@@ -655,7 +654,7 @@ export function ManagerSlotsPage() {
               value={form.floor}
               onChange={(val) => setForm((f) => ({ ...f, floor: val }))}
               options={[
-                { value: '', label: 'Chọn tầng' },
+                { value: '', label: 'Select floor' },
                 ...floors.map((fl) => ({
                   value: fl._id,
                   label: fl.code,

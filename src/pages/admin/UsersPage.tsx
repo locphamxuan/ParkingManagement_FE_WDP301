@@ -327,7 +327,7 @@ export function UsersPage() {
             onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
           />
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Vai trò</label>
+            <label className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Role</label>
             <CustomSelect
               className="h-10"
               value={form.role}
@@ -367,7 +367,7 @@ export function UsersPage() {
             Tài khoản loại này không hiển thị ở danh sách “Người dùng”.
           </p>
         )}
-        {isSaving ? <p className="text-xs text-muted-foreground">Đang tạo...</p> : null}
+        {isSaving ? <p className="text-xs text-muted-foreground">Creating...</p> : null}
       </ModalForm>
 
       <ConfirmModal

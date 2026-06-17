@@ -442,9 +442,7 @@ export default function ReviewsPage() {
                 variant="secondary"
                 onClick={() => setModalOpen(false)}
                 className="mt-2 rounded-xl text-xs font-bold px-5 py-2.5"
-              >
-                Đã hiểu
-              </Button>
+              >Got it</Button>
             </div>
           ) : submitSuccess ? (
             <div className="py-8 text-center space-y-3">
@@ -549,7 +547,7 @@ export default function ReviewsPage() {
                   disabled={submitting}
                   className="rounded-xl px-5 py-2.5 font-bold text-xs bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-md shadow-orange-500/10 transition-all"
                 >
-                  {submitting ? 'Đang gửi...' : 'Gửi đánh giá'}
+                  {submitting ? 'Sending...' : 'Gửi đánh giá'}
                 </Button>
               </div>
             </form>

@@ -86,7 +86,7 @@ export function ManagerGatesPage() {
     try {
       await managerApi.gates.updateStatus(buildingId, row._id, status);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Cập nhật trạng thái thất bại');
+      alert(err instanceof Error ? err.message : 'Failed to update status');
       refresh();
     } finally {
       setSavingId(null);
@@ -181,7 +181,7 @@ export function ManagerGatesPage() {
     <div className="grid gap-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Cổng ra / vào</h1>
+          <h1 className="text-2xl font-bold">Entry / exit gate</h1>
           <p className="text-sm text-muted-foreground">Tạo cổng và chọn thể loại: cổng vào, cổng ra hoặc hai chiều.</p>
         </div>
         <Button onClick={openCreate} className="gap-2" disabled={loading}>
@@ -197,7 +197,7 @@ export function ManagerGatesPage() {
           Chưa có cổng nào. Nhấn “Thêm cổng” để tạo.
         </div>
       ) : (
-        <DataTable title="Cổng ra / vào" rows={items} columns={columns} />
+        <DataTable title="Entry / exit gate" rows={items} columns={columns} />
       )}
 
       <Modal isOpen={modalOpen} onClose={() => !submitting && setModalOpen(false)}>

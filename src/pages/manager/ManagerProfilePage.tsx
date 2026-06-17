@@ -224,7 +224,7 @@ export function ManagerProfilePage() {
                 { label: 'Full name', value: displayName || 'Not updated', icon: User },
                 { label: 'Email', value: session.email, icon: Mail },
                 { label: 'Phone number', value: session.phone || 'Not updated', icon: Phone },
-                { label: 'Vai trò', value: 'MANAGER', icon: Shield }
+                { label: 'Role', value: 'MANAGER', icon: Shield }
               ].map((f) => {
                 const Icon = f.icon;
                 return (

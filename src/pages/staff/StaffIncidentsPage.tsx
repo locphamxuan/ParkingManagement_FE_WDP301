@@ -22,12 +22,12 @@ interface IncidentRow {
 const SEVERITY_LABELS: Record<string, string> = {
   medium: 'Medium',
   high: 'Cao',
-  critical: 'Nghiêm trọng',
+  critical: 'Severe',
 };
 
 const STATUS_LABELS: Record<string, string> = {
   open: 'Open',
-  investigating: 'Đang xử lý',
+  investigating: 'Processing',
   escalated: 'Leo thang',
   resolved: 'Resolved',
   closed: 'Close',
@@ -128,7 +128,7 @@ export function StaffIncidentsPage() {
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary">Incident</p>
               <h2 className="text-xl font-semibold text-foreground">Incident management</h2>
-              <p className="text-sm text-muted-foreground">{building ? `${building.code} · ${building.name}` : 'Tất cả tòa nhà'}</p>
+              <p className="text-sm text-muted-foreground">{building ? `${building.code} · ${building.name}` : 'All buildings'}</p>
             </div>
           </div>
           <Button variant="secondary" onClick={refresh} className="gap-2">
@@ -145,7 +145,7 @@ export function StaffIncidentsPage() {
           <CardContent>
             <div className="grid gap-3 md:grid-cols-3">
               <div className="rounded-xl border border-border bg-card/50 p-4">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Đang mở</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Open</p>
                 <p className="mt-2 text-2xl font-semibold text-foreground">{counts.open}</p>
               </div>
               <div className="rounded-xl border border-border bg-card/50 p-4">
@@ -213,8 +213,7 @@ export function StaffIncidentsPage() {
               <p className="mt-1">{error}</p>
             </div>
             <Button onClick={refresh} variant="secondary" className="gap-2">
-              <RefreshCcw size={14} /> Thử lại
-            </Button>
+              <RefreshCcw size={14} />Retry</Button>
           </div>
         </div>
       )}
@@ -243,7 +242,7 @@ export function StaffIncidentsPage() {
               <option value="all">Tất cả mức độ</option>
               <option value="medium">Medium</option>
               <option value="high">Cao</option>
-              <option value="critical">Nghiêm trọng</option>
+              <option value="critical">Severe</option>
             </select>
           </div>
 
@@ -291,7 +290,7 @@ export function StaffIncidentsPage() {
       <section className="grid gap-4 md:grid-cols-3">
         {[
           { label: 'Open', description: 'Sự cố mới — cần ghi nhận và xử lý', icon: AlertTriangle },
-          { label: 'Đang xử lý', description: 'Đang điều tra tại hiện trường', icon: ShieldAlert },
+          { label: 'Processing', description: 'Đang điều tra tại hiện trường', icon: ShieldAlert },
           { label: 'Resolved', description: 'Đã xử lý xong và kiểm tra lại', icon: CheckCircle2 },
         ].map((item) => {
           const Icon = item.icon;

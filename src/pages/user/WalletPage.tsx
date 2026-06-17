@@ -38,8 +38,8 @@ const TX_REASON_LABELS: Record<string, string> = {
   payos_topup: 'Nạp ví (PayOS)',
   topup: 'Nạp ví',
   reservation_fee: 'Phí đặt chỗ trước',
-  parking_checkout: 'Phí gửi xe',
-  parking_fee: 'Phí gửi xe',
+  parking_checkout: 'Parking fee',
+  parking_fee: 'Parking fee',
   reservation_refund: 'Hoàn tiền đặt chỗ',
   refund: 'Hoàn tiền',
   long_term_subscription: 'Long-term package',
@@ -59,7 +59,7 @@ interface PendingTopUp {
 }
 
 const BANK_BIN_MAP: Record<string, string> = {
-  '970422': 'MB Bank (TMCP Quân Đội)',
+  '970422': 'MB Bank (Military Commercial Bank)',
   '970436': 'Vietcombank',
   '970415': 'VietinBank',
   '970418': 'BIDV',
@@ -672,7 +672,7 @@ export default function WalletPage() {
                   {/* Transfer Details Form */}
                   {(() => {
                     const qrInfo = parseVietQR(pendingTopUp.qrCode);
-                    const bankName = qrInfo ? BANK_BIN_MAP[qrInfo.bankBin] || `Ngân hàng (BIN: ${qrInfo.bankBin})` : 'MB Bank (TMCP Quân Đội)';
+                    const bankName = qrInfo ? BANK_BIN_MAP[qrInfo.bankBin] || `Ngân hàng (BIN: ${qrInfo.bankBin})` : 'MB Bank (Military Commercial Bank)';
                     const accNo = qrInfo?.accountNumber || 'VQRQAJNOG7846';
                     const accName = qrInfo?.accountName || 'PHAM XUAN LOC';
 

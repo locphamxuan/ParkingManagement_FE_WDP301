@@ -143,7 +143,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
   const y = useTransform(smoothScroll, [0, 0.25, 0.60, 1.0], [0, 0, 20, -50]);
 
   const heroButtonText = useMemo(() => {
-    if (!user) return 'Đăng nhập ngay';
+    if (!user) return 'Sign in now';
     if (user.role === 'admin') return 'Bảng điều khiển Admin';
     if (user.role === 'manager') return 'Bảng quản trị Manager';
     if (user.role === 'staff') return 'Cổng nhân viên ca trực';
@@ -274,8 +274,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
                       className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white"
                       onClick={() => { setMenuOpen(false); onViewReservationHistory(); }}
                     >
-                      <History size={12} className="inline-block mr-2" /> Lịch sử đặt chỗ
-                    </button>
+                      <History size={12} className="inline-block mr-2" />Reservation history</button>
                     <a
                       href="/parking-history"
                       className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white flex items-center"
@@ -365,7 +364,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
 
               <h1 className="text-4xl md:text-5xl font-black leading-[1.12] tracking-tight text-white">
                 Nền tảng kiểm soát <br />
-                <span className="bg-gradient-to-r from-orange-400 via-amber-400 to-purple-400 bg-clip-text text-transparent">Bãi đỗ xe thông minh</span>
+                <span className="bg-gradient-to-r from-orange-400 via-amber-400 to-purple-400 bg-clip-text text-transparent">Smart parking lot</span>
               </h1>
               <p className="mt-5 text-sm text-slate-400 leading-relaxed max-w-lg font-semibold">
                 PBMS định nghĩa lại hoạt động vận hành tòa nhà. Giám sát ra vào thời gian thực, tự động hóa thanh toán, theo dõi công suất thông minh và cung cấp giải pháp 3D trực quan vượt trội.
@@ -405,8 +404,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
                       whileHover={{ scale: 1.05, boxShadow: '0 0 25px rgba(249,115,22,0.45)' }}
                       whileTap={{ scale: 0.95 }}
                       className="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider transition-all duration-300 inline-flex items-center gap-2"
-                    >
-                      Đăng nhập ngay <ArrowRight size={14} />
+                    >Sign in now<ArrowRight size={14} />
                     </motion.a>
                     <motion.a
                       href="/auth/register"
@@ -637,7 +635,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
             <h2 className="text-2xl font-black mt-1 text-white">Triển khai bãi đỗ xe thông minh toàn diện</h2>
           </div>
           <div className="flex gap-4">
-            <a href="/auth/register" className="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider hover:shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all duration-200">Tạo tài khoản</a>
+            <a href="/auth/register" className="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider hover:shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all duration-200">Create account</a>
             {user ? (
               <button className="px-6 py-3 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-xs uppercase tracking-wider hover:border-orange-500/25 transition-all duration-200" onClick={onViewProfile}>View profile</button>
             ) : (

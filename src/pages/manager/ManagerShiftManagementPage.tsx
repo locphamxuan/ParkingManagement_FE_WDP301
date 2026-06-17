@@ -6,7 +6,7 @@ import { ManagerStaffShiftsPage } from '@/pages/manager/ManagerStaffShiftsPage';
 type Tab = 'shifts' | 'assign';
 
 const TABS: { value: Tab; label: string; icon: React.ElementType }[] = [
-  { value: 'shifts', label: 'Ca trực', icon: CalendarClock },
+  { value: 'shifts', label: 'Shift', icon: CalendarClock },
   { value: 'assign', label: 'Gán ca cho nhân viên', icon: Users },
 ];
 

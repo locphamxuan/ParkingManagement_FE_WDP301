@@ -111,15 +111,15 @@ export function AssignStaffModal({
 
     // Validation
     if (!selectedStaff) {
-      setError('Vui lòng chọn nhân viên');
+      setError('Please select a staff member');
       return;
     }
     if (!selectedShift) {
-      setError('Vui lòng chọn ca trực');
+      setError('Please select a shift');
       return;
     }
     if (!workDate) {
-      setError('Vui lòng chọn ngày làm việc');
+      setError('Please select a work date');
       return;
     }
 
@@ -132,7 +132,7 @@ export function AssignStaffModal({
         note: note.trim() || undefined,
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Lỗi khi lưu');
+      setError(err instanceof Error ? err.message : 'Error while saving');
     }
   };
 
@@ -149,7 +149,7 @@ export function AssignStaffModal({
         {/* Header */}
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-foreground">
-            {editingData ? 'Sửa Gán Ca' : 'Gán Staff Vào Ca'}
+            {editingData ? 'Edit shift assignment' : 'Assign staff to shift'}
           </h2>
           <button
             onClick={handleClose}
@@ -210,9 +210,7 @@ export function AssignStaffModal({
 
             {/* Gate Selection */}
             <div className="grid gap-2">
-              <label className="text-sm font-medium text-foreground">
-                Cổng phụ trách
-              </label>
+              <label className="text-sm font-medium text-foreground">Assigned gate</label>
               <CustomSelect
                 value={selectedGate || ''}
                 onChange={setSelectedGate}
@@ -231,8 +229,7 @@ export function AssignStaffModal({
 
             {/* Work Date */}
             <div className="grid gap-2">
-              <label className="text-sm font-medium text-foreground">
-                Ngày Làm Việc <span className="text-red-500">*</span>
+              <label className="text-sm font-medium text-foreground">Work date<span className="text-red-500">*</span>
               </label>
               <DatePicker
                 value={workDate}
@@ -244,9 +241,7 @@ export function AssignStaffModal({
 
             {/* Note */}
             <div className="grid gap-2">
-              <label className="text-sm font-medium text-foreground">
-                Ghi Chú (Tùy Chọn)
-              </label>
+              <label className="text-sm font-medium text-foreground">Note (optional)</label>
               <textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
@@ -284,7 +279,7 @@ export function AssignStaffModal({
                 {isSubmitting
                   ? 'Saving...'
                   : editingData
-                    ? 'Cập Nhật'
+                    ? 'Update'
                     : 'Assign staff'}
               </Button>
             </div>

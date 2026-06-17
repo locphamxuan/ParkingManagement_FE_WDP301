@@ -98,7 +98,7 @@ export function ManagerPackagesPage() {
 
   const onSubmit = async () => {
     if (!form.vehicleType) {
-      alert('Chọn loại xe trước');
+      alert('Select vehicle type first');
       return;
     }
     const payload = {
@@ -150,7 +150,7 @@ export function ManagerPackagesPage() {
       title: 'Vehicle type',
       render: (row) => (typeof row.vehicleType === 'string' ? row.vehicleType : row.vehicleType.code),
     },
-    { key: 'durationDays', title: 'Thời hạn (ngày)' },
+    { key: 'durationDays', title: 'Duration (days)' },
     {
       key: 'price',
       title: 'Price',
@@ -170,7 +170,7 @@ export function ManagerPackagesPage() {
     { key: 'reservedSlots', title: 'Slot dành riêng' },
     {
       key: 'benefits',
-      title: 'Ưu đãi',
+      title: 'Benefits',
       render: (row) => (
         <span className="text-xs text-slate-400">
           {(row.benefits?.length ?? 0) > 0 ? `${row.benefits!.length} ưu đãi` : '—'}
@@ -251,11 +251,11 @@ export function ManagerPackagesPage() {
                   label: `${vt.code} - ${vt.name}`,
                 })),
               ]}
-              placeholder="Chọn loại xe..."
+              placeholder="Select vehicle type..."
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Thời hạn (ngày)</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Duration (days)</label>
             <Input
               type="number"
               min={1}

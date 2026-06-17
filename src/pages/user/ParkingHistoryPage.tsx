@@ -16,7 +16,7 @@ const fmtDuration = (minutes?: number | null) => {
 };
 
 const PAYMENT_LABELS: Record<string, string> = {
-  cash: 'Tiền mặt',
+  cash: 'Cash',
   wallet: 'Ví điện tử',
   qr: 'QR Code',
 };
@@ -197,7 +197,7 @@ export default function ParkingHistoryPage() {
                   <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {/* Floor / Slot */}
                     <div>
-                      <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Vị trí</p>
+                      <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Location</p>
                       <div className="mt-1 flex gap-1 flex-wrap">
                         {floorLabel ? (
                           <span className="rounded border border-blue-500/30 bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-bold text-blue-400">

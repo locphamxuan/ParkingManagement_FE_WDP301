@@ -100,7 +100,7 @@ const OPERATIONAL_GUARDRAILS = [
 const METHOD_LABELS: Record<string, string> = {
   wallet: 'Ví ứng dụng',
   qr: 'QR',
-  cash: 'Tiền mặt',
+  cash: 'Cash',
   card: 'Thẻ ngân hàng',
 };
 
@@ -119,12 +119,12 @@ const toBuilding = (
   overview?: ManagerOverviewData,
 ): Building => {
   // Handle manager field that can be a populated object, a string ID, or null
-  let managerName = 'Chưa gán';
+  let managerName = 'Unassigned';
   
   if (item.manager) {
     if (typeof item.manager === 'object' && 'fullName' in item.manager) {
       // Manager is a populated object with fullName
-      managerName = item.manager.fullName || 'Chưa gán';
+      managerName = item.manager.fullName || 'Unassigned';
     } else if (typeof item.manager === 'string') {
       // Manager is a string ID, look up in the map or show truncated ID
       managerName = managerNameById.get(item.manager) || `ID: ${item.manager.slice(0, 8)}`;
@@ -135,7 +135,7 @@ const toBuilding = (
     id: item.code || item._id,
     backendId: item._id,
     name: item.name,
-    address: item.address?.fullAddress || 'Chưa cập nhật địa chỉ',
+    address: item.address?.fullAddress || 'Address not updated',
     floors: item.totalFloors || 0,
     occupancyRate: Number(overview?.slots?.occupancyRate || 0),
     status: item.status || 'inactive',

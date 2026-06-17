@@ -67,7 +67,7 @@ export function StaffReservationsPage() {
       await staffApi.reservations.expire(id);
       load();
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Cập nhật trạng thái thất bại');
+      setActionError(err instanceof Error ? err.message : 'Failed to update status');
     } finally {
       setActionLoading((prev) => ({ ...prev, [id]: false }));
     }
@@ -93,7 +93,7 @@ export function StaffReservationsPage() {
   const columns: DataColumn<StaffReservation>[] = [
     {
       key: 'code',
-      title: 'Mã đặt chỗ',
+      title: 'Reservation code',
       render: (row) => <span className="font-mono text-xs font-bold text-primary">{row.code ?? '—'}</span>,
     },
     {
@@ -125,7 +125,7 @@ export function StaffReservationsPage() {
     },
     {
       key: 'slot',
-      title: 'Tầng / Ô đỗ',
+      title: 'Floor / Slot',
       render: (row) => {
         const floor = (row.slot as { floor?: { code?: string; name?: string } } | null)?.floor;
         const floorLabel = floor?.code ?? floor?.name ?? null;
@@ -174,7 +174,7 @@ export function StaffReservationsPage() {
     },
     {
       key: '_id',
-      title: 'Thao tác',
+      title: 'Actions',
       render: (row) => {
         const busy = actionLoading[row._id];
         if (row.status === 'confirmed') {
@@ -227,7 +227,7 @@ export function StaffReservationsPage() {
               <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary">Reservation</p>
               <h2 className="mt-0.5 text-xl font-semibold text-foreground">Danh sách đặt chỗ</h2>
               <p className="mt-0.5 text-sm text-muted-foreground">
-                {building ? `${building.code} · ${building.name}` : 'Tất cả tòa nhà'}
+                {building ? `${building.code} · ${building.name}` : 'All buildings'}
               </p>
             </div>
           </div>
@@ -279,8 +279,7 @@ export function StaffReservationsPage() {
             <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-4 text-sm text-rose-400">
               <p>{error}</p>
               <Button variant="secondary" onClick={load} className="mt-3 gap-2 text-xs">
-                <RefreshCcw size={13} /> Thử lại
-              </Button>
+                <RefreshCcw size={13} />Retry</Button>
             </div>
           ) : filtered.length === 0 ? (
             <p className="text-sm text-muted-foreground py-6 text-center">Không tìm thấy đặt chỗ nào.</p>

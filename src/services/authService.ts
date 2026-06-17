@@ -54,7 +54,7 @@ function mapAuthSession(payload: ApiAuthResponse): AuthSession {
   const user = payload?.data?.user;
 
   if (!token || !user) {
-    throw new Error('Phản hồi xác thực không hợp lệ từ máy chủ.');
+    throw new Error('Invalid authentication response from server.');
   }
 
   const assignedBuildingIds = Array.isArray(user.assignedBuildings)

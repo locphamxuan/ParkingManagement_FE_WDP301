@@ -40,8 +40,8 @@ const empty: FormState = {
 const toDateInput = (v?: string | null) => (v ? new Date(v).toISOString().slice(0, 10) : '');
 
 const TYPE_LABEL: Record<PricingType, string> = {
-  regular: 'Giờ thường',
-  peak: 'Cao điểm',
+  regular: 'Regular hours',
+  peak: 'Peak hours',
 };
 
 export function ManagerPricingPage() {
@@ -99,7 +99,7 @@ export function ManagerPricingPage() {
 
   const onSubmit = async () => {
     if (!form.vehicleType) {
-      alert('Chọn loại xe trước');
+      alert('Select vehicle type first');
       return;
     }
     const payload = {
@@ -144,7 +144,7 @@ export function ManagerPricingPage() {
     },
     {
       key: 'type',
-      title: 'Loại giá',
+      title: 'Price type',
       render: (row) => TYPE_LABEL[(row.type === 'peak' ? 'peak' : 'regular') as PricingType],
     },
     {
@@ -183,8 +183,7 @@ export function ManagerPricingPage() {
     <div className="grid gap-4">
       <div className="flex justify-end">
         <Button onClick={openCreate} className="gap-2">
-          <Plus size={14} /> Tạo chính sách giá
-        </Button>
+          <Plus size={14} />Create pricing policy</Button>
       </div>
       {loading ? (
         <div className="text-sm text-muted-foreground">Loading...</div>
@@ -197,7 +196,7 @@ export function ManagerPricingPage() {
       <ModalForm
         open={modalOpen}
         onOpenChange={setModalOpen}
-        title={editing ? 'Sửa chính sách giá' : 'Tạo chính sách giá'}
+        title={editing ? 'Sửa chính sách giá' : 'Create pricing policy'}
         onSubmit={onSubmit}
       >
         <div className="grid gap-3 md:grid-cols-2">
@@ -220,17 +219,17 @@ export function ManagerPricingPage() {
                   label: `${vt.code} - ${vt.name}`,
                 })),
               ]}
-              placeholder="Chọn loại xe..."
+              placeholder="Select vehicle type..."
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Loại giá</label>
+            <label className="text-xs uppercase text-muted-foreground">Price type</label>
             <CustomSelect
               value={form.type}
               onChange={(val) => setForm((f) => ({ ...f, type: val as PricingType }))}
               options={[
-                { value: 'regular', label: 'Giờ thường' },
-                { value: 'peak', label: 'Cao điểm' },
+                { value: 'regular', label: 'Regular hours' },
+                { value: 'peak', label: 'Peak hours' },
               ]}
             />
           </div>

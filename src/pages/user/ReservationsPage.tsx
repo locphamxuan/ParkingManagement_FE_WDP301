@@ -533,11 +533,11 @@ export default function ReservationsPage() {
                       setSelectedPkg(null);
                     }}
                     options={[
-                      { value: '', label: '-- Chọn loại xe --' },
+                      { value: '', label: '-- Select vehicle type --' },
                       { value: 'car', label: '🚗 Ô tô' },
                       { value: 'motorcycle', label: '🏍️ Xe máy' },
                     ]}
-                    placeholder="-- Chọn loại xe --"
+                    placeholder="-- Select vehicle type --"
                   />
                 </div>
               </div>
@@ -677,7 +677,7 @@ export default function ReservationsPage() {
             <div className="rounded-3xl border border-white/[0.06] bg-white/[0.02] p-5">
               <div className="flex items-center gap-2 mb-3">
                 <MapPin size={16} className="text-cyan-300/70" />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300/70">Chọn chỗ đỗ</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300/70">Select slot</span>
               </div>
 
               <div className="flex items-center gap-3">
@@ -689,8 +689,7 @@ export default function ReservationsPage() {
                   whileTap={{ scale: 0.99 }}
                   className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-cyan-300/20 bg-cyan-300/5 px-4 py-4 text-sm font-black uppercase tracking-wider text-cyan-200 transition-all hover:bg-cyan-300/10 disabled:cursor-not-allowed disabled:border-slate-700 disabled:text-slate-500 disabled:bg-transparent"
                 >
-                  <MapPin size={16} /> Chọn chỗ đỗ
-                </motion.button>
+                  <MapPin size={16} />Select slot</motion.button>
                 <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-center min-w-[100px]">
                   <p className="text-[9px] font-bold uppercase text-slate-500">Slot</p>
                   <p className="mt-1 font-mono text-xl font-black text-orange-300">{selectedSlot || '—'}</p>
@@ -795,7 +794,7 @@ export default function ReservationsPage() {
                     <CalendarClock size={20} className="text-orange-400" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-black text-white tracking-wide">Lịch sử đặt chỗ</h2>
+                    <h2 className="text-lg font-black text-white tracking-wide">Reservation history</h2>
                     <p className="text-[10px] text-slate-500 font-semibold tracking-wider uppercase mt-0.5">Theo dõi & Quản lý các lượt đỗ xe</p>
                   </div>
                 </div>

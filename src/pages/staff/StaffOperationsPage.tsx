@@ -343,10 +343,10 @@ export function StaffOperationsPage() {
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Ảnh chân dung</p>
+                  <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Portrait photo</p>
                   <div className="aspect-[4/3] overflow-hidden rounded-lg border border-border bg-muted/40 flex items-center justify-center">
                     {portraitImage ? (
-                      <img src={portraitImage} alt="Ảnh chân dung" className="h-full w-full object-cover" />
+                      <img src={portraitImage} alt="Portrait photo" className="h-full w-full object-cover" />
                     ) : (
                       <ImageIcon size={20} className="text-muted-foreground/40" />
                     )}
@@ -489,9 +489,7 @@ export function StaffOperationsPage() {
             />
             <div className="mt-4 grid grid-cols-2 gap-3">
               <Button variant="secondary" onClick={() => { setRejectOpen(false); setRejectReason(''); }} className="text-xs">Hủy</Button>
-              <Button onClick={onReject} disabled={!rejectReason.trim()} className="bg-rose-500 text-white hover:bg-rose-400 text-xs disabled:opacity-60">
-                Xác nhận từ chối
-              </Button>
+              <Button onClick={onReject} disabled={!rejectReason.trim()} className="bg-rose-500 text-white hover:bg-rose-400 text-xs disabled:opacity-60">Confirm rejection</Button>
             </div>
           </motion.div>
         </div>
@@ -547,7 +545,7 @@ export function StaffOperationsPage() {
                         <User size={16} />
                       </div>
                       <div>
-                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Họ và tên</p>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Full name</p>
                         <p className="text-sm font-semibold text-foreground">{scannedPlateInfo.user.fullName}</p>
                       </div>
                     </div>

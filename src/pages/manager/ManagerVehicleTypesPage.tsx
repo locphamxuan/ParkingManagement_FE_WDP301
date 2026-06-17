@@ -118,8 +118,7 @@ export function ManagerVehicleTypesPage() {
           <h2 className="text-base font-semibold text-foreground">Vehicle type</h2>
         </div>
         <Button size="sm" className="gap-2" onClick={() => { setShowCreate(true); setFeedback(null); }}>
-          <Plus size={14} /> Thêm loại xe
-        </Button>
+          <Plus size={14} />Add vehicle type</Button>
       </div>
 
       {feedback && (
@@ -140,7 +139,7 @@ export function ManagerVehicleTypesPage() {
           <CardContent className="grid gap-3">
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="grid gap-1.5">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Mã loại xe <span className="text-rose-400">*</span></label>
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Vehicle type code<span className="text-rose-400">*</span></label>
                 <Input
                   value={newCode}
                   onChange={(e) => setNewCode(e.target.value.toUpperCase())}
@@ -148,7 +147,7 @@ export function ManagerVehicleTypesPage() {
                 />
               </div>
               <div className="grid gap-1.5">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Tên loại xe <span className="text-rose-400">*</span></label>
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Vehicle type name<span className="text-rose-400">*</span></label>
                 <Input
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
@@ -166,7 +165,7 @@ export function ManagerVehicleTypesPage() {
             </div>
             <div className="flex gap-2">
               <Button size="sm" onClick={handleCreate} disabled={isCreating || !newCode.trim() || !newName.trim()}>
-                {isCreating ? 'Đang tạo...' : 'Tạo loại xe'}
+                {isCreating ? 'Creating...' : 'Tạo loại xe'}
               </Button>
               <Button size="sm" variant="outline" onClick={() => setShowCreate(false)}>Hủy</Button>
             </div>
@@ -182,7 +181,7 @@ export function ManagerVehicleTypesPage() {
           ) : error ? (
             <p className="p-5 text-sm text-rose-500">{error}</p>
           ) : items.length === 0 ? (
-            <p className="p-5 text-sm text-muted-foreground">Chưa có loại xe nào. Nhấn "Thêm loại xe" để bắt đầu.</p>
+            <p className="p-5 text-sm text-muted-foreground">Chưa có loại xe nào. Nhấn "Add vehicle type" để bắt đầu.</p>
           ) : (
             <div className="divide-y divide-border">
               {items.map((item) => (
@@ -192,11 +191,11 @@ export function ManagerVehicleTypesPage() {
                     <div className="grid gap-3">
                       <div className="grid gap-3 sm:grid-cols-2">
                         <div className="grid gap-1.5">
-                          <label className="text-xs font-medium text-muted-foreground">Mã loại xe</label>
+                          <label className="text-xs font-medium text-muted-foreground">Vehicle type code</label>
                           <Input value={editCode} onChange={(e) => setEditCode(e.target.value.toUpperCase())} />
                         </div>
                         <div className="grid gap-1.5">
-                          <label className="text-xs font-medium text-muted-foreground">Tên loại xe</label>
+                          <label className="text-xs font-medium text-muted-foreground">Vehicle type name</label>
                           <Input value={editName} onChange={(e) => setEditName(e.target.value)} />
                         </div>
                       </div>

@@ -90,7 +90,7 @@ export function UserNotificationBell() {
 
           <div className="max-h-96 overflow-y-auto">
             {items.length === 0 ? (
-              <p className="px-4 py-8 text-center text-xs text-slate-500">Chưa có thông báo nào.</p>
+              <p className="px-4 py-8 text-center text-xs text-slate-500">No notifications yet.</p>
             ) : (
               items.map((n) => (
                 <button
@@ -126,9 +126,7 @@ export function UserNotificationBell() {
               navigate('/notifications');
             }}
             className="block w-full border-t border-white/10 px-4 py-2.5 text-center text-[11px] font-semibold text-orange-400 hover:bg-white/5 hover:text-orange-300"
-          >
-            Xem tất cả thông báo →
-          </button>
+          >View all notifications →</button>
         </div>
       )}
     </div>

@@ -112,7 +112,7 @@ export function ManagerFloorsPage() {
 
   const columns: DataColumn<Floor>[] = useMemo(
     () => [
-      { key: 'code', title: 'Mã tầng' },
+      { key: 'code', title: 'Floor code' },
       { key: 'capacity', title: 'Sức chứa' },
       {
         key: 'allowedVehicleTypes',
@@ -149,8 +149,7 @@ export function ManagerFloorsPage() {
     <div className="grid gap-4">
       <div className="flex justify-end">
         <Button onClick={openCreate} className="gap-2">
-          <Plus size={14} /> Thêm tầng
-        </Button>
+          <Plus size={14} />Add floor</Button>
       </div>
       {loading ? (
         <div className="text-sm text-muted-foreground">Loading...</div>
@@ -162,12 +161,12 @@ export function ManagerFloorsPage() {
       <ModalForm
         open={modalOpen}
         onOpenChange={setModalOpen}
-        title={editing ? 'Sửa tầng' : 'Thêm tầng'}
+        title={editing ? 'Sửa tầng' : 'Add floor'}
         onSubmit={onSubmit}
       >
         <div className="grid gap-3 md:grid-cols-2">
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Mã tầng</label>
+            <label className="text-xs uppercase text-muted-foreground">Floor code</label>
             <Input
               value={form.code}
               onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}

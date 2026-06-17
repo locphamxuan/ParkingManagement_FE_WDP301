@@ -35,7 +35,7 @@ function isBuildingOpen(building: Building): boolean {
 
 function addressText(building: Building): string {
   if (building.address?.fullAddress) return building.address.fullAddress;
-  return building.address ? JSON.stringify(building.address) : 'Chưa cập nhật địa chỉ';
+  return building.address ? JSON.stringify(building.address) : 'Address not updated';
 }
 
 /** Map FE vehicleType strings to backend vehicle type code for matching. */
@@ -69,7 +69,7 @@ function StatusBadge({ open }: { open: boolean }) {
         )}
         <span className={`relative inline-flex h-1.5 w-1.5 rounded-full ${open ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
       </span>
-      {open ? 'Đang mở' : 'Tạm đóng'}
+      {open ? 'Open' : 'Tạm đóng'}
     </span>
   );
 }
@@ -374,12 +374,8 @@ export default function BuildingsPage() {
           className="mb-8 grid gap-6 lg:grid-cols-[1fr_360px] lg:items-end"
         >
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-orange-400/80">
-              Chọn tòa nhà
-            </p>
-            <h1 className="mt-3 text-3xl font-black tracking-tight text-white md:text-4xl">
-              Bãi đỗ xe thông minh
-            </h1>
+            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-orange-400/80">Select building</p>
+            <h1 className="mt-3 text-3xl font-black tracking-tight text-white md:text-4xl">Smart parking lot</h1>
             <p className="mt-3 max-w-2xl text-sm font-semibold leading-relaxed text-slate-400">
               Xem số tầng, chỗ trống và loại xe được hỗ trợ. Chọn xe của bạn rồi bấm đặt chỗ.
             </p>

@@ -302,7 +302,7 @@ export function StaffDashboardPage() {
                 </div>
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 font-mono">
-                    {assignedGates.length > 0 ? 'Cổng vào được gán' : 'Nhiệm vụ'}
+                    {assignedGates.length > 0 ? 'Cổng vào được gán' : 'Tasks'}
                   </p>
                   <h3 className="mt-0.5 text-base font-extrabold text-white tracking-tight">Check in vehicle</h3>
                   <p className="text-xs text-slate-400 mt-0.5 font-medium">Quét biển số / QR để cho xe vào bãi</p>
@@ -323,7 +323,7 @@ export function StaffDashboardPage() {
                 </div>
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500 font-mono">
-                    {assignedGates.length > 0 ? 'Cổng ra được gán' : 'Nhiệm vụ'}
+                    {assignedGates.length > 0 ? 'Cổng ra được gán' : 'Tasks'}
                   </p>
                   <h3 className="mt-0.5 text-base font-extrabold text-white tracking-tight">Check-out xe ra</h3>
                   <p className="text-xs text-slate-400 mt-0.5 font-medium">Quét biển số / QR → đối chiếu ảnh → thu phí & cho ra</p>

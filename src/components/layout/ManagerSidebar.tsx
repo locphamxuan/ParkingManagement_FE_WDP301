@@ -35,12 +35,12 @@ const modules = [
   { to: 'operating-hours', label: 'Operating hours', icon: Clock },
   { to: 'price-policies', label: 'Price', icon: SlidersHorizontal },
   { to: 'reservation-policy', label: 'Reservation', icon: MapPin },
-  { to: 'packages', label: 'Gói', icon: Package },
-  { to: 'subscriptions', label: 'Gói của khách', icon: Fingerprint },
+  { to: 'packages', label: 'Package', icon: Package },
+  { to: 'subscriptions', label: 'Customer packages', icon: Fingerprint },
   { to: 'shifts', label: 'Shifts & Assignments', icon: Users },
   { to: 'staff', label: 'Staff', icon: User },
-  { to: 'reviews', label: 'Xem đánh giá', icon: MessageSquare },
-  { to: 'wallet', label: 'Ví tòa nhà', icon: Wallet },
+  { to: 'reviews', label: 'Reviews', icon: MessageSquare },
+  { to: 'wallet', label: 'Building wallet', icon: Wallet },
 ] as const;
 
 export function ManagerSidebar({ collapsed, onToggle }: ManagerSidebarProps) {
@@ -54,7 +54,7 @@ export function ManagerSidebar({ collapsed, onToggle }: ManagerSidebarProps) {
       <div className="mb-6 flex items-center justify-between rounded-2xl border border-white/8 bg-slate-800/60 p-3 shadow-sm backdrop-blur-md">
         {!collapsed ? (
           <div className="pl-1">
-            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">Môi trường</p>
+            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">Environment</p>
             <p className="text-xs font-extrabold text-slate-100">MANAGER PORTAL</p>
           </div>
         ) : (

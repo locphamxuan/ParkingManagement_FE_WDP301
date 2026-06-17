@@ -161,7 +161,7 @@ export default function ProfilePage() {
     }
 
     const normalized = normalizePlate(plateInput);
-    const brand = (vehicleBrand === 'Khác' ? customBrand.trim() : vehicleBrand.trim()) || null;
+    const brand = (vehicleBrand === 'Other' ? customBrand.trim() : vehicleBrand.trim()) || null;
     setEditPlates((prev) => [...prev, { plateNumber: normalized, vehicleType, brand }]);
     setPlateInput('');
     setVehicleBrand('');
@@ -457,7 +457,7 @@ export default function ProfilePage() {
                         {s.slot.floor && typeof s.slot.floor === 'object' && (s.slot.floor.name || s.slot.floor.code) ? (
                           <span> · {s.slot.floor.name || s.slot.floor.code}</span>
                         ) : null}
-                        {s.slotReleased ? <span className="text-rose-300"> (đã thu hồi)</span> : null}
+                        {s.slotReleased ? <span className="text-rose-300">(released)</span> : null}
                       </p>
                     )}
                     {typeof s.package?.maxHoursPerDay === 'number' && s.package.maxHoursPerDay > 0 && (
@@ -707,7 +707,7 @@ export default function ProfilePage() {
                             value={vehicleBrand}
                             onChange={(e) => {
                               setVehicleBrand(e.target.value);
-                              if (e.target.value !== 'Khác') setCustomBrand('');
+                              if (e.target.value !== 'Other') setCustomBrand('');
                             }}
                             className="flex-1 rounded-xl border border-white/10 bg-slate-950/80 text-white text-sm h-10 px-3 outline-none transition-all duration-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
                           >
@@ -718,8 +718,8 @@ export default function ProfilePage() {
                           </select>
                         </div>
 
-                        {/* Custom brand input — shown when user picks "Khác" */}
-                        {vehicleBrand === 'Khác' && (
+                        {/* Custom brand input — shown when user picks "Other" */}
+                        {vehicleBrand === 'Other' && (
                           <div className="flex items-center gap-3">
                             <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono shrink-0">Nhập hãng:</span>
                             <input
@@ -904,7 +904,7 @@ export default function ProfilePage() {
                       ),
                     isCustom: true,
                   }] : []),
-                  { label: 'Vai trò', value: user.role, uppercase: true },
+                  { label: 'Role', value: user.role, uppercase: true },
                 ].map((field, idx) => (
                   <motion.div
                     key={field.label}
@@ -960,7 +960,7 @@ export default function ProfilePage() {
                     <p className="mt-1 text-slate-200 font-bold">{user.phone || '— Chưa cập nhật —'}</p>
                   </div>
                   <div className="rounded-2xl border border-white/5 bg-slate-950/70 p-4">
-                    <p className="text-[10px] font-black uppercase text-slate-500 font-mono">Vai trò</p>
+                    <p className="text-[10px] font-black uppercase text-slate-500 font-mono">Role</p>
                     <p className="mt-1 font-mono uppercase text-orange-400 font-black">{user.role || 'user'}</p>
                   </div>
                   {user.role === 'user' && (

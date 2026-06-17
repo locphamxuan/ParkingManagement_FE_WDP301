@@ -196,7 +196,7 @@ function PackageSelectModal({
                   label: b.name,
                 })),
               ]}
-              placeholder="Chọn tòa nhà"
+              placeholder="Select building"
             />
           </div>
 
@@ -238,7 +238,7 @@ function PackageSelectModal({
                   value={selectedFloorId}
                   onChange={setSelectedFloorId}
                   options={floors.map((f) => ({ value: f._id, label: f.name || f.code }))}
-                  placeholder="Chọn tầng"
+                  placeholder="Select floor"
                 />
               </div>
               {loadingSlots ? (
@@ -289,9 +289,7 @@ function PackageSelectModal({
           )}
 
           <div>
-            <label className="block text-xs font-bold uppercase text-slate-400 mb-1">
-              Phương thức thanh toán
-            </label>
+            <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Payment method</label>
             <CustomSelect
               value={paymentMethod}
               onChange={(val) => setPaymentMethod(val as LongTermPaymentMethod)}
@@ -439,7 +437,7 @@ export default function LongTermSubscriptionsPage() {
   const { cancel: cancelSub, isLoading: isCancelling } = useCancelSubscription();
   const { renew, isLoading: isRenewing } = useRenewSubscription();
 
-  // Gói đang được chọn để xem chi tiết ở panel "Thông tin gói" (= gói mở modal).
+  // Gói đang được chọn để xem chi tiết ở panel "Package details" (= gói mở modal).
   const selectedPackage = selectedPackageForModal;
 
   const handleRenew = async (item: LongTermSubscription) => {
@@ -694,7 +692,7 @@ export default function LongTermSubscriptionsPage() {
                             {item.slot.floor && typeof item.slot.floor === 'object' && (item.slot.floor.name || item.slot.floor.code) ? (
                               <span> · {item.slot.floor.name || item.slot.floor.code}</span>
                             ) : null}
-                            {item.slotReleased ? <span className="text-rose-300"> (đã thu hồi)</span> : null}
+                            {item.slotReleased ? <span className="text-rose-300">(released)</span> : null}
                           </p>
                         )}
                         {typeof item.package.maxHoursPerDay === 'number' && item.package.maxHoursPerDay > 0 && (
@@ -749,9 +747,7 @@ export default function LongTermSubscriptionsPage() {
             <div className="rounded-3xl border border-white/10 bg-slate-900/55 p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-white">
-                  <ReceiptText size={16} className="text-emerald-300" />
-                  Thông tin gói
-                </h2>
+                  <ReceiptText size={16} className="text-emerald-300" />Package details</h2>
               </div>
 
               {selectedPackage ? (
@@ -779,7 +775,7 @@ export default function LongTermSubscriptionsPage() {
                   </p>
                   {(selectedPackage.benefits?.length ?? 0) > 0 && (
                     <div className="mt-2 border-t border-white/10 pt-2">
-                      <p className="mb-1 text-[10px] font-black uppercase tracking-wider text-emerald-300">Ưu đãi</p>
+                      <p className="mb-1 text-[10px] font-black uppercase tracking-wider text-emerald-300">Benefits</p>
                       <ul className="space-y-1">
                         {selectedPackage.benefits!.map((b, i) => (
                           <li key={i} className="flex items-start gap-1.5 text-xs text-slate-300">

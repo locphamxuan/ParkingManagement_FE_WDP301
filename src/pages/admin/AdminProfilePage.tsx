@@ -276,7 +276,7 @@ export function AdminProfilePage() {
                 { label: 'Full name', value: displayName || 'Not updated', icon: User },
                 { label: 'Email', value: session.email, icon: Mail },
                 { label: 'Phone number', value: session.phone || 'Not updated', icon: Phone },
-                { label: 'Vai trò', value: 'ADMIN', icon: Shield }
+                { label: 'Role', value: 'ADMIN', icon: Shield }
               ].map((f) => {
                 const Icon = f.icon;
                 return (
@@ -450,7 +450,7 @@ export function AdminProfilePage() {
                         <td className="py-3.5 px-5 text-xs text-slate-400 font-semibold">
                           {u.assignedBuildings?.length
                             ? `${u.assignedBuildings.length} tòa nhà`
-                            : 'Chưa gán'}
+                            : 'Unassigned'}
                         </td>
                       ) : null}
                     </tr>

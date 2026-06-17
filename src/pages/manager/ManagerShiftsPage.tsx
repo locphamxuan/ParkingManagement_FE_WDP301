@@ -98,7 +98,7 @@ export function ManagerShiftsPage() {
 
   const columns: DataColumn<Shift>[] = [
     { key: 'code', title: 'Code' },
-    { key: 'name', title: 'Tên ca' },
+    { key: 'name', title: 'Shift name' },
     { key: 'startTime', title: 'Start' },
     { key: 'endTime', title: 'End' },
     {
@@ -134,7 +134,7 @@ export function ManagerShiftsPage() {
       ) : error ? (
         <div className="text-sm text-red-600">{error}</div>
       ) : (
-        <DataTable title="Ca trực" rows={items} columns={columns} />
+        <DataTable title="Shift" rows={items} columns={columns} />
       )}
 
       <ModalForm
@@ -152,7 +152,7 @@ export function ManagerShiftsPage() {
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Tên ca</label>
+            <label className="text-xs uppercase text-muted-foreground">Shift name</label>
             <Input
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}

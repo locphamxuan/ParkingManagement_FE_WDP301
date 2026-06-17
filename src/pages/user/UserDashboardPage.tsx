@@ -152,7 +152,7 @@ export default function UserDashboardPage() {
                   <Car size={16} className="text-emerald-400" />
                 </div>
                 <div>
-                  <p className="text-[9px] font-bold uppercase tracking-widest text-emerald-400">Xe đang gửi</p>
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-emerald-400">Parked vehicles</p>
                   <p className="font-mono text-sm font-black text-amber-300">{activeSession.plateNumber}</p>
                 </div>
               </div>

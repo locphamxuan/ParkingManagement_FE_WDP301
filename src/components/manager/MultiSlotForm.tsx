@@ -59,11 +59,11 @@ export function MultiSlotForm({ isOpen, onClose, onSubmit, floors, loading = fal
     // Validation
     for (const row of rows) {
       if (!row.code.trim()) {
-        setError('Mã ô không được để trống');
+        setError('Slot code cannot be empty');
         return;
       }
       if (!row.floor) {
-        setError('Phải chọn tầng cho từng ô');
+        setError('A floor must be selected for each slot');
         return;
       }
     }
@@ -75,7 +75,7 @@ export function MultiSlotForm({ isOpen, onClose, onSubmit, floors, loading = fal
       setRows([emptyRow()]);
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Lỗi không xác định');
+      setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setSubmitting(false);
     }
@@ -95,8 +95,8 @@ export function MultiSlotForm({ isOpen, onClose, onSubmit, floors, loading = fal
         {/* Header */}
         <div className="sticky top-0 z-10 border-b border-white/8 bg-slate-800/95 px-6 py-4 flex items-center justify-between backdrop-blur-md">
           <div>
-            <h2 className="text-lg font-bold text-slate-100">Thêm Chỗ Đỗ Mới</h2>
-            <p className="text-xs text-slate-400 mt-1">Tạo một hoặc nhiều chỗ đỗ cùng một lúc</p>
+            <h2 className="text-lg font-bold text-slate-100">Add new slots</h2>
+            <p className="text-xs text-slate-400 mt-1">Create one or more slots at once</p>
           </div>
           <button
             onClick={handleClose}
@@ -143,7 +143,7 @@ export function MultiSlotForm({ isOpen, onClose, onSubmit, floors, loading = fal
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                   {/* Mã Ô */}
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wide">Mã Ô *</label>
+                    <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wide">Slot code *</label>
                     <Input
                       value={row.code}
                       onChange={(e) => handleRowChange(row.id, 'code', e.target.value.toUpperCase())}
@@ -189,7 +189,7 @@ export function MultiSlotForm({ isOpen, onClose, onSubmit, floors, loading = fal
 
                   {/* Cho Đặt Chỗ */}
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wide">Cho Đặt Chỗ</label>
+                    <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wide">Reservable</label>
                     <CustomSelect
                       value={row.reservable ? 'yes' : 'no'}
                       onChange={(val) => handleRowChange(row.id, 'reservable', val === 'yes')}
@@ -208,7 +208,7 @@ export function MultiSlotForm({ isOpen, onClose, onSubmit, floors, loading = fal
                   <Input
                     value={row.note}
                     onChange={(e) => handleRowChange(row.id, 'note', e.target.value)}
-                    placeholder="VD: Gần cầu thang, Vị trí đặc biệt"
+                    placeholder="e.g. Near stairs, special location"
                     disabled={submitting}
                     className="text-sm"
                   />
@@ -223,9 +223,7 @@ export function MultiSlotForm({ isOpen, onClose, onSubmit, floors, loading = fal
             disabled={submitting}
             className="w-full rounded-xl border-2 border-dashed border-orange-500/30 hover:border-orange-500/60 py-3 text-orange-300 hover:text-orange-200 font-semibold text-sm uppercase tracking-wide transition-colors disabled:opacity-50 flex items-center justify-center gap-2 group"
           >
-            <Plus size={18} className="group-hover:scale-110 transition-transform" />
-            Thêm chỗ đỗ khác
-          </button>
+            <Plus size={18} className="group-hover:scale-110 transition-transform" />Add another slot</button>
         </div>
 
         {/* Footer */}

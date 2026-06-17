@@ -3,8 +3,8 @@ export default function Footer() {
     <footer className="bg-gradient-to-r from-orange-500 to-orange-400 text-white py-10">
       <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="space-y-3">
-          <h4>Về chúng tôi</h4>
-          <p>Hệ thống quản lý bãi đỗ xe - quản lý đặt chỗ, thanh toán và kiểm soát truy cập dễ dàng.</p>
+          <h4>About us</h4>
+          <p>Parking management system — easily manage reservations, payments and access control.</p>
         </div>
 
         <div className="space-y-3">

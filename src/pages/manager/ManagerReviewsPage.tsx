@@ -75,7 +75,7 @@ export function ManagerReviewsPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Gửi phản hồi thất bại');
+        throw new Error(errorData.message || 'Failed to submit response');
       }
 
       await refresh();
@@ -83,7 +83,7 @@ export function ManagerReviewsPage() {
       setReplyForm({ reviewId: '', staffReply: '' });
       setSelectedReview(null);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Gửi phản hồi thất bại');
+      alert(err instanceof Error ? err.message : 'Failed to submit response');
     } finally {
       setReplying(false);
     }
@@ -158,14 +158,14 @@ export function ManagerReviewsPage() {
             }`}
           >
             <Icon size={12} />
-            {resolved ? 'Đã trả lời' : 'Chờ trả lời'}
+            {resolved ? 'Replied' : 'Awaiting reply'}
           </span>
         );
       },
     },
     {
       key: 'createdAt',
-      title: 'Ngày',
+      title: 'Date',
       render: (item) => (
         <span className="text-xs text-slate-400">
           {new Date(item.createdAt).toLocaleDateString('vi-VN')}
@@ -174,7 +174,7 @@ export function ManagerReviewsPage() {
     },
     {
       key: 'actions',
-      title: 'Thao tác',
+      title: 'Actions',
       render: (item) => (
         <Button
           size="sm"
@@ -225,17 +225,13 @@ export function ManagerReviewsPage() {
             size="sm"
             onClick={() => setStatusFilter('pending')}
             className="text-xs"
-          >
-            Chờ trả lời
-          </Button>
+          >Awaiting reply</Button>
           <Button
             variant={statusFilter === 'resolved' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setStatusFilter('resolved')}
             className="text-xs"
-          >
-            Đã trả lời
-          </Button>
+          >Replied</Button>
         </div>
       </div>
 
@@ -324,7 +320,7 @@ export function ManagerReviewsPage() {
                 disabled={replying || !replyForm.staffReply.trim()}
                 className="bg-orange-500 hover:bg-orange-600"
               >
-                {replying ? 'Đang gửi...' : 'Gửi phản hồi'}
+                {replying ? 'Sending...' : 'Gửi phản hồi'}
               </Button>
             </div>
           </div>

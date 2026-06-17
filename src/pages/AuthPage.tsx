@@ -180,7 +180,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
   const rotateX = useTransform(springY, [0, 1], [8, -8]);
 
   const title = useMemo(() => {
-    if (mode === 'reset-password') return 'Đặt lại mật khẩu';
+    if (mode === 'reset-password') return 'Reset password';
     if (mode === 'forgot-password') return 'Khôi phục mật khẩu';
     return mode === 'login' ? 'Đăng nhập vào PBMS' : 'Tạo tài khoản PBMS';
   }, [mode]);
@@ -205,7 +205,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
 
     if (mode === 'register') {
       if (form.password !== form.confirmPassword) {
-        setLocalNotice({ message: 'Mật khẩu xác nhận không khớp!', type: 'error' });
+        setLocalNotice({ message: 'Passwords do not match!', type: 'error' });
         return;
       }
 
@@ -362,7 +362,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
 
     // Validation: Mật khẩu và xác nhận phải trùng khớp
     if (newPassword !== confirmPassword) {
-      setLocalNotice({ message: 'Mật khẩu xác nhận không khớp!', type: 'error' });
+      setLocalNotice({ message: 'Passwords do not match!', type: 'error' });
       return;
     }
 
@@ -735,7 +735,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                   whileTap={{ scale: 0.96 }}
                   className="flex-1 h-11 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider hover:shadow-[0_0_25px_rgba(249,115,22,0.45)] disabled:opacity-50 transition-all"
                 >
-                  {isLoading ? 'Đang gửi...' : 'Gửi link đặt lại'}
+                  {isLoading ? 'Sending...' : 'Gửi link đặt lại'}
                 </motion.button>
               </div>
             </form>
@@ -745,9 +745,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
               <input type="hidden" autoComplete="username" value={forgotEmail || ''} />
               <div className="space-y-2 mb-4">
                 <h3 className="text-sm font-bold text-foreground">Nhập mật khẩu mới</h3>
-                <p className="text-xs text-slate-400">
-                  Mật khẩu phải có ít nhất 6 ký tự.
-                </p>
+                <p className="text-xs text-slate-400">Password must be at least 6 characters.</p>
               </div>
 
               <div className="space-y-1.5 relative">
@@ -762,7 +760,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                     onChange={(e) => setResetPasswordForm(s => ({ ...s, newPassword: e.target.value }))}
                     required
                     className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 pl-4 pr-10 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
-                    placeholder="Ít nhất 6 ký tự"
+                    placeholder="At least 6 characters"
                   />
                   <button
                     type="button"
@@ -784,7 +782,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                     onChange={(e) => setResetPasswordForm(s => ({ ...s, confirmPassword: e.target.value }))}
                     required
                     className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 pl-4 pr-10 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
-                    placeholder="Nhập lại mật khẩu"
+                    placeholder="Re-enter password"
                   />
                   <button
                     type="button"
@@ -816,7 +814,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                   whileTap={{ scale: 0.96 }}
                   className="flex-1 h-11 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider hover:shadow-[0_0_25px_rgba(249,115,22,0.45)] disabled:opacity-50 transition-all"
                 >
-                  {isLoading ? 'Processing...' : 'Đặt lại mật khẩu'}
+                  {isLoading ? 'Processing...' : 'Reset password'}
                 </motion.button>
               </div>
             </form>
@@ -825,7 +823,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
             {mode === 'register' && (
               <>
                 <div className="space-y-1.5">
-                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Họ và tên</label>
+                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Full name</label>
                   <input 
                     name="fullName" 
                     value={form.fullName} 
@@ -918,7 +916,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                   required 
                   autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                   className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 pl-4 pr-10 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
-                  placeholder="Ít nhất 6 ký tự" 
+                  placeholder="At least 6 characters" 
                 />
                 <button
                   type="button"
@@ -953,7 +951,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                     type={showConfirmPassword ? "text" : "password"} 
                     required 
                     className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 pl-4 pr-10 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
-                    placeholder="Nhập lại mật khẩu" 
+                    placeholder="Re-enter password" 
                   />
                   <button
                     type="button"
@@ -984,7 +982,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                   ? `Bị khóa (Thử lại sau ${Math.floor(lockTimeLeft / 60)}m ${lockTimeLeft % 60}s)` 
                   : mode === 'login' 
                   ? 'Sign in' 
-                  : 'Tạo tài khoản'}
+                  : 'Create account'}
               </motion.button>
               
               <div className="text-center">
@@ -1049,9 +1047,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                   ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 hover:shadow-[0_0_25px_rgba(249,115,22,0.45)]'
                   : 'border border-white/10 text-white hover:bg-slate-800'
               }`}
-            >
-              Đã hiểu
-            </button>
+            >Got it</button>
           </motion.div>
         </div>
       ) : null}

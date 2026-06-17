@@ -134,12 +134,12 @@ export function StaffReservationsPage() {
           <div className="flex items-center gap-1 flex-wrap">
             {floorLabel ? (
               <span className="rounded border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-[10px] font-bold text-blue-400">
-                Tầng {floorLabel}
+                Floor {floorLabel}
               </span>
             ) : null}
             {slotCode ? (
               <span className="rounded border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
-                Ô {slotCode}
+                Slot {slotCode}
               </span>
             ) : (
               !floorLabel && <span className="text-muted-foreground text-xs">—</span>
@@ -236,7 +236,7 @@ export function StaffReservationsPage() {
         </div>
       </section>
 
-      {/* Thống kê nhanh */}
+      {/* Quick stats */}
       <section className="grid gap-3 sm:grid-cols-3">
         {[
           { label: 'Total reservations', value: items.length },
@@ -252,7 +252,7 @@ export function StaffReservationsPage() {
         ))}
       </section>
 
-      {/* Bộ lọc */}
+      {/* Filters */}
       <Card>
         <CardContent className="p-4">
           <input
@@ -265,11 +265,11 @@ export function StaffReservationsPage() {
         </CardContent>
       </Card>
 
-      {/* Bảng dữ liệu */}
+      {/* Data table */}
       <Card>
         <CardHeader>
           <CardTitle>
-            Đặt chỗ trước{filtered.length > 0 ? ` (${filtered.length})` : ''}
+            Reservations{filtered.length > 0 ? ` (${filtered.length})` : ''}
           </CardTitle>
         </CardHeader>
         <CardContent>

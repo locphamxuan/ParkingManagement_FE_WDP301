@@ -66,7 +66,7 @@ export function DashboardOverviewPage() {
             <h1 className="mt-2.5 text-3xl font-black tracking-tight text-white sm:text-4xl">Overview<span className="bg-gradient-to-r from-orange-400 via-amber-400 to-purple-400 bg-clip-text text-transparent">PBMS System</span>
             </h1>
             <p className="mt-3.5 max-w-2xl text-xs font-semibold text-slate-300 leading-relaxed">
-              Trung tâm giám sát toàn diện bãi đỗ xe nhiều tầng. Theo dõi doanh thu thời gian thực, quản lý phân bổ phương thức thanh toán, rà soát giao dịch gần đây và giám sát hoạt động bãi đỗ trực tiếp.
+              A comprehensive monitoring center for multi-floor parking. Track revenue in real time, manage payment-method distribution, review recent transactions and monitor live parking activity.
             </p>
           </div>
           <div className="inline-flex items-center gap-2.5 rounded-full bg-slate-950/80 border border-emerald-500/20 px-4 py-2.5 text-xs font-black text-emerald-400 uppercase font-mono shadow-xl self-start sm:self-auto backdrop-blur-md neon-glow-emerald">

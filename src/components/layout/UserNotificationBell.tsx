@@ -25,7 +25,7 @@ export function UserNotificationBell() {
     load();
   }, []);
 
-  // Đóng dropdown khi bấm ra ngoài.
+  // Close the dropdown when clicking outside.
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);

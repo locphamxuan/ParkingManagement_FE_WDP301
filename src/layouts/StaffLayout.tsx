@@ -42,8 +42,8 @@ export function StaffLayout() {
   const [bootstrapping, setBootstrapping] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
 
-  // Cổng vào → check-in (cổng vào mới hiện tab này). Trang "Parked vehicles" hiện cho
-  // cả hai loại nhân viên, nhưng chỉ nhân viên cổng ra mới thao tác thanh toán.
+  // Entry gate → check-in (only entry-gate staff see this tab). The "Parked vehicles" page is shown to
+  // both staff types, but only exit-gate staff can process payments.
   const navItems = useMemo(
     () => [
       { to: '', label: 'Overview', icon: LayoutDashboard, end: true },

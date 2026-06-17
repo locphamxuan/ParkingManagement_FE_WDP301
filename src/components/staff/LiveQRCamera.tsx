@@ -100,7 +100,7 @@ export const LiveQRCamera = forwardRef<LiveCameraHandle, LiveQRCameraProps>(func
         }
         setError(null);
       } catch {
-        if (!cancelled) setError('Không thể truy cập camera QR. Vui lòng cấp quyền.');
+        if (!cancelled) setError('Cannot access the QR camera. Please grant permission.');
       }
     })();
 
@@ -176,7 +176,7 @@ export const LiveQRCamera = forwardRef<LiveCameraHandle, LiveQRCameraProps>(func
       </div>
 
       <p className="text-center text-[11px] text-muted-foreground">
-        {paused ? 'Đang tạm dừng quét…' : 'Hướng mã QR vào khung — hệ thống tự nhận diện'}
+        {paused ? 'Scanning paused…' : 'Point the QR into the frame — the system recognizes it automatically'}
       </p>
 
       <canvas ref={canvasRef} className="hidden" />

@@ -5,7 +5,7 @@ import { StatusBadge } from '@/components/common/StatusBadge';
 import { useAdminDataset } from '@/hooks/admin/useAdminDataset';
 import type { AuditLog } from '@/types';
 
-// Nhãn tiếng Việt cho từng bảng mục tiêu (targetTable) của nhật ký.
+// English labels for each audit-log target table.
 const TARGET_LABELS: Record<string, string> = {
   users: 'Users',
   buildings: 'Building',
@@ -36,7 +36,7 @@ export function AuditLogsPage() {
 
   const logs = data?.auditLogs ?? [];
 
-  // Nhóm nhật ký theo bảng mục tiêu để tách thành các tab nhỏ.
+  // Group logs by target table to split into sub-tabs.
   const groups = useMemo(() => {
     const map = new Map<string, AuditLog[]>();
     for (const log of logs) {
@@ -95,7 +95,7 @@ export function AuditLogsPage() {
 
   return (
     <div className="grid gap-4">
-      {/* Tab nhỏ cho từng bảng mục tiêu */}
+      {/* Sub-tab for each target table */}
       <div className="flex flex-wrap gap-2">
         {groups.map((g) => {
           const isActive = g.key === currentTab;

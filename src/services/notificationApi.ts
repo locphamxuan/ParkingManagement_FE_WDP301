@@ -22,7 +22,7 @@ export interface AppNotification {
   createdAt: string;
 }
 
-/** Nhãn ngắn theo loại thông báo (dùng chung cho chuông + trang thông báo). */
+/** Short labels by notification type (shared by the bell + notifications page). */
 export const NOTIFICATION_TYPE_LABEL: Record<AppNotificationType, string> = {
   checkin_rejected: 'Reject entry',
   checkout_rejected: 'Reject exit',

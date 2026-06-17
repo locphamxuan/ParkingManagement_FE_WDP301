@@ -460,7 +460,7 @@ export default function ReviewsPage() {
                 >
                   {sessions.map((s) => (
                     <option key={s._id} value={s._id}>
-                      {s.plateNumber} tại {s.building.name} (Check-out: {fmtTime(s.checkOut)})
+                      {s.plateNumber} at {s.building.name} (Check-out: {fmtTime(s.checkOut)})
                     </option>
                   ))}
                 </select>

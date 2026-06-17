@@ -74,12 +74,12 @@ const benefits = [
   {
     icon: BarChart3,
     title: 'Clear revenue reports',
-    description: 'Tập trung số liệu giao dịch, doanh thu và hiệu suất khai thác để quản lý dễ ra quyết định hơn.',
+    description: 'Centralize transaction, revenue and utilization metrics so managers can decide more easily.',
   },
   {
     icon: CarFront,
     title: 'A friendly user experience',
-    description: 'Đăng nhập, theo dõi thông tin và mở rộng tính năng đặt chỗ, thanh toán, thông báo theo lộ trình.',
+    description: 'Sign in, track information and expand booking, payment and notification features over time.',
   },
 ];
 
@@ -99,7 +99,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  // Số thông báo chưa đọc — hiện badge trên nút tài khoản (chỉ khi đã đăng nhập là user).
+  // Unread notification count — shows a badge on the account button (only when signed in as a user).
   const [unreadNotif, setUnreadNotif] = useState(0);
   useEffect(() => {
     if (!user || user.role !== 'user') return;
@@ -323,7 +323,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
                   href="/profile"
                   className="flex-shrink-0 px-3 py-1 rounded-lg bg-amber-500/20 border border-amber-500/30 text-amber-300 font-black text-[10px] uppercase tracking-wider hover:bg-amber-500/30 transition-all duration-200 whitespace-nowrap"
                 >
-                  Cập nhật ngay
+                  Update now
                 </a>
                 <button
                   type="button"
@@ -364,7 +364,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
                 <span className="bg-gradient-to-r from-orange-400 via-amber-400 to-purple-400 bg-clip-text text-transparent">Smart parking lot</span>
               </h1>
               <p className="mt-5 text-sm text-slate-400 leading-relaxed max-w-lg font-semibold">
-                PBMS định nghĩa lại hoạt động vận hành tòa nhà. Giám sát ra vào thời gian thực, tự động hóa thanh toán, theo dõi công suất thông minh và cung cấp giải pháp 3D trực quan vượt trội.
+                PBMS redefines building operations. Real-time access monitoring, payment automation, smart occupancy tracking and an outstanding visual 3D solution.
               </p>
               <div className="mt-8 flex flex-wrap gap-4 items-center">
                 {user ? (
@@ -426,7 +426,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
                 <span className="text-[10px] font-black uppercase tracking-widest text-cyan-400 font-mono">Outstanding Features</span>
                 <h2 className="text-2xl md:text-3xl font-black mt-2 text-white">Smart floor & slot management</h2>
                 <p className="mt-3 text-sm text-slate-400 font-semibold leading-relaxed">
-                  Hệ thống lập bản đồ 3D thời gian thực. Giám sát chính xác từng vị trí đỗ (Slot) theo từng tầng (Floor), hiển thị trực quan trạng thái Trống/Đầy và tự động định tuyến xe thông minh.
+                  A real-time 3D mapping system. Precisely monitor each slot per floor, visually display Available/Full status and route vehicles intelligently.
                 </p>
                 <div className="mt-6 grid gap-4">
                   {benefits.map((benefit) => {
@@ -459,7 +459,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
                 <span className="text-[10px] font-black uppercase tracking-widest text-orange-400 font-mono">Check-In Automation</span>
                 <h2 className="text-2xl md:text-3xl font-black mt-2 text-white">Automated 24/7 access control</h2>
                 <p className="mt-3 text-sm text-slate-400 font-semibold leading-relaxed">
-                  Nhận diện biển số, quét RFID thẻ thông minh và vận hành thanh chắn cổng soát vé (Gate) hoàn toàn tự động. Đẩy nhanh thời gian check-in/out xuống dưới 2 giây, giảm thiểu ùn tắc.
+                  Plate recognition, smart RFID scanning and fully automated gate barriers. Cut check-in/out time to under 2 seconds and minimize congestion.
                 </p>
 
                 {/* Floating highlight block */}
@@ -643,7 +643,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
         <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-3 gap-10">
           <div>
             <p className="text-sm font-black text-white tracking-wider font-mono">PBMS PLATFORM</p>
-            <h3 className="mt-3 text-xs leading-relaxed font-semibold">Hệ thống quản lý bãi đỗ xe chuyên nghiệp dành cho tòa nhà và tổ chức doanh nghiệp lớn.</h3>
+            <h3 className="mt-3 text-xs leading-relaxed font-semibold">A professional parking management system for buildings and large enterprises.</h3>
             <p className="mt-2 text-[10px] text-slate-500 font-mono">UI version V2.5.0 - Cyberpunk Glassmorphism</p>
           </div>
 
@@ -657,7 +657,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
           </div>
 
           <div>
-            <h4 className="font-black text-white text-xs uppercase tracking-wider">Truy cập cổng</h4>
+            <h4 className="font-black text-white text-xs uppercase tracking-wider">Gate access</h4>
             <div className="mt-3 flex flex-wrap gap-2">
               <a href="/auth/login" className="px-3.5 py-2 bg-orange-500/10 border border-orange-500/20 text-orange-400 hover:bg-orange-500 hover:text-slate-950 rounded-xl text-xs font-black uppercase transition-all">Sign in</a>
               <a href="/auth/register" className="px-3.5 py-2 bg-slate-900 border border-white/5 text-slate-300 hover:border-white/20 rounded-xl text-xs font-bold uppercase transition-all">Register</a>
@@ -666,7 +666,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
           </div>
         </div>
         <div className="mt-10 border-t border-white/5 pt-6 text-center">
-          <small className="text-[10px] font-bold text-slate-500 font-mono">© {new Date().getFullYear()} PBMS PARKING. THIẾT KẾ GIAO DIỆN PREMIUM DƯỚI GIAO THỨC TẬP TRUNG.</small>
+          <small className="text-[10px] font-bold text-slate-500 font-mono">© {new Date().getFullYear()} PBMS PARKING. PREMIUM UI DESIGN UNDER A CENTRALIZED PROTOCOL.</small>
         </div>
       </footer>
     </main>

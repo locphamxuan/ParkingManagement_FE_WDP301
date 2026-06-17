@@ -217,10 +217,10 @@ export function StaffIncidentsPage() {
         </div>
       )}
 
-      {/* Danh sách sự cố */}
+      {/* List sự cố */}
       <Card>
         <CardHeader>
-          <CardTitle>Danh sách sự cố ({filtered.length})</CardTitle>
+          <CardTitle>List sự cố ({filtered.length})</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4">

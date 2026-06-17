@@ -99,7 +99,7 @@ export default function ProfilePage() {
     listPlates().then(setServerPlates).catch(() => undefined);
   }, []);
 
-  // Fetch user's long-term subscriptions (gói dài hạn đã mua) để hiển thị trong hồ sơ.
+  // Fetch the user's purchased long-term subscriptions to show in the profile.
   useEffect(() => {
     userApi.longTermSubscriptions
       .list()
@@ -150,7 +150,7 @@ export default function ProfilePage() {
     setPlateSuccess(null);
 
     if (editPlates.length >= MAX_PLATES) {
-      setPlateError(`Tối đa ${MAX_PLATES} biển số xe cho mỗi tài khoản.`);
+      setPlateError(`Up to ${MAX_PLATES} plates per account.`);
       return;
     }
 
@@ -166,7 +166,7 @@ export default function ProfilePage() {
     setPlateInput('');
     setVehicleBrand('');
     setCustomBrand('');
-    setPlateSuccess(`Đã thêm "${normalized}" (${vehicleType === 'car' ? 'Car' : 'Motorcycle'}${brand ? ` · ${brand}` : ''}) — nhấn LƯU THAY ĐỔI để lưu vào hệ thống.`);
+    setPlateSuccess(`Added "${normalized}" (${vehicleType === 'car' ? 'Car' : 'Motorcycle'}${brand ? ` · ${brand}` : ''}) — click SAVE CHANGES to store it.`);
     setTimeout(() => setPlateSuccess(null), 2500);
     plateInputRef.current?.focus();
   };
@@ -178,7 +178,7 @@ export default function ProfilePage() {
   };
 
   const handleSetDefaultEditPlate = async (plate: typeof editPlates[0]) => {
-    // 1. Cập nhật state editPlates ngay lập tức để hiển thị trên giao diện
+    // 1. Update the editPlates state immediately to reflect in the UI
     setEditPlates((prev) =>
       prev.map((p) => ({
         ...p,
@@ -186,11 +186,11 @@ export default function ProfilePage() {
       }))
     );
 
-    // 2. Nếu đã có _id trên Backend, gọi API setDefaultLicensePlate để lưu thay đổi
+    // 2. If an _id already exists on the backend, call setDefaultLicensePlate to save the change
     if (plate._id) {
       try {
         await setDefaultLicensePlate(plate._id);
-        setPlateSuccess(`Đã đặt biển số "${plate.plateNumber}" làm mặc định! 🌟`);
+        setPlateSuccess(`Set plate "${plate.plateNumber}" as default! 🌟`);
         setTimeout(() => setPlateSuccess(null), 2500);
       } catch (err) {
         setPlateError(err instanceof Error ? err.message : 'Unable to set as default.');
@@ -263,10 +263,10 @@ export default function ProfilePage() {
       // Persist fullName / phone to the backend (PUT /users/profile).
       await userApi.profile.update({ fullName: form.fullName.trim(), phone: newPhone });
 
-      // Tìm kiếm biển số xe có isDefault === true từ danh sách đã chỉnh sửa
+      // Find the plate with isDefault === true from the edited list
       const defaultPlateInEdit = editPlates.find((ep) => ep.isDefault === true);
 
-      // Nếu có biển số mặc định, đối chiếu với freshPlates để lấy _id thật từ server MongoDB và kích hoạt API setDefaultLicensePlate
+      // If there is a default plate, match it with freshPlates to get the real _id from MongoDB and call setDefaultLicensePlate
       if (defaultPlateInEdit) {
         const matchingFresh = freshPlates.find(
           (fp) => fp.plateNumber.toUpperCase() === defaultPlateInEdit.plateNumber.toUpperCase()
@@ -296,7 +296,7 @@ export default function ProfilePage() {
         licensePlates: sessionPlates,
       });
 
-      // Nếu có biển số xe mặc định, gọi API setDefaultLicensePlate để đồng bộ database MongoDB
+      // If there is a default plate, call setDefaultLicensePlate to sync the MongoDB database
       const defaultPlate = sessionPlates.find((p) => p.isDefault);
       if (defaultPlate && defaultPlate._id) {
         await setDefaultLicensePlate(defaultPlate._id);
@@ -416,16 +416,16 @@ export default function ProfilePage() {
                     ? 'Your account has no phone number yet.'
                     : ''}
                   {user.licensePlates.length === 0
-                    ? ' Tài khoản chưa có biển số xe nào được liên kết.'
+                    ? ' The account has no linked plates yet.'
                     : ''}
-                  {' '}Vui lòng bấm "Edit profile" để cập nhật để hệ thống PBMS có thể tự động nhận diện tại các cổng kiểm soát.
+                  {' '}Please click "Edit profile" to update so PBMS can automatically recognize you at control gates.
                 </p>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Gói dài hạn đã mua */}
+        {/* Purchased long-term packages */}
         {subscriptions.length > 0 && (
           <section className="mb-6 rounded-3xl border border-white/10 bg-slate-900/40 p-5">
             <div className="mb-3 flex items-center gap-2">
@@ -460,7 +460,7 @@ export default function ProfilePage() {
                       </p>
                     )}
                     {typeof s.package?.maxHoursPerDay === 'number' && s.package.maxHoursPerDay > 0 && (
-                      <p className="mt-1 text-[11px] text-slate-400">Giờ miễn phí: {s.package.maxHoursPerDay}h/ngày</p>
+                      <p className="mt-1 text-[11px] text-slate-400">Free hours: {s.package.maxHoursPerDay}h/ngày</p>
                     )}
                   </div>
                 );
@@ -541,7 +541,7 @@ export default function ProfilePage() {
                       className="rounded-2xl border border-rose-500/25 bg-rose-950/20 p-4 text-xs font-semibold font-mono text-rose-300 shadow-[0_0_15px_rgba(244,63,94,0.1)] backdrop-blur-md flex items-center gap-3"
                     >
                       <AlertCircle size={16} className="shrink-0" />
-                      <span>Lỗi kết nối: {apiError}</span>
+                      <span>Connection error: {apiError}</span>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -763,7 +763,7 @@ export default function ProfilePage() {
                     ) : (
                       <div className="flex items-center gap-2 rounded-xl border border-rose-500/20 bg-rose-500/5 px-4 py-2.5">
                         <AlertCircle size={14} className="text-rose-400 shrink-0" />
-                        <span className="text-[11px] text-rose-300 font-semibold">Đã đạt giới hạn tối đa {MAX_PLATES} biển số xe. Xóa một biển số để thêm biển mới.</span>
+                        <span className="text-[11px] text-rose-300 font-semibold">Reached the maximum of {MAX_PLATES} plates. Remove one to add a new plate.</span>
                       </div>
                     )}
 

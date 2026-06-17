@@ -46,7 +46,7 @@ export function UsersPage() {
   });
 
   const filtered = useMemo(() => {
-    // Tab Người dùng chỉ quản lý tài khoản khách (role === 'user').
+    // The Users tab only manages customer accounts (role === 'user').
     const source = (data?.users ?? []).filter((user) => user.role === 'user');
     return source.filter((user) => {
       const q = query.trim().toLowerCase();
@@ -363,8 +363,8 @@ export function UsersPage() {
         </div>
         {(form.role === 'staff' || form.role === 'manager') && (
           <p className="mt-2 text-[11px] text-muted-foreground">
-            {form.role === 'staff' ? 'Staff' : 'Management'} sẽ được gán vào tòa nhà đã chọn ngay khi tạo.
-            Tài khoản loại này không hiển thị ở danh sách “Người dùng”.
+            {form.role === 'staff' ? 'Staff' : 'Management'} will be assigned to the selected building upon creation.
+            Accounts of this type do not appear in the "Users" list.
           </p>
         )}
         {isSaving ? <p className="text-xs text-muted-foreground">Creating...</p> : null}
@@ -373,7 +373,7 @@ export function UsersPage() {
       <ConfirmModal
         open={Boolean(pendingDeleteUser)}
         title="Confirm user deletion"
-        description={`Xóa vĩnh viễn tài khoản "${pendingDeleteUser?.name || pendingDeleteUser?.email || ''}"? Hành động này không thể hoàn tác.`}
+        description={`Permanently delete the account "${pendingDeleteUser?.name || pendingDeleteUser?.email || ''}"? This action cannot be undone.`}
         confirmLabel="Delete"
         isConfirming={isDeleting}
         onOpenChange={(open) => {

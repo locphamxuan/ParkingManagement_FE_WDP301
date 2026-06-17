@@ -422,7 +422,7 @@ export function ParkingMap2D({
         )}
       </div>
 
-      {/* Nút Chuyển Đổi Chế Độ (Centered Pill Tab) */}
+      {/* Mode toggle button (centered pill tab) */}
       <div className="flex justify-center mb-6">
         <ViewToggle view={view} onChange={setView} />
       </div>

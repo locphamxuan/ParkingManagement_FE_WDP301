@@ -235,7 +235,7 @@ export function QRCodeScannerModal({
         setScannedCode(result);
         setTimeout(() => onScanSuccess(result), 300);
       } else {
-        setError('Không tìm thấy mã QR trong ảnh. Hãy chụp lại sao cho mã QR rõ, chiếm phần lớn khung hình, không bị loá/nghiêng.');
+        setError('No QR code found in the image. Retake it so the QR is clear, fills most of the frame, and is not glared/tilted.');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Image processing error');
@@ -289,7 +289,7 @@ export function QRCodeScannerModal({
                       useCamera ? 'bg-sky-500 text-white shadow' : 'text-slate-400 hover:text-white'
                     }`}
                   >
-                    <Camera size={14} /> Quét Camera
+                    <Camera size={14} /> Scan with camera
                   </button>
                   <button
                     onClick={() => setUseCamera(false)}

@@ -405,7 +405,7 @@ export function AdminProfilePage() {
             <div className="py-16 text-center border border-dashed border-white/5 rounded-3xl bg-slate-950/20">
               <activeTab.icon size={36} className="mx-auto mb-3 text-slate-650 opacity-40" />
               <p className="text-sm font-semibold text-slate-400">
-                {search ? `Không tìm thấy ${activeTab.label} phù hợp.` : `Chưa có ${activeTab.label} nào.`}
+                {search ? `No matching ${activeTab.label} found.` : `No ${activeTab.label} yet.`}
               </p>
             </div>
           ) : (
@@ -447,7 +447,7 @@ export function AdminProfilePage() {
                       {activeRole === 'manager' || activeRole === 'staff' ? (
                         <td className="py-3.5 px-5 text-xs text-slate-400 font-semibold">
                           {u.assignedBuildings?.length
-                            ? `${u.assignedBuildings.length} tòa nhà`
+                            ? `${u.assignedBuildings.length} buildings`
                             : 'Unassigned'}
                         </td>
                       ) : null}

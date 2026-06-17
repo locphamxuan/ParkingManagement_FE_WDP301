@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { ScrollToTop } from '@/components/common/ScrollToTop';
-// Guards + layouts: eager (nhỏ, là khung luôn cần). Page: lazy để tách chunk.
+// Guards + layouts: eager (small, always-needed shell). Pages: lazy to split chunks.
 import { ProtectedRoute } from '@/routes/ProtectedRoute';
 import { ManagerProtectedRoute } from '@/routes/ManagerProtectedRoute';
 import { StaffProtectedRoute } from '@/routes/StaffProtectedRoute';
@@ -65,7 +65,7 @@ const AuditLogsPage = lazy(() => import('@/pages/admin/AuditLogsPage').then((m) 
 const AdminProfilePage = lazy(() => import('@/pages/admin/AdminProfilePage').then((m) => ({ default: m.AdminProfilePage })));
 const ModulePlaceholderPage = lazy(() => import('@/pages/admin/ModulePlaceholderPage').then((m) => ({ default: m.ModulePlaceholderPage })));
 
-/** Fallback hiển thị khi chunk của page đang được tải. */
+/** Fallback shown while the page chunk is loading. */
 function RouteFallback() {
   return (
     <div className="flex min-h-[40vh] items-center justify-center text-sm text-slate-400">Loading…</div>

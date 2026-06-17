@@ -139,7 +139,7 @@ export function PublicRegisterRoute() {
 }
 
 export function PublicResetPasswordRoute() {
-  const flow = usePublicAuthFlow('login'); // AuthPage sẽ tự động đọc token từ URL và chuyển sang chế độ đặt lại mật khẩu
+  const flow = usePublicAuthFlow('login'); // AuthPage will automatically read the token from the URL and switch to reset-password mode
   return <AuthPage {...flow} />;
 }
 

@@ -16,7 +16,7 @@ export interface MyShift {
   _id: string;
   shift: { _id: string; code: string; name: string; startTime: string; endTime: string };
   building: { _id: string; name: string; code: string };
-  /** Gate assigned by the manager for this shift (ra / vào). */
+  /** Gate assigned by the manager for this shift (exit / entry). */
   gate?: { _id: string; code: string; name?: string; direction: 'in' | 'out' | 'both'; status?: string } | null;
   workDate: string;
   status: 'scheduled' | 'active' | 'completed' | 'cancelled';
@@ -179,7 +179,7 @@ export const staffApi = {
     body?: {
       paymentMethod?: string;
       bypassMismatch?: boolean;
-      /** Ảnh lúc xe RA để lưu bằng chứng / đối chiếu. */
+      /** Photo at vehicle EXIT for evidence / verification. */
       exitPlateImage?: string | null;
       exitPortraitImage?: string | null;
     },

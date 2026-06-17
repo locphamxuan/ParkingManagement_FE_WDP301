@@ -73,7 +73,7 @@ function PackageSelectModal({
   const [paymentMethod, setPaymentMethod] = useState<LongTermPaymentMethod>('wallet');
   const [error, setError] = useState<string | null>(null);
 
-  // ── Chọn slot cố định (chỉ khi gói cho phép) ──────────────────────────────
+  // ── Select dedicated slot (only when the package allows) ──────────────────────────────
   const pkgBuildingId = pkg
     ? (typeof pkg.building === 'object' ? pkg.building._id : pkg.building)
     : '';
@@ -95,7 +95,7 @@ function PackageSelectModal({
     }
   }, [isOpen, userPlates]);
 
-  // Tải danh sách tầng của tòa nhà thuộc gói (khi mở modal & gói cho slot cố định).
+  // Load the floors of the package building (when the modal opens & the package allows a dedicated slot).
   useEffect(() => {
     if (!isOpen || !pkg?.allowDedicatedSlot || !pkgBuildingId) return;
     let cancelled = false;
@@ -113,7 +113,7 @@ function PackageSelectModal({
     };
   }, [isOpen, pkg?.allowDedicatedSlot, pkgBuildingId]);
 
-  // Tải ô đỗ theo tầng đã chọn (kèm owner/selectable từ BE).
+  // Load slots for the selected floor (with owner/selectable from BE).
   useEffect(() => {
     if (!isOpen || !pkg?.allowDedicatedSlot || !pkgBuildingId || !selectedFloorId) return;
     let cancelled = false;
@@ -228,7 +228,7 @@ function PackageSelectModal({
             />
           </div>
 
-          {/* Chọn chỗ đỗ cố định (chỉ với gói cho phép) */}
+          {/* Select dedicated slot (only for allowed packages) */}
           {pkg?.allowDedicatedSlot && (
             <div className="rounded-xl border border-cyan-400/20 bg-cyan-500/5 p-3 space-y-2.5">
               <p className="text-xs font-black uppercase tracking-wider text-cyan-300">Select dedicated slot</p>
@@ -255,7 +255,7 @@ function PackageSelectModal({
                         key={s._id}
                         type="button"
                         disabled={taken}
-                        title={s.owner ? `Đã có chủ: ${s.owner.plateNumber}${s.owner.accountName ? ` · ${s.owner.accountName}` : ''}` : undefined}
+                        title={s.owner ? `Owned: ${s.owner.plateNumber}${s.owner.accountName ? ` · ${s.owner.accountName}` : ''}` : undefined}
                         onClick={() => setSelectedSlotId(picked ? '' : s._id)}
                         className={`rounded-lg border px-1 py-1.5 text-[11px] font-bold transition-all ${
                           picked
@@ -276,7 +276,7 @@ function PackageSelectModal({
               )}
               {selectedSlotId && (
                 <p className="text-[11px] font-bold text-orange-300">
-                  Đã chọn ô: {slots.find((x) => x._id === selectedSlotId)?.code}
+                  Selected slot: {slots.find((x) => x._id === selectedSlotId)?.code}
                   {floors.find((f) => f._id === selectedFloorId)?.name
                     ? ` · ${floors.find((f) => f._id === selectedFloorId)?.name}`
                     : ''}
@@ -363,7 +363,7 @@ function PackageCard({ package: pkg, onSelect, isLoading }: PackageCardProps) {
         </p>
         {typeof pkg.maxHoursPerDay === 'number' && pkg.maxHoursPerDay > 0 && (
           <p className="mt-1 text-[11px] font-semibold text-cyan-300">
-            Miễn phí {pkg.maxHoursPerDay}h/ngày · vượt tính theo giờ
+            Free {pkg.maxHoursPerDay}h/day · excess charged hourly
           </p>
         )}
       </div>
@@ -378,7 +378,7 @@ function PackageCard({ package: pkg, onSelect, isLoading }: PackageCardProps) {
         ))}
         {(pkg.benefits || []).length > 4 && (
           <p className="text-xs text-slate-400">
-            + {(pkg.benefits || []).length - 4} ưu đãi khác
+            + {(pkg.benefits || []).length - 4} more benefits
           </p>
         )}
       </div>
@@ -431,7 +431,7 @@ export default function LongTermSubscriptionsPage() {
   const { cancel: cancelSub, isLoading: isCancelling } = useCancelSubscription();
   const { renew, isLoading: isRenewing } = useRenewSubscription();
 
-  // Gói đang được chọn để xem chi tiết ở panel "Package details" (= gói mở modal).
+  // The package selected to view details in the "Package details" panel (= the modal package).
   const selectedPackage = selectedPackageForModal;
 
   const handleRenew = async (item: LongTermSubscription) => {
@@ -497,7 +497,7 @@ export default function LongTermSubscriptionsPage() {
       await refreshSubscriptions();
       setMessage({
         type: 'success',
-        text: `Đăng ký thành công ${selectedPackageForModal.name} cho biển số ${data.plateNumber}${data.slotId ? ' (kèm chỗ đỗ cố định)' : ''}.`,
+        text: `Subscribed to ${selectedPackageForModal.name} for plate ${data.plateNumber}${data.slotId ? ' (with a dedicated slot)' : ''}.`,
       });
       setSelectedPackageForModal(null);
     } catch (error) {
@@ -528,7 +528,7 @@ export default function LongTermSubscriptionsPage() {
     return sortedPackages.slice(0, 3);
   }, [sortedPackages]);
 
-  // Guard sau khi đã gọi hết hooks (rules-of-hooks: không return sớm trước hook).
+  // Guard after all hooks are called (rules-of-hooks: do not return early before hooks).
   if (!session || !user) {
     return <Navigate to="/auth/login" replace />;
   }
@@ -606,7 +606,7 @@ export default function LongTermSubscriptionsPage() {
             {/* Current Subscriptions */}
             <div className="rounded-3xl border border-white/10 bg-slate-900/50 p-6">
               <h2 className="text-lg font-bold text-white mb-4">
-                Gói đang sử dụng ({subscriptions.length})
+                Active packages ({subscriptions.length})
               </h2>
 
               {isLoadingSubscriptions ? (
@@ -684,14 +684,14 @@ export default function LongTermSubscriptionsPage() {
                         )}
                         {typeof item.package.maxHoursPerDay === 'number' && item.package.maxHoursPerDay > 0 && (
                           <p className="mt-1 text-[10px] text-slate-400">
-                            Giờ miễn phí: <span className="font-bold text-slate-200">{item.package.maxHoursPerDay}h/ngày</span>
+                            Free hours: <span className="font-bold text-slate-200">{item.package.maxHoursPerDay}h/ngày</span>
                           </p>
                         )}
                         {item.status === 'expired' && (
                           <p className="mt-2 text-[10px] text-amber-400/90 leading-relaxed border-t border-white/5 pt-1.5">Package expired — now charging hourly. Renew to keep your dedicated slot.</p>
                         )}
 
-                        {/* Gia hạn: cho gói đang hoạt động, hoặc vừa hết hạn còn giữ slot (grace). */}
+                        {/* Renew: for active packages, or recently expired ones still holding the slot (grace). */}
                         {(item.status === 'active' || (item.status === 'expired' && item.slot && !item.slotReleased)) && (
                           <button
                             type="button"
@@ -736,7 +736,7 @@ export default function LongTermSubscriptionsPage() {
                   <p className="text-sm font-black text-emerald-300">{selectedPackage.name}</p>
                   <p className="text-xs font-semibold text-slate-300">Code:<span className="text-white">{selectedPackage.code}</span>
                   </p>
-                  <p className="text-xs font-semibold text-slate-300">Duration:<span className="text-white">{selectedPackage.durationDays} ngày</span>
+                  <p className="text-xs font-semibold text-slate-300">Duration:<span className="text-white">{selectedPackage.durationDays} days</span>
                   </p>
                   <p className="text-xs font-semibold text-slate-300">Price:<span className="text-orange-300 font-black">{formatMoney(selectedPackage.price)}</span>
                   </p>

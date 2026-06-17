@@ -14,7 +14,7 @@ export function ManagerVehicleTypesPage() {
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
-  // Form tạo mới
+  // Create form
   const [showCreate, setShowCreate] = useState(false);
   const [newCode, setNewCode] = useState('');
   const [newName, setNewName] = useState('');
@@ -127,7 +127,7 @@ export function ManagerVehicleTypesPage() {
         </div>
       )}
 
-      {/* Form tạo mới */}
+      {/* Create form */}
       {showCreate && (
         <Card className="border-primary/25">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -173,7 +173,7 @@ export function ManagerVehicleTypesPage() {
         </Card>
       )}
 
-      {/* Danh sách */}
+      {/* List */}
       <Card>
         <CardContent className="p-0">
           {loading ? (

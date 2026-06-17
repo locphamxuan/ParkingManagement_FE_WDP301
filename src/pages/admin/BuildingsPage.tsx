@@ -310,7 +310,7 @@ export function BuildingsPage() {
           <div className="w-full max-w-lg rounded-2xl border border-border bg-background p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold">
-                Thành viên — {membersState.buildingName}
+                Members — {membersState.buildingName}
               </h2>
               <Button variant="ghost" size="sm" onClick={() => setMembersState(null)}>
                 ✕
@@ -344,7 +344,7 @@ export function BuildingsPage() {
 
                 <section>
                   <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    Nhân viên ({membersState.staff.length})
+                    Staff ({membersState.staff.length})
                   </h3>
                   {membersState.staff.length === 0 ? (
                     <p className="text-sm text-muted-foreground italic">No staff yet</p>
@@ -422,7 +422,7 @@ export function BuildingsPage() {
       <ConfirmModal
         open={Boolean(pendingDeleteBuilding)}
         title="Confirm building deletion"
-        description={`Bạn có chắc chắn muốn xóa tòa nhà ${pendingDeleteBuilding?.name || ''}? Hành động này không thể hoàn tác.`}
+        description={`Are you sure you want to delete the building ${pendingDeleteBuilding?.name || ''}? This action cannot be undone.`}
         confirmLabel="Delete"
         isConfirming={isDeleting}
         onOpenChange={(open) => {
@@ -434,7 +434,7 @@ export function BuildingsPage() {
       <ConfirmModal
         open={Boolean(pendingDeleteMember)}
         title={`Delete ${pendingDeleteMember?.role === 'manager' ? 'manager' : 'staff'} account`}
-        description={`Xóa vĩnh viễn tài khoản "${pendingDeleteMember?.fullName || pendingDeleteMember?.email || ''}" (${pendingDeleteMember?.email || ''})? Hành động này không thể hoàn tác.`}
+        description={`Permanently delete the account "${pendingDeleteMember?.fullName || pendingDeleteMember?.email || ''}" (${pendingDeleteMember?.email || ''})? This action cannot be undone.`}
         confirmLabel="Delete"
         isConfirming={isDeletingMember}
         onOpenChange={(open) => {

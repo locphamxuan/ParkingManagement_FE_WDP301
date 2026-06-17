@@ -8,7 +8,7 @@ interface LivePortraitCameraProps {
 }
 
 /**
- * Camera CHÂN DUNG (riêng biệt) — always-on front camera that only shows the live
+ * PORTRAIT camera (separate) — always-on front camera that only shows the live
  * feed. No scanning. The parent grabs a frame via capture() at check-in to store
  * the driver portrait (so staff can compare the person at check-out).
  */

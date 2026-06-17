@@ -62,7 +62,7 @@ export default function KioskCheckInPage() {
           </div>
           <h1 className="text-2xl font-black">Self check-in reservation</h1>
           <p className="mt-1 text-sm text-slate-400">
-            Khách đã đặt chỗ trước: đưa mã QR phương tiện vào camera để tự động vào bãi (không cần qua nhân viên).
+            Customers with a reservation: present the vehicle QR to the camera to enter automatically (no staff needed).
           </p>
         </div>
 
@@ -80,7 +80,7 @@ export default function KioskCheckInPage() {
             <CheckCircle2 size={40} className="mx-auto mb-2 text-emerald-400" />
             <p className="text-lg font-bold text-emerald-300">Admit vehicle</p>
             <p className="mt-1 font-mono text-xl font-black text-white">{result.plate}</p>
-            {result.code && <p className="text-xs text-slate-400">Mã đặt chỗ: {result.code}</p>}
+            {result.code && <p className="text-xs text-slate-400">Reservation code: {result.code}</p>}
             <p className="mt-1 text-xs text-slate-400">{new Date(result.entryTime).toLocaleString('vi-VN')}</p>
           </motion.div>
         )}

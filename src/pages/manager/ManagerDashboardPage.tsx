@@ -93,13 +93,13 @@ export function ManagerDashboardPage() {
           <div>
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-teal-500/10 border border-teal-500/20 text-[9px] font-black uppercase tracking-widest text-teal-400 font-mono">Manager Dashboard</div>
             <h1 className="mt-2.5 text-3xl font-black tracking-tight text-white sm:text-4xl">
-              Chào buổi mới,{' '}
+              Good morning,{' '}
               <span className="bg-gradient-to-r from-teal-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">
                 {userName}
               </span>
             </h1>
             <p className="mt-3 max-w-2xl text-xs font-semibold text-slate-300 leading-relaxed">
-              Theo dõi tình trạng bãi đỗ, phê duyệt ca trực, cập nhật bảng giá và phản hồi khiếu nại khách hàng theo thời gian thực.
+              Monitor lot status, approve shifts, update pricing and respond to customer complaints in real time.
             </p>
           </div>
           <div className="inline-flex items-center gap-2 rounded-full bg-slate-950/80 border border-teal-500/20 px-4 py-2.5 text-xs font-black text-teal-400 uppercase font-mono shadow-xl self-start sm:self-auto backdrop-blur-md">
@@ -111,7 +111,7 @@ export function ManagerDashboardPage() {
 
       <section className="grid gap-6 lg:grid-cols-[1.3fr,0.7fr]">
         <div className="space-y-6">
-          {/* Danh sách tòa nhà */}
+          {/* Buildings list */}
           <motion.div variants={itemVariants}>
             <Card className="border border-white/5 bg-slate-900/40 shadow-2xl backdrop-blur-md overflow-hidden rounded-3xl">
               <CardHeader className="border-b border-white/5 bg-slate-950/30 p-5">
@@ -158,7 +158,7 @@ export function ManagerDashboardPage() {
             </Card>
           </motion.div>
 
-          {/* Báo cáo nhanh */}
+          {/* Quick report */}
           <motion.div variants={itemVariants}>
             <Card className="border border-white/5 bg-slate-900/40 shadow-2xl backdrop-blur-md overflow-hidden rounded-3xl">
               <CardHeader className="border-b border-white/5 bg-slate-950/30 p-5">
@@ -178,7 +178,7 @@ export function ManagerDashboardPage() {
                         <p className="text-xs font-black uppercase tracking-wider font-mono">A service package must be activated</p>
                       </div>
                       <p className="mt-2 text-xs font-semibold text-amber-200/80">
-                        Tòa nhà chưa có gói dịch vụ hệ thống đang hoạt động. Hãy mua gói để mở khóa bảng điều khiển quản lý.
+                        The building has no active system package. Buy a package to unlock the manager dashboard.
                       </p>
                       <button
                         type="button"
@@ -217,7 +217,7 @@ export function ManagerDashboardPage() {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Hiệu suất bãi đỗ */}
+          {/* Parking performance */}
           <motion.div variants={itemVariants}>
             <Card className="border border-white/5 bg-slate-900/40 shadow-2xl backdrop-blur-md overflow-hidden rounded-3xl">
               <CardHeader className="border-b border-white/5 bg-slate-950/30 p-5">

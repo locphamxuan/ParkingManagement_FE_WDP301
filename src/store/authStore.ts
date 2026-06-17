@@ -24,7 +24,7 @@ function mapLegacySession(): AuthSession | null {
   const user = legacy.user as Record<string, unknown>;
   const email = String(user.email ?? '');
 
-  // ĐỒNG BỘ: Kiểm tra ghi đè từ localStorage dùng chung để luôn tải dữ liệu mới nhất
+  // SYNC: check overrides from shared localStorage to always load the latest data
   const locallyUpdated = JSON.parse(localStorage.getItem('pbms.locallyUpdatedUsers') || '{}');
   // Case-insensitive lookup
   const matchingKey = Object.keys(locallyUpdated).find(
@@ -84,7 +84,7 @@ export const useAuthStore = create<AuthState>()(
         try {
           let session = await loginWithBackend({ email, password });
 
-          // Đồng bộ: Merge thông tin đã lưu cục bộ vào session mới đăng nhập
+          // Sync: merge locally saved info into the newly signed-in session
           const locallyUpdated = JSON.parse(localStorage.getItem('pbms.locallyUpdatedUsers') || '{}');
           const matchingKey = Object.keys(locallyUpdated).find(
             (key) => key.trim().toLowerCase() === email.trim().toLowerCase()

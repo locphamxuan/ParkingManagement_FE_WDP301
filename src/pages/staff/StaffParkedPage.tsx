@@ -52,10 +52,10 @@ function CompareImg({ src, label }: { src?: string | null; label: string }) {
 
 /**
  * Một component dùng cho 2 route:
- *  - /staff/checkout  (readOnly=false) → tab "Check-out xe ra": camera quét →
- *    đối chiếu ảnh chân dung + biển số → thu phí & cho xe ra. (nhân viên cổng ra)
- *  - /staff/parked    (readOnly=true)  → tab "Parked vehicles": chỉ xem danh sách.
- *    (cả hai loại nhân viên đều xem được, không thao tác thanh toán)
+ *  - /staff/checkout  (readOnly=false) → tab "Check-out": camera scans →
+ *    verify portrait + plate photos → charge & release the vehicle. (exit-gate staff)
+ *  - /staff/parked    (readOnly=true)  → the "Parked vehicles" tab: read-only list.
+ *    (both staff types can view, no payment action)
  */
 export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
   const { buildingId, building } = useBuildingContext();
@@ -121,20 +121,20 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
     } else {
       setOpMessage({
         type: 'err',
-        text: `Không tìm thấy xe đang đỗ với biển số ${clean}. Hãy bấm “Làm mới” rồi thử lại.`,
+        text: `No parked vehicle found with plate ${clean}. Click "Refresh" and try again.`,
       });
     }
   };
 
-  // Camera 1 — biển số. Lưu khung ảnh để đối chiếu với ảnh lúc vào.
+  // Camera 1 — plate. Save a frame to compare with the entry photo.
   const handlePlateDetected = ({ plateNumber, plateImage }: PlateScanResult) => {
     setCapturedPlateImage(plateImage);
     openCheckoutByPlate(plateNumber);
   };
 
-  // Camera 3 — QR (token biển số PLT- / ID tài khoản). Reservation/khách chỉ cần
-  // quét QR phương tiện là đủ để nhận diện và cho xe ra. Ảnh chân dung do camera
-  // chân dung (Camera 1) chụp riêng lúc cho xe ra.
+  // Camera 3 — QR (plate token PLT- / account ID). Reservation/guests only need to
+  // scan the vehicle QR to be identified and released. The portrait photo is taken by
+  // the portrait camera (Camera 1) separately at release.
   const handleResolveIdQr = async (code: string) => {
     try {
       const res = await staffApi.resolveQr(code);
@@ -150,7 +150,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
       } else if (data?.activeSessions && data.activeSessions.length > 0) {
         openCheckoutByPlate(data.activeSessions[0].plateNumber);
       } else {
-        setOpMessage({ type: 'err', text: 'Không tìm thấy xe đang đỗ gắn với mã QR này.' });
+        setOpMessage({ type: 'err', text: 'No parked vehicle found for this QR code.' });
       }
     } catch (err) {
       setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'QR code lookup error.' });
@@ -176,7 +176,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
         }
         return;
       }
-      // Ảnh chân dung lúc ra: ưu tiên ảnh đã chụp, nếu chưa thì chụp 1 khung từ camera chân dung.
+      // Exit portrait: prefer the captured photo, otherwise grab a frame from the portrait camera.
       const exitPortrait = capturedPortraitImage ?? portraitCamRef.current?.capture() ?? null;
       await staffApi.checkOut(target._id, {
         paymentMethod,
@@ -190,7 +190,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
       setCapturedPortraitImage(null);
       setReloadTick((n) => n + 1);
     } catch (err) {
-      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Check-out thất bại' });
+      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Check-out failed' });
     }
   };
 
@@ -206,7 +206,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
       const notified = (res as { data?: { notified?: boolean } })?.data?.notified;
       setOpMessage({
         type: 'ok',
-        text: `Đã từ chối cho xe ra biển ${checkoutTarget.plateNumber}.${notified ? ' Đã gửi thông báo cho khách.' : ''}`,
+        text: `Rejected exit for plate ${checkoutTarget.plateNumber}.${notified ? ' The customer has been notified.' : ''}`,
       });
       setRejectOpen(false);
       setRejectReason('');
@@ -227,16 +227,16 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
       if (status === 'success') {
         setBankTransfer(null);
         setPaymentMethod('cash');
-        setOpMessage({ type: 'ok', text: 'Đã nhận thanh toán — phiên gửi xe hoàn thành.' });
+        setOpMessage({ type: 'ok', text: 'Payment received — parking session completed.' });
         setReloadTick((n) => n + 1);
       } else if (status === 'cancelled' || status === 'expired') {
         setBankTransfer(null);
-        setOpMessage({ type: 'err', text: `Thanh toán ${status}. Vui lòng thực hiện lại.` });
+        setOpMessage({ type: 'err', text: `Payment ${status}. Please try again.` });
       } else {
-        setOpMessage({ type: 'err', text: 'Chưa nhận được thanh toán. Khách cần hoàn tất chuyển khoản.' });
+        setOpMessage({ type: 'err', text: 'Payment not received. The customer needs to complete the transfer.' });
       }
     } catch (err) {
-      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Xác nhận thanh toán thất bại' });
+      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Payment confirmation failed' });
     } finally {
       setVerifying(false);
     }
@@ -249,7 +249,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
         <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary">
-              {canCheckout ? 'Ca vận hành · Cổng ra' : 'Giám sát bãi đỗ'}
+              {canCheckout ? 'Operations shift · Exit gate' : 'Lot monitoring'}
             </p>
             <h2 className="mt-1 text-xl font-semibold text-foreground">
               {canCheckout ? 'Check-out xe ra' : 'Parked vehicles'}
@@ -257,8 +257,8 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
             <p className="mt-1 text-sm text-muted-foreground">
               {building ? `${building.code} · ${building.name}` : 'No building selected'}
               {canCheckout
-                ? ' · Quét biển số / QR hoặc nhấp vào xe để thu phí và cho ra'
-                : ' · Danh sách xe đang đỗ (chỉ xem)'}
+                ? ' · Scan plate / QR or click a vehicle to charge and release'
+                : ' · Parked vehicles list (read-only)'}
             </p>
           </div>
           <Button variant="secondary" onClick={refreshSessions} className="gap-2 self-start lg:self-auto">
@@ -282,8 +282,8 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
         </Card>
       </section>
 
-      {/* 3 camera riêng biệt — quét để cho xe ra (chân dung · biển số · QR).
-          Chỉ hiện cho nhân viên cổng ra. */}
+      {/* 3 separate cameras — scan to release a vehicle (portrait · plate · QR).
+          Only shown to exit-gate staff. */}
       {canCheckout && (
         <>
           <section className="grid gap-4 lg:grid-cols-3">
@@ -292,7 +292,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
             <LiveQRCamera onResult={handleResolveIdQr} paused={!!checkoutTarget || !!bankTransfer || rejectOpen} />
           </section>
           <p className="-mt-2 text-center text-[11px] text-muted-foreground">
-            Quét biển số (Camera 1) hoặc QR phương tiện/tài khoản (Camera 2) để cho xe ra. Khách đặt chỗ chỉ cần quét QR phương tiện.
+            Scan the plate (Camera 1) or vehicle/account QR (Camera 2) to release. Reservation customers only need to scan the vehicle QR.
           </p>
         </>
       )}
@@ -333,7 +333,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
                     key={s._id}
                     type="button"
                     onClick={canCheckout ? () => { setCheckoutTarget(s); setPaymentMethod('cash'); } : undefined}
-                    title={canCheckout ? 'Nhấp để thanh toán & cho xe ra' : 'Chỉ nhân viên cổng ra mới cho xe ra'}
+                    title={canCheckout ? 'Click to charge & release' : 'Only exit-gate staff can release vehicles'}
                     className={`block w-full rounded-xl border border-border bg-card p-3.5 text-left transition ${canCheckout ? 'cursor-pointer hover:border-primary/40 hover:bg-primary/5' : 'cursor-default'}`}
                   >
                     <div className="flex items-center justify-between gap-2">
@@ -354,7 +354,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
                     {isMember && s.user?.fullName && (
                       <p className="mt-0.5 text-[11px] text-muted-foreground truncate">{s.user.fullName}{s.user.email ? ` · ${s.user.email}` : ''}</p>
                     )}
-                    {/* Check-in bởi nhân viên nào, qua cổng nào (cổng vào) */}
+                    {/* Which staff checked in, via which gate (entry) */}
                     <p className="mt-0.5 text-[11px] text-muted-foreground truncate">
                       Check-in: {s.staff?.fullName ?? '—'}
                       {s.entryGate?.code ? ` · cổng ${s.entryGate.code}` : ''}
@@ -413,7 +413,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
         </CardContent>
       </Card>
 
-      {/* Thanh toán & cho xe ra */}
+      {/* Payment & release */}
       {checkoutTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
           <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
@@ -427,11 +427,11 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
               <button onClick={() => { setCheckoutTarget(null); setPaymentMethod('cash'); setCapturedPlateImage(null); setCapturedPortraitImage(null); }} className="text-muted-foreground hover:text-foreground transition">✕</button>
             </div>
 
-            {/* Đối chiếu ảnh: lúc vào (đã lưu) vs lúc ra (vừa quét) */}
+            {/* Photo comparison: at entry (saved) vs at exit (just scanned) */}
             <div className="mb-4 rounded-xl border border-amber-500/25 bg-amber-500/5 p-3">
               <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-amber-400">Verify plate &amp; portrait photos</p>
               <div className="grid grid-cols-2 gap-3">
-                {/* Cột: lúc vào */}
+                {/* Column: at entry */}
                 <div className="space-y-1.5">
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">At entry (saved)</p>
                   <CompareImg src={checkoutTarget.plateImage} label="Plate number" />
@@ -439,7 +439,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
                 </div>
                 {/* Cột: lúc ra */}
                 <div className="space-y-1.5">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Lúc ra (vừa quét)</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">At exit (just scanned)</p>
                   <CompareImg src={capturedPlateImage} label="Plate number" />
                   <CompareImg src={capturedPortraitImage} label="Chân dung" />
                 </div>
@@ -454,7 +454,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
               <div className="flex justify-between"><span className="text-muted-foreground">At</span><span className="font-medium text-foreground">{fmtTime(checkoutTarget.entryTime)}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Parking duration</span><span className="font-medium text-foreground">{fmtDuration(checkoutTarget.entryTime)}</span></div>
               <div className="flex justify-between border-t border-border/60 pt-1.5"><span className="text-muted-foreground">NV check-in</span><span className="font-medium text-foreground">{checkoutTarget.staff?.fullName ?? '—'}{checkoutTarget.entryGate?.code ? ` · cổng ${checkoutTarget.entryGate.code}` : ''}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">NV check-out</span><span className="font-medium text-emerald-400">{user?.fullName || user?.email || 'Bạn'}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Check-out staff</span><span className="font-medium text-emerald-400">{user?.fullName || user?.email || 'Bạn'}</span></div>
             </div>
 
             <div className="mt-4 rounded-xl border border-primary/30 bg-primary/10 p-4 flex items-center justify-between">
@@ -478,7 +478,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
 
             <div className="mt-5 grid grid-cols-[1fr_auto] gap-2">
               <Button onClick={onCheckOut} disabled={loading} className="h-11 gap-2 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60">
-                <CheckCircle2 size={16} /> {paymentMethod === 'bank_transfer' ? 'Tạo QR thu tiền' : `Thu ${fmtMoney(checkoutTarget.currentFee ?? checkoutTarget.fee)} & cho ra`}
+                <CheckCircle2 size={16} /> {paymentMethod === 'bank_transfer' ? 'Create payment QR' : `Charge ${fmtMoney(checkoutTarget.currentFee ?? checkoutTarget.fee)} & release`}
               </Button>
               <Button type="button" variant="outline" onClick={() => setRejectOpen(true)} className="h-11 border-rose-500/40 text-rose-400 hover:bg-rose-500/10">
                 Từ chối
@@ -516,7 +516,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
         </div>
       )}
 
-      {/* Modal chuyển khoản ngân hàng */}
+      {/* Bank transfer modal */}
       {bankTransfer && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
           <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl">
@@ -530,7 +530,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
             <Button onClick={() => window.open(bankTransfer.checkoutUrl, '_blank', 'noopener')} variant="secondary" className="mt-4 w-full gap-2">Open payment QR page</Button>
             <div className="mt-2 grid grid-cols-2 gap-2">
               <Button onClick={onVerifyBankTransfer} disabled={verifying} className="gap-2 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60">
-                {verifying ? 'Đang xác nhận...' : 'Xác nhận thanh toán'}
+                {verifying ? 'Confirming...' : 'Confirm payment'}
               </Button>
               <Button variant="secondary" onClick={() => setBankTransfer(null)} disabled={verifying}>Close</Button>
             </div>

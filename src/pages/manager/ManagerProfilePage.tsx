@@ -292,7 +292,7 @@ export function ManagerProfilePage() {
                 {buildings.length > 1 && (
                   <div className="px-4 py-1">
                     <p className="text-[10px] font-bold text-amber-400/80 font-mono uppercase tracking-wider">
-                      +{buildings.length - 1} tòa nhà khác
+                      +{buildings.length - 1} more buildings
                     </p>
                   </div>
                 )}

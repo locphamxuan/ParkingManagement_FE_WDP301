@@ -58,7 +58,7 @@ export interface PricePolicy {
   building: string;
   vehicleType: VehicleType | string;
   name: string;
-  /** Rate type — regular (giờ thường) hoặc peak (cao điểm). */
+  /** Rate type — regular or peak. */
   type: 'regular' | 'peak';
   hourlyRate: number;
   timeWindow?: { from: string; to: string };
@@ -81,9 +81,9 @@ export interface LongTermPackage {
   benefits?: string[];
   /** When true, subscribers get a dedicated reserved slot. */
   allowDedicatedSlot?: boolean;
-  /** Số giờ đỗ miễn phí tối đa/ngày của gói (0 = không giới hạn). */
+  /** Max free parking hours per day for the package (0 = unlimited). */
   maxHoursPerDay?: number;
-  /** Số ngày giữ slot cố định sau khi gói hết hạn (grace) trước khi thu hồi. */
+  /** Days to hold the dedicated slot after expiry (grace) before releasing. */
   graceDays?: number;
   isActive: boolean;
 }
@@ -108,13 +108,13 @@ export interface ReservationPolicy {
   _id?: string;
   maxHoldMinutes: number;
   refundPercent: number;
-  /** % tổng phí thu làm cọc khi đặt; phần còn lại (100 - depositPercent) thu sau checkout. */
+  /** % of total fee taken as deposit at booking; the rest (100 - depositPercent) charged after checkout. */
   depositPercent: number;
-  /** Số ngày được đặt trước tối đa. */
+  /** Maximum days that can be booked in advance. */
   maxAdvanceDays: number;
-  /** Số giờ tối đa cho mỗi lượt đặt. */
+  /** Maximum hours per booking. */
   maxDurationHours: number;
-  /** % phụ phí phạt áp lên phần đỗ quá giờ đặt (overstay). 0 = không phạt. */
+  /** % penalty surcharge on overstay time. 0 = no penalty. */
   overstayPenaltyPercent: number;
   isActive: boolean;
 }
@@ -134,7 +134,7 @@ export interface StaffShift {
   building: string;
   shift: { _id: string; code: string; name: string; startTime: string; endTime: string };
   staff: { _id: string; fullName: string; email: string; phone?: string };
-  /** Gate the manager assigned this staff to for the shift (ra / vào). */
+  /** Gate the manager assigned this staff to for the shift (exit / entry). */
   gate?: { _id: string; code: string; name?: string; direction: 'in' | 'out' | 'both'; status?: string } | null;
   workDate: string;
   status: 'scheduled' | 'active' | 'completed' | 'cancelled';
@@ -241,7 +241,7 @@ export const managerApi = {
   },
 
   gates: {
-    // Manager CRUD cổng và tự đặt thể loại (ra / vào / hai chiều).
+    // Manager CRUD for gates and their type (exit / entry / two-way).
     list: (b: string) => api.get<Wrap<{ items: Gate[] }>>(path(b, '/gates')),
     create: (b: string, body: { code: string; name?: string; direction?: Gate['direction']; status?: Gate['status'] }) =>
       api.post<Wrap<{ item: Gate }>>(path(b, '/gates'), body),

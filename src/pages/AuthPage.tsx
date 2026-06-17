@@ -46,14 +46,14 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
   const [form, setForm] = useState(initialForm);
   const [forgotEmail, setForgotEmail] = useState('');
   const [resetPasswordForm, setResetPasswordForm] = useState({ newPassword: '', confirmPassword: '' });
-  // Chỉ ghi nhớ EMAIL để gợi ý đăng nhập — KHÔNG bao giờ lưu mật khẩu ở client.
+  // Only remember the EMAIL to suggest sign-in — NEVER store passwords on the client.
   const [savedAccounts, setSavedAccounts] = useState<{ email: string }[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [lockTimeLeft, setLockTimeLeft] = useState<number>(0);
   const [resetToken, setResetToken] = useState<string | null>(null);
-  // Modal thông báo (thành công/thất bại) cho luồng quên & đặt lại mật khẩu.
+  // Notification modal (success/failure) for the forgot & reset password flow.
   const [modal, setModal] = useState<{
     title: string;
     message: string;
@@ -107,7 +107,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
     try {
       const stored = localStorage.getItem('pbms_saved_accounts');
       if (stored) {
-        // Chỉ giữ email; loại bỏ mọi mật khẩu plaintext có thể còn sót từ bản cũ.
+        // Keep only the email; remove any plaintext passwords left over from older versions.
         const parsed: { email?: string }[] = JSON.parse(stored);
         const emailsOnly = parsed
           .filter((acc) => acc?.email)
@@ -158,10 +158,10 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
   };
 
   const handleSelectAccount = (e: React.MouseEvent, acc: { email: string }) => {
-    e.preventDefault(); // Điền sẵn email, người dùng tự nhập mật khẩu.
+    e.preventDefault(); // Prefill the email; the user enters the password.
     setForm((s) => ({ ...s, email: acc.email }));
     setShowDropdown(false);
-    // Tự động focus vào ô mật khẩu sau khi điền email, giúp trình duyệt gợi ý mật khẩu tương ứng đã lưu
+    // Auto-focus the password field after filling the email so the browser can suggest the saved password
     setTimeout(() => {
       passwordInputRef.current?.focus();
     }, 50);
@@ -348,19 +348,19 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
     const newPassword = resetPasswordForm.newPassword.trim();
     const confirmPassword = resetPasswordForm.confirmPassword.trim();
 
-    // Validation: Mật khẩu không được bỏ trống
+    // Validation: password must not be empty
     if (!newPassword || !confirmPassword) {
       setLocalNotice({ message: 'Please enter your password!', type: 'error' });
       return;
     }
 
-    // Validation: Độ dài mật khẩu >= 6
+    // Validation: password length >= 6
     if (newPassword.length < 6) {
       setLocalNotice({ message: 'Password must be at least 6 characters!', type: 'error' });
       return;
     }
 
-    // Validation: Mật khẩu và xác nhận phải trùng khớp
+    // Validation: password and confirmation must match
     if (newPassword !== confirmPassword) {
       setLocalNotice({ message: 'Passwords do not match!', type: 'error' });
       return;
@@ -369,8 +369,8 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
     try {
       await resetPassword(resetToken, newPassword);
 
-      // Mật khẩu là dữ liệu nhạy cảm — không lưu plaintext ở client. Nguồn chính
-      // thống là backend; chỉ dọn email pending còn sót lại.
+      // The password is sensitive data — do not store plaintext on the client. The source of
+      // truth is the backend; only clean up leftover pending email.
       localStorage.removeItem('pbms.forgotEmail_pending');
 
       setModal({
@@ -989,7 +989,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
         </div>
       </motion.div>
 
-      {/* Modal thông báo (quên/đặt lại mật khẩu) */}
+      {/* Notification modal (forgot/reset password) */}
       {modal ? (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 backdrop-blur-md px-4"

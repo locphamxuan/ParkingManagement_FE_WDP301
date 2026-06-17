@@ -420,7 +420,7 @@ export default function ReservationsPage() {
           endTime: endDateTime.toISOString(),
           slotId: slotRecord?._id,
         });
-        setBookingSuccess(`Đặt chỗ thành công! Ô ${selectedSlot} từ ${fmtShort(startDateTime)} đến ${fmtShort(endDateTime)}`);
+        setBookingSuccess(`Booking successful! Slot ${selectedSlot} from ${fmtShort(startDateTime)} to ${fmtShort(endDateTime)}`);
       } else if (selectedPkg) {
         const res = await userApi.longTermSubscriptions.create({
           packageId: selectedPkg._id,
@@ -582,7 +582,7 @@ export default function ReservationsPage() {
                   <div className="rounded-3xl border border-white/[0.06] bg-white/[0.02] p-5">
                     <div className="flex items-center gap-2 mb-3">
                       <Clock size={16} className="text-orange-300/70" />
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-300/70">Giờ nhận xe</span>
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-300/70">Check-in time</span>
                     </div>
                     <TimeScroller selected={selectedTime} onSelect={setSelectedTime} />
                   </div>
@@ -658,10 +658,10 @@ export default function ReservationsPage() {
                       <MiniCalendar selectedDate={pkgStartDate} onSelect={setPkgStartDate} maxDate={maxCalDate} />
                       <p className="mt-2 text-[10px] font-semibold text-slate-500">
                         {selectedPkg.durationDays <= 7
-                          ? 'Gói tuần: chọn trong vòng 7 ngày tới'
+                          ? 'Weekly package: choose within the next 7 days'
                           : selectedPkg.durationDays <= 30
-                            ? 'Gói tháng: chọn trong tháng này hoặc tháng sau'
-                            : 'Gói năm: chọn trong năm nay hoặc năm sau'}
+                            ? 'Monthly package: choose this month or next month'
+                            : 'Yearly package: choose this year or next year'}
                       </p>
                     </div>
                   )}
@@ -723,7 +723,7 @@ export default function ReservationsPage() {
                   <span className="text-emerald-300 font-black">{fmtMoney(estimatedAmount)}</span>
                 </>
               ) : (
-                'Chọn thời gian và chỗ đỗ để đặt chỗ'
+                'Select a time and slot to book'
               )}
             </div>
             <motion.button
@@ -735,7 +735,7 @@ export default function ReservationsPage() {
               className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-400 px-6 py-3 text-sm font-black uppercase tracking-wider text-slate-950 shadow-[0_0_24px_rgba(249,115,22,0.3)] transition-all disabled:cursor-not-allowed disabled:from-slate-700 disabled:to-slate-700 disabled:text-slate-400 disabled:shadow-none"
             >
               <ShieldCheck size={16} />
-              {isSubmitting ? 'Processing...' : mode === 'hourly' ? 'Xác nhận đặt chỗ' : 'Mua gói'}
+              {isSubmitting ? 'Processing...' : mode === 'hourly' ? 'Confirm booking' : 'Buy package'}
             </motion.button>
           </div>
         </div>

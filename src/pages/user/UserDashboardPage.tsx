@@ -99,7 +99,7 @@ export default function UserDashboardPage() {
           <div>
             <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">PBMS</p>
             <p className="text-sm font-bold text-white">
-              Xin chào, {session.displayName || session.email}
+              Hello, {session.displayName || session.email}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -158,7 +158,7 @@ export default function UserDashboardPage() {
               <div className="text-right">
                 <p className="text-[10px] text-slate-400">{activeSession.building?.name}</p>
                 <p className="flex items-center justify-end gap-1 text-[10px] text-emerald-400">
-                  <Clock size={10} /> Vào {fmtTime(activeSession.checkIn)}
+                  <Clock size={10} /> In {fmtTime(activeSession.checkIn)}
                 </p>
               </div>
             </div>
@@ -170,7 +170,7 @@ export default function UserDashboardPage() {
           <div>
             <div className="mb-3 flex items-center justify-between">
               <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                Đặt chỗ đang hoạt động ({activeReservations.length})
+                Active reservations ({activeReservations.length})
               </p>
               <button
                 type="button"
@@ -201,7 +201,7 @@ export default function UserDashboardPage() {
 
         {/* Quick navigation */}
         <div>
-          <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">Truy cập nhanh</p>
+          <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">Quick access</p>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {quickLinks.map((link) => {
               const Icon = link.icon;

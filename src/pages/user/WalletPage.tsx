@@ -588,7 +588,7 @@ export default function WalletPage() {
                       <p className={`text-base font-black ${isCredit ? 'text-emerald-400' : 'text-orange-400'}`}>
                         {isCredit ? '+' : '-'}{fmtMoney(tx.amount)}
                       </p>
-                      <p className="mt-1 text-[11px] font-semibold text-slate-500">Số dư sau GD: {fmtMoney(tx.balanceAfter)}</p>
+                      <p className="mt-1 text-[11px] font-semibold text-slate-500">Balance after: {fmtMoney(tx.balanceAfter)}</p>
                     </div>
                   </motion.div>
                 );
@@ -636,7 +636,7 @@ export default function WalletPage() {
               {/* Scrollable Content wrapper */}
               <div className="p-6 overflow-y-auto space-y-6 flex-1">
                 <p className="text-xs text-slate-400 text-center leading-relaxed max-w-md mx-auto">
-                  Mở ứng dụng Ngân hàng (Mobile Banking) hỗ trợ quét mã QR bên dưới, hoặc sao chép thông tin chi tiết để chuyển khoản hoàn tất giao dịch.
+                  Open a mobile banking app that supports QR scanning below, or copy the details to complete the transfer.
                 </p>
 
                 {/* QR Code and Detail tables side by side */}

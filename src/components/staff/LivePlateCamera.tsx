@@ -117,7 +117,7 @@ export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps
     <div className="rounded-xl border border-border bg-card/40 p-3 space-y-2.5">
       <div className="flex items-center gap-2">
         <ScanLine size={15} className="text-primary" />
-        <p className="text-sm font-semibold text-foreground">Camera 2 · Quét biển số</p>
+        <p className="text-sm font-semibold text-foreground">Camera 2 · Plate scan</p>
       </div>
 
       <div className="relative aspect-[4/3] overflow-hidden rounded-lg border border-white/10 bg-black/60">
@@ -181,7 +181,7 @@ export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps
         className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:brightness-110 disabled:opacity-60"
       >
         {processing ? <Loader2 size={15} className="animate-spin" /> : <ScanLine size={15} />}
-        Chụp &amp; nhận diện
+        Capture &amp; recognize
       </button>
 
       {success && (

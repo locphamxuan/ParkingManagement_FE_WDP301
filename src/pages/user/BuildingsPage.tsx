@@ -373,7 +373,7 @@ export default function BuildingsPage() {
             <p className="text-[10px] font-black uppercase tracking-[0.28em] text-orange-400/80">Select building</p>
             <h1 className="mt-3 text-3xl font-black tracking-tight text-white md:text-4xl">Smart parking lot</h1>
             <p className="mt-3 max-w-2xl text-sm font-semibold leading-relaxed text-slate-400">
-              Xem số tầng, chỗ trống và loại xe được hỗ trợ. Chọn xe của bạn rồi bấm đặt chỗ.
+              View floor count, availability and supported vehicle types. Choose your vehicle then book.
             </p>
           </div>
 

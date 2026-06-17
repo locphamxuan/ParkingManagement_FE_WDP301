@@ -104,7 +104,7 @@ export function PackageCard({ pkg, isSelected, isLocked, cat, colors, onClick }:
         )}
         <span>{pkg.name}</span>
       </h4>
-      <p className="mt-1 text-xs text-slate-400 relative z-10">{pkg.durationDays} ngày</p>
+      <p className="mt-1 text-xs text-slate-400 relative z-10">{pkg.durationDays} days</p>
       {pkg.description && (
         <p className="mt-1.5 text-[10px] leading-relaxed text-slate-400/80 italic relative z-10 border-t border-white/5 pt-1.5">
           {pkg.description}

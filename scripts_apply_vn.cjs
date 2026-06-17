@@ -38,4 +38,22 @@ for (const f of files) {
   }
   if (txt !== orig) fs.writeFileSync(f, txt, 'utf8');
 }
-console.log('Replacements: ' + totalReplacements + ' | distinct keys used: ' + hitKeys.size + '/' + entries.length);
+
+// ── Raw substring replacement (for comments, JSX-with-expressions, and
+//    interpolated literals). Keys must be long/distinctive; values must NOT
+//    contain ' or ` to stay safe inside JS string literals. Longest first. ──
+const raw = {};
+for (const fn of fs.readdirSync('.').filter((n) => /^scripts_vn_raw.*\.json$/.test(n)).sort()) {
+  Object.assign(raw, JSON.parse(fs.readFileSync(fn, 'utf8')));
+}
+const rawEntries = Object.entries(raw).filter(([k, v]) => v && v !== k).sort((a, b) => b[0].length - a[0].length);
+let rawCount = 0;
+for (const f of files) {
+  let txt = fs.readFileSync(f, 'utf8');
+  let orig = txt;
+  for (const [k, v] of rawEntries) {
+    if (txt.includes(k)) { txt = txt.split(k).join(v); rawCount++; }
+  }
+  if (txt !== orig) fs.writeFileSync(f, txt, 'utf8');
+}
+console.log('Replacements: ' + totalReplacements + ' | distinct keys used: ' + hitKeys.size + '/' + entries.length + ' | raw applied: ' + rawCount);

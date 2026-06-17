@@ -126,7 +126,7 @@ export function MultiSlotForm({ isOpen, onClose, onSubmit, floors, loading = fal
                 {/* Slot Number */}
                 <div className="flex items-center justify-between">
                   <span className="inline-block bg-orange-500/10 border border-orange-500/30 text-orange-300 px-2.5 py-1 rounded-lg text-xs font-bold">
-                    Chỗ đỗ #{index + 1}
+                    Slot #{index + 1}
                   </span>
                   {rows.length > 1 && (
                     <button
@@ -155,7 +155,7 @@ export function MultiSlotForm({ isOpen, onClose, onSubmit, floors, loading = fal
 
                   {/* Tầng */}
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wide">Tầng *</label>
+                    <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wide">Floor *</label>
                     <CustomSelect
                       value={row.floor}
                       onChange={(val) => handleRowChange(row.id, 'floor', val)}
@@ -245,7 +245,7 @@ export function MultiSlotForm({ isOpen, onClose, onSubmit, floors, loading = fal
             ) : (
               <>
                 <Plus size={16} />
-                Tạo {rows.length} chỗ đỗ
+                Create {rows.length} slots
               </>
             )}
           </Button>

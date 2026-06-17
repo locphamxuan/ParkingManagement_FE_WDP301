@@ -36,7 +36,7 @@ const promoPoints = [
   },
   {
     title: 'Secure access',
-    text: 'Thông tin tài khoản và các luồng đăng nhập, đăng ký được trình bày ngắn gọn, dễ theo dõi.',
+    text: 'Account information and the sign-in / sign-up flows are presented concisely and clearly.',
   },
 ];
 
@@ -188,10 +188,10 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
     if (mode === 'reset-password')
       return 'Enter your new password to complete the reset process.';
     if (mode === 'forgot-password')
-      return 'Nhập địa chỉ email liên kết với tài khoản của bạn để nhận link đặt lại mật khẩu.';
+      return 'Enter the email linked to your account to receive a password reset link.';
     return mode === 'login'
-      ? 'Đăng nhập để tiếp tục sử dụng hệ thống quản lý bãi đỗ xe, theo dõi thông tin và truy cập các chức năng cần thiết.'
-      : 'Tạo tài khoản mới để bắt đầu sử dụng nền tảng quản lý bãi đỗ xe với giao diện đồng nhất cùng trang chủ.';
+      ? 'Sign in to continue using the parking management system, track your information and access the features you need.'
+      : 'Create a new account to start using the parking management platform with a UI consistent with the homepage.';
   }, [mode]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -256,7 +256,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
       const timeLeft = Math.ceil((lockUntil - Date.now()) / 1000);
       if (timeLeft > 0) {
         setLocalNotice({
-          message: `Tài khoản đang bị khóa tạm thời. Vui lòng quay lại sau ${Math.floor(timeLeft / 60)} phút ${timeLeft % 60} giây!`,
+          message: `Account temporarily locked. Please come back in ${Math.floor(timeLeft / 60)}m ${timeLeft % 60}s!`,
           type: 'error',
         });
         return;
@@ -288,7 +288,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
         } else {
           localStorage.setItem(`pbms.failedAttempts.${email}`, String(attempts));
           setLocalNotice({
-            message: `Mật khẩu hoặc Email không đúng. Bạn còn ${5 - attempts} lần thử trước khi bị khóa tài khoản!`,
+            message: `Incorrect email or password. You have ${5 - attempts} attempts left before your account is locked!`,
             type: 'error',
           });
         }
@@ -319,7 +319,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
       setModal({
         title: 'Recovery email sent',
         message:
-          'Nếu email này có trong hệ thống, chúng tôi đã gửi link đặt lại mật khẩu. Vui lòng kiểm tra hộp thư (kể cả thư mục spam). Link có hiệu lực trong 15 phút.',
+          'If this email exists in the system, we have sent a password reset link. Please check your inbox (including spam). The link is valid for 15 minutes.',
         type: 'success',
         next: () => {
           setForgotEmail('');
@@ -676,7 +676,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                 <AlertCircle size={16} className="shrink-0 stroke-[2.5]" />
                 <span>Account is temporarily locked</span>
               </div>
-              <p className="text-[10px] text-slate-400 font-sans tracking-normal font-semibold normal-case leading-relaxed">Wrong password more than 5 times. Please come back later:<span className="text-rose-400 font-black font-mono">{Math.floor(lockTimeLeft / 60)} phút {lockTimeLeft % 60} giây</span>.
+              <p className="text-[10px] text-slate-400 font-sans tracking-normal font-semibold normal-case leading-relaxed">Wrong password more than 5 times. Please come back later:<span className="text-rose-400 font-black font-mono">{Math.floor(lockTimeLeft / 60)}m {lockTimeLeft % 60}s</span>.
               </p>
             </motion.div>
           ) : (localNotice || notice)?.message ? (
@@ -741,7 +741,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
               {/* Hidden email field: helps browser associate the new password with the right account */}
               <input type="hidden" autoComplete="username" value={forgotEmail || ''} />
               <div className="space-y-2 mb-4">
-                <h3 className="text-sm font-bold text-foreground">Nhập mật khẩu mới</h3>
+                <h3 className="text-sm font-bold text-foreground">Enter new password</h3>
                 <p className="text-xs text-slate-400">Password must be at least 6 characters.</p>
               </div>
 

@@ -383,7 +383,7 @@ export function AdminProfilePage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder={`Tìm theo tên, email, SĐT của ${activeTab.label}...`}
+            placeholder={`Search by name, email, phone of ${activeTab.label}...`}
             className="h-11 w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 text-sm text-white placeholder:text-slate-600 outline-none focus:border-rose-500/40 focus:ring-1 focus:ring-rose-500/20 transition-all duration-300"
           />
         </div>
@@ -399,7 +399,7 @@ export function AdminProfilePage() {
 
           {usersLoading ? (
             <div className="py-12 text-center text-sm font-bold text-slate-400 tracking-wider font-mono animate-pulse">
-              Đang tải danh sách {activeTab.label}...
+              Loading {activeTab.label}...
             </div>
           ) : filteredUsers.length === 0 ? (
             <div className="py-16 text-center border border-dashed border-white/5 rounded-3xl bg-slate-950/20">

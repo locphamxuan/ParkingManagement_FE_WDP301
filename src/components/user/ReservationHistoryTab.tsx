@@ -105,7 +105,7 @@ export function ReservationHistoryTab() {
             setTotalPages(raw?.pagination?.totalPages ?? 1);
             setPage(p);
           })
-          .catch((err) => setError(err instanceof Error ? err.message : 'Tải danh sách đăng ký gói thất bại'))
+          .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load subscriptions'))
           .finally(() => setLoading(false));
       }
     },
@@ -117,13 +117,13 @@ export function ReservationHistoryTab() {
   }, [load, activeMode, statusFilter]);
 
   const handleCancel = async (id: string) => {
-    if (!window.confirm('Bạn có chắc muốn hủy đặt chỗ này?')) return;
+    if (!window.confirm('Are you sure you want to cancel this reservation?')) return;
     setCancellingId(id);
     try {
       await userApi.reservations.cancel(id);
       setItems((prev) => prev.map((r) => (r._id === id ? { ...r, status: 'cancelled' } : r)));
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Hủy đặt chỗ thất bại');
+      alert(err instanceof Error ? err.message : 'Failed to cancel reservation');
     } finally {
       setCancellingId(null);
     }
@@ -234,8 +234,8 @@ export function ReservationHistoryTab() {
           <CalendarClock size={32} className="mx-auto mb-3 text-slate-600 animate-pulse" />
           <p className="text-sm font-semibold text-slate-400">
             {activeMode === 'hourly'
-              ? 'Bạn chưa có lịch sử đặt chỗ nào.'
-              : 'Bạn chưa có đăng ký gói dài hạn nào.'}
+              ? 'You have no reservation history yet.'
+              : 'You have no long-term subscriptions yet.'}
           </p>
         </div>
       ) : (
@@ -283,7 +283,7 @@ export function ReservationHistoryTab() {
                           className="flex items-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-xs font-bold text-rose-400 hover:bg-rose-500/20 hover:border-rose-500/50 transition-all disabled:opacity-50"
                         >
                           <XCircle size={12} />
-                          {cancellingId === r._id ? 'Đang hủy...' : 'Cancel'}
+                          {cancellingId === r._id ? 'Cancelling...' : 'Cancel'}
                         </button>
                       )}
                     </div>
@@ -356,7 +356,7 @@ export function ReservationHistoryTab() {
                                   : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                               }`}
                             >
-                              {r.parkingSession.paymentStatus === 'paid' ? 'Đã trả' : 'Chưa trả'}
+                              {r.parkingSession.paymentStatus === 'paid' ? 'Paid' : 'Unpaid'}
                             </span>
                           </div>
                         </div>
@@ -368,10 +368,10 @@ export function ReservationHistoryTab() {
                     <div className="mt-3 flex items-center justify-between border-t border-white/[0.03] pt-3 text-[10px] text-slate-500">
                       <div className="flex items-center gap-1">
                         <Clock size={10} className="text-slate-600" />
-                        <span>Đặt lúc: {fmtTime(r.createdAt)}</span>
+                        <span>Booked at: {fmtTime(r.createdAt)}</span>
                       </div>
                       {r.updatedAt && r.updatedAt !== r.createdAt && (
-                        <span>Cập nhật: {fmtTime(r.updatedAt)}</span>
+                        <span>Updated: {fmtTime(r.updatedAt)}</span>
                       )}
                     </div>
                   )}
@@ -395,7 +395,7 @@ export function ReservationHistoryTab() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-mono text-sm font-black text-orange-400 tracking-wider flex items-center gap-1">
                           <span className="text-slate-500 text-[10px]">GÓI:</span>
-                          {sub.package?.name ?? 'Gói không xác định'}
+                          {sub.package?.name ?? 'Unknown package'}
                         </span>
                         <span className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-2 py-0.5 text-xs font-bold text-amber-400 tracking-wide flex items-center gap-1 shadow-sm">
                           <Car size={12} className="opacity-80" />
@@ -432,7 +432,7 @@ export function ReservationHistoryTab() {
                     <div>
                       <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Dedicated parking slot</p>
                       <p className="mt-1 text-sm font-bold text-slate-200">
-                        {sub.slot ? ((sub.slot as any).code ?? sub.slot) : 'Không cố định'}
+                        {sub.slot ? ((sub.slot as any).code ?? sub.slot) : 'Not fixed'}
                       </p>
                     </div>
                     <div>
@@ -459,10 +459,10 @@ export function ReservationHistoryTab() {
                     <div className="mt-3 flex items-center justify-between border-t border-white/[0.03] pt-3 text-[10px] text-slate-500">
                       <div className="flex items-center gap-1">
                         <Clock size={10} className="text-slate-600" />
-                        <span>Đăng ký lúc: {fmtTime(sub.createdAt)}</span>
+                        <span>Subscribed at: {fmtTime(sub.createdAt)}</span>
                       </div>
                       {sub.updatedAt && sub.updatedAt !== sub.createdAt && (
-                        <span>Cập nhật: {fmtTime(sub.updatedAt)}</span>
+                        <span>Updated: {fmtTime(sub.updatedAt)}</span>
                       )}
                     </div>
                   )}
@@ -501,19 +501,19 @@ export function ReservationHistoryTab() {
             <div>
               <h3 className="text-lg font-black text-white">Confirm long-term package cancellation</h3>
               <p className="text-xs text-slate-400 mt-1">
-                Gói: {cancellingSub.package?.name ?? 'Gói không xác định'} ({cancellingSub.package?.code ?? '—'})
+                Gói: {cancellingSub.package?.name ?? 'Unknown package'} ({cancellingSub.package?.code ?? '—'})
               </p>
             </div>
 
             <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 p-4 space-y-2 text-xs font-semibold text-rose-300">
               <p>
-                Gói dài hạn này sẽ được hủy. Bạn sẽ được hoàn lại 95% giá gói (tương đương{' '}
+                This long-term package will be cancelled. You will be refunded 95% of the package price (equivalent to{' '}
                 <span className="font-black text-rose-400">
                   {fmtMoney((cancellingSub.price ?? cancellingSub.package?.price ?? 0) * 0.95)}
                 </span>) to your personal wallet.</p>
               <p className="text-[10px] text-rose-300/80 italic">
-                (*) Hệ thống khấu trừ 5% phí hủy gói, bao gồm: phí dịch vụ tiện ích, phí quản lý hệ thống và chi phí vận
-                hành bãi đỗ.
+                (*) The system deducts a 5% cancellation fee, including: utility fees, system management fees and operating
+                costs.
               </p>
             </div>
 
@@ -557,7 +557,7 @@ export function ReservationHistoryTab() {
 
               <div>
                 <span className="text-xs font-bold uppercase text-slate-400 block mb-1">
-                  Ghi chú chi tiết {cancelReason === 'other' && <span className="text-rose-400">*</span>}
+                  Detailed note {cancelReason === 'other' && <span className="text-rose-400">*</span>}
                 </span>
                 <textarea
                   value={cancelNote}

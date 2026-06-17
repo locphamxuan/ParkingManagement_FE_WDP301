@@ -218,7 +218,7 @@ export default function ReviewsPage() {
                 />
               ))}
             </div>
-            <p className="mt-2 text-xs text-slate-400">Dựa trên {stats.total} lượt đánh giá</p>
+            <p className="mt-2 text-xs text-slate-400">Based on {stats.total} reviews</p>
           </div>
 
           {/* Filters Card */}
@@ -332,7 +332,7 @@ export default function ReviewsPage() {
                           {item.user?.fullName || item.user?.email || 'Anonymous user'}
                         </p>
                         <p className="text-[10px] font-semibold text-slate-450 tracking-wide">
-                          Khách hàng · {item.building?.name || 'Parking lot'}
+                          Customer · {item.building?.name || 'Parking lot'}
                         </p>
                       </div>
                     </div>
@@ -405,7 +405,7 @@ export default function ReviewsPage() {
       </main>
 
       {/* Review Submission Modal */}
-      <Modal open={modalOpen} onOpenChange={setModalOpen} title="Đánh giá dịch vụ gửi xe">
+      <Modal open={modalOpen} onOpenChange={setModalOpen} title="Rate parking service">
         <div className="text-slate-700 text-sm leading-relaxed p-1">
           {loadingSessions ? (
             <div className="py-12 text-center space-y-2">
@@ -428,7 +428,7 @@ export default function ReviewsPage() {
               <div className="space-y-1 px-4">
                 <p className="font-black text-stone-850 text-base">Service completion required</p>
                 <p className="text-xs text-stone-500 leading-relaxed">
-                  Hệ thống ghi nhận bạn chưa hoàn thành phiên gửi xe nào. Vui lòng sử dụng dịch vụ và hoàn tất thanh toán trước khi thực hiện đánh giá.
+                  You have not completed any parking sessions yet. Please use the service and complete payment before leaving a review.
                 </p>
               </div>
               <Button
@@ -503,7 +503,7 @@ export default function ReviewsPage() {
                 <textarea
                   value={commentInput}
                   onChange={(e) => setCommentInput(e.target.value)}
-                  placeholder="Nhập trải nghiệm, đóng góp ý kiến của bạn về chỗ đỗ, thái độ nhân viên..."
+                  placeholder="Share your experience and feedback about the parking, staff attitude..."
                   rows={4}
                   required
                   maxLength={1000}
@@ -536,7 +536,7 @@ export default function ReviewsPage() {
                   disabled={submitting}
                   className="rounded-xl px-5 py-2.5 font-bold text-xs bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-md shadow-orange-500/10 transition-all"
                 >
-                  {submitting ? 'Sending...' : 'Gửi đánh giá'}
+                  {submitting ? 'Sending...' : 'Submit review'}
                 </Button>
               </div>
             </form>

@@ -359,7 +359,7 @@ function PackageCard({ package: pkg, onSelect, isLoading }: PackageCardProps) {
           <span className="text-sm font-semibold text-slate-400">₫</span>
         </div>
         <p className="text-xs text-slate-400 mt-1">
-          {pkg.durationDays} ngày
+          {pkg.durationDays} days
         </p>
         {typeof pkg.maxHoursPerDay === 'number' && pkg.maxHoursPerDay > 0 && (
           <p className="mt-1 text-[11px] font-semibold text-cyan-300">
@@ -782,12 +782,12 @@ export default function LongTermSubscriptionsPage() {
 
             <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 p-4 space-y-2 text-xs font-semibold text-rose-300">
               <p>
-                Gói dài hạn này sẽ được hủy. Bạn sẽ được hoàn lại 95% giá gói (tương đương{' '}
+                This long-term package will be cancelled. You will be refunded 95% of the package price (equivalent to{' '}
                 <span className="font-black text-rose-400">
                   {formatMoney((cancellingSub.price ?? cancellingSub.package.price) * 0.95)}
                 </span>) to your personal wallet.</p>
               <p className="text-[10px] text-rose-300/80 italic">
-                (*) Hệ thống khấu trừ 5% phí hủy gói, bao gồm: phí dịch vụ tiện ích, phí quản lý hệ thống và chi phí vận hành bãi đỗ.
+                (*) The system deducts a 5% cancellation fee, including: utility fees, system management fees and operating costs.
               </p>
             </div>
 
@@ -831,7 +831,7 @@ export default function LongTermSubscriptionsPage() {
 
               <div>
                 <span className="text-xs font-bold uppercase text-slate-400 block mb-1">
-                  Ghi chú chi tiết {cancelReason === 'other' && <span className="text-rose-400">*</span>}
+                  Detailed note {cancelReason === 'other' && <span className="text-rose-400">*</span>}
                 </span>
                 <textarea
                   value={cancelNote}

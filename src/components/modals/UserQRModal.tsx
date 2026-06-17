@@ -128,7 +128,7 @@ export function UserQRModal({ isOpen, onClose, userId, fullName }: UserQRModalPr
                 {/* Info Box */}
                 <div className="rounded-2xl bg-blue-500/5 border border-blue-500/20 p-4">
                   <p className="text-xs text-blue-200 leading-relaxed font-semibold">
-                    📱 <strong>Instructions:</strong> Nhân viên sẽ quét mã QR này khi bạn check-in hoặc check-out xe. Đảm bảo hiển thị rõ ràng để quét nhanh nhất.
+                    📱 <strong>Instructions:</strong> Staff will scan this QR code when you check in or out. Keep it clearly visible for the fastest scan.
                   </p>
                 </div>
 

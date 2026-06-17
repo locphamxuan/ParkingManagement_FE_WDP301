@@ -101,7 +101,7 @@ export function SlotSelectionModal({
               <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div className="flex-1">
                   <span className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                    Khu vực / Tầng
+                    Zone / Floor
                   </span>
                   {floorsError ? (
                     <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
@@ -127,8 +127,8 @@ export function SlotSelectionModal({
                 </div>
                 {selectedVehicleType && (
                   <div className="rounded-xl border border-white/5 bg-white/[0.02] px-4 py-2.5 text-xs text-slate-400 flex items-center gap-2 max-w-md">
-                    <span>Map filtered by<strong>{selectedVehicleType === 'car' ? 'Car' : 'Motorcycle'}</strong>. Các
-                      ô đỗ không phù hợp sẽ tự động mờ đi.
+                    <span>Map filtered by<strong>{selectedVehicleType === 'car' ? 'Car' : 'Motorcycle'}</strong>. Unsuitable
+                      slots will be dimmed automatically.
                     </span>
                   </div>
                 )}

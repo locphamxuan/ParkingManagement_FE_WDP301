@@ -444,8 +444,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
                   <CompareImg src={capturedPortraitImage} label="Chân dung" />
                 </div>
               </div>
-              <p className="mt-2 text-[11px] text-muted-foreground">
-                Nhân viên đối chiếu xem có khớp không. Nếu không khớp, bấm <strong className="text-rose-400">Từ chối</strong>.
+              <p className="mt-2 text-[11px] text-muted-foreground">Staff verify whether they match. If they do not, click<strong className="text-rose-400">Từ chối</strong>.
               </p>
             </div>
 

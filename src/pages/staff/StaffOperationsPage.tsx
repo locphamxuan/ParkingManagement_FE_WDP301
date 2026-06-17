@@ -101,7 +101,7 @@ export function StaffOperationsPage() {
     const clean = plateNumber.trim().toUpperCase();
     if (clean.length >= 3) {
       const detected = detectTypeFromPlate(clean);
-      if (detected !== vehicleType) return `Cảnh báo: Biển số có vẻ là ${detected === 'car' ? 'car' : 'xe máy'}, nhưng bạn chọn ${vehicleType === 'car' ? 'car' : 'xe máy'}.`;
+      if (detected !== vehicleType) return `Cảnh báo: Biển số có vẻ là ${detected === 'car' ? 'car' : 'motorcycle'}, nhưng bạn chọn ${vehicleType === 'car' ? 'car' : 'motorcycle'}.`;
     }
     return null;
   }, [plateNumber, vehicleType]);
@@ -110,7 +110,7 @@ export function StaffOperationsPage() {
     if (allowedTypes.length === 0) return null;
     const code = vehicleType === 'car' ? 'CAR' : 'MOTORCYCLE';
     if (!allowedTypes.includes(code))
-      return `Tòa nhà này không hỗ trợ loại xe ${vehicleType === 'car' ? 'car' : 'xe máy'}.`;
+      return `Tòa nhà này không hỗ trợ loại xe ${vehicleType === 'car' ? 'car' : 'motorcycle'}.`;
     return null;
   }, [allowedTypes, vehicleType]);
 

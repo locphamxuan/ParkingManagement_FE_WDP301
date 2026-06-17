@@ -92,9 +92,7 @@ export function ManagerReservationPolicyPage() {
                   setForm((f) => ({ ...f, maxHoldMinutes: e.target.value }))
                 }
               />
-              <p className="text-[11px] text-muted-foreground">
-                Đặt chỗ tự hủy nếu khách không check-in trong khoảng này.
-              </p>
+              <p className="text-[11px] text-muted-foreground">Reservations auto-cancel if the customer does not check in within this window.</p>
             </div>
             <div className="grid gap-1.5">
               <label className="text-xs uppercase text-muted-foreground">% Refund on cancellation</label>
@@ -142,9 +140,7 @@ export function ManagerReservationPolicyPage() {
                 value={form.maxAdvanceDays}
                 onChange={(e) => setForm((f) => ({ ...f, maxAdvanceDays: e.target.value }))}
               />
-              <p className="text-[11px] text-muted-foreground">
-                Khách chỉ được đặt chỗ trước trong khoảng số ngày này.
-              </p>
+              <p className="text-[11px] text-muted-foreground">Customers may only book this many days in advance.</p>
             </div>
             <div className="grid gap-1.5">
               <label className="text-xs uppercase text-muted-foreground">Max duration / booking (hours)</label>

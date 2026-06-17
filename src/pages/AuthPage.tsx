@@ -341,7 +341,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
     setLocalNotice(null);
 
     if (!resetToken) {
-      setLocalNotice({ message: 'Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn!', type: 'error' });
+      setLocalNotice({ message: 'The password reset link is invalid or has expired!', type: 'error' });
       return;
     }
 
@@ -698,9 +698,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
             <form onSubmit={handleForgotPassword} className="space-y-4">
               <div className="space-y-2 mb-4">
                 <h3 className="text-sm font-bold text-foreground">Enter your email to recover your password</h3>
-                <p className="text-xs text-slate-400">
-                  Chúng tôi sẽ gửi link đặt lại mật khẩu đến email của bạn.
-                </p>
+                <p className="text-xs text-slate-400">We will send a password reset link to your email.</p>
               </div>
 
               <div className="space-y-1.5">

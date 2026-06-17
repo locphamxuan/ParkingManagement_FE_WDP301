@@ -286,7 +286,7 @@ export default function ReviewsPage() {
             <p className="text-base font-bold text-slate-300">No reviews yet</p>
             <p className="mt-1.5 text-xs text-slate-500 leading-relaxed">
               {selectedBuilding !== 'all' || selectedRating !== 'all'
-                ? 'Không tìm thấy đánh giá nào khớp với bộ lọc hiện tại.'
+                ? 'No reviews match the current filters.'
                 : 'Hãy là người đầu tiên gửi đánh giá trải nghiệm gửi xe của bạn!'}
             </p>
           </div>

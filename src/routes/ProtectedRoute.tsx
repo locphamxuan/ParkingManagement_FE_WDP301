@@ -42,9 +42,7 @@ export function ProtectedRoute({ role }: ProtectedRouteProps) {
 
   if (refreshing) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
-        Đang xác thực phiên...
-      </div>
+      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">Verifying session...</div>
     );
   }
 

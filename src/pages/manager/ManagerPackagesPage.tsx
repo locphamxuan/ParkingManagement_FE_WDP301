@@ -327,9 +327,7 @@ export function ManagerPackagesPage() {
               placeholder={'Miễn phí giữ xe không giới hạn lượt\nƯu tiên chỗ gần thang máy\nMiễn phí rửa xe 1 lần/tháng'}
               className="rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-orange-500/40 placeholder-slate-600"
             />
-            <p className="text-[11px] text-slate-400">
-              Những ưu đãi này sẽ hiển thị cho khách hàng khi chọn mua gói.
-            </p>
+            <p className="text-[11px] text-slate-400">These benefits will be shown to customers when choosing a package.</p>
           </div>
           <label className="flex items-center gap-3 text-xs font-bold text-slate-300 md:col-span-2 select-none">
             <input

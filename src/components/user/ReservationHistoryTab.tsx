@@ -522,11 +522,11 @@ export function ReservationHistoryTab() {
                 <span className="text-xs font-bold uppercase text-slate-400 block mb-2">Lý do hủy</span>
                 <div className="space-y-2">
                   {[
-                    { value: 'change_slot', label: '🚗 Đổi sang chỗ đỗ khác' },
-                    { value: 'change_vehicle', label: '🔄 Thay đổi phương tiện / biển số xe' },
-                    { value: 'no_longer_needed', label: '🏢 Không còn nhu cầu đỗ xe ở đây' },
-                    { value: 'pricing_issue', label: '💸 Giá gói không còn phù hợp' },
-                    { value: 'other', label: '⚠️ Lý do khác' },
+                    { value: 'change_slot', label: '🚗 Switch to another slot' },
+                    { value: 'change_vehicle', label: '🔄 Change vehicle / plate' },
+                    { value: 'no_longer_needed', label: '🏢 No longer need to park here' },
+                    { value: 'pricing_issue', label: '💸 Package price no longer suitable' },
+                    { value: 'other', label: '⚠️ Other reason' },
                   ].map((opt) => (
                     <label
                       key={opt.value}
@@ -564,8 +564,8 @@ export function ReservationHistoryTab() {
                   onChange={(e) => setCancelNote(e.target.value)}
                   placeholder={
                     cancelReason === 'other'
-                      ? 'Vui lòng nhập lý do hủy chi tiết tại đây (bắt buộc)...'
-                      : 'Nhập ghi chú thêm nếu có...'
+                      ? 'Please enter the detailed cancellation reason here (required)...'
+                      : 'Enter additional notes if any...'
                   }
                   rows={3}
                   className="w-full rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-xs font-semibold text-white outline-none focus:border-orange-400/60 placeholder-slate-600 resize-none"
@@ -607,14 +607,14 @@ export function ReservationHistoryTab() {
                     setCancelReason('change_slot');
                     setCancelNote('');
                   } catch (err) {
-                    setCancelError(err instanceof Error ? err.message : 'Lỗi khi hủy gói dài hạn.');
+                    setCancelError(err instanceof Error ? err.message : 'Error cancelling long-term package.');
                   } finally {
                     setIsCancelling(false);
                   }
                 }}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-black uppercase tracking-wider text-white transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {isCancelling ? 'Processing...' : 'Xác nhận hủy'}
+                {isCancelling ? 'Processing...' : 'Confirm cancellation'}
               </button>
             </div>
           </div>

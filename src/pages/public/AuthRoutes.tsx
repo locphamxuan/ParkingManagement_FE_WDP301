@@ -20,7 +20,7 @@ function mapAuthErrorMessage(message: string): string {
     return 'Incorrect email or password.';
   }
   if (normalized.includes('account is deactivated')) {
-    return 'Tài khoản đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.';
+    return 'This account has been disabled. Please contact an administrator.';
   }
   if (normalized.includes('email already registered')) {
     return 'Email is already registered.';

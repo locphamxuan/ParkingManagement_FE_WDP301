@@ -120,7 +120,7 @@ function BuildingCard({
 
       <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-slate-500 transition-colors group-hover:text-slate-400">
         <CheckCircle2 size={13} className={selected ? 'text-orange-400' : 'text-emerald-500/50'} />
-        {selected ? 'Đang xem chi tiết' : 'Bấm để xem chi tiết'}
+        {selected ? 'Viewing details' : 'Click to view details'}
       </div>
     </motion.button>
   );
@@ -175,7 +175,7 @@ function VehiclePlateDropdown({
               </div>
             </>
           ) : (
-            <span className="text-sm font-semibold text-slate-500">Chọn xe & biển số của bạn</span>
+            <span className="text-sm font-semibold text-slate-500">Choose your vehicle & plate</span>
           )}
         </div>
         <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
@@ -193,9 +193,7 @@ function VehiclePlateDropdown({
             className="absolute left-0 top-full z-50 w-full overflow-hidden rounded-2xl border border-white/10 bg-[#0c1220]/95 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] backdrop-blur-xl"
           >
             {plates.length === 0 ? (
-              <div className="px-4 py-6 text-center text-xs font-semibold text-slate-500">
-                Bạn chưa đăng ký biển số phù hợp với tòa nhà này.
-              </div>
+              <div className="px-4 py-6 text-center text-xs font-semibold text-slate-500">You have not registered a plate suitable for this building.</div>
             ) : (
               <div className="max-h-52 overflow-y-auto p-1.5">
                 {plates.map((plate) => {
@@ -387,7 +385,7 @@ export default function BuildingsPage() {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Tìm theo tên, mã hoặc địa chỉ"
+              placeholder="Search by name, code or address"
               className="h-12 w-full rounded-2xl border border-white/10 bg-slate-900/30 pl-11 pr-4 text-sm font-semibold text-white outline-none transition placeholder:text-slate-500 focus:border-orange-500 focus:shadow-[0_0_20px_rgba(249,115,22,0.15)]"
             />
           </label>
@@ -396,14 +394,10 @@ export default function BuildingsPage() {
         {isLoading ? (
           <div className="flex min-h-[360px] items-center justify-center rounded-3xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-md">
             <div className="flex items-center gap-3 text-sm font-bold text-slate-400 animate-pulse">
-              <Loader2 size={18} className="animate-spin text-orange-400" />
-              Đang tải thông tin tòa nhà...
-            </div>
+              <Loader2 size={18} className="animate-spin text-orange-400" />Loading building info...</div>
           </div>
         ) : buildings.length === 0 ? (
-          <div className="rounded-3xl border border-rose-500/20 bg-rose-500/5 p-6 text-sm font-semibold text-rose-300">
-            Không có tòa nhà nào. Vui lòng thử lại sau.
-          </div>
+          <div className="rounded-3xl border border-rose-500/20 bg-rose-500/5 p-6 text-sm font-semibold text-rose-300">No buildings available. Please try again later.</div>
         ) : (
           <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
             {/* ── Building List ── */}
@@ -418,9 +412,7 @@ export default function BuildingsPage() {
               ))}
 
               {filteredRows.length === 0 && (
-                <div className="rounded-3xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-md p-8 text-center text-sm font-semibold text-slate-500">
-                  Không tìm thấy tòa nhà phù hợp.
-                </div>
+                <div className="rounded-3xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-md p-8 text-center text-sm font-semibold text-slate-500">No matching building found.</div>
               )}
             </div>
 
@@ -460,7 +452,7 @@ export default function BuildingsPage() {
                   </div>
                   <div className="rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.02] to-transparent p-4 transition-all duration-300 hover:border-white/10 hover:bg-white/[0.01]">
                     <Building2 size={18} className="text-orange-400/80" />
-                    <p className="mt-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">Tổng ô</p>
+                    <p className="mt-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">Total slots</p>
                     <p className="mt-1 text-xl font-black text-white">
                       {detailLoading ? '…' : totalSlots}
                     </p>
@@ -469,7 +461,7 @@ export default function BuildingsPage() {
 
                 {/* Vehicle Types */}
                 <div className="mt-5 rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-md p-4">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Loại xe được hỗ trợ</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Supported vehicle types</p>
                   {detailLoading ? (
                     <p className="mt-2 text-sm font-semibold text-slate-500 animate-pulse">Loading...</p>
                   ) : (detail?.vehicleTypes.length ?? 0) > 0 ? (
@@ -496,13 +488,13 @@ export default function BuildingsPage() {
                       })}
                     </div>
                   ) : (
-                    <p className="mt-2 text-xs font-semibold text-slate-500">Đang cập nhật</p>
+                    <p className="mt-2 text-xs font-semibold text-slate-500">Updating</p>
                   )}
                 </div>
 
                 {/* Vehicle / Plate Dropdown */}
                 <div className="mt-5">
-                  <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">Chọn xe của bạn</p>
+                  <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">Choose your vehicle</p>
                   <VehiclePlateDropdown
                     plates={compatiblePlates}
                     selectedPlate={selectedPlate}
@@ -527,9 +519,7 @@ export default function BuildingsPage() {
                       : 'bg-gradient-to-r from-slate-800 to-slate-900 border border-slate-700/30 text-slate-500 cursor-not-allowed opacity-50 shadow-none'
                   }`}
                 >
-                  <ShieldCheck size={16} />
-                  Xem chỗ đỗ để đặt chỗ
-                </motion.button>
+                  <ShieldCheck size={16} />View slots to book</motion.button>
               </aside>
             )}
           </div>

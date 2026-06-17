@@ -78,13 +78,13 @@ export default function UserDashboardPage() {
   };
 
   const quickLinks = [
-    { icon: Wallet, label: 'Ví của tôi', desc: 'Nạp tiền & lịch sử giao dịch', href: '/wallet', color: 'text-emerald-400 border-emerald-500/20 bg-emerald-500/5' },
-    { icon: Building2, label: 'Building', desc: 'Xem bãi đỗ xe hiện có', href: '/buildings', color: 'text-blue-400 border-blue-500/20 bg-blue-500/5' },
-    { icon: CalendarClock, label: 'Reservation', desc: 'Đặt vị trí trước', href: '/reservations', color: 'text-orange-400 border-orange-500/20 bg-orange-500/5' },
-    { icon: History, label: 'Parking history', desc: 'Xem các phiên gửi xe trước', href: '/parking-history', color: 'text-violet-400 border-violet-500/20 bg-violet-500/5' },
-    { icon: Package, label: 'Long-term package', desc: 'Đăng ký gói tháng', href: '/long-term-subscriptions', color: 'text-amber-400 border-amber-500/20 bg-amber-500/5' },
-    { icon: Bell, label: 'Notifications', desc: 'Xem tất cả thông báo', href: '/notifications', color: 'text-rose-400 border-rose-500/20 bg-rose-500/5' },
-    { icon: User, label: 'Profile', desc: 'Cập nhật thông tin cá nhân', href: '/profile', color: 'text-slate-400 border-slate-500/20 bg-slate-500/5' },
+    { icon: Wallet, label: 'My wallet', desc: 'Top up & transaction history', href: '/wallet', color: 'text-emerald-400 border-emerald-500/20 bg-emerald-500/5' },
+    { icon: Building2, label: 'Building', desc: 'View available parking lots', href: '/buildings', color: 'text-blue-400 border-blue-500/20 bg-blue-500/5' },
+    { icon: CalendarClock, label: 'Reservation', desc: 'Book a slot in advance', href: '/reservations', color: 'text-orange-400 border-orange-500/20 bg-orange-500/5' },
+    { icon: History, label: 'Parking history', desc: 'View past parking sessions', href: '/parking-history', color: 'text-violet-400 border-violet-500/20 bg-violet-500/5' },
+    { icon: Package, label: 'Long-term package', desc: 'Subscribe to a monthly package', href: '/long-term-subscriptions', color: 'text-amber-400 border-amber-500/20 bg-amber-500/5' },
+    { icon: Bell, label: 'Notifications', desc: 'View all notifications', href: '/notifications', color: 'text-rose-400 border-rose-500/20 bg-rose-500/5' },
+    { icon: User, label: 'Profile', desc: 'Update personal information', href: '/profile', color: 'text-slate-400 border-slate-500/20 bg-slate-500/5' },
   ];
 
   const activeReservations = reservations.filter((r) =>
@@ -138,8 +138,7 @@ export default function UserDashboardPage() {
               onClick={() => navigate('/wallet')}
               className="flex items-center gap-1.5 rounded-xl border border-orange-500/30 bg-orange-500/10 px-4 py-2 text-xs font-bold text-orange-300 hover:bg-orange-500/20 transition-colors"
             >
-              <Wallet size={13} /> Nạp tiền
-            </button>
+              <Wallet size={13} />Top up</button>
           </div>
         </div>
 
@@ -177,9 +176,7 @@ export default function UserDashboardPage() {
                 type="button"
                 onClick={() => navigate('/reservations', { state: { openHistory: true } })}
                 className="text-[10px] text-orange-400 hover:text-orange-300 font-semibold"
-              >
-                Xem tất cả →
-              </button>
+              >View all →</button>
             </div>
             <div className="space-y-2">
               {activeReservations.slice(0, 3).map((r) => (
@@ -230,7 +227,7 @@ export default function UserDashboardPage() {
         {/* License plates */}
         {session.licensePlates && session.licensePlates.length > 0 && (
           <div>
-            <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">Biển số xe của tôi</p>
+            <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">My plates</p>
             <div className="flex flex-wrap gap-2">
               {session.licensePlates.map((p) => (
                 <span

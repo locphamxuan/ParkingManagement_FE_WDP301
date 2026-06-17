@@ -20,7 +20,7 @@ interface PlateValidationResult {
 function validatePlate(raw: string, existingPlates: Array<{ plateNumber: string; vehicleType: 'car' | 'motorcycle' }>): PlateValidationResult {
   // Step 1: empty check
   if (!raw || raw.trim() === '') {
-    return { ok: false, error: 'Vui lòng nhập biển số xe.' };
+    return { ok: false, error: 'Please enter a plate number.' };
   }
 
   // Step 2: normalize to canonical VN form + format check
@@ -410,7 +410,7 @@ export default function ProfilePage() {
                 <ShieldAlert size={18} className="stroke-[2.5]" />
               </div>
               <div>
-                <h4 className="text-xs font-black uppercase tracking-wider text-amber-400 font-mono">Thông tin chưa đầy đủ</h4>
+                <h4 className="text-xs font-black uppercase tracking-wider text-amber-400 font-mono">Incomplete information</h4>
                 <p className="text-[11px] text-amber-200/80 mt-1 font-semibold leading-relaxed">
                   {!user.phone || user.phone.trim() === ''
                     ? 'Tài khoản của bạn chưa có số điện thoại.'
@@ -418,7 +418,7 @@ export default function ProfilePage() {
                   {user.licensePlates.length === 0
                     ? ' Tài khoản chưa có biển số xe nào được liên kết.'
                     : ''}
-                  {' '}Vui lòng bấm "Chỉnh sửa hồ sơ" để cập nhật để hệ thống PBMS có thể tự động nhận diện tại các cổng kiểm soát.
+                  {' '}Vui lòng bấm "Edit profile" để cập nhật để hệ thống PBMS có thể tự động nhận diện tại các cổng kiểm soát.
                 </p>
               </div>
             </motion.div>
@@ -429,14 +429,14 @@ export default function ProfilePage() {
         {subscriptions.length > 0 && (
           <section className="mb-6 rounded-3xl border border-white/10 bg-slate-900/40 p-5">
             <div className="mb-3 flex items-center gap-2">
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-orange-400 font-mono">Gói dài hạn của tôi</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-orange-400 font-mono">My long-term packages</p>
               <span className="rounded-full bg-orange-500/15 px-2 py-0.5 text-[10px] font-bold text-orange-300">{subscriptions.length}</span>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               {subscriptions.map((s) => {
                 const statusMap: Record<string, { label: string; cls: string }> = {
                   active: { label: 'Active', cls: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
-                  pending: { label: 'Chờ kích hoạt', cls: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
+                  pending: { label: 'Pending activation', cls: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
                   expired: { label: 'Expired', cls: 'bg-slate-500/10 text-slate-400 border-slate-500/20' },
                   cancelled: { label: 'Cancelled', cls: 'bg-rose-500/10 text-rose-400 border-rose-500/20' },
                 };
@@ -452,8 +452,7 @@ export default function ProfilePage() {
                       {new Date(s.startDate).toLocaleDateString('vi-VN')} → {new Date(s.endDate).toLocaleDateString('vi-VN')}
                     </p>
                     {s.slot?.code && (
-                      <p className="mt-1 text-[11px] text-slate-400">
-                        Chỗ đỗ: <span className="font-bold text-slate-200">{s.slot.code}</span>
+                      <p className="mt-1 text-[11px] text-slate-400">Slot:<span className="font-bold text-slate-200">{s.slot.code}</span>
                         {s.slot.floor && typeof s.slot.floor === 'object' && (s.slot.floor.name || s.slot.floor.code) ? (
                           <span> · {s.slot.floor.name || s.slot.floor.code}</span>
                         ) : null}
@@ -471,9 +470,7 @@ export default function ProfilePage() {
               type="button"
               onClick={() => navigate('/long-term-subscriptions')}
               className="mt-3 text-[11px] font-semibold text-orange-400 hover:text-orange-300"
-            >
-              Quản lý / gia hạn gói →
-            </button>
+            >Manage / renew package →</button>
           </section>
         )}
 
@@ -489,9 +486,8 @@ export default function ProfilePage() {
           >
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="space-y-1">
-                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-orange-400 font-mono">Hồ sơ người dùng</p>
-                <h1 className="text-3xl font-black tracking-tight text-white">
-                  Thông tin <span className="bg-gradient-to-r from-orange-400 via-amber-400 to-blue-400 bg-clip-text text-transparent">tài khoản cá nhân</span>
+                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-orange-400 font-mono">User profile</p>
+                <h1 className="text-3xl font-black tracking-tight text-white">Information<span className="bg-gradient-to-r from-orange-400 via-amber-400 to-blue-400 bg-clip-text text-transparent">personal account</span>
                 </h1>
               </div>
 
@@ -510,9 +506,7 @@ export default function ProfilePage() {
                     onClick={handleStartEdit}
                     className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(249,115,22,0.35)] inline-flex items-center gap-1.5 animate-fadeIn"
                   >
-                    <Edit size={13} className="stroke-[2.5]" />
-                    Chỉnh sửa hồ sơ
-                  </button>
+                    <Edit size={13} className="stroke-[2.5]" />Edit profile</button>
                 </div>
               )}
             </div>
@@ -581,9 +575,7 @@ export default function ProfilePage() {
                 {user.role === 'user' && (
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">
-                        Biển số xe liên kết
-                      </label>
+                      <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Linked plates</label>
                       <span className={`text-[9px] font-black font-mono px-2 py-0.5 rounded-full ${editPlates.length >= MAX_PLATES
                         ? 'bg-rose-500/15 text-rose-400'
                         : 'bg-slate-800 text-slate-500'
@@ -664,7 +656,7 @@ export default function ProfilePage() {
                         ))}
                       </AnimatePresence>
                       {editPlates.length === 0 && (
-                        <span className="text-[11px] text-slate-600 font-semibold italic self-center pl-1">Chưa có biển số nào…</span>
+                        <span className="text-[11px] text-slate-600 font-semibold italic self-center pl-1">No plates yet…</span>
                       )}
                     </div>
 
@@ -672,7 +664,7 @@ export default function ProfilePage() {
                     {editPlates.length < MAX_PLATES ? (
                       <div className="space-y-3 p-4 rounded-2xl border border-white/5 bg-slate-900/20 shadow-inner">
                         <div className="flex items-center gap-3">
-                          <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Loại xe:</span>
+                          <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Vehicle type:</span>
                           <div className="flex gap-1.5 p-1 rounded-xl bg-slate-950 border border-white/10 w-fit">
                             <motion.button
                               type="button"
@@ -702,7 +694,7 @@ export default function ProfilePage() {
                         </div>
 
                         <div className="flex items-center gap-3">
-                          <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono shrink-0">Hãng xe:</span>
+                          <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono shrink-0">Brand:</span>
                           <select
                             value={vehicleBrand}
                             onChange={(e) => {
@@ -711,7 +703,7 @@ export default function ProfilePage() {
                             }}
                             className="flex-1 rounded-xl border border-white/10 bg-slate-950/80 text-white text-sm h-10 px-3 outline-none transition-all duration-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
                           >
-                            <option value="">— Chọn hãng xe (tuỳ chọn) —</option>
+                            <option value="">— Select brand (optional) —</option>
                             {brandsForVehicleType(vehicleType).map((b) => (
                               <option key={b} value={b}>{b}</option>
                             ))}
@@ -721,7 +713,7 @@ export default function ProfilePage() {
                         {/* Custom brand input — shown when user picks "Other" */}
                         {vehicleBrand === 'Other' && (
                           <div className="flex items-center gap-3">
-                            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono shrink-0">Nhập hãng:</span>
+                            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono shrink-0">Enter brand:</span>
                             <input
                               type="text"
                               value={customBrand}
@@ -765,9 +757,7 @@ export default function ProfilePage() {
                                 : 'bg-purple-500/20 border border-purple-500/30 text-purple-400 hover:bg-purple-500/30 shadow-[0_0_10px_rgba(168,85,247,0.15)]'
                             }`}
                           >
-                            <Plus size={14} className="stroke-[3]" />
-                            Thêm
-                          </motion.button>
+                            <Plus size={14} className="stroke-[3]" />Add</motion.button>
                         </div>
                       </div>
                     ) : (
@@ -897,8 +887,7 @@ export default function ProfilePage() {
                         </div>
                       ) : (
                         <span className="text-amber-400 font-bold text-xs flex items-center gap-1.5 mt-1 animate-pulse">
-                          <ShieldAlert size={14} /> Chưa liên kết biển số xe
-                        </span>
+                          <ShieldAlert size={14} />No linked plates</span>
                       ),
                     isCustom: true,
                   }] : []),
@@ -940,14 +929,14 @@ export default function ProfilePage() {
                   <User size={24} className="stroke-[2.5]" />
                 </div>
                 <div>
-                  <p className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-500 font-mono">Tài khoản</p>
+                  <p className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-500 font-mono">Account</p>
                   <p className="text-lg font-black text-white leading-tight mt-0.5">{user.fullName || 'Người dùng mới'}</p>
                 </div>
               </div>
 
               {/* Quick Details List */}
               <div className="space-y-4 rounded-3xl bg-slate-950/40 border border-white/5 p-6 shadow-md">
-                <h2 className="text-xs font-black uppercase tracking-wider text-slate-400 font-mono">Chi tiết nhanh</h2>
+                <h2 className="text-xs font-black uppercase tracking-wider text-slate-400 font-mono">Quick details</h2>
                 <div className="grid gap-3 text-xs text-slate-400">
                   <div className="rounded-2xl border border-white/5 bg-slate-950/70 p-4">
                     <p className="text-[10px] font-black uppercase text-slate-500 font-mono">Email</p>
@@ -963,7 +952,7 @@ export default function ProfilePage() {
                   </div>
                   {user.role === 'user' && (
                     <div className="rounded-2xl border border-white/5 bg-slate-950/70 p-4">
-                      <p className="text-[10px] font-black uppercase text-slate-500 font-mono">Biển số đã liên kết</p>
+                      <p className="text-[10px] font-black uppercase text-slate-500 font-mono">Linked plates</p>
                       <p className={`mt-1 font-mono font-black text-sm ${user.licensePlates.length > 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
                         {user.licensePlates.length > 0 ? `${user.licensePlates.length}/${MAX_PLATES} biển số` : 'None'}
                       </p>
@@ -975,7 +964,7 @@ export default function ProfilePage() {
               {/* Plate count visual indicator */}
               {user.role === 'user' && (
                 <div className="rounded-3xl bg-slate-950/40 border border-white/5 p-6 shadow-md space-y-3">
-                  <h2 className="text-xs font-black uppercase tracking-wider text-slate-400 font-mono">Dung lượng biển số</h2>
+                  <h2 className="text-xs font-black uppercase tracking-wider text-slate-400 font-mono">Plate capacity</h2>
                   <div className="flex gap-2">
                     {Array.from({ length: MAX_PLATES }).map((_, idx) => {
                       const hasPl = idx < user.licensePlates.length;
@@ -1011,13 +1000,11 @@ export default function ProfilePage() {
         <div className="rounded-3xl border border-white/5 bg-slate-900/40 p-6 backdrop-blur-md">
           <div className="mb-4 flex items-center gap-2">
             <KeyRound size={16} className="text-orange-400" />
-            <h3 className="text-sm font-bold text-white">Đổi mật khẩu</h3>
+            <h3 className="text-sm font-bold text-white">Change password</h3>
           </div>
           <form onSubmit={handleChangePassword} className="grid gap-3 sm:grid-cols-3">
             <div>
-              <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                Mật khẩu hiện tại
-              </label>
+              <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Current password</label>
               <input
                 type="password"
                 value={pwForm.currentPassword}
@@ -1055,7 +1042,7 @@ export default function ProfilePage() {
                 className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-5 py-2 text-xs font-black uppercase tracking-wider text-slate-950 hover:brightness-110 disabled:opacity-50 transition-all"
               >
                 {pwSaving ? <Loader2 size={12} className="animate-spin" /> : <KeyRound size={12} />}
-                {pwSaving ? 'Saving...' : 'Đổi mật khẩu'}
+                {pwSaving ? 'Saving...' : 'Change password'}
               </button>
               {pwError && (
                 <p className="flex items-center gap-1 text-xs text-rose-400">

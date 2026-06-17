@@ -82,9 +82,7 @@ export default function UserNotificationsPage() {
         {loading ? (
           <p className="rounded-2xl border border-white/10 bg-slate-900/50 p-8 text-center text-sm text-slate-400">Loading...</p>
         ) : items.length === 0 ? (
-          <p className="rounded-2xl border border-white/10 bg-slate-900/50 p-12 text-center text-sm text-slate-400">
-            Bạn chưa có thông báo nào.
-          </p>
+          <p className="rounded-2xl border border-white/10 bg-slate-900/50 p-12 text-center text-sm text-slate-400">You have no notifications yet.</p>
         ) : (
           <div className="space-y-3">
             {items.map((n) => (

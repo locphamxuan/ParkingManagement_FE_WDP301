@@ -181,7 +181,7 @@ export function ManagerVehicleTypesPage() {
           ) : error ? (
             <p className="p-5 text-sm text-rose-500">{error}</p>
           ) : items.length === 0 ? (
-            <p className="p-5 text-sm text-muted-foreground">Chưa có loại xe nào. Nhấn "Add vehicle type" để bắt đầu.</p>
+            <p className="p-5 text-sm text-muted-foreground">No vehicle types yet. Click "Add vehicle type" to start.</p>
           ) : (
             <div className="divide-y divide-border">
               {items.map((item) => (

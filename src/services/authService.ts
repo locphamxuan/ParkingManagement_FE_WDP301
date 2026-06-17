@@ -139,7 +139,7 @@ export async function requestRegistration(input: RegisterInput): Promise<{ messa
     },
   });
 
-  return { message: payload?.message || 'OTP đã được gửi tới email của bạn.' };
+  return { message: payload?.message || 'An OTP has been sent to your email.' };
 }
 
 /**
@@ -183,7 +183,7 @@ export async function forgotPassword(email: string): Promise<{ message: string }
   });
 
   if (!payload?.message) {
-    throw new Error('Không thể gửi email đặt lại mật khẩu. Vui lòng thử lại.');
+    throw new Error('Unable to send the password reset email. Please try again.');
   }
 
   // Store email for reset password step
@@ -200,7 +200,7 @@ export async function resetPassword(token: string, newPassword: string): Promise
   });
 
   if (!payload?.message) {
-    throw new Error('Không thể đặt lại mật khẩu. Vui lòng thử lại.');
+    throw new Error('Unable to reset the password. Please try again.');
   }
 
   // Clear stored email after successful reset

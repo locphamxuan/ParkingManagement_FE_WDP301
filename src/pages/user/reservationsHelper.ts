@@ -66,7 +66,7 @@ export function isCarPackage(pkg: LongTermPackage): boolean {
   const name = String(pkg.name || '').toLowerCase();
   const codeAttr = String(pkg.code || '').toLowerCase();
   if (
-    name.includes('xe máy') ||
+    name.includes('motorcycle') ||
     name.includes('motor') ||
     name.includes('moto') ||
     codeAttr.includes('moto') ||
@@ -99,7 +99,7 @@ export function packageCategory(pkg: LongTermPackage): 'weekly' | 'monthly' | 'y
   return 'yearly';
 }
 
-export const categoryLabels = { weekly: 'Gói tuần', monthly: 'Gói tháng', yearly: 'Gói năm' };
+export const categoryLabels = { weekly: 'Weekly package', monthly: 'Monthly package', yearly: 'Yearly package' };
 
 export const categoryColors = {
   weekly: {

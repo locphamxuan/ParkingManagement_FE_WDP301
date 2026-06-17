@@ -77,7 +77,7 @@ export interface LongTermPackage {
   price: number;
   reservedSlots: number;
   description?: string;
-  /** Perks shown to users (e.g. "Miễn phí rửa xe", "Ưu tiên chỗ gần thang máy"). */
+  /** Perks shown to users (e.g. "Free car wash", "Priority slots near the elevator"). */
   benefits?: string[];
   /** When true, subscribers get a dedicated reserved slot. */
   allowDedicatedSlot?: boolean;

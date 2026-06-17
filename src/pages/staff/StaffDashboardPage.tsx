@@ -366,9 +366,7 @@ export function StaffDashboardPage() {
             <p className="text-sm font-extrabold text-rose-300">
               {openIncidents.length} sự cố đang mở
             </p>
-            <p className="text-xs text-slate-400 mt-0.5 font-medium">
-              Truy cập tab Sự cố để xem chi tiết và xử lý kịp thời.
-            </p>
+            <p className="text-xs text-slate-400 mt-0.5 font-medium">Go to the Incidents tab to view details and handle them promptly.</p>
           </div>
         </div>
       )}

@@ -182,7 +182,7 @@ export function ManagerGatesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Entry / exit gate</h1>
-          <p className="text-sm text-muted-foreground">Tạo cổng và chọn thể loại: cổng vào, cổng ra hoặc hai chiều.</p>
+          <p className="text-sm text-muted-foreground">Create a gate and choose its type: entry, exit or two-way.</p>
         </div>
         <Button onClick={openCreate} className="gap-2" disabled={loading}>
           <Plus size={16} />Add gate</Button>

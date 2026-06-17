@@ -66,7 +66,7 @@ export function ManagerStaffPage() {
         </div>
       ) : items.length === 0 ? (
         <div className="rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">No staff have been assigned to this building yet.<br />
-          <span className="text-xs">Admin cần dùng chức năng "Members" để phân công nhân viên.</span>
+          <span className="text-xs">Admin must use the "Members" function to assign staff.</span>
         </div>
       ) : (
         <DataTable title={`Nhân viên (${items.length})`} rows={items} columns={columns} />

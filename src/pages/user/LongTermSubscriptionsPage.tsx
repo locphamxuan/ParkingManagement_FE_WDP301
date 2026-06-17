@@ -135,11 +135,11 @@ function PackageSelectModal({
     setError(null);
 
     if (!selectedBuildingId) {
-      setError('Vui lòng chọn tòa nhà');
+      setError('Please select a building');
       return;
     }
     if (!selectedPlate) {
-      setError('Vui lòng chọn biển số xe');
+      setError('Please select a plate');
       return;
     }
 
@@ -153,7 +153,7 @@ function PackageSelectModal({
       });
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Lỗi khi đăng ký');
+      setError(err instanceof Error ? err.message : 'Error during registration');
     }
   };
 
@@ -214,7 +214,7 @@ function PackageSelectModal({
                   label: `${p.plateNumber} (${p.vehicleType === 'car' ? 'Car' : 'Motorcycle'})`,
                 })),
               ]}
-              placeholder="Chọn biển số"
+              placeholder="Select plate"
             />
           </div>
 
@@ -231,7 +231,7 @@ function PackageSelectModal({
           {/* Chọn chỗ đỗ cố định (chỉ với gói cho phép) */}
           {pkg?.allowDedicatedSlot && (
             <div className="rounded-xl border border-cyan-400/20 bg-cyan-500/5 p-3 space-y-2.5">
-              <p className="text-xs font-black uppercase tracking-wider text-cyan-300">Chọn chỗ đỗ cố định</p>
+              <p className="text-xs font-black uppercase tracking-wider text-cyan-300">Select dedicated slot</p>
               <div>
                 <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Floor</label>
                 <CustomSelect
@@ -242,9 +242,9 @@ function PackageSelectModal({
                 />
               </div>
               {loadingSlots ? (
-                <p className="text-[11px] text-slate-400">Đang tải chỗ đỗ...</p>
+                <p className="text-[11px] text-slate-400">Loading slots...</p>
               ) : slots.length === 0 ? (
-                <p className="text-[11px] text-slate-500">Tầng này chưa có chỗ đỗ.</p>
+                <p className="text-[11px] text-slate-500">This floor has no slots yet.</p>
               ) : (
                 <div className="grid grid-cols-4 gap-1.5 max-h-44 overflow-y-auto pr-1">
                   {slots.map((s) => {
@@ -293,10 +293,10 @@ function PackageSelectModal({
             <CustomSelect
               value={paymentMethod}
               onChange={(val) => setPaymentMethod(val as LongTermPaymentMethod)}
-              options={[{ value: 'wallet', label: 'Ví PBMS' }]}
-              placeholder="Chọn phương thức"
+              options={[{ value: 'wallet', label: 'PBMS Wallet' }]}
+              placeholder="Select method"
             />
-            <p className="mt-1 text-[10px] text-slate-500">Phí gói được trừ trực tiếp từ ví PBMS.</p>
+            <p className="mt-1 text-[10px] text-slate-500">The package fee is charged directly from your PBMS wallet.</p>
           </div>
 
           <div className="flex gap-3">
@@ -344,9 +344,7 @@ function PackageCard({ package: pkg, onSelect, isLoading }: PackageCardProps) {
       }`}
     >
       {isPopular && (
-        <div className="absolute -top-3 left-4 inline-block rounded-full border border-orange-400/50 bg-gradient-to-r from-orange-500 to-amber-400 px-3 py-1 text-xs font-bold text-slate-950">
-          Phổ biến nhất
-        </div>
+        <div className="absolute -top-3 left-4 inline-block rounded-full border border-orange-400/50 bg-gradient-to-r from-orange-500 to-amber-400 px-3 py-1 text-xs font-bold text-slate-950">Most popular</div>
       )}
 
       <div className="mb-4">
@@ -444,9 +442,9 @@ export default function LongTermSubscriptionsPage() {
     try {
       await renew(item._id);
       await refreshSubscriptions();
-      setMessage({ type: 'success', text: 'Gia hạn thành công.' });
+      setMessage({ type: 'success', text: 'Renewed successfully.' });
     } catch (err) {
-      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Gia hạn thất bại' });
+      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Renewal failed' });
     }
   };
 
@@ -486,7 +484,7 @@ export default function LongTermSubscriptionsPage() {
     setMessage(null);
 
     if (!selectedPackageForModal) {
-      setMessage({ type: 'error', text: 'Gói không được chọn' });
+      setMessage({ type: 'error', text: 'No package selected' });
       return;
     }
 
@@ -505,7 +503,7 @@ export default function LongTermSubscriptionsPage() {
       });
       setSelectedPackageForModal(null);
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Lỗi khi đăng ký gói';
+      const errorMsg = error instanceof Error ? error.message : 'Error subscribing to package';
       setMessage({ type: 'error', text: errorMsg });
     }
   };
@@ -562,9 +560,7 @@ export default function LongTermSubscriptionsPage() {
         >
           <p className="text-xs font-black uppercase tracking-[0.24em] text-orange-300">FR-USR-05</p>
           <h1 className="mt-2 text-3xl font-black text-white md:text-4xl">Subscribe to long-term package</h1>
-          <p className="mt-2 text-sm font-semibold text-slate-400">
-            Chọn gói phù hợp với nhu cầu của bạn
-          </p>
+          <p className="mt-2 text-sm font-semibold text-slate-400">Choose the package that fits your needs</p>
         </motion.div>
 
         {/* Message */}
@@ -585,7 +581,7 @@ export default function LongTermSubscriptionsPage() {
         {isLoadingPackages ? (
           <div className="rounded-2xl border border-white/10 bg-slate-900/50 p-12 text-center">
             <Loader2 size={32} className="animate-spin mx-auto text-orange-300 mb-4" />
-            <p className="text-slate-400">Đang tải các gói...</p>
+            <p className="text-slate-400">Loading packages...</p>
           </div>
         ) : packagesError ? (
           <div className="rounded-2xl border border-rose-400/30 bg-rose-500/10 p-6 text-center">
@@ -593,7 +589,7 @@ export default function LongTermSubscriptionsPage() {
           </div>
         ) : displayPackages.length === 0 ? (
           <div className="rounded-2xl border border-white/10 bg-slate-900/50 p-12 text-center">
-            <p className="text-slate-400">Không có gói nào khả dụng</p>
+            <p className="text-slate-400">No packages available</p>
           </div>
         ) : (
           <>
@@ -628,9 +624,7 @@ export default function LongTermSubscriptionsPage() {
             <div className="rounded-3xl border border-white/10 bg-slate-900/55 p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-white">
-                  <Building2 size={16} className="text-cyan-300" />
-                  Gói đang đăng ký
-                </h2>
+                  <Building2 size={16} className="text-cyan-300" />Active subscription</h2>
                 <span className="rounded-full bg-slate-950 px-2 py-1 text-[11px] font-bold text-slate-400">
                   {subscriptions.length}
                 </span>
@@ -668,7 +662,7 @@ export default function LongTermSubscriptionsPage() {
                               ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
                               : 'bg-slate-500/10 text-slate-400 border border-slate-500/20'
                           }`}>
-                            {item.status === 'active' ? 'Active' : item.status === 'pending' ? 'Chờ kích hoạt' : item.status === 'cancelled' ? 'Cancelled' : 'Expired'}
+                            {item.status === 'active' ? 'Active' : item.status === 'pending' ? 'Pending activation' : item.status === 'cancelled' ? 'Cancelled' : 'Expired'}
                           </span>
                         </div>
                         <p className="mt-1 text-xs font-semibold text-slate-300">
@@ -683,8 +677,7 @@ export default function LongTermSubscriptionsPage() {
 
                         {/* Dedicated Slot info if exists */}
                         {item.slot && (
-                          <p className="mt-1 text-[10px] text-slate-400">
-                            Ô đỗ: <span className="font-bold text-slate-200">{item.slot.code}</span>
+                          <p className="mt-1 text-[10px] text-slate-400">Slot:<span className="font-bold text-slate-200">{item.slot.code}</span>
                             {item.slot.floor && typeof item.slot.floor === 'object' && (item.slot.floor.name || item.slot.floor.code) ? (
                               <span> · {item.slot.floor.name || item.slot.floor.code}</span>
                             ) : null}
@@ -710,7 +703,7 @@ export default function LongTermSubscriptionsPage() {
                             onClick={() => handleRenew(item)}
                             className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 hover:bg-emerald-500/20 px-3 py-1.5 text-xs font-black uppercase tracking-wider text-emerald-300 transition-all active:scale-95 disabled:opacity-60"
                           >
-                            <RefreshCw size={12} /> {isRenewing ? 'Đang gia hạn...' : 'Gia hạn'}
+                            <RefreshCw size={12} /> {isRenewing ? 'Renewing...' : 'Renew'}
                           </button>
                         )}
 
@@ -733,9 +726,7 @@ export default function LongTermSubscriptionsPage() {
                     );
                   })
                 ) : (
-                  <p className="rounded-xl border border-white/10 bg-slate-950/60 p-4 text-center text-xs font-semibold text-slate-500">
-                    Chưa có đăng ký gói dài hạn.
-                  </p>
+                  <p className="rounded-xl border border-white/10 bg-slate-950/60 p-4 text-center text-xs font-semibold text-slate-500">No long-term subscriptions yet.</p>
                 )}
               </div>
             </div>
@@ -749,26 +740,21 @@ export default function LongTermSubscriptionsPage() {
               {selectedPackage ? (
                 <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 p-4 space-y-2">
                   <p className="text-sm font-black text-emerald-300">{selectedPackage.name}</p>
-                  <p className="text-xs font-semibold text-slate-300">
-                    Mã: <span className="text-white">{selectedPackage.code}</span>
+                  <p className="text-xs font-semibold text-slate-300">Code:<span className="text-white">{selectedPackage.code}</span>
                   </p>
-                  <p className="text-xs font-semibold text-slate-300">
-                    Thời hạn: <span className="text-white">{selectedPackage.durationDays} ngày</span>
+                  <p className="text-xs font-semibold text-slate-300">Duration:<span className="text-white">{selectedPackage.durationDays} ngày</span>
                   </p>
-                  <p className="text-xs font-semibold text-slate-300">
-                    Giá: <span className="text-orange-300 font-black">{formatMoney(selectedPackage.price)}</span>
+                  <p className="text-xs font-semibold text-slate-300">Price:<span className="text-orange-300 font-black">{formatMoney(selectedPackage.price)}</span>
                   </p>
                   {selectedPackage.maxVehicles && (
-                    <p className="text-xs font-semibold text-slate-300">
-                      Số phương tiện: <span className="text-white">{selectedPackage.maxVehicles}</span>
+                    <p className="text-xs font-semibold text-slate-300">Vehicles:<span className="text-white">{selectedPackage.maxVehicles}</span>
                     </p>
                   )}
                   {selectedPackage.description && (
                     <p className="text-xs text-slate-400 mt-2">{selectedPackage.description}</p>
                   )}
                   <p className="mt-2 inline-flex items-center gap-1 rounded-full border border-cyan-400/30 bg-cyan-500/10 px-2 py-0.5 text-[11px] font-bold text-cyan-300">
-                    <CheckCircle2 size={11} /> Có chỗ đỗ dành riêng
-                  </p>
+                    <CheckCircle2 size={11} />Has dedicated slot</p>
                   {(selectedPackage.benefits?.length ?? 0) > 0 && (
                     <div className="mt-2 border-t border-white/10 pt-2">
                       <p className="mb-1 text-[10px] font-black uppercase tracking-wider text-emerald-300">Benefits</p>
@@ -784,9 +770,7 @@ export default function LongTermSubscriptionsPage() {
                   )}
                 </div>
               ) : (
-                <p className="rounded-lg border border-white/10 bg-slate-950/60 p-4 text-center text-xs font-semibold text-slate-500">
-                  Chưa có gói đang sử dụng
-                </p>
+                <p className="rounded-lg border border-white/10 bg-slate-950/60 p-4 text-center text-xs font-semibold text-slate-500">No active package</p>
               )}
             </div>
           </div>
@@ -818,11 +802,11 @@ export default function LongTermSubscriptionsPage() {
                 <span className="text-xs font-bold uppercase text-slate-400 block mb-2">Lý do hủy</span>
                 <div className="space-y-2">
                   {[
-                    { value: 'change_slot', label: '🚗 Đổi sang chỗ đỗ khác' },
-                    { value: 'change_vehicle', label: '🔄 Thay đổi phương tiện / biển số xe' },
-                    { value: 'no_longer_needed', label: '🏢 Không còn nhu cầu đỗ xe ở đây' },
-                    { value: 'pricing_issue', label: '💸 Giá gói không còn phù hợp' },
-                    { value: 'other', label: '⚠️ Lý do khác' },
+                    { value: 'change_slot', label: '🚗 Switch to another slot' },
+                    { value: 'change_vehicle', label: '🔄 Change vehicle / plate' },
+                    { value: 'no_longer_needed', label: '🏢 No longer need to park here' },
+                    { value: 'pricing_issue', label: '💸 Package price no longer suitable' },
+                    { value: 'other', label: '⚠️ Other reason' },
                   ].map((opt) => (
                     <label
                       key={opt.value}
@@ -860,8 +844,8 @@ export default function LongTermSubscriptionsPage() {
                   onChange={(e) => setCancelNote(e.target.value)}
                   placeholder={
                     cancelReason === 'other'
-                      ? 'Vui lòng nhập lý do hủy chi tiết tại đây (bắt buộc)...'
-                      : 'Nhập ghi chú thêm nếu có...'
+                      ? 'Please enter the detailed cancellation reason here (required)...'
+                      : 'Enter additional notes if any...'
                   }
                   rows={3}
                   className="w-full rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-xs font-semibold text-white outline-none focus:border-orange-400/60 placeholder-slate-600 resize-none"
@@ -903,7 +887,7 @@ export default function LongTermSubscriptionsPage() {
                     setCancelReason('change_slot');
                     setCancelNote('');
                   } catch (err) {
-                    setCancelError(err instanceof Error ? err.message : 'Lỗi khi hủy gói dài hạn.');
+                    setCancelError(err instanceof Error ? err.message : 'Error cancelling long-term package.');
                   }
                 }}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-black uppercase tracking-wider text-white transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
@@ -912,7 +896,7 @@ export default function LongTermSubscriptionsPage() {
                   <>
                     <Loader2 size={12} className="animate-spin animate-spin-reverse mr-2" />Processing...</>
                 ) : (
-                  'Xác nhận hủy'
+                  'Confirm cancellation'
                 )}
               </button>
             </div>

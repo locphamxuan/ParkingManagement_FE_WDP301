@@ -21,11 +21,11 @@ import { fmtMoney, fmtTime } from '@/pages/user/reservationsHelper';
 function StatusBadge({ status }: { status: string }) {
   const labels: Record<string, string> = {
     pending: 'Chờ thanh toán',
-    confirmed: 'Đã đặt',
-    checked_in: 'Đang sử dụng',
-    completed: 'Hoàn thành',
-    expired: 'Hết hạn',
-    cancelled: 'Đã hủy',
+    confirmed: 'Reserved',
+    checked_in: 'In use',
+    completed: 'Completed',
+    expired: 'Expired',
+    cancelled: 'Cancelled',
     active: 'Đã mua',
   };
   const colors: Record<string, string> = {
@@ -85,7 +85,7 @@ export function ReservationHistoryTab() {
             setTotalPages(raw?.pagination?.totalPages ?? 1);
             setPage(p);
           })
-          .catch((err) => setError(err instanceof Error ? err.message : 'Tải lịch sử thất bại'))
+          .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load history'))
           .finally(() => setLoading(false));
       } else {
         let apiStatus: string | undefined = status;
@@ -140,19 +140,19 @@ export function ReservationHistoryTab() {
   const filterTabs =
     activeMode === 'hourly'
       ? [
-          { value: 'all', label: 'Tất cả' },
-          { value: 'confirmed', label: 'Đã đặt' },
-          { value: 'checked_in', label: 'Đang sử dụng' },
-          { value: 'completed', label: 'Hoàn thành' },
-          { value: 'cancelled', label: 'Đã hủy' },
-          { value: 'expired', label: 'Hết hạn' },
+          { value: 'all', label: 'All' },
+          { value: 'confirmed', label: 'Reserved' },
+          { value: 'checked_in', label: 'In use' },
+          { value: 'completed', label: 'Completed' },
+          { value: 'cancelled', label: 'Cancelled' },
+          { value: 'expired', label: 'Expired' },
         ]
       : [
-          { value: 'all', label: 'Tất cả' },
-          { value: 'confirmed', label: 'Đã đặt' },
-          { value: 'checked_in', label: 'Đang sử dụng' },
-          { value: 'completed', label: 'Hoàn thành' },
-          { value: 'cancelled', label: 'Đã hủy' },
+          { value: 'all', label: 'All' },
+          { value: 'confirmed', label: 'Reserved' },
+          { value: 'checked_in', label: 'In use' },
+          { value: 'completed', label: 'Completed' },
+          { value: 'cancelled', label: 'Cancelled' },
         ];
 
   const fmtDateOnly = (iso: string | undefined | null) => {
@@ -175,9 +175,7 @@ export function ReservationHistoryTab() {
                 ? 'bg-orange-500 text-slate-950 shadow-[0_0_12px_rgba(249,115,22,0.3)]'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
-          >
-            Đặt theo giờ
-          </button>
+          >Hourly booking</button>
           <button
             type="button"
             onClick={() => handleModeChange('package')}
@@ -186,9 +184,7 @@ export function ReservationHistoryTab() {
                 ? 'bg-orange-500 text-slate-950 shadow-[0_0_12px_rgba(249,115,22,0.3)]'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
-          >
-            Đăng ký gói dài hạn
-          </button>
+          >Subscribe to long-term package</button>
         </div>
       </div>
 
@@ -217,8 +213,7 @@ export function ReservationHistoryTab() {
           onClick={() => load(page)}
           className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-slate-300 hover:text-white transition-all hover:bg-white/10"
         >
-          <RefreshCw size={13} className={loading ? 'animate-spin' : ''} /> Làm mới
-        </button>
+          <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />Refresh</button>
       </div>
 
       {error && (
@@ -233,7 +228,7 @@ export function ReservationHistoryTab() {
       )}
 
       {loading ? (
-        <div className="py-12 text-center text-sm text-slate-400">Đang tải dữ liệu...</div>
+        <div className="py-12 text-center text-sm text-slate-400">Loading data...</div>
       ) : items.length === 0 ? (
         <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-10 text-center">
           <CalendarClock size={32} className="mx-auto mb-3 text-slate-600 animate-pulse" />
@@ -300,11 +295,11 @@ export function ReservationHistoryTab() {
                       <p className="mt-1 text-sm font-bold text-slate-200">{(r.slot as any)?.code ?? '—'}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Bắt đầu</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Start</p>
                       <p className="mt-1 text-xs font-medium text-slate-300">{fmtTime(r.startTime)}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Kết thúc</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">End</p>
                       <p className="mt-1 text-xs font-medium text-slate-300">{r.endTime ? fmtTime(r.endTime) : '—'}</p>
                     </div>
                     <div>
@@ -447,7 +442,7 @@ export function ReservationHistoryTab() {
                       </p>
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Ngày bắt đầu</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Start date</p>
                       <p className="mt-1 text-xs font-medium text-slate-300">{fmtDateOnly(sub.startDate)}</p>
                     </div>
                     <div>
@@ -491,9 +486,7 @@ export function ReservationHistoryTab() {
             disabled={page <= 1 || loading}
             onClick={() => load(page - 1)}
             className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-300 hover:text-white disabled:opacity-40"
-          >
-            ← Trước
-          </button>
+          >← Prev</button>
           <span className="text-xs text-slate-400">
             Trang {page} / {totalPages}
           </span>
@@ -512,7 +505,7 @@ export function ReservationHistoryTab() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
           <div className="w-full max-w-lg rounded-3xl border border-white/10 bg-slate-900 p-6 shadow-2xl space-y-6 text-left">
             <div>
-              <h3 className="text-lg font-black text-white">Xác nhận hủy gói dài hạn</h3>
+              <h3 className="text-lg font-black text-white">Confirm long-term package cancellation</h3>
               <p className="text-xs text-slate-400 mt-1">
                 Gói: {cancellingSub.package?.name ?? 'Gói không xác định'} ({cancellingSub.package?.code ?? '—'})
               </p>
@@ -523,9 +516,7 @@ export function ReservationHistoryTab() {
                 Gói dài hạn này sẽ được hủy. Bạn sẽ được hoàn lại 95% giá gói (tương đương{' '}
                 <span className="font-black text-rose-400">
                   {fmtMoney((cancellingSub.price ?? cancellingSub.package?.price ?? 0) * 0.95)}
-                </span>
-                ) vào ví cá nhân.
-              </p>
+                </span>) to your personal wallet.</p>
               <p className="text-[10px] text-rose-300/80 italic">
                 (*) Hệ thống khấu trừ 5% phí hủy gói, bao gồm: phí dịch vụ tiện ích, phí quản lý hệ thống và chi phí vận
                 hành bãi đỗ.
@@ -605,9 +596,7 @@ export function ReservationHistoryTab() {
                 }}
                 disabled={isCancelling}
                 className="px-4 py-2.5 rounded-xl border border-white/10 bg-slate-950 text-xs font-black uppercase tracking-wider text-slate-400 hover:text-white transition-all active:scale-95 disabled:opacity-50"
-              >
-                Quay lại
-              </button>
+              >Back</button>
               <button
                 type="button"
                 disabled={isCancelling || (cancelReason === 'other' && !cancelNote.trim())}
@@ -631,7 +620,7 @@ export function ReservationHistoryTab() {
                 }}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-black uppercase tracking-wider text-white transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {isCancelling ? 'Đang xử lý...' : 'Xác nhận hủy'}
+                {isCancelling ? 'Processing...' : 'Xác nhận hủy'}
               </button>
             </div>
           </div>

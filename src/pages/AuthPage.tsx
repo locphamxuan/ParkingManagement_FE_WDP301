@@ -727,9 +727,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                     setLocalNotice(null);
                   }}
                   className="flex-1 h-11 rounded-xl border border-white/10 text-white font-black text-xs uppercase tracking-wider hover:bg-slate-900 transition-all"
-                >
-                  Quay lại
-                </button>
+                >Back</button>
                 <motion.button 
                   type="submit"
                   disabled={isLoading}
@@ -777,9 +775,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
               </div>
 
               <div className="space-y-1.5 relative">
-                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">
-                  Xác nhận mật khẩu
-                </label>
+                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Confirm password</label>
                 <div className="relative">
                   <input 
                     type={showConfirmPassword ? "text" : "password"}
@@ -820,7 +816,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                   whileTap={{ scale: 0.96 }}
                   className="flex-1 h-11 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider hover:shadow-[0_0_25px_rgba(249,115,22,0.45)] disabled:opacity-50 transition-all"
                 >
-                  {isLoading ? 'Đang xử lý...' : 'Đặt lại mật khẩu'}
+                  {isLoading ? 'Processing...' : 'Đặt lại mật khẩu'}
                 </motion.button>
               </div>
             </form>
@@ -836,11 +832,11 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                     onChange={handleChange} 
                     required
                     className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 px-4 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
-                    placeholder="Nguyễn Văn A" 
+                    placeholder="John Doe" 
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Số điện thoại</label>
+                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Phone number</label>
                   <input 
                     name="phone" 
                     value={form.phone} 
@@ -948,7 +944,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
 
             {mode === 'register' && (
               <div className="space-y-1.5 relative animate-fadeIn">
-                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Xác nhận mật khẩu</label>
+                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Confirm password</label>
                 <div className="relative">
                   <input 
                     name="confirmPassword" 
@@ -983,11 +979,11 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                 }`}
               >
                 {isLoading 
-                  ? 'Đang xử lý...' 
+                  ? 'Processing...' 
                   : mode === 'login' && lockTimeLeft > 0 
                   ? `Bị khóa (Thử lại sau ${Math.floor(lockTimeLeft / 60)}m ${lockTimeLeft % 60}s)` 
                   : mode === 'login' 
-                  ? 'Đăng nhập' 
+                  ? 'Sign in' 
                   : 'Tạo tài khoản'}
               </motion.button>
               
@@ -1023,7 +1019,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
               type="button"
               onClick={closeModal}
               className="absolute right-3.5 top-3.5 rounded-full p-1.5 text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
-              aria-label="Đóng"
+              aria-label="Close"
             >
               <X size={16} />
             </button>

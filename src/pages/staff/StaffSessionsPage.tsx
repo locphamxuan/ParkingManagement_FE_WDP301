@@ -20,9 +20,9 @@ const fmtTime = (s?: string | null) =>
   s ? new Date(s).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' }) : '—';
 
 const STATUS_LABELS: Record<string, string> = {
-  checked_in: 'Đã check-in',
-  completed: 'Hoàn thành',
-  active: 'Đang gửi',
+  checked_in: 'Checked in',
+  completed: 'Completed',
+  active: 'Submitting',
 };
 
 type ViewFilter = 'all' | 'reservation' | 'session';
@@ -61,7 +61,7 @@ export function StaffSessionsPage() {
       );
       setPaidReservations(allPaid);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Tải dữ liệu thất bại');
+      setError(err instanceof Error ? err.message : 'Failed to load data');
     } finally {
       setLoading(false);
     }
@@ -96,7 +96,7 @@ export function StaffSessionsPage() {
     },
     {
       key: 'plateNumber',
-      title: 'Biển số',
+      title: 'Plate number',
       render: (row) => (
         <span className="rounded border border-amber-500/25 bg-amber-500/10 px-2 py-0.5 font-mono text-xs font-bold text-amber-300">
           {row.plateNumber ?? '—'}
@@ -142,14 +142,14 @@ export function StaffSessionsPage() {
     },
     {
       key: 'startTime',
-      title: 'Thời gian',
+      title: 'Time',
       render: (row) => (
         <span className="text-xs text-muted-foreground">{fmtTime(row.startTime)}</span>
       ),
     },
     {
       key: 'status',
-      title: 'Trạng thái',
+      title: 'Status',
       render: (row) => (
         <div className="flex flex-col gap-0.5">
           <StatusBadge status={row.status} />
@@ -164,7 +164,7 @@ export function StaffSessionsPage() {
   const sessionColumns: DataColumn<ParkingSession>[] = [
     {
       key: 'plateNumber',
-      title: 'Biển số',
+      title: 'Plate number',
       render: (row) => (
         <span className="rounded border border-amber-500/25 bg-amber-500/10 px-2 py-0.5 font-mono text-xs font-bold text-amber-300">
           {row.plateNumber}
@@ -173,7 +173,7 @@ export function StaffSessionsPage() {
     },
     {
       key: 'vehicleType',
-      title: 'Loại xe',
+      title: 'Vehicle type',
       render: (row) => (
         <span className="text-xs text-muted-foreground">
           {row.vehicleType ? `${row.vehicleType.code} — ${row.vehicleType.name}` : '—'}
@@ -214,7 +214,7 @@ export function StaffSessionsPage() {
     },
     {
       key: 'entryGate',
-      title: 'Cổng vào',
+      title: 'Entry gate',
       render: (row) => (
         <span className="text-xs text-muted-foreground">
           {row.entryGate?.name ?? row.entryGate?.code ?? '—'}
@@ -223,17 +223,15 @@ export function StaffSessionsPage() {
     },
     {
       key: 'status',
-      title: 'Trạng thái',
+      title: 'Status',
       render: () => (
-        <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
-          Đang gửi
-        </span>
+        <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">Submitting</span>
       ),
     },
   ];
 
   const VIEW_TABS: { value: ViewFilter; label: string }[] = [
-    { value: 'all', label: 'Tất cả' },
+    { value: 'all', label: 'All' },
     { value: 'reservation', label: `Đặt chỗ (${paidReservations.length})` },
     { value: 'session', label: `Gửi trực tiếp (${activeSessions.length})` },
   ];
@@ -247,14 +245,14 @@ export function StaffSessionsPage() {
       border: 'border-emerald-500/20 bg-emerald-500/5',
     },
     {
-      label: 'Đã check-in',
+      label: 'Checked in',
       value: String(checkedInCount),
       icon: CalendarCheck2,
       color: 'text-blue-500',
       border: 'border-blue-500/20 bg-blue-500/5',
     },
     {
-      label: 'Hoàn thành',
+      label: 'Completed',
       value: String(completedCount),
       icon: Clock,
       color: 'text-amber-500',
@@ -276,15 +274,14 @@ export function StaffSessionsPage() {
         <div className="flex items-center gap-2">
           <Wallet size={18} className="text-primary" />
           <div>
-            <h2 className="text-base font-semibold text-foreground">Theo dõi thanh toán</h2>
+            <h2 className="text-base font-semibold text-foreground">Payment tracking</h2>
             <p className="text-xs text-muted-foreground">
               Đặt chỗ trước đã thu tiền và xe đang gửi trực tiếp
             </p>
           </div>
         </div>
         <Button variant="secondary" size="sm" onClick={refresh} className="gap-1.5">
-          <RefreshCw size={13} className={loading ? 'animate-spin' : ''} /> Làm mới
-        </Button>
+          <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />Refresh</Button>
       </div>
 
       {error && (
@@ -345,7 +342,7 @@ export function StaffSessionsPage() {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <p className="py-6 text-center text-sm text-muted-foreground">Đang tải...</p>
+              <p className="py-6 text-center text-sm text-muted-foreground">Loading...</p>
             ) : paidReservations.length === 0 ? (
               <div className="py-8 text-center">
                 <CalendarCheck2 size={28} className="mx-auto mb-2 text-muted-foreground/40" />
@@ -372,7 +369,7 @@ export function StaffSessionsPage() {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <p className="py-6 text-center text-sm text-muted-foreground">Đang tải...</p>
+              <p className="py-6 text-center text-sm text-muted-foreground">Loading...</p>
             ) : activeSessions.length === 0 ? (
               <div className="py-8 text-center">
                 <Car size={28} className="mx-auto mb-2 text-muted-foreground/40" />

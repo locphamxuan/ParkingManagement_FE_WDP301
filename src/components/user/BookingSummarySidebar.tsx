@@ -37,26 +37,24 @@ export function BookingSummarySidebar({
 
         <div className="space-y-3">
           <div className="flex justify-between text-xs">
-            <span className="font-bold text-slate-400">Tòa nhà</span>
+            <span className="font-bold text-slate-400">Building</span>
             <span className="font-black text-white">{selectedBuildingName || '—'}</span>
           </div>
           <div className="flex justify-between text-xs">
-            <span className="font-bold text-slate-400">Chế độ</span>
+            <span className="font-bold text-slate-400">Mode</span>
             <span className="font-black text-white">
-              {mode === 'hourly' ? 'Theo giờ' : selectedPkgName || 'Gói dài hạn'}
+              {mode === 'hourly' ? 'Theo giờ' : selectedPkgName || 'Long-term package'}
             </span>
           </div>
           <div className="flex justify-between text-xs">
-            <span className="font-bold text-slate-400">Loại xe</span>
+            <span className="font-bold text-slate-400">Vehicle type</span>
             <span className="font-black text-white flex items-center gap-1.5">
               {selectedVehicleType === 'motorcycle' ? (
                 <>
-                  <Bike size={12} className="text-purple-300" /> Xe máy
-                </>
+                  <Bike size={12} className="text-purple-300" />Motorcycle</>
               ) : selectedVehicleType === 'car' ? (
                 <>
-                  <Car size={12} className="text-cyan-300" /> Ô tô
-                </>
+                  <Car size={12} className="text-cyan-300" />Car</>
               ) : (
                 '—'
               )}
@@ -67,13 +65,13 @@ export function BookingSummarySidebar({
 
           <div className="grid grid-cols-2 gap-2">
             <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-              <p className="text-[9px] font-bold uppercase text-slate-500">Ô đỗ</p>
+              <p className="text-[9px] font-bold uppercase text-slate-500">Slot</p>
               <p className="mt-1 font-mono text-lg font-black text-orange-300">
                 {selectedSlot || '—'}
               </p>
             </div>
             <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-              <p className="text-[9px] font-bold uppercase text-slate-500">Biển số</p>
+              <p className="text-[9px] font-bold uppercase text-slate-500">Plate number</p>
               <p className="mt-1 font-mono text-sm font-black text-cyan-200 truncate">
                 {selectedPlate || '—'}
               </p>

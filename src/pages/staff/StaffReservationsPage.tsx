@@ -15,11 +15,11 @@ const fmtMoney = (n?: number | null) =>
 
 const STATUS_LABELS: Record<StaffReservation['status'], string> = {
   pending: 'Chờ xác nhận',
-  confirmed: 'Đã xác nhận',
-  checked_in: 'Đã check-in',
-  completed: 'Hoàn thành',
-  cancelled: 'Đã hủy',
-  expired: 'Hết hạn',
+  confirmed: 'Confirmed',
+  checked_in: 'Checked in',
+  completed: 'Completed',
+  cancelled: 'Cancelled',
+  expired: 'Expired',
 };
 
 export function StaffReservationsPage() {
@@ -54,7 +54,7 @@ export function StaffReservationsPage() {
       await staffApi.reservations.checkIn(code);
       load();
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Check-in thất bại');
+      setActionError(err instanceof Error ? err.message : 'Check-in failed');
     } finally {
       setActionLoading((prev) => ({ ...prev, [id]: false }));
     }
@@ -111,12 +111,12 @@ export function StaffReservationsPage() {
     },
     {
       key: 'plateNumber',
-      title: 'Biển số',
+      title: 'Plate number',
       render: (row) => <span className="font-mono font-semibold text-foreground">{row.plateNumber ?? '—'}</span>,
     },
     {
       key: 'vehicleType',
-      title: 'Loại xe',
+      title: 'Vehicle type',
       render: (row) => (
         <span className="text-xs text-muted-foreground">
           {row.vehicleType ? `${row.vehicleType.code} — ${row.vehicleType.name}` : '—'}
@@ -164,7 +164,7 @@ export function StaffReservationsPage() {
     },
     {
       key: 'status',
-      title: 'Trạng thái',
+      title: 'Status',
       render: (row) => (
         <div className="flex flex-col gap-1">
           <StatusBadge status={row.status} />
@@ -201,7 +201,7 @@ export function StaffReservationsPage() {
               className="gap-1.5 text-xs h-7 px-2 text-rose-400 hover:bg-rose-500/10"
             >
               <XCircle size={12} />
-              {busy ? '...' : 'Hết hạn'}
+              {busy ? '...' : 'Expired'}
             </Button>
           );
         }
@@ -224,7 +224,7 @@ export function StaffReservationsPage() {
           <div className="flex items-center gap-3">
             <CalendarCheck2 size={22} className="text-primary" />
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary">Đặt chỗ trước</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary">Reservation</p>
               <h2 className="mt-0.5 text-xl font-semibold text-foreground">Danh sách đặt chỗ</h2>
               <p className="mt-0.5 text-sm text-muted-foreground">
                 {building ? `${building.code} · ${building.name}` : 'Tất cả tòa nhà'}
@@ -232,8 +232,7 @@ export function StaffReservationsPage() {
             </div>
           </div>
           <Button variant="secondary" onClick={load} className="gap-2 self-start lg:self-auto">
-            <RefreshCcw size={14} /> Làm mới
-          </Button>
+            <RefreshCcw size={14} />Refresh</Button>
         </div>
       </section>
 
@@ -241,8 +240,8 @@ export function StaffReservationsPage() {
       <section className="grid gap-3 sm:grid-cols-3">
         {[
           { label: 'Tổng đặt chỗ', value: items.length },
-          { label: 'Đã xác nhận', value: items.filter((i) => i.status === 'confirmed').length },
-          { label: 'Đã check-in', value: items.filter((i) => i.status === 'checked_in').length },
+          { label: 'Confirmed', value: items.filter((i) => i.status === 'confirmed').length },
+          { label: 'Checked in', value: items.filter((i) => i.status === 'checked_in').length },
         ].map((m) => (
           <Card key={m.label}>
             <CardContent className="p-5">
@@ -275,7 +274,7 @@ export function StaffReservationsPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-sm text-muted-foreground py-6 text-center">Đang tải dữ liệu...</p>
+            <p className="text-sm text-muted-foreground py-6 text-center">Loading data...</p>
           ) : error ? (
             <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-4 text-sm text-rose-400">
               <p>{error}</p>

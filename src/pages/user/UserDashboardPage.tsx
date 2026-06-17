@@ -28,11 +28,11 @@ const fmtTime = (s?: string | null) =>
   s ? new Date(s).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' }) : '—';
 
 const STATUS_LABELS: Record<string, string> = {
-  pending: 'Đang chờ',
-  confirmed: 'Đã xác nhận',
-  checked_in: 'Đã check-in',
-  expired: 'Hết hạn',
-  cancelled: 'Đã hủy',
+  pending: 'Pending',
+  confirmed: 'Confirmed',
+  checked_in: 'Checked in',
+  expired: 'Expired',
+  cancelled: 'Cancelled',
 };
 
 export default function UserDashboardPage() {
@@ -79,12 +79,12 @@ export default function UserDashboardPage() {
 
   const quickLinks = [
     { icon: Wallet, label: 'Ví của tôi', desc: 'Nạp tiền & lịch sử giao dịch', href: '/wallet', color: 'text-emerald-400 border-emerald-500/20 bg-emerald-500/5' },
-    { icon: Building2, label: 'Tòa nhà', desc: 'Xem bãi đỗ xe hiện có', href: '/buildings', color: 'text-blue-400 border-blue-500/20 bg-blue-500/5' },
-    { icon: CalendarClock, label: 'Đặt chỗ', desc: 'Đặt vị trí trước', href: '/reservations', color: 'text-orange-400 border-orange-500/20 bg-orange-500/5' },
-    { icon: History, label: 'Lịch sử gửi xe', desc: 'Xem các phiên gửi xe trước', href: '/parking-history', color: 'text-violet-400 border-violet-500/20 bg-violet-500/5' },
-    { icon: Package, label: 'Gói dài hạn', desc: 'Đăng ký gói tháng', href: '/long-term-subscriptions', color: 'text-amber-400 border-amber-500/20 bg-amber-500/5' },
-    { icon: Bell, label: 'Thông báo', desc: 'Xem tất cả thông báo', href: '/notifications', color: 'text-rose-400 border-rose-500/20 bg-rose-500/5' },
-    { icon: User, label: 'Hồ sơ', desc: 'Cập nhật thông tin cá nhân', href: '/profile', color: 'text-slate-400 border-slate-500/20 bg-slate-500/5' },
+    { icon: Building2, label: 'Building', desc: 'Xem bãi đỗ xe hiện có', href: '/buildings', color: 'text-blue-400 border-blue-500/20 bg-blue-500/5' },
+    { icon: CalendarClock, label: 'Reservation', desc: 'Đặt vị trí trước', href: '/reservations', color: 'text-orange-400 border-orange-500/20 bg-orange-500/5' },
+    { icon: History, label: 'Parking history', desc: 'Xem các phiên gửi xe trước', href: '/parking-history', color: 'text-violet-400 border-violet-500/20 bg-violet-500/5' },
+    { icon: Package, label: 'Long-term package', desc: 'Đăng ký gói tháng', href: '/long-term-subscriptions', color: 'text-amber-400 border-amber-500/20 bg-amber-500/5' },
+    { icon: Bell, label: 'Notifications', desc: 'Xem tất cả thông báo', href: '/notifications', color: 'text-rose-400 border-rose-500/20 bg-rose-500/5' },
+    { icon: User, label: 'Profile', desc: 'Cập nhật thông tin cá nhân', href: '/profile', color: 'text-slate-400 border-slate-500/20 bg-slate-500/5' },
   ];
 
   const activeReservations = reservations.filter((r) =>
@@ -128,7 +128,7 @@ export default function UserDashboardPage() {
           <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-orange-500/10 blur-2xl" />
           <div className="relative flex items-center justify-between">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-orange-300/70">Số dư ví</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-orange-300/70">Wallet balance</p>
               <p className="mt-1 text-3xl font-black text-white">
                 {loading ? '…' : fmtVnd.format(wallet?.balance ?? 0)}
               </p>
@@ -244,7 +244,7 @@ export default function UserDashboardPage() {
                   }`}
                 >
                   {p.vehicleType === 'motorcycle' ? '🏍️' : '🚗'} {p.plateNumber}
-                  {p.isDefault && <span className="text-[9px] font-sans font-bold uppercase">(Mặc định)</span>}
+                  {p.isDefault && <span className="text-[9px] font-sans font-bold uppercase">(Default)</span>}
                 </span>
               ))}
             </div>

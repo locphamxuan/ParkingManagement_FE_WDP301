@@ -128,7 +128,7 @@ export function StaffDashboardPage() {
 
         setError(null);
       })
-      .catch((err) => setError(err instanceof Error ? err.message : 'Tải dữ liệu thất bại'))
+      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load data'))
       .finally(() => setLoading(false));
   }, [building]);
 
@@ -165,7 +165,7 @@ export function StaffDashboardPage() {
   }, [todayShifts, shifts]);
 
   const directionText = (d: 'in' | 'out' | 'both') =>
-    d === 'in' ? 'Cổng vào' : d === 'out' ? 'Cổng ra' : 'Hai chiều';
+    d === 'in' ? 'Entry gate' : d === 'out' ? 'Exit gate' : 'Two-way';
 
   const showCheckIn = assignedGates.some((g) => g.direction === 'in' || g.direction === 'both') || assignedGates.length === 0;
   const showCheckOut = assignedGates.some((g) => g.direction === 'out' || g.direction === 'both') || assignedGates.length === 0;
@@ -190,7 +190,7 @@ export function StaffDashboardPage() {
       loading,
     },
     {
-      label: 'Đặt chỗ trước',
+      label: 'Reservation',
       value: pendingReservations.length,
       icon: Ticket,
       accent: 'border-amber-500/20 bg-amber-500/10',
@@ -214,7 +214,7 @@ export function StaffDashboardPage() {
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="max-w-sm rounded-3xl border border-amber-500/30 bg-amber-500/10 p-8 text-center backdrop-blur-md shadow-lg">
           <Building2 size={36} className="mx-auto mb-3 text-amber-400" />
-          <p className="text-base font-extrabold text-amber-300">Chưa chọn tòa nhà</p>
+          <p className="text-base font-extrabold text-amber-300">No building selected</p>
           <p className="mt-1 text-sm text-slate-400 font-medium">
             Vui lòng chọn tòa nhà từ menu bên trái để bắt đầu ca làm việc.
           </p>
@@ -242,9 +242,7 @@ export function StaffDashboardPage() {
               <Building2 size={20} className="text-teal-400" />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 font-mono">
-                Nhân viên vận hành
-              </p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 font-mono">Operations staff</p>
               <h1 className="mt-1 text-2xl font-black text-white tracking-tight leading-none">
                 {building ? building.name : <Skeleton className="h-7 w-48" />}
               </h1>
@@ -306,7 +304,7 @@ export function StaffDashboardPage() {
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 font-mono">
                     {assignedGates.length > 0 ? 'Cổng vào được gán' : 'Nhiệm vụ'}
                   </p>
-                  <h3 className="mt-0.5 text-base font-extrabold text-white tracking-tight">Check-in xe vào</h3>
+                  <h3 className="mt-0.5 text-base font-extrabold text-white tracking-tight">Check in vehicle</h3>
                   <p className="text-xs text-slate-400 mt-0.5 font-medium">Quét biển số / QR để cho xe vào bãi</p>
                 </div>
               </div>
@@ -345,7 +343,7 @@ export function StaffDashboardPage() {
               </div>
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 font-mono">Giám sát</p>
-                <h3 className="mt-0.5 text-base font-extrabold text-white tracking-tight">Xe đang đỗ</h3>
+                <h3 className="mt-0.5 text-base font-extrabold text-white tracking-tight">Parked vehicles</h3>
                 <p className="text-xs text-slate-400 mt-0.5 font-medium">Xem danh sách xe đang đỗ (chỉ xem)</p>
               </div>
             </div>
@@ -430,7 +428,7 @@ export function StaffDashboardPage() {
                         Cổng {s.gate.code}
                         {s.gate.name ? ` · ${s.gate.name}` : ''}
                         {' · '}
-                        {s.gate.direction === 'in' ? 'Cổng vào' : s.gate.direction === 'out' ? 'Cổng ra' : 'Hai chiều'}
+                        {s.gate.direction === 'in' ? 'Entry gate' : s.gate.direction === 'out' ? 'Exit gate' : 'Two-way'}
                       </p>
                     ) : (
                       <p className="mt-1.5 text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono italic">Chưa phân công cổng</p>
@@ -453,7 +451,7 @@ export function StaffDashboardPage() {
           <div className="mb-5 flex items-center justify-between relative z-10">
             <div className="flex items-center gap-2">
               <Car size={16} className="text-emerald-400" />
-              <h2 className="text-sm font-bold text-white tracking-tight">Xe đang đỗ</h2>
+              <h2 className="text-sm font-bold text-white tracking-tight">Parked vehicles</h2>
             </div>
             <span className="rounded-md border border-white/5 bg-slate-950/40 px-2 py-0.5 text-[11px] font-bold text-slate-400 font-mono">
               {loading ? '…' : activeSessions.length}

@@ -473,8 +473,8 @@ export default function ReservationsPage() {
         {/* ── Tab Bar ── */}
         <div className="mb-6 flex items-center gap-1 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-1.5">
           {[
-            { key: 'hourly' as BookingMode, label: 'Đặt theo giờ', icon: <Timer size={14} /> },
-            { key: 'package' as BookingMode, label: 'Đăng ký gói dài hạn', icon: <Package size={14} /> },
+            { key: 'hourly' as BookingMode, label: 'Hourly booking', icon: <Timer size={14} /> },
+            { key: 'package' as BookingMode, label: 'Subscribe to long-term package', icon: <Package size={14} /> },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -511,19 +511,19 @@ export default function ReservationsPage() {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Tòa nhà</span>
+                  <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Building</span>
                   <CustomSelect
                     value={selectedBuildingId}
                     onChange={handleBuildingChange}
                     options={[
-                      { value: '', label: '-- Chọn tòa nhà --' },
+                      { value: '', label: '-- Select building --' },
                       ...rows.map((r) => ({ value: r.building._id, label: r.building.name })),
                     ]}
-                    placeholder="-- Chọn tòa nhà --"
+                    placeholder="-- Select building --"
                   />
                 </div>
                 <div>
-                  <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Loại xe</span>
+                  <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Vehicle type</span>
                   <CustomSelect
                     value={selectedVehicleType}
                     onChange={(val) => {
@@ -553,13 +553,13 @@ export default function ReservationsPage() {
                   onChange={setSelectedPlate}
                   disabled={plateOptions.length === 0}
                   options={[
-                    { value: '', label: plateOptions.length === 0 ? '-- Tất cả biển số xe phù hợp đều đã đặt chỗ --' : '-- Chọn biển số --' },
+                    { value: '', label: plateOptions.length === 0 ? '-- Tất cả biển số xe phù hợp đều đã đặt chỗ --' : '-- Select plate --' },
                     ...plateOptions.map((p) => ({
                       value: p.plateNumber,
                       label: `${p.plateNumber} — ${p.vehicleType === 'motorcycle' ? '🏍️ Xe máy' : '🚗 Ô tô'}`,
                     })),
                   ]}
-                  placeholder="-- Chọn biển số --"
+                  placeholder="-- Select plate --"
                 />
               </div>
             </div>
@@ -615,7 +615,7 @@ export default function ReservationsPage() {
 
                     {packages.length === 0 ? (
                       <p className="text-sm text-slate-500 font-semibold py-4 text-center">
-                        {isLoadingBuildings ? 'Đang tải...' : 'Không có gói nào cho tòa nhà này.'}
+                        {isLoadingBuildings ? 'Loading...' : 'Không có gói nào cho tòa nhà này.'}
                       </p>
                     ) : (
                       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -692,7 +692,7 @@ export default function ReservationsPage() {
                   <MapPin size={16} /> Chọn chỗ đỗ
                 </motion.button>
                 <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-center min-w-[100px]">
-                  <p className="text-[9px] font-bold uppercase text-slate-500">Ô đỗ</p>
+                  <p className="text-[9px] font-bold uppercase text-slate-500">Slot</p>
                   <p className="mt-1 font-mono text-xl font-black text-orange-300">{selectedSlot || '—'}</p>
                 </div>
               </div>
@@ -740,7 +740,7 @@ export default function ReservationsPage() {
               className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-400 px-6 py-3 text-sm font-black uppercase tracking-wider text-slate-950 shadow-[0_0_24px_rgba(249,115,22,0.3)] transition-all disabled:cursor-not-allowed disabled:from-slate-700 disabled:to-slate-700 disabled:text-slate-400 disabled:shadow-none"
             >
               <ShieldCheck size={16} />
-              {isSubmitting ? 'Đang xử lý...' : mode === 'hourly' ? 'Xác nhận đặt chỗ' : 'Mua gói'}
+              {isSubmitting ? 'Processing...' : mode === 'hourly' ? 'Xác nhận đặt chỗ' : 'Mua gói'}
             </motion.button>
           </div>
         </div>

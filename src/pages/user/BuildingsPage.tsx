@@ -148,8 +148,8 @@ function VehiclePlateDropdown({
 
   const vehicleLabel = (type: string) => {
     const t = type?.toLowerCase() ?? '';
-    if (t === 'motorcycle' || t === 'bike') return 'Xe máy';
-    return 'Ô tô';
+    if (t === 'motorcycle' || t === 'bike') return 'Motorcycle';
+    return 'Car';
   };
 
   return (
@@ -225,9 +225,7 @@ function VehiclePlateDropdown({
                       </div>
                       {isActive && <CheckCircle2 size={14} className="text-orange-400 shrink-0" />}
                       {plate.isDefault && (
-                        <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-bold text-emerald-400 shrink-0">
-                          Mặc định
-                        </span>
+                        <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-bold text-emerald-400 shrink-0">Default</span>
                       )}
                     </button>
                   );
@@ -454,7 +452,7 @@ export default function BuildingsPage() {
                 <div className="mt-6 grid grid-cols-3 gap-3">
                   <div className="rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.02] to-transparent p-4 transition-all duration-300 hover:border-white/10 hover:bg-white/[0.01]">
                     <Layers size={18} className="text-cyan-400/80" />
-                    <p className="mt-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">Số tầng</p>
+                    <p className="mt-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">Total floors</p>
                     <p className="mt-1 text-xl font-black text-white">
                       {detailLoading ? '…' : floorCount}
                     </p>
@@ -479,7 +477,7 @@ export default function BuildingsPage() {
                 <div className="mt-5 rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-md p-4">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Loại xe được hỗ trợ</p>
                   {detailLoading ? (
-                    <p className="mt-2 text-sm font-semibold text-slate-500 animate-pulse">Đang tải...</p>
+                    <p className="mt-2 text-sm font-semibold text-slate-500 animate-pulse">Loading...</p>
                   ) : (detail?.vehicleTypes.length ?? 0) > 0 ? (
                     <div className="mt-2.5 flex flex-wrap gap-2">
                       {detail!.vehicleTypes.map((vt) => {

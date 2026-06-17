@@ -61,7 +61,7 @@ export function ManagerPackagesPage() {
       setVts(vtList.data.items);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Tải thất bại');
+      setError(err instanceof Error ? err.message : 'Failed to load');
     } finally {
       setLoading(false);
     }
@@ -128,7 +128,7 @@ export function ManagerPackagesPage() {
       setModalOpen(false);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Lưu thất bại');
+      alert(err instanceof Error ? err.message : 'Save failed');
     }
   };
 
@@ -138,22 +138,22 @@ export function ManagerPackagesPage() {
       await managerApi.packages.remove(buildingId, row._id);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Xóa thất bại');
+      alert(err instanceof Error ? err.message : 'Delete failed');
     }
   };
 
   const columns: DataColumn<LongTermPackage>[] = [
-    { key: 'code', title: 'Mã' },
-    { key: 'name', title: 'Tên' },
+    { key: 'code', title: 'Code' },
+    { key: 'name', title: 'Name' },
     {
       key: 'vehicleType',
-      title: 'Loại xe',
+      title: 'Vehicle type',
       render: (row) => (typeof row.vehicleType === 'string' ? row.vehicleType : row.vehicleType.code),
     },
     { key: 'durationDays', title: 'Thời hạn (ngày)' },
     {
       key: 'price',
-      title: 'Giá',
+      title: 'Price',
       render: (row) => `${row.price.toLocaleString('vi-VN')} đ`,
     },
     {
@@ -180,7 +180,7 @@ export function ManagerPackagesPage() {
     },
     {
       key: 'isActive',
-      title: 'Trạng thái',
+      title: 'Status',
       render: (row) => <StatusBadge status={row.isActive ? 'active' : 'inactive'} />,
     },
     {
@@ -213,7 +213,7 @@ export function ManagerPackagesPage() {
       ) : error ? (
         <div className="text-sm text-red-600">{error}</div>
       ) : (
-        <DataTable title="Gói dài hạn" rows={items} columns={columns} />
+        <DataTable title="Long-term package" rows={items} columns={columns} />
       )}
 
       <ModalForm
@@ -224,7 +224,7 @@ export function ManagerPackagesPage() {
       >
         <div className="grid gap-3 md:grid-cols-2 text-slate-100">
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Mã</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Code</label>
             <Input
               value={form.code}
               onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
@@ -232,7 +232,7 @@ export function ManagerPackagesPage() {
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Tên</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Name</label>
             <Input
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
@@ -240,7 +240,7 @@ export function ManagerPackagesPage() {
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Loại xe</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Vehicle type</label>
             <CustomSelect
               value={form.vehicleType}
               onChange={(val) => setForm((f) => ({ ...f, vehicleType: val }))}
@@ -312,7 +312,7 @@ export function ManagerPackagesPage() {
             </p>
           </div>
           <div className="grid gap-1.5 md:col-span-2">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Mô tả</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Description</label>
             <Input
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}

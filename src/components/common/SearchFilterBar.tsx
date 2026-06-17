@@ -12,21 +12,21 @@ interface SearchFilterBarProps {
 }
 
 const optionMap: Record<string, string> = {
-  all: 'Tất cả',
-  active: 'Hoạt động',
-  inactive: 'Không hoạt động',
-  maintenance: 'Bảo trì',
-  warning: 'Cảnh báo',
-  admin: 'Quản trị viên',
-  manager: 'Quản lý',
-  staff: 'Nhân viên',
-  user: 'Người dùng',
+  all: 'All',
+  active: 'Active',
+  inactive: 'Inactive',
+  maintenance: 'Maintenance',
+  warning: 'Warning',
+  admin: 'Administrator',
+  manager: 'Management',
+  staff: 'Staff',
+  user: 'Users',
   blocked: 'Đã khóa',
   pending: 'Chờ duyệt',
-  low: 'Thấp',
-  medium: 'Trung bình',
+  low: 'Low',
+  medium: 'Medium',
   high: 'Cao',
-  critical: 'Nguy cấp',
+  critical: 'Critical',
 };
 
 export function SearchFilterBar({

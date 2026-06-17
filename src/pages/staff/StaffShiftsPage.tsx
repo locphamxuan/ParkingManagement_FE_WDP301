@@ -20,7 +20,7 @@ export function StaffShiftsPage() {
         setItems(extractShifts(res));
         setError(null);
       })
-      .catch((err) => setError(err instanceof Error ? err.message : 'Tải thất bại'))
+      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load'))
       .finally(() => setLoading(false));
   }, [from, to]);
 
@@ -39,10 +39,10 @@ export function StaffShiftsPage() {
       title: 'Ca',
       render: (row) => `${row.shift.code} — ${row.shift.startTime}–${row.shift.endTime}`,
     },
-    { key: 'building', title: 'Tòa nhà', render: (row) => row.building.name },
+    { key: 'building', title: 'Building', render: (row) => row.building.name },
     {
       key: 'status',
-      title: 'Trạng thái',
+      title: 'Status',
       render: (row) => <StatusBadge status={row.status} />,
     },
     { key: 'note', title: 'Ghi chú', render: (row) => row.note ?? '—' },
@@ -77,7 +77,7 @@ export function StaffShiftsPage() {
       </div>
 
       {loading ? (
-        <div className="text-sm text-muted-foreground">Đang tải...</div>
+        <div className="text-sm text-muted-foreground">Loading...</div>
       ) : error ? (
         <div className="text-sm text-red-600">{error}</div>
       ) : items.length === 0 ? (

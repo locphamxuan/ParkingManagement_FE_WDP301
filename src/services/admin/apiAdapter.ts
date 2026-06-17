@@ -310,7 +310,7 @@ export async function getApiAdminDataset(token: string): Promise<AdminDataset> {
     },
     {
       key: 'revenue',
-      label: 'Doanh thu hôm nay',
+      label: 'Today\'s revenue',
       value: formatCompactCurrency(overviewRes.data.revenue.total ?? overviewRes.data.revenue.today ?? 0),
       delta: `${paymentMethodDistribution.length} phương thức thanh toán`,
     },

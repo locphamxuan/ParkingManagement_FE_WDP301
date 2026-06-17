@@ -65,14 +65,14 @@ export function ManagerReservationPolicyPage() {
     } catch (err) {
       setMessage({
         type: 'error',
-        text: err instanceof Error ? err.message : 'Lưu thất bại',
+        text: err instanceof Error ? err.message : 'Save failed',
       });
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <div className="text-sm text-muted-foreground">Đang tải...</div>;
+  if (loading) return <div className="text-sm text-muted-foreground">Loading...</div>;
 
   return (
     <Card>
@@ -217,7 +217,7 @@ export function ManagerReservationPolicyPage() {
           ) : null}
 
           <div className="flex justify-end">
-            <Button disabled={saving}>{saving ? 'Đang lưu...' : 'Lưu chính sách'}</Button>
+            <Button disabled={saving}>{saving ? 'Saving...' : 'Lưu chính sách'}</Button>
           </div>
         </form>
       </CardContent>

@@ -72,7 +72,7 @@ export function BuildingsPage() {
   }, [data?.buildings, query, statusFilter]);
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Đang tải danh sách tòa nhà...</div>;
+    return <div className="text-sm text-muted-foreground">Loading buildings...</div>;
   }
 
   if (error || !data) {
@@ -223,9 +223,9 @@ export function BuildingsPage() {
   const pageRows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const columns: DataColumn<Building>[] = [
-    { key: 'name', title: 'Tên tòa nhà' },
-    { key: 'address', title: 'Địa chỉ' },
-    { key: 'floors', title: 'Số tầng' },
+    { key: 'name', title: 'Building name' },
+    { key: 'address', title: 'Address' },
+    { key: 'floors', title: 'Total floors' },
     {
       key: 'occupancyRate',
       title: 'Tỉ lệ chiếm dụng',
@@ -240,18 +240,18 @@ export function BuildingsPage() {
     },
     {
       key: 'status',
-      title: 'Trạng thái',
+      title: 'Status',
       render: (row) => <StatusBadge status={row.status} />,
     },
     { key: 'manager', title: 'Người quản lý' },
     {
       key: 'revenueToday',
-      title: 'Doanh thu hôm nay',
+      title: 'Today\'s revenue',
       render: (row) => `${row.revenueToday.toLocaleString('vi-VN')} ₫`,
     },
     {
       key: 'actions',
-      title: 'Hành động',
+      title: 'Actions',
       render: (row) => (
         <div className="flex flex-wrap gap-2">
           <Button
@@ -260,17 +260,14 @@ export function BuildingsPage() {
             className="gap-1"
             onClick={() => openViewMembers(row)}
           >
-            <Users size={12} /> Thành viên
-          </Button>
+            <Users size={12} />Members</Button>
           <Button variant="ghost" size="sm" onClick={() => openEditModal(row)}>
             Sửa
           </Button>
           <Button variant="secondary" size="sm" onClick={() => toggleBuildingStatus(row)}>
             {row.status === 'active' ? 'Ngưng' : 'Kích hoạt'}
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => removeBuildingById(row)}>
-            Xóa
-          </Button>
+          <Button variant="ghost" size="sm" onClick={() => removeBuildingById(row)}>Delete</Button>
         </div>
       ),
     },
@@ -294,10 +291,10 @@ export function BuildingsPage() {
           }}
           filterOptions={['all', 'active', 'inactive', 'maintenance', 'warning']}
         />
-        <Button onClick={openCreateModal}>Tạo tòa nhà</Button>
+        <Button onClick={openCreateModal}>Create building</Button>
       </div>
 
-      <DataTable title="Tòa nhà" rows={pageRows} columns={columns} />
+      <DataTable title="Building" rows={pageRows} columns={columns} />
 
       <div className="flex items-center justify-end gap-2">
         <Button variant="secondary" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))}>
@@ -331,9 +328,7 @@ export function BuildingsPage() {
             ) : (
               <div className="grid gap-4">
                 <section>
-                  <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    Quản lý
-                  </h3>
+                  <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Management</h3>
                   {membersState.manager ? (
                     <div className="flex items-center justify-between rounded-xl border border-border bg-card p-3 text-sm">
                       <div>
@@ -344,9 +339,7 @@ export function BuildingsPage() {
                         variant="danger"
                         size="sm"
                         onClick={() => setPendingDeleteMember(membersState.manager!)}
-                      >
-                        Xóa
-                      </Button>
+                      >Delete</Button>
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground italic">Chưa có quản lý</p>
@@ -376,9 +369,7 @@ export function BuildingsPage() {
                               variant="danger"
                               size="sm"
                               onClick={() => setPendingDeleteMember(s)}
-                            >
-                              Xóa
-                            </Button>
+                            >Delete</Button>
                           </div>
                         </div>
                       ))}
@@ -397,27 +388,27 @@ export function BuildingsPage() {
         onOpenChange={(open) => {
           if (!open) closeModal();
         }}
-        title={selectedBuilding ? 'Sửa tòa nhà' : 'Tạo tòa nhà'}
+        title={selectedBuilding ? 'Sửa tòa nhà' : 'Create building'}
         onSubmit={saveBuilding}
       >
         <div className="grid gap-3 md:grid-cols-2">
           <Input
-            placeholder="Tên tòa nhà"
+            placeholder="Building name"
             value={form.name}
             onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
           />
           <Input
-            placeholder="Mã tòa nhà"
+            placeholder="Building code"
             value={form.code}
             onChange={(e) => setForm((prev) => ({ ...prev, code: e.target.value }))}
           />
           <Input
-            placeholder="Địa chỉ"
+            placeholder="Address"
             value={form.address}
             onChange={(e) => setForm((prev) => ({ ...prev, address: e.target.value }))}
           />
           <Input
-            placeholder="Số tầng"
+            placeholder="Total floors"
             value={form.floors}
             onChange={(e) => setForm((prev) => ({ ...prev, floors: e.target.value }))}
           />
@@ -429,14 +420,14 @@ export function BuildingsPage() {
             />
           ) : null}
         </div>
-        {isSaving ? <p className="text-xs text-muted-foreground">Đang lưu...</p> : null}
+        {isSaving ? <p className="text-xs text-muted-foreground">Saving...</p> : null}
       </ModalForm>
 
       <ConfirmModal
         open={Boolean(pendingDeleteBuilding)}
         title="Xác nhận xóa tòa nhà"
         description={`Bạn có chắc chắn muốn xóa tòa nhà ${pendingDeleteBuilding?.name || ''}? Hành động này không thể hoàn tác.`}
-        confirmLabel="Xóa"
+        confirmLabel="Delete"
         isConfirming={isDeleting}
         onOpenChange={(open) => {
           if (!open) setPendingDeleteBuilding(null);
@@ -448,7 +439,7 @@ export function BuildingsPage() {
         open={Boolean(pendingDeleteMember)}
         title={`Xóa tài khoản ${pendingDeleteMember?.role === 'manager' ? 'quản lý' : 'nhân viên'}`}
         description={`Xóa vĩnh viễn tài khoản "${pendingDeleteMember?.fullName || pendingDeleteMember?.email || ''}" (${pendingDeleteMember?.email || ''})? Hành động này không thể hoàn tác.`}
-        confirmLabel="Xóa"
+        confirmLabel="Delete"
         isConfirming={isDeletingMember}
         onOpenChange={(open) => {
           if (!open) setPendingDeleteMember(null);

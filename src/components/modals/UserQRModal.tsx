@@ -104,7 +104,7 @@ export function UserQRModal({ isOpen, onClose, userId, fullName }: UserQRModalPr
                 <div className="space-y-3 rounded-2xl bg-slate-950/60 border border-white/5 p-4">
                   <div>
                     <p className="text-[9px] font-black uppercase tracking-wider text-slate-500 font-mono mb-1">Tên người dùng</p>
-                    <p className="text-sm font-semibold text-white">{fullName || 'Người dùng'}</p>
+                    <p className="text-sm font-semibold text-white">{fullName || 'Users'}</p>
                   </div>
                   <div>
                     <p className="text-[9px] font-black uppercase tracking-wider text-slate-500 font-mono mb-1">User ID</p>
@@ -128,7 +128,7 @@ export function UserQRModal({ isOpen, onClose, userId, fullName }: UserQRModalPr
                 {/* Info Box */}
                 <div className="rounded-2xl bg-blue-500/5 border border-blue-500/20 p-4">
                   <p className="text-xs text-blue-200 leading-relaxed font-semibold">
-                    📱 <strong>Hướng dẫn:</strong> Nhân viên sẽ quét mã QR này khi bạn check-in hoặc check-out xe. Đảm bảo hiển thị rõ ràng để quét nhanh nhất.
+                    📱 <strong>Instructions:</strong> Nhân viên sẽ quét mã QR này khi bạn check-in hoặc check-out xe. Đảm bảo hiển thị rõ ràng để quét nhanh nhất.
                   </p>
                 </div>
 
@@ -138,15 +138,11 @@ export function UserQRModal({ isOpen, onClose, userId, fullName }: UserQRModalPr
                     onClick={handleDownload}
                     className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(249,115,22,0.35)] inline-flex items-center justify-center gap-2"
                   >
-                    <Download size={14} className="stroke-[2.5]" />
-                    Tải xuống
-                  </button>
+                    <Download size={14} className="stroke-[2.5]" />Download</button>
                   <button
                     onClick={onClose}
                     className="flex-1 px-4 py-3 rounded-xl bg-slate-800 border border-white/10 text-white font-black text-xs uppercase tracking-wider transition-all duration-300 hover:bg-slate-700 hover:border-white/20"
-                  >
-                    Đóng
-                  </button>
+                  >Close</button>
                 </div>
               </div>
             </div>

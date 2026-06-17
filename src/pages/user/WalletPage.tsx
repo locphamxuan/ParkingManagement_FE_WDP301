@@ -42,7 +42,7 @@ const TX_REASON_LABELS: Record<string, string> = {
   parking_fee: 'Phí gửi xe',
   reservation_refund: 'Hoàn tiền đặt chỗ',
   refund: 'Hoàn tiền',
-  long_term_subscription: 'Gói dài hạn',
+  long_term_subscription: 'Long-term package',
   wallet_payment: 'Thanh toán ví',
   admin_credit: 'Điều chỉnh số dư',
 };
@@ -323,15 +323,13 @@ export default function WalletPage() {
               onClick={() => navigate('/reservations')}
               className="inline-flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-xs font-black uppercase tracking-wider text-cyan-400 transition-all duration-300 hover:border-cyan-500/40 hover:bg-cyan-500/10 active:scale-95"
             >
-              <CalendarClock size={14} /> Đặt chỗ
-            </button>
+              <CalendarClock size={14} />Reservation</button>
             <button
               type="button"
               onClick={() => navigate('/profile')}
               className="inline-flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-xs font-black uppercase tracking-wider text-orange-400 transition-all duration-300 hover:border-orange-500/40 hover:bg-orange-500/10 active:scale-95"
             >
-              <User size={14} /> Hồ sơ
-            </button>
+              <User size={14} />Profile</button>
             <button
               type="button"
               onClick={refreshWallet}
@@ -541,7 +539,7 @@ export default function WalletPage() {
                         transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                       />
                     )}
-                    <span className="relative z-10">{f === 'all' ? 'Tất cả' : f === 'credit' ? 'Tiền vào' : 'Tiền ra'}</span>
+                    <span className="relative z-10">{f === 'all' ? 'All' : f === 'credit' ? 'Tiền vào' : 'Tiền ra'}</span>
                   </button>
                 );
               })}
@@ -552,9 +550,7 @@ export default function WalletPage() {
           <div className="space-y-3">
             {isLoading ? (
               <div className="py-12 text-center text-sm text-slate-500">
-                <RefreshCw size={24} className="mx-auto animate-spin text-slate-600 mb-2" />
-                Đang tải dữ liệu...
-              </div>
+                <RefreshCw size={24} className="mx-auto animate-spin text-slate-600 mb-2" />Loading data...</div>
             ) : filteredTx.length === 0 ? (
               <div className="rounded-2xl border border-white/[0.05] bg-white/[0.01] p-12 text-center">
                 <WalletCards size={36} className="mx-auto text-slate-700 mb-3" />
@@ -786,9 +782,7 @@ export default function WalletPage() {
                     onClick={() => setPendingTopUp(null)}
                     disabled={verifying}
                     className="h-12 px-5 rounded-2xl border border-white/[0.08] bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 font-bold text-xs transition-all duration-300 active:scale-95"
-                  >
-                    Đóng
-                  </button>
+                  >Close</button>
                 </div>
               </div>
             </motion.div>

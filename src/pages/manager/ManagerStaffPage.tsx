@@ -40,12 +40,12 @@ export function ManagerStaffPage() {
   }, [refresh]);
 
   const columns: DataColumn<StaffMember>[] = [
-    { key: 'fullName', title: 'Họ tên' },
+    { key: 'fullName', title: 'Full name' },
     { key: 'email', title: 'Email' },
-    { key: 'phone', title: 'Số điện thoại', render: (row) => row.phone || '—' },
+    { key: 'phone', title: 'Phone number', render: (row) => row.phone || '—' },
     {
       key: 'isActive',
-      title: 'Trạng thái',
+      title: 'Status',
       render: (row) => <StatusBadge status={row.isActive !== false ? 'active' : 'inactive'} />,
     },
   ];
@@ -55,8 +55,7 @@ export function ManagerStaffPage() {
       <div className="flex items-center justify-between">
         <h2 className="text-base font-semibold text-foreground">Nhân viên tòa nhà</h2>
         <Button variant="ghost" size="sm" className="gap-1" onClick={refresh}>
-          <RefreshCcw size={14} /> Làm mới
-        </Button>
+          <RefreshCcw size={14} />Refresh</Button>
       </div>
 
       {loading ? (
@@ -69,7 +68,7 @@ export function ManagerStaffPage() {
         <div className="rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
           Chưa có nhân viên nào được phân công vào tòa nhà này.
           <br />
-          <span className="text-xs">Admin cần dùng chức năng "Thành viên" để phân công nhân viên.</span>
+          <span className="text-xs">Admin cần dùng chức năng "Members" để phân công nhân viên.</span>
         </div>
       ) : (
         <DataTable title={`Nhân viên (${items.length})`} rows={items} columns={columns} />

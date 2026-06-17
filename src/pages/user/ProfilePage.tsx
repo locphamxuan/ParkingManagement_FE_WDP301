@@ -166,7 +166,7 @@ export default function ProfilePage() {
     setPlateInput('');
     setVehicleBrand('');
     setCustomBrand('');
-    setPlateSuccess(`Đã thêm "${normalized}" (${vehicleType === 'car' ? 'Ô tô' : 'Xe máy'}${brand ? ` · ${brand}` : ''}) — nhấn LƯU THAY ĐỔI để lưu vào hệ thống.`);
+    setPlateSuccess(`Đã thêm "${normalized}" (${vehicleType === 'car' ? 'Car' : 'Motorcycle'}${brand ? ` · ${brand}` : ''}) — nhấn LƯU THAY ĐỔI để lưu vào hệ thống.`);
     setTimeout(() => setPlateSuccess(null), 2500);
     plateInputRef.current?.focus();
   };
@@ -377,9 +377,7 @@ export default function ProfilePage() {
             className="inline-flex items-center gap-2 rounded-xl bg-rose-600/90 hover:bg-rose-600 px-4 py-2.5 text-xs font-black uppercase tracking-widest text-white shadow-lg transition-all duration-300 hover:shadow-[0_0_15px_rgba(220,38,38,0.25)] hover:scale-105"
             onClick={handleLogout}
           >
-            <LogOut size={14} className="stroke-[3]" />
-            Đăng xuất
-          </button>
+            <LogOut size={14} className="stroke-[3]" />Log out</button>
         </motion.div>
 
         {/* Success Alert Banner */}
@@ -439,14 +437,14 @@ export default function ProfilePage() {
                 const statusMap: Record<string, { label: string; cls: string }> = {
                   active: { label: 'Đang hoạt động', cls: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
                   pending: { label: 'Chờ kích hoạt', cls: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
-                  expired: { label: 'Hết hạn', cls: 'bg-slate-500/10 text-slate-400 border-slate-500/20' },
-                  cancelled: { label: 'Đã hủy', cls: 'bg-rose-500/10 text-rose-400 border-rose-500/20' },
+                  expired: { label: 'Expired', cls: 'bg-slate-500/10 text-slate-400 border-slate-500/20' },
+                  cancelled: { label: 'Cancelled', cls: 'bg-rose-500/10 text-rose-400 border-rose-500/20' },
                 };
                 const st = statusMap[s.status] ?? statusMap.expired;
                 return (
                   <div key={s._id} className="rounded-2xl border border-white/10 bg-slate-950/50 p-4">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-black text-orange-300">{s.package?.name ?? 'Gói dài hạn'}</p>
+                      <p className="text-sm font-black text-orange-300">{s.package?.name ?? 'Long-term package'}</p>
                       <span className={`rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase ${st.cls}`}>{st.label}</span>
                     </div>
                     <p className="mt-1 font-mono text-xs font-semibold text-slate-200">{s.plateNumber ?? '—'}</p>
@@ -556,20 +554,20 @@ export default function ProfilePage() {
 
                 {/* Full Name */}
                 <div className="space-y-1.5">
-                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Họ tên</label>
+                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Full name</label>
                   <input
                     type="text"
                     value={form.fullName}
                     onChange={(e) => setForm((s) => ({ ...s, fullName: e.target.value }))}
                     required
                     className="block w-full rounded-xl border border-white/10 bg-slate-950/80 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] text-sm h-11 px-4 transition-all duration-300 outline-none"
-                    placeholder="Nguyễn Văn A"
+                    placeholder="John Doe"
                   />
                 </div>
 
                 {/* Phone */}
                 <div className="space-y-1.5">
-                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Số điện thoại</label>
+                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Phone number</label>
                   <input
                     type="text"
                     value={form.phone}
@@ -629,7 +627,7 @@ export default function ProfilePage() {
                                   ? 'bg-blue-500/25 text-blue-300'
                                   : 'bg-purple-500/25 text-purple-300'
                             }`}>
-                              {item.isDefault ? 'Mặc định' : item.vehicleType === 'car' ? 'Ô tô' : 'Xe máy'}
+                              {item.isDefault ? 'Default' : item.vehicleType === 'car' ? 'Car' : 'Motorcycle'}
                             </span>
                             {item.brand && (
                               <span className="text-[8px] px-1.5 py-0.5 rounded font-sans font-extrabold tracking-normal uppercase bg-slate-700/50 text-slate-300">
@@ -687,9 +685,7 @@ export default function ProfilePage() {
                                   : 'text-slate-400 hover:text-slate-200'
                               }`}
                             >
-                              <Car size={12} />
-                              Ô tô
-                            </motion.button>
+                              <Car size={12} />Car</motion.button>
                             <motion.button
                               type="button"
                               whileHover={{ scale: 1.02 }}
@@ -701,9 +697,7 @@ export default function ProfilePage() {
                                   : 'text-slate-400 hover:text-slate-200'
                               }`}
                             >
-                              <Bike size={12} />
-                              Xe máy
-                            </motion.button>
+                              <Bike size={12} />Motorcycle</motion.button>
                           </div>
                         </div>
 
@@ -829,9 +823,9 @@ export default function ProfilePage() {
                     className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(249,115,22,0.35)] inline-flex items-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
                     {isSaving ? (
-                      <><Loader2 size={13} className="animate-spin stroke-[2.5]" />Đang lưu...</>
+                      <><Loader2 size={13} className="animate-spin stroke-[2.5]" />Saving...</>
                     ) : (
-                      <><Save size={13} className="stroke-[2.5]" />Lưu thay đổi</>
+                      <><Save size={13} className="stroke-[2.5]" />Save changes</>
                     )}
                   </button>
                   <button
@@ -848,9 +842,9 @@ export default function ProfilePage() {
             ) : (
               <div className="grid gap-4 rounded-3xl bg-slate-950/40 p-6 border border-white/5 animate-fadeIn">
                 {[
-                  { label: 'Tên', value: user.fullName },
+                  { label: 'Name', value: user.fullName },
                   { label: 'Email', value: user.email },
-                  { label: 'Số điện thoại', value: user.phone },
+                  { label: 'Phone number', value: user.phone },
                   ...(user.role === 'user' ? [{
                     label: 'Biển số xe đã liên kết',
                     value:
@@ -881,10 +875,10 @@ export default function ProfilePage() {
                                   : 'bg-purple-500/20 text-purple-300'
                                 }`}>
                                 {item.isDefault
-                                  ? 'Mặc định'
+                                  ? 'Default'
                                   : item.vehicleType === 'car'
-                                    ? 'Ô tô'
-                                    : 'Xe máy'}
+                                    ? 'Car'
+                                    : 'Motorcycle'}
                               </span>
                               {plateQrToken(item.plateNumber) && (
                                 <button
@@ -959,10 +953,10 @@ export default function ProfilePage() {
                 <div className="grid gap-3 text-xs text-slate-400">
                   <div className="rounded-2xl border border-white/5 bg-slate-950/70 p-4">
                     <p className="text-[10px] font-black uppercase text-slate-500 font-mono">Email</p>
-                    <p className="mt-1 text-slate-200 font-bold">{user.email || 'Chưa cập nhật'}</p>
+                    <p className="mt-1 text-slate-200 font-bold">{user.email || 'Not updated'}</p>
                   </div>
                   <div className="rounded-2xl border border-white/5 bg-slate-950/70 p-4">
-                    <p className="text-[10px] font-black uppercase text-slate-500 font-mono">Số điện thoại</p>
+                    <p className="text-[10px] font-black uppercase text-slate-500 font-mono">Phone number</p>
                     <p className="mt-1 text-slate-200 font-bold">{user.phone || '— Chưa cập nhật —'}</p>
                   </div>
                   <div className="rounded-2xl border border-white/5 bg-slate-950/70 p-4">
@@ -1047,9 +1041,7 @@ export default function ProfilePage() {
               />
             </div>
             <div>
-              <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                Xác nhận mật khẩu
-              </label>
+              <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Confirm password</label>
               <input
                 type="password"
                 value={pwForm.confirmPassword}
@@ -1065,7 +1057,7 @@ export default function ProfilePage() {
                 className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-5 py-2 text-xs font-black uppercase tracking-wider text-slate-950 hover:brightness-110 disabled:opacity-50 transition-all"
               >
                 {pwSaving ? <Loader2 size={12} className="animate-spin" /> : <KeyRound size={12} />}
-                {pwSaving ? 'Đang lưu...' : 'Đổi mật khẩu'}
+                {pwSaving ? 'Saving...' : 'Đổi mật khẩu'}
               </button>
               {pwError && (
                 <p className="flex items-center gap-1 text-xs text-rose-400">

@@ -54,7 +54,7 @@ function CompareImg({ src, label }: { src?: string | null; label: string }) {
  * Một component dùng cho 2 route:
  *  - /staff/checkout  (readOnly=false) → tab "Check-out xe ra": camera quét →
  *    đối chiếu ảnh chân dung + biển số → thu phí & cho xe ra. (nhân viên cổng ra)
- *  - /staff/parked    (readOnly=true)  → tab "Xe đang đỗ": chỉ xem danh sách.
+ *  - /staff/parked    (readOnly=true)  → tab "Parked vehicles": chỉ xem danh sách.
  *    (cả hai loại nhân viên đều xem được, không thao tác thanh toán)
  */
 export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
@@ -92,7 +92,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
         setSessions(list.filter((s) => s.status === 'active'));
         setError(null);
       })
-      .catch((err) => setError(err instanceof Error ? err.message : 'Tải dữ liệu thất bại'))
+      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load data'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -252,18 +252,17 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
               {canCheckout ? 'Ca vận hành · Cổng ra' : 'Giám sát bãi đỗ'}
             </p>
             <h2 className="mt-1 text-xl font-semibold text-foreground">
-              {canCheckout ? 'Check-out xe ra' : 'Xe đang đỗ'}
+              {canCheckout ? 'Check-out xe ra' : 'Parked vehicles'}
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              {building ? `${building.code} · ${building.name}` : 'Chưa chọn tòa nhà'}
+              {building ? `${building.code} · ${building.name}` : 'No building selected'}
               {canCheckout
                 ? ' · Quét biển số / QR hoặc nhấp vào xe để thu phí và cho ra'
                 : ' · Danh sách xe đang đỗ (chỉ xem)'}
             </p>
           </div>
           <Button variant="secondary" onClick={refreshSessions} className="gap-2 self-start lg:self-auto">
-            <RefreshCcw size={14} /> Làm mới
-          </Button>
+            <RefreshCcw size={14} />Refresh</Button>
         </div>
       </section>
 
@@ -299,8 +298,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
       )}
 
       {!canCheckout && (
-        <div className="rounded-xl border border-sky-500/25 bg-sky-500/5 px-4 py-3 text-sm text-sky-300">
-          Chế độ <strong>chỉ xem</strong> danh sách xe đang đỗ. Việc cho xe ra &amp; thu phí được thực hiện ở tab <strong>“Check-out xe ra”</strong> (nhân viên cổng ra).
+        <div className="rounded-xl border border-sky-500/25 bg-sky-500/5 px-4 py-3 text-sm text-sky-300">Mode<strong>chỉ xem</strong> danh sách xe đang đỗ. Việc cho xe ra &amp; thu phí được thực hiện ở tab <strong>“Check-out xe ra”</strong> (nhân viên cổng ra).
         </div>
       )}
 
@@ -317,7 +315,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-sm text-muted-foreground">Đang tải...</p>
+            <p className="text-sm text-muted-foreground">Loading...</p>
           ) : error ? (
             <p className="text-sm text-rose-400">{error}</p>
           ) : sessions.length === 0 ? (
@@ -349,13 +347,9 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
                         )}
                       </div>
                       {isMember ? (
-                        <span className="shrink-0 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[9px] font-black uppercase text-emerald-400">
-                          Thành viên
-                        </span>
+                        <span className="shrink-0 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[9px] font-black uppercase text-emerald-400">Members</span>
                       ) : (
-                        <span className="shrink-0 rounded-full bg-amber-500/15 px-2 py-0.5 text-[9px] font-black uppercase text-amber-400">
-                          Khách vãng lai
-                        </span>
+                        <span className="shrink-0 rounded-full bg-amber-500/15 px-2 py-0.5 text-[9px] font-black uppercase text-amber-400">Guest</span>
                       )}
                     </div>
                     {isMember && s.user?.fullName && (
@@ -371,7 +365,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
                     {(s.plateImage || s.portraitImage) && (
                       <div className="mt-2 flex gap-2">
                         {s.plateImage && (
-                          <img src={s.plateImage} alt="Biển số" className="h-12 w-16 rounded border border-border object-cover" />
+                          <img src={s.plateImage} alt="Plate number" className="h-12 w-16 rounded border border-border object-cover" />
                         )}
                         {s.portraitImage && (
                           <img src={s.portraitImage} alt="Chân dung" className="h-12 w-16 rounded border border-border object-cover" />
@@ -381,19 +375,19 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
 
                     <div className="mt-2.5 grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs">
                       <div>
-                        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Loại xe</span>
+                        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Vehicle type</span>
                         <p className="font-medium text-foreground">{s.vehicleType?.name ?? '—'}</p>
                       </div>
                       <div>
-                        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Cổng vào</span>
+                        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Entry gate</span>
                         <p className="font-medium text-foreground">{s.entryGate?.code ?? '—'}</p>
                       </div>
                       <div>
-                        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Tầng</span>
+                        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Floor</span>
                         <p className="font-medium text-foreground">{floor}</p>
                       </div>
                       <div>
-                        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Ô đỗ</span>
+                        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Slot</span>
                         <p className="font-medium text-foreground">{slotCode}</p>
                       </div>
                       <div>
@@ -443,13 +437,13 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
                 {/* Cột: lúc vào */}
                 <div className="space-y-1.5">
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Lúc vào (đã lưu)</p>
-                  <CompareImg src={checkoutTarget.plateImage} label="Biển số" />
+                  <CompareImg src={checkoutTarget.plateImage} label="Plate number" />
                   <CompareImg src={checkoutTarget.portraitImage} label="Chân dung" />
                 </div>
                 {/* Cột: lúc ra */}
                 <div className="space-y-1.5">
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Lúc ra (vừa quét)</p>
-                  <CompareImg src={capturedPlateImage} label="Biển số" />
+                  <CompareImg src={capturedPlateImage} label="Plate number" />
                   <CompareImg src={capturedPortraitImage} label="Chân dung" />
                 </div>
               </div>
@@ -459,8 +453,8 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
             </div>
 
             <div className="rounded-xl border border-border bg-card/50 p-4 space-y-1.5 text-sm">
-              <div className="flex justify-between"><span className="text-muted-foreground">Khách</span><span className="font-medium text-foreground">{(checkoutTarget.isMember ?? checkoutTarget.user) ? (checkoutTarget.user?.fullName || 'Thành viên') : 'Khách vãng lai'}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Loại xe</span><span className="font-medium text-foreground">{checkoutTarget.vehicleType?.name ?? '—'}{checkoutTarget.vehicleBrand ? ` · ${checkoutTarget.vehicleBrand}` : ''}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Khách</span><span className="font-medium text-foreground">{(checkoutTarget.isMember ?? checkoutTarget.user) ? (checkoutTarget.user?.fullName || 'Members') : 'Guest'}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Vehicle type</span><span className="font-medium text-foreground">{checkoutTarget.vehicleType?.name ?? '—'}{checkoutTarget.vehicleBrand ? ` · ${checkoutTarget.vehicleBrand}` : ''}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Vào lúc</span><span className="font-medium text-foreground">{fmtTime(checkoutTarget.entryTime)}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Thời gian đỗ</span><span className="font-medium text-foreground">{fmtDuration(checkoutTarget.entryTime)}</span></div>
               <div className="flex justify-between border-t border-border/60 pt-1.5"><span className="text-muted-foreground">NV check-in</span><span className="font-medium text-foreground">{checkoutTarget.staff?.fullName ?? '—'}{checkoutTarget.entryGate?.code ? ` · cổng ${checkoutTarget.entryGate.code}` : ''}</span></div>
@@ -535,10 +529,10 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
             <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary">Chuyển khoản</p>
             <h3 className="mt-1 text-xl font-semibold text-foreground">Thu phí gửi xe</h3>
             <div className="mt-4 rounded-xl border border-border bg-card/50 p-4 space-y-2">
-              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Biển số</span><span className="font-semibold text-foreground">{bankTransfer.plate}</span></div>
+              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Plate number</span><span className="font-semibold text-foreground">{bankTransfer.plate}</span></div>
               <div className="flex justify-between text-sm"><span className="text-muted-foreground">Số tiền</span><span className="font-mono text-lg font-bold text-amber-400">{bankTransfer.amount.toLocaleString('vi-VN')} đ</span></div>
             </div>
-            <p className="mt-4 text-sm text-muted-foreground">Mở trang thanh toán và để khách quét QR. Sau khi khách chuyển khoản, nhấn <strong className="text-foreground">Xác nhận</strong>.</p>
+            <p className="mt-4 text-sm text-muted-foreground">Mở trang thanh toán và để khách quét QR. Sau khi khách chuyển khoản, nhấn <strong className="text-foreground">Confirm</strong>.</p>
             <Button onClick={() => window.open(bankTransfer.checkoutUrl, '_blank', 'noopener')} variant="secondary" className="mt-4 w-full gap-2">
               Mở trang QR thanh toán
             </Button>
@@ -546,7 +540,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
               <Button onClick={onVerifyBankTransfer} disabled={verifying} className="gap-2 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60">
                 {verifying ? 'Đang xác nhận...' : 'Xác nhận thanh toán'}
               </Button>
-              <Button variant="secondary" onClick={() => setBankTransfer(null)} disabled={verifying}>Đóng</Button>
+              <Button variant="secondary" onClick={() => setBankTransfer(null)} disabled={verifying}>Close</Button>
             </div>
           </div>
         </div>

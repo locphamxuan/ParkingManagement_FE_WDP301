@@ -53,7 +53,7 @@ export default function ParkingHistoryPage() {
         setTotalPages(raw?.pagination?.totalPages ?? 1);
         setPage(p);
       })
-      .catch((err) => setError(err instanceof Error ? err.message : 'Tải lịch sử thất bại'))
+      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load history'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -96,7 +96,7 @@ export default function ParkingHistoryPage() {
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
               <History size={16} className="text-orange-400" />
-              <h1 className="text-sm font-bold text-white">Lịch sử gửi xe</h1>
+              <h1 className="text-sm font-bold text-white">Parking history</h1>
             </div>
             <p className="text-[11px] text-slate-500">Phiên gửi xe trực tiếp (không qua đặt chỗ)</p>
           </div>
@@ -105,8 +105,7 @@ export default function ParkingHistoryPage() {
             onClick={() => load(1)}
             className="ml-auto flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-300 hover:text-white transition-colors"
           >
-            <RefreshCw size={12} className={loading ? 'animate-spin' : ''} /> Làm mới
-          </button>
+            <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />Refresh</button>
         </div>
       </header>
 
@@ -115,7 +114,7 @@ export default function ParkingHistoryPage() {
         <div className="grid gap-3 sm:grid-cols-3">
           {[
             { label: 'Tổng lượt gửi', value: String(items.length), color: 'border-orange-500/20 bg-orange-500/5' },
-            { label: 'Đang gửi', value: String(items.filter((s) => s.status === 'active').length), color: 'border-emerald-500/20 bg-emerald-500/5' },
+            { label: 'Submitting', value: String(items.filter((s) => s.status === 'active').length), color: 'border-emerald-500/20 bg-emerald-500/5' },
             { label: 'Tổng chi phí', value: fmtVnd.format(totalFee), color: 'border-amber-500/20 bg-amber-500/5' },
           ].map((c) => (
             <div key={c.label} className={`rounded-2xl border ${c.color} p-4`}>
@@ -270,9 +269,7 @@ export default function ParkingHistoryPage() {
               disabled={page <= 1 || loading}
               onClick={() => load(page - 1)}
               className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-300 hover:text-white disabled:opacity-40 transition-colors"
-            >
-              ← Trước
-            </button>
+            >← Prev</button>
             <span className="text-xs text-slate-400">
               Trang {page} / {totalPages}
             </span>

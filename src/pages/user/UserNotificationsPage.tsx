@@ -60,31 +60,27 @@ export default function UserNotificationsPage() {
             onClick={() => navigate(-1)}
             className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-slate-950 px-4 py-2 text-xs font-black uppercase tracking-wider text-orange-300 hover:border-orange-400/50"
           >
-            <ArrowLeft size={14} /> Quay lại
-          </button>
+            <ArrowLeft size={14} />Back</button>
           {unread > 0 && (
             <button
               type="button"
               onClick={markAll}
               className="inline-flex items-center gap-1.5 rounded-xl border border-orange-400/30 bg-orange-500/10 px-3 py-2 text-xs font-semibold text-orange-300 hover:bg-orange-500/20"
             >
-              <CheckCheck size={13} /> Đọc tất cả
-            </button>
+              <CheckCheck size={13} />Mark all read</button>
           )}
         </div>
 
         <div className="mb-6 flex items-center gap-2">
           <Bell size={20} className="text-orange-300" />
-          <h1 className="text-2xl font-black text-white">Thông báo</h1>
+          <h1 className="text-2xl font-black text-white">Notifications</h1>
           {unread > 0 && (
             <span className="rounded-full bg-rose-500 px-2 py-0.5 text-[11px] font-bold text-white">{unread} mới</span>
           )}
         </div>
 
         {loading ? (
-          <p className="rounded-2xl border border-white/10 bg-slate-900/50 p-8 text-center text-sm text-slate-400">
-            Đang tải...
-          </p>
+          <p className="rounded-2xl border border-white/10 bg-slate-900/50 p-8 text-center text-sm text-slate-400">Loading...</p>
         ) : items.length === 0 ? (
           <p className="rounded-2xl border border-white/10 bg-slate-900/50 p-12 text-center text-sm text-slate-400">
             Bạn chưa có thông báo nào.
@@ -104,7 +100,7 @@ export default function UserNotificationsPage() {
                   <span className="flex items-center gap-1.5">
                     {!n.isRead && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-rose-500" />}
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                      {NOTIFICATION_TYPE_LABEL[n.type] ?? 'Thông báo'}
+                      {NOTIFICATION_TYPE_LABEL[n.type] ?? 'Notifications'}
                     </span>
                   </span>
                   <span className="shrink-0 text-[11px] text-slate-500">

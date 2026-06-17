@@ -165,13 +165,13 @@ export function UsersPage() {
   };
 
   const columns: DataColumn<UserRecord>[] = [
-    { key: 'name', title: 'Họ tên' },
+    { key: 'name', title: 'Full name' },
     { key: 'email', title: 'Email' },
-    { key: 'phone', title: 'Số điện thoại', render: (row) => row.phone || 'Chưa cập nhật' },
-    { key: 'status', title: 'Trạng thái', render: (row) => <StatusBadge status={row.status} /> },
+    { key: 'phone', title: 'Phone number', render: (row) => row.phone || 'Not updated' },
+    { key: 'status', title: 'Status', render: (row) => <StatusBadge status={row.status} /> },
     {
       key: 'walletBalance',
-      title: 'Số dư ví',
+      title: 'Wallet balance',
       render: (row) => `${row.walletBalance.toLocaleString('vi-VN')} ₫`,
     },
     {
@@ -223,14 +223,12 @@ export function UsersPage() {
                     ? 'bg-blue-500/20 border-blue-500/30 text-blue-400'
                     : 'bg-purple-500/20 border-purple-500/30 text-purple-400'
                 }`}
-                title={p.isDefault ? 'Biển số mặc định' : p.vehicleType === 'car' ? 'Ô tô' : 'Xe máy'}
+                title={p.isDefault ? 'Biển số mặc định' : p.vehicleType === 'car' ? 'Car' : 'Motorcycle'}
               >
                 <span>{p.vehicleType === 'car' ? '🚗' : '🏍️'}</span>
                 <span>{p.plateNumber}</span>
                 {p.isDefault && (
-                  <span className="text-[8px] font-sans font-extrabold uppercase tracking-normal opacity-95">
-                    (Mặc định)
-                  </span>
+                  <span className="text-[8px] font-sans font-extrabold uppercase tracking-normal opacity-95">(Default)</span>
                 )}
               </span>
             ))}
@@ -240,18 +238,16 @@ export function UsersPage() {
     },
     {
       key: 'actions',
-      title: 'Hành động',
+      title: 'Actions',
       render: (row) => (
         <div className="flex flex-wrap gap-2">
           <Button variant="ghost" size="sm" onClick={() => openEditModal(row)}>
             Sửa
           </Button>
           <Button variant="secondary" size="sm" onClick={() => toggleStatus(row)}>
-            {row.status === 'active' ? 'Khóa' : 'Mở'}
+            {row.status === 'active' ? 'Lock' : 'Open'}
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => setPendingDeleteUser(row)}>
-            Xóa
-          </Button>
+          <Button variant="ghost" size="sm" onClick={() => setPendingDeleteUser(row)}>Delete</Button>
         </div>
       ),
     },
@@ -269,10 +265,10 @@ export function UsersPage() {
           onFilterChange={setStatusFilter}
           filterOptions={['all', 'active', 'blocked', 'pending']}
         />
-        <Button onClick={openCreateModal}>Tạo người dùng</Button>
+        <Button onClick={openCreateModal}>Create user</Button>
       </div>
 
-      <DataTable title="Người dùng" rows={filtered} columns={columns} />
+      <DataTable title="Users" rows={filtered} columns={columns} />
 
       {/* Edit User Modal */}
       <ModalForm
@@ -285,18 +281,18 @@ export function UsersPage() {
       >
         <div className="grid gap-3 md:grid-cols-2">
           <Input
-            placeholder="Họ tên"
+            placeholder="Full name"
             value={form.fullName}
             onChange={(e) => setForm((prev) => ({ ...prev, fullName: e.target.value }))}
           />
           <Input placeholder="Email" value={form.email} disabled />
           <Input
-            placeholder="Số điện thoại"
+            placeholder="Phone number"
             value={form.phone}
             onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
           />
         </div>
-        {isSaving ? <p className="text-xs text-muted-foreground">Đang lưu...</p> : null}
+        {isSaving ? <p className="text-xs text-muted-foreground">Saving...</p> : null}
       </ModalForm>
 
       {/* Create User Modal */}
@@ -305,12 +301,12 @@ export function UsersPage() {
         onOpenChange={(open) => {
           if (!open) closeModals();
         }}
-        title="Tạo người dùng"
+        title="Create user"
         onSubmit={saveCreate}
       >
         <div className="grid gap-3 md:grid-cols-2">
           <Input
-            placeholder="Họ tên"
+            placeholder="Full name"
             value={form.fullName}
             onChange={(e) => setForm((prev) => ({ ...prev, fullName: e.target.value }))}
           />
@@ -326,7 +322,7 @@ export function UsersPage() {
             onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))}
           />
           <Input
-            placeholder="Số điện thoại"
+            placeholder="Phone number"
             value={form.phone}
             onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
           />
@@ -339,24 +335,23 @@ export function UsersPage() {
                 setForm((prev) => ({ ...prev, role: val as typeof prev.role, buildingId: '' }))
               }
               options={[
-                { value: 'user', label: 'Người dùng' },
-                { value: 'staff', label: 'Nhân viên' },
-                { value: 'manager', label: 'Quản lý' }
+                { value: 'user', label: 'Users' },
+                { value: 'staff', label: 'Staff' },
+                { value: 'manager', label: 'Management' }
               ]}
             />
           </div>
           {(form.role === 'staff' || form.role === 'manager') && (
             <div className="grid gap-1.5">
-              <label className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                Tòa nhà phụ trách <span className="text-red-500">*</span>
+              <label className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Assigned building<span className="text-red-500">*</span>
               </label>
               <CustomSelect
                 className="h-10"
                 value={form.buildingId}
                 onChange={(val) => setForm((prev) => ({ ...prev, buildingId: val }))}
-                placeholder="-- Chọn tòa nhà --"
+                placeholder="-- Select building --"
                 options={[
-                  { value: '', label: '-- Chọn tòa nhà --' },
+                  { value: '', label: '-- Select building --' },
                   ...(data?.buildings ?? []).map((b) => ({
                     value: b.backendId || b.id,
                     label: b.name
@@ -368,7 +363,7 @@ export function UsersPage() {
         </div>
         {(form.role === 'staff' || form.role === 'manager') && (
           <p className="mt-2 text-[11px] text-muted-foreground">
-            {form.role === 'staff' ? 'Nhân viên' : 'Quản lý'} sẽ được gán vào tòa nhà đã chọn ngay khi tạo.
+            {form.role === 'staff' ? 'Staff' : 'Management'} sẽ được gán vào tòa nhà đã chọn ngay khi tạo.
             Tài khoản loại này không hiển thị ở danh sách “Người dùng”.
           </p>
         )}
@@ -379,7 +374,7 @@ export function UsersPage() {
         open={Boolean(pendingDeleteUser)}
         title="Xác nhận xóa người dùng"
         description={`Xóa vĩnh viễn tài khoản "${pendingDeleteUser?.name || pendingDeleteUser?.email || ''}"? Hành động này không thể hoàn tác.`}
-        confirmLabel="Xóa"
+        confirmLabel="Delete"
         isConfirming={isDeleting}
         onOpenChange={(open) => {
           if (!open) setPendingDeleteUser(null);

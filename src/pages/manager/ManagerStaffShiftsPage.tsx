@@ -26,7 +26,7 @@ export function ManagerStaffShiftsPage() {
       .listStaffShifts(buildingId)
       .then((res) => setItems(res.data.items))
       .catch((err) => {
-        const msg = err instanceof Error ? err.message : 'Tải thất bại';
+        const msg = err instanceof Error ? err.message : 'Failed to load';
         setError(msg);
       })
       .finally(() => setLoading(false));
@@ -66,7 +66,7 @@ export function ManagerStaffShiftsPage() {
       setEditing(null);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Lưu thất bại');
+      alert(err instanceof Error ? err.message : 'Save failed');
     } finally {
       setIsSubmitting(false);
     }
@@ -78,7 +78,7 @@ export function ManagerStaffShiftsPage() {
       await managerApi.shifts.removeStaffShift(buildingId, row._id);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Xóa thất bại');
+      alert(err instanceof Error ? err.message : 'Delete failed');
     }
   };
 
@@ -97,7 +97,7 @@ export function ManagerStaffShiftsPage() {
     },
     {
       key: 'staff',
-      title: 'Nhân Viên',
+      title: 'Staff',
       render: (row) =>
         row.staff ? (
           <div>
@@ -110,13 +110,13 @@ export function ManagerStaffShiftsPage() {
     },
     {
       key: 'gate',
-      title: 'Cổng',
+      title: 'Gate',
       render: (row) =>
         row.gate ? (
           <div>
             <div className="font-medium">{row.gate.code}</div>
             <div className="text-xs text-muted-foreground">
-              {row.gate.direction === 'in' ? 'Cổng vào' : row.gate.direction === 'out' ? 'Cổng ra' : 'Hai chiều'}
+              {row.gate.direction === 'in' ? 'Entry gate' : row.gate.direction === 'out' ? 'Exit gate' : 'Two-way'}
             </div>
           </div>
         ) : (
@@ -130,7 +130,7 @@ export function ManagerStaffShiftsPage() {
     },
     {
       key: 'status',
-      title: 'Trạng Thái',
+      title: 'Status',
       render: (row) => <StatusBadge status={row.status} />,
     },
     {
@@ -169,14 +169,13 @@ export function ManagerStaffShiftsPage() {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Gán Staff Vào Ca Trực</h1>
         <Button onClick={openCreate} className="gap-2" disabled={loading}>
-          <Plus size={16} /> Gán Staff
-        </Button>
+          <Plus size={16} />Assign staff</Button>
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <Loader className="animate-spin mr-2" size={20} />
-          <span className="text-muted-foreground">Đang tải...</span>
+          <span className="text-muted-foreground">Loading...</span>
         </div>
       ) : error ? (
         <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-400">

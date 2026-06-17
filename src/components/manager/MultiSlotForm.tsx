@@ -160,28 +160,28 @@ export function MultiSlotForm({ isOpen, onClose, onSubmit, floors, loading = fal
                       value={row.floor}
                       onChange={(val) => handleRowChange(row.id, 'floor', val)}
                       options={[
-                        { value: '', label: '-- Chọn tầng --' },
+                        { value: '', label: '-- Select floor --' },
                         ...floors.map((f) => ({
                           value: f._id,
                           label: f.code,
                         })),
                       ]}
                       disabled={submitting || floors.length === 0}
-                      placeholder="-- Chọn tầng --"
+                      placeholder="-- Select floor --"
                     />
                   </div>
 
                   {/* Trạng Thái */}
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wide">Trạng Thái</label>
+                    <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wide">Status</label>
                     <CustomSelect
                       value={row.status}
                       onChange={(val) => handleRowChange(row.id, 'status', val)}
                       options={[
-                        { value: 'available', label: 'Trống' },
-                        { value: 'occupied', label: 'Đầy' },
-                        { value: 'reserved', label: 'Đặt chỗ' },
-                        { value: 'maintenance', label: 'Bảo trì' },
+                        { value: 'available', label: 'Available' },
+                        { value: 'occupied', label: 'Full' },
+                        { value: 'reserved', label: 'Reservation' },
+                        { value: 'maintenance', label: 'Maintenance' },
                       ]}
                       disabled={submitting}
                     />
@@ -194,8 +194,8 @@ export function MultiSlotForm({ isOpen, onClose, onSubmit, floors, loading = fal
                       value={row.reservable ? 'yes' : 'no'}
                       onChange={(val) => handleRowChange(row.id, 'reservable', val === 'yes')}
                       options={[
-                        { value: 'yes', label: 'Có' },
-                        { value: 'no', label: 'Không' },
+                        { value: 'yes', label: 'Yes' },
+                        { value: 'no', label: 'No' },
                       ]}
                       disabled={submitting}
                     />
@@ -245,9 +245,7 @@ export function MultiSlotForm({ isOpen, onClose, onSubmit, floors, loading = fal
           >
             {submitting ? (
               <>
-                <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                Đang lưu...
-              </>
+                <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />Saving...</>
             ) : (
               <>
                 <Plus size={16} />

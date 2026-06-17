@@ -11,7 +11,7 @@ const TABS: { value: Tab; label: string; icon: React.ElementType }[] = [
 ];
 
 /**
- * Combined "Ca trực & Gán ca" tab — định nghĩa ca trực và phân công nhân viên
+ * Combined "Shifts & Assignments" tab — định nghĩa ca trực và phân công nhân viên
  * vào ca (kèm cổng phụ trách) trong cùng một trang.
  */
 export function ManagerShiftManagementPage() {

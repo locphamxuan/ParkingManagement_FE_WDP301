@@ -16,7 +16,7 @@ export function ConfirmModal({
   open,
   title,
   description,
-  confirmLabel = 'Xóa',
+  confirmLabel = 'Delete',
   cancelLabel = 'Hủy',
   onOpenChange,
   onConfirm,

@@ -393,9 +393,7 @@ export default function ReviewsPage() {
                   disabled={page <= 1 || loading}
                   onClick={() => loadReviews(page - 1)}
                   className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold text-slate-300 hover:text-white disabled:opacity-40 hover:bg-white/10 transition-all"
-                >
-                  ← Trước
-                </button>
+                >← Prev</button>
                 <span className="text-xs text-slate-400 font-bold">
                   Trang {page} / {totalPages}
                 </span>

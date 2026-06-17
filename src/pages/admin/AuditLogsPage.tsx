@@ -7,16 +7,16 @@ import type { AuditLog } from '@/types';
 
 // Nhãn tiếng Việt cho từng bảng mục tiêu (targetTable) của nhật ký.
 const TARGET_LABELS: Record<string, string> = {
-  users: 'Người dùng',
-  buildings: 'Tòa nhà',
-  floors: 'Tầng',
-  gates: 'Cổng',
-  parking_slots: 'Chỗ đỗ',
-  vehicle_types: 'Loại xe',
-  price_policies: 'Bảng giá',
-  long_term_packages: 'Gói dài hạn',
+  users: 'Users',
+  buildings: 'Building',
+  floors: 'Floor',
+  gates: 'Gate',
+  parking_slots: 'Parking slots',
+  vehicle_types: 'Vehicle type',
+  price_policies: 'Pricing',
+  long_term_packages: 'Long-term package',
   reservation_policies: 'Chính sách đặt chỗ',
-  shifts: 'Ca làm việc',
+  shifts: 'Shift',
   staff_shifts: 'Phân ca nhân viên',
   feedbacks: 'Phản hồi',
   revenue_distributions: 'Phân phối doanh thu',
@@ -77,9 +77,9 @@ export function AuditLogsPage() {
 
   const columns: DataColumn<AuditLog>[] = [
     { key: 'actor', title: 'Người thực hiện' },
-    { key: 'action', title: 'Hành động' },
-    { key: 'details', title: 'Chi tiết' },
-    { key: 'timestamp', title: 'Thời gian' },
+    { key: 'action', title: 'Actions' },
+    { key: 'details', title: 'Details' },
+    { key: 'timestamp', title: 'Time' },
     {
       key: 'severity',
       title: 'Mức độ',

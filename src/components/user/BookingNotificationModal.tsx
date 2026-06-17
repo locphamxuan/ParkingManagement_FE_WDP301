@@ -82,9 +82,7 @@ export function BookingNotificationModal({
                   type="button"
                   onClick={onCloseError}
                   className="mt-6 w-full rounded-2xl bg-gradient-to-r from-rose-500 to-pink-500 px-4 py-3 text-xs font-black uppercase tracking-wider text-slate-950 transition hover:brightness-110 active:scale-95 shadow-[0_4px_15px_rgba(244,63,94,0.2)]"
-                >
-                  Đóng
-                </button>
+                >Close</button>
               </div>
             )}
           </motion.div>

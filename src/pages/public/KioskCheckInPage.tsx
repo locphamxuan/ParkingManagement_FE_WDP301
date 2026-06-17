@@ -34,7 +34,7 @@ export default function KioskCheckInPage() {
         entryTime: data?.parkingSession?.entryTime ?? new Date().toISOString(),
       });
     } catch (err) {
-      setResult({ type: 'err', text: err instanceof Error ? err.message : 'Check-in thất bại' });
+      setResult({ type: 'err', text: err instanceof Error ? err.message : 'Check-in failed' });
     } finally {
       setBusy(false);
       // Auto-clear the result so the next car can scan.
@@ -70,8 +70,7 @@ export default function KioskCheckInPage() {
 
         {busy && (
           <div className="flex items-center justify-center gap-2 text-sm text-slate-300">
-            <Loader2 size={16} className="animate-spin" /> Đang xử lý...
-          </div>
+            <Loader2 size={16} className="animate-spin" />Processing...</div>
         )}
 
         {result?.type === 'ok' && (

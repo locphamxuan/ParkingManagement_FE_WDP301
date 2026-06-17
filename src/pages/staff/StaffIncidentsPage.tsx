@@ -20,17 +20,17 @@ interface IncidentRow {
 }
 
 const SEVERITY_LABELS: Record<string, string> = {
-  medium: 'Trung bình',
+  medium: 'Medium',
   high: 'Cao',
   critical: 'Nghiêm trọng',
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  open: 'Mở',
+  open: 'Open',
   investigating: 'Đang xử lý',
   escalated: 'Leo thang',
-  resolved: 'Đã giải quyết',
-  closed: 'Đóng',
+  resolved: 'Resolved',
+  closed: 'Close',
 };
 
 export function StaffIncidentsPage() {
@@ -48,7 +48,7 @@ export function StaffIncidentsPage() {
 
   const mapIncident = (item: StaffIncident, index: number): IncidentRow => ({
     id: item.code || item._id || `INC-${1000 + index}`,
-    type: item.type || 'Sự cố',
+    type: item.type || 'Incident',
     building: item.building?.code || item.building?.name || building?.code || '—',
     severity: item.severity || 'medium',
     status: (item.status as IncidentStatus) || 'open',
@@ -126,14 +126,13 @@ export function StaffIncidentsPage() {
           <div className="flex items-center gap-3">
             <ShieldAlert size={20} className="text-primary" />
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary">Sự cố</p>
-              <h2 className="text-xl font-semibold text-foreground">Quản lý sự cố</h2>
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary">Incident</p>
+              <h2 className="text-xl font-semibold text-foreground">Incident management</h2>
               <p className="text-sm text-muted-foreground">{building ? `${building.code} · ${building.name}` : 'Tất cả tòa nhà'}</p>
             </div>
           </div>
           <Button variant="secondary" onClick={refresh} className="gap-2">
-            <RefreshCcw size={14} /> Làm mới
-          </Button>
+            <RefreshCcw size={14} />Refresh</Button>
         </div>
       </section>
 
@@ -154,7 +153,7 @@ export function StaffIncidentsPage() {
                 <p className="mt-2 text-2xl font-semibold text-foreground">{counts.escalated}</p>
               </div>
               <div className="rounded-xl border border-border bg-card/50 p-4">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Đã giải quyết</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Resolved</p>
                 <p className="mt-2 text-2xl font-semibold text-foreground">{counts.resolved}</p>
               </div>
             </div>
@@ -242,7 +241,7 @@ export function StaffIncidentsPage() {
               className="h-10 rounded-xl border border-border bg-card px-3 text-sm text-foreground outline-none"
             >
               <option value="all">Tất cả mức độ</option>
-              <option value="medium">Trung bình</option>
+              <option value="medium">Medium</option>
               <option value="high">Cao</option>
               <option value="critical">Nghiêm trọng</option>
             </select>
@@ -278,8 +277,7 @@ export function StaffIncidentsPage() {
                         <Clock3 size={11} className="mr-1 inline-block" /> {incident.timestamp}
                       </div>
                       <Button variant="secondary" size="sm" className="gap-1.5 text-xs">
-                        <ArrowRight size={13} /> Chi tiết
-                      </Button>
+                        <ArrowRight size={13} />Details</Button>
                     </div>
                   </div>
                 ))
@@ -292,9 +290,9 @@ export function StaffIncidentsPage() {
       {/* Ghi chú trạng thái */}
       <section className="grid gap-4 md:grid-cols-3">
         {[
-          { label: 'Mở', description: 'Sự cố mới — cần ghi nhận và xử lý', icon: AlertTriangle },
+          { label: 'Open', description: 'Sự cố mới — cần ghi nhận và xử lý', icon: AlertTriangle },
           { label: 'Đang xử lý', description: 'Đang điều tra tại hiện trường', icon: ShieldAlert },
-          { label: 'Đã giải quyết', description: 'Đã xử lý xong và kiểm tra lại', icon: CheckCircle2 },
+          { label: 'Resolved', description: 'Đã xử lý xong và kiểm tra lại', icon: CheckCircle2 },
         ].map((item) => {
           const Icon = item.icon;
           return (

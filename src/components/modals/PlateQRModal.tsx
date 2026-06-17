@@ -109,7 +109,7 @@ export function PlateQRModal({ isOpen, onClose, qrToken, plateNumber, brand }: P
 
                 <div className="rounded-2xl bg-purple-500/5 border border-purple-500/20 p-4">
                   <p className="text-xs text-purple-200 leading-relaxed font-semibold">
-                    🛵 <strong>Hướng dẫn:</strong> Nhân viên dùng <strong>Camera 2 (Quét QR)</strong> quét mã này để nhận diện phương tiện khi không đọc được biển số.
+                    🛵 <strong>Instructions:</strong> Nhân viên dùng <strong>Camera 2 (Quét QR)</strong> quét mã này để nhận diện phương tiện khi không đọc được biển số.
                   </p>
                 </div>
 
@@ -118,15 +118,11 @@ export function PlateQRModal({ isOpen, onClose, qrToken, plateNumber, brand }: P
                     onClick={handleDownload}
                     className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white font-black text-xs uppercase tracking-wider transition-all duration-300 hover:scale-105 inline-flex items-center justify-center gap-2"
                   >
-                    <Download size={14} className="stroke-[2.5]" />
-                    Tải xuống
-                  </button>
+                    <Download size={14} className="stroke-[2.5]" />Download</button>
                   <button
                     onClick={onClose}
                     className="flex-1 px-4 py-3 rounded-xl bg-slate-800 border border-white/10 text-white font-black text-xs uppercase tracking-wider transition-all duration-300 hover:bg-slate-700 hover:border-white/20"
-                  >
-                    Đóng
-                  </button>
+                  >Close</button>
                 </div>
               </div>
             </div>

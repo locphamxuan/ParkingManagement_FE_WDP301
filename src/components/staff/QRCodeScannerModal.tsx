@@ -388,13 +388,11 @@ export function QRCodeScannerModal({
                         Quét lại
                       </Button>
                       <Button type="button" onClick={onClose} disabled={loading} className="flex-1">
-                        {loading ? 'Đang xử lý...' : 'Xác nhận'}
+                        {loading ? 'Processing...' : 'Confirm'}
                       </Button>
                     </>
                   ) : (
-                    <Button type="button" variant="outline" onClick={onClose} disabled={isScanning || loading} className="w-full">
-                      Đóng
-                    </Button>
+                    <Button type="button" variant="outline" onClick={onClose} disabled={isScanning || loading} className="w-full">Close</Button>
                   )}
                 </div>
 

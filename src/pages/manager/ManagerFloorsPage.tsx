@@ -44,7 +44,7 @@ export function ManagerFloorsPage() {
       setVehicleTypes(vts.data.items);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Tải thất bại');
+      setError(err instanceof Error ? err.message : 'Failed to load');
     } finally {
       setLoading(false);
     }
@@ -87,7 +87,7 @@ export function ManagerFloorsPage() {
       setModalOpen(false);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Lưu thất bại');
+      alert(err instanceof Error ? err.message : 'Save failed');
     }
   };
 
@@ -97,7 +97,7 @@ export function ManagerFloorsPage() {
       await managerApi.floors.remove(buildingId, row._id);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Xóa thất bại');
+      alert(err instanceof Error ? err.message : 'Delete failed');
     }
   };
 
@@ -124,7 +124,7 @@ export function ManagerFloorsPage() {
       },
       {
         key: 'status',
-        title: 'Trạng thái',
+        title: 'Status',
         render: (row) => <StatusBadge status={row.status} />,
       },
       {
@@ -153,11 +153,11 @@ export function ManagerFloorsPage() {
         </Button>
       </div>
       {loading ? (
-        <div className="text-sm text-muted-foreground">Đang tải...</div>
+        <div className="text-sm text-muted-foreground">Loading...</div>
       ) : error ? (
         <div className="text-sm text-red-600">{error}</div>
       ) : (
-        <DataTable title="Tầng" rows={items} columns={columns} />
+        <DataTable title="Floor" rows={items} columns={columns} />
       )}
       <ModalForm
         open={modalOpen}
@@ -183,14 +183,14 @@ export function ManagerFloorsPage() {
             />
           </div>
           <div className="grid gap-1.5 md:col-span-2">
-            <label className="text-xs uppercase text-muted-foreground">Trạng thái</label>
+            <label className="text-xs uppercase text-muted-foreground">Status</label>
             <CustomSelect
               value={form.status}
               onChange={(val) => setForm((f) => ({ ...f, status: val as Floor['status'] }))}
               options={[
-                { value: 'active', label: 'Hoạt động' },
-                { value: 'inactive', label: 'Không hoạt động' },
-                { value: 'maintenance', label: 'Bảo trì' },
+                { value: 'active', label: 'Active' },
+                { value: 'inactive', label: 'Inactive' },
+                { value: 'maintenance', label: 'Maintenance' },
               ]}
             />
           </div>

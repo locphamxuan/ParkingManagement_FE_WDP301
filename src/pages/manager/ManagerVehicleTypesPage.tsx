@@ -115,7 +115,7 @@ export function ManagerVehicleTypesPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Truck size={18} className="text-primary" />
-          <h2 className="text-base font-semibold text-foreground">Loại xe</h2>
+          <h2 className="text-base font-semibold text-foreground">Vehicle type</h2>
         </div>
         <Button size="sm" className="gap-2" onClick={() => { setShowCreate(true); setFeedback(null); }}>
           <Plus size={14} /> Thêm loại xe
@@ -157,7 +157,7 @@ export function ManagerVehicleTypesPage() {
               </div>
             </div>
             <div className="grid gap-1.5">
-              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Mô tả</label>
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Description</label>
               <Input
                 value={newDesc}
                 onChange={(e) => setNewDesc(e.target.value)}
@@ -178,7 +178,7 @@ export function ManagerVehicleTypesPage() {
       <Card>
         <CardContent className="p-0">
           {loading ? (
-            <p className="p-5 text-sm text-muted-foreground">Đang tải...</p>
+            <p className="p-5 text-sm text-muted-foreground">Loading...</p>
           ) : error ? (
             <p className="p-5 text-sm text-rose-500">{error}</p>
           ) : items.length === 0 ? (
@@ -201,12 +201,12 @@ export function ManagerVehicleTypesPage() {
                         </div>
                       </div>
                       <div className="grid gap-1.5">
-                        <label className="text-xs font-medium text-muted-foreground">Mô tả</label>
+                        <label className="text-xs font-medium text-muted-foreground">Description</label>
                         <Input value={editDesc} onChange={(e) => setEditDesc(e.target.value)} />
                       </div>
                       <div className="flex gap-2">
                         <Button size="sm" onClick={handleUpdate} disabled={isSaving || !editName.trim()}>
-                          {isSaving ? 'Đang lưu...' : 'Lưu'}
+                          {isSaving ? 'Saving...' : 'Save'}
                         </Button>
                         <Button size="sm" variant="outline" onClick={() => setEditId(null)}>Hủy</Button>
                       </div>

@@ -126,7 +126,7 @@ function SlotCell({
       disabled={!isClickable && !isSelected}
       whileHover={isClickable && !is3D ? { scale: 1.08, y: -3 } : {}}
       whileTap={isClickable && !is3D ? { scale: 0.95 } : {}}
-      title={`${slot.code} — ${status === 'available' ? 'Trống' : status === 'selected' ? 'Đang chọn' : status === 'occupied' ? 'Đang sử dụng' : status === 'reserved' ? 'Đã giữ' : status === 'maintenance' ? 'Bảo trì' : 'Không phù hợp'}`}
+      title={`${slot.code} — ${status === 'available' ? 'Available' : status === 'selected' ? 'Đang chọn' : status === 'occupied' ? 'In use' : status === 'reserved' ? 'Đã giữ' : status === 'maintenance' ? 'Maintenance' : 'Không phù hợp'}`}
       className={`
         relative flex flex-col items-center justify-center rounded-xl border-2 transition-all duration-200
         ${is3D ? 'h-12 w-14 sm:h-14 sm:w-16' : 'h-14 w-14 sm:h-16 sm:w-16'}
@@ -262,7 +262,7 @@ function Legend() {
     <div className="flex flex-wrap justify-center gap-6 py-2 border-b border-white/5 mb-5">
       <div className="flex items-center gap-2">
         <div className="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
-        <span className="text-xs font-bold text-slate-400">Trống</span>
+        <span className="text-xs font-bold text-slate-400">Available</span>
       </div>
       <div className="flex items-center gap-2">
         <div className="h-2.5 w-2.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.4)]" />
@@ -499,9 +499,7 @@ export function ParkingMap2D({
                 type="button"
                 onClick={reset3D}
                 className="px-3 py-1.5 rounded-xl border border-white/10 hover:border-orange-500/30 text-[9px] font-black uppercase tracking-wider text-slate-300 hover:text-orange-200 transition duration-200"
-              >
-                Mặc định
-              </button>
+              >Default</button>
             </div>
           )}
 

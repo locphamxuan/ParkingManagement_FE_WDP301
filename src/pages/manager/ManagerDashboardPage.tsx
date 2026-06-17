@@ -35,7 +35,7 @@ export function ManagerDashboardPage() {
   const needsSubscription = /subscription|gói/i.test(overviewError ?? '');
 
   const userName = useMemo(
-    () => session?.displayName || session?.email || 'Quản lý',
+    () => session?.displayName || session?.email || 'Management',
     [session],
   );
 
@@ -63,7 +63,7 @@ export function ManagerDashboardPage() {
 
   const cards = useMemo(
     () => [
-      { label: 'Số tầng', value: overview?.floors ?? 0, icon: Layers, color: 'text-cyan-400', bg: 'bg-cyan-500/10 border-cyan-500/20' },
+      { label: 'Total floors', value: overview?.floors ?? 0, icon: Layers, color: 'text-cyan-400', bg: 'bg-cyan-500/10 border-cyan-500/20' },
       { label: 'Số cổng', value: overview?.gates ?? 0, icon: Building2, color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20' },
       { label: 'Chỗ đỗ xe', value: overview?.slots?.total ?? 0, icon: Square, color: 'text-orange-400', bg: 'bg-orange-500/10 border-orange-500/20' },
       { label: 'Đang hoạt động', value: overview?.sessions?.active ?? 0, icon: MessageSquare, color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
@@ -106,7 +106,7 @@ export function ManagerDashboardPage() {
           </div>
           <div className="inline-flex items-center gap-2 rounded-full bg-slate-950/80 border border-teal-500/20 px-4 py-2.5 text-xs font-black text-teal-400 uppercase font-mono shadow-xl self-start sm:self-auto backdrop-blur-md">
             <Building2 size={14} />
-            <span>{selectedBuilding?.name ?? 'Chưa chọn tòa nhà'}</span>
+            <span>{selectedBuilding?.name ?? 'No building selected'}</span>
           </div>
         </div>
       </motion.section>
@@ -117,13 +117,13 @@ export function ManagerDashboardPage() {
           <motion.div variants={itemVariants}>
             <Card className="border border-white/5 bg-slate-900/40 shadow-2xl backdrop-blur-md overflow-hidden rounded-3xl">
               <CardHeader className="border-b border-white/5 bg-slate-950/30 p-5">
-                <CardTitle className="text-xs font-black uppercase tracking-wider text-slate-300 font-mono">Tòa nhà phụ trách</CardTitle>
+                <CardTitle className="text-xs font-black uppercase tracking-wider text-slate-300 font-mono">Assigned building</CardTitle>
               </CardHeader>
               <CardContent className="p-5">
                 {isBuildingsLoading ? (
                   <div className="flex items-center gap-2 text-slate-400 text-xs font-semibold">
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-teal-500 border-t-transparent" />
-                    <span>Đang tải danh sách tòa nhà...</span>
+                    <span>Loading buildings...</span>
                   </div>
                 ) : buildingsError ? (
                   <p className="text-xs font-semibold text-rose-400 bg-rose-950/20 border border-rose-500/20 p-3.5 rounded-2xl">{buildingsError}</p>
@@ -145,11 +145,11 @@ export function ManagerDashboardPage() {
                           }`}
                         >
                           <p className={`font-black text-sm ${isSelected ? 'text-teal-400' : 'text-slate-200'}`}>
-                            {b.name || b.code || 'Tòa nhà'}
+                            {b.name || b.code || 'Building'}
                           </p>
                           <p className="mt-2.5 text-[10px] font-bold text-slate-400 flex items-center gap-1.5 font-mono uppercase tracking-wide">
                             <span className={`h-1.5 w-1.5 rounded-full ${b.status === 'active' ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
-                            {b.status === 'active' ? 'Hoạt động' : b.status === 'maintenance' ? 'Bảo trì' : 'Tạm dừng'}
+                            {b.status === 'active' ? 'Active' : b.status === 'maintenance' ? 'Maintenance' : 'Tạm dừng'}
                           </p>
                         </button>
                       );
@@ -247,7 +247,7 @@ export function ManagerDashboardPage() {
                 </div>
 
                 <div className="rounded-2xl border border-white/5 bg-slate-950/60 p-4 border-l-4 border-l-teal-500 shadow-xl">
-                  <p className="text-[9px] font-black uppercase tracking-wider text-teal-400 font-mono">Doanh thu hôm nay</p>
+                  <p className="text-[9px] font-black uppercase tracking-wider text-teal-400 font-mono">Today's revenue</p>
                   <p className="mt-2.5 text-2xl font-black text-white font-mono">
                     {(overview?.revenue?.today ?? 0).toLocaleString('vi-VN')}{' '}
                     <span className="text-xs font-black text-slate-400">VND</span>

@@ -238,9 +238,7 @@ export function DatePicker({ value, onChange, placeholder = 'dd/mm/yyyy', classN
                 type="button"
                 onClick={handleClear}
                 className="text-[10px] font-black uppercase tracking-wider text-rose-400 hover:text-rose-300 transition-colors"
-              >
-                Xóa
-              </button>
+              >Delete</button>
               <button
                 type="button"
                 onClick={handleToday}

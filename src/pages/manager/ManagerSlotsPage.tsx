@@ -53,7 +53,7 @@ function Slot3DBox({
   const config = {
     available: {
       faceColor: 'bg-emerald-500/25 border-emerald-500/40 text-emerald-300',
-      label: 'Trống',
+      label: 'Available',
       glow: 'shadow-[0_0_14px_rgba(16,185,129,0.25),0_0_4px_rgba(16,185,129,0.1)] hover:shadow-[0_0_28px_rgba(16,185,129,0.6),0_0_8px_rgba(16,185,129,0.3)]'
     },
     occupied: {
@@ -63,12 +63,12 @@ function Slot3DBox({
     },
     reserved: {
       faceColor: 'bg-purple-500/25 border-purple-500/45 text-purple-300',
-      label: 'Đã đặt',
+      label: 'Reserved',
       glow: 'shadow-[0_0_14px_rgba(168,85,247,0.35),0_0_4px_rgba(168,85,247,0.15)] hover:shadow-[0_0_28px_rgba(168,85,247,0.65),0_0_8px_rgba(168,85,247,0.3)]'
     },
     maintenance: {
       faceColor: 'bg-amber-500/20 border-amber-500/35 text-amber-300 bg-[repeating-linear-gradient(45deg,rgba(245,158,11,0.12),rgba(245,158,11,0.12)_6px,rgba(0,0,0,0.4)_6px,rgba(0,0,0,0.4)_12px)]',
-      label: 'Bảo trì',
+      label: 'Maintenance',
       glow: 'shadow-[0_0_14px_rgba(245,158,11,0.2),0_0_4px_rgba(245,158,11,0.1)] hover:shadow-[0_0_28px_rgba(245,158,11,0.55),0_0_8px_rgba(245,158,11,0.25)]'
     }
   }[slot.status];
@@ -81,7 +81,7 @@ function Slot3DBox({
     if (!slot.vehicleType) return '— Không cố định —';
     if (typeof slot.vehicleType === 'object') return slot.vehicleType.name;
     const found = vehicleTypes.find(v => v._id === slot.vehicleType);
-    return found ? found.name : 'Loại xe';
+    return found ? found.name : 'Vehicle type';
   }, [slot.vehicleType, vehicleTypes]);
 
   return (
@@ -155,7 +155,7 @@ function Slot3DBox({
             </div>
             <div className="space-y-1 text-[9px] text-slate-400 font-semibold leading-relaxed">
               <p>Loại: <span className="text-white font-black">{vtName}</span></p>
-              <p>Đặt chỗ: <span className="text-white font-black">{slot.reservable ? 'Có' : 'Khóa'}</span></p>
+              <p>Đặt chỗ: <span className="text-white font-black">{slot.reservable ? 'Yes' : 'Lock'}</span></p>
               {slot.note && <p className="border-t border-white/5 pt-1 mt-1 text-slate-500 italic">Note: {slot.note}</p>}
             </div>
           </motion.div>
@@ -202,7 +202,7 @@ export function ManagerSlotsPage() {
       setVehicleTypes(vtRes.data.items);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Tải thất bại');
+      setError(err instanceof Error ? err.message : 'Failed to load');
     } finally {
       setLoading(false);
     }
@@ -279,7 +279,7 @@ export function ManagerSlotsPage() {
       setModalOpen(false);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Lưu thất bại');
+      alert(err instanceof Error ? err.message : 'Save failed');
     }
   };
 
@@ -289,7 +289,7 @@ export function ManagerSlotsPage() {
       await managerApi.slots.remove(buildingId, row._id);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Xóa thất bại');
+      alert(err instanceof Error ? err.message : 'Delete failed');
     }
   };
 
@@ -324,7 +324,7 @@ export function ManagerSlotsPage() {
     { key: 'code', title: 'Mã ô' },
     {
       key: 'floor',
-      title: 'Tầng',
+      title: 'Floor',
       render: (row) => {
         const id = typeof row.floor === 'string' ? row.floor : row.floor._id;
         const fl = floorMap.get(id);
@@ -344,14 +344,14 @@ export function ManagerSlotsPage() {
     },
     {
       key: 'status',
-      title: 'Trạng thái',
+      title: 'Status',
       render: (row) => (
         <CustomSelect
           value={row.status}
           onChange={(val) => onStatusChange(row, val as ParkingSlot['status'])}
           options={SLOT_STATUSES.map((s) => ({
             value: s,
-            label: s === 'available' ? 'Trống' : s === 'occupied' ? 'Đầy' : s === 'reserved' ? 'Đặt chỗ' : 'Bảo trì',
+            label: s === 'available' ? 'Available' : s === 'occupied' ? 'Full' : s === 'reserved' ? 'Reservation' : 'Maintenance',
           }))}
           className="h-8 w-28 text-xs font-semibold"
         />
@@ -360,7 +360,7 @@ export function ManagerSlotsPage() {
     {
       key: 'reservable',
       title: 'Cho đặt',
-      render: (row) => (row.reservable ? 'Có' : 'Không'),
+      render: (row) => (row.reservable ? 'Yes' : 'No'),
     },
     {
       key: 'actions',
@@ -601,7 +601,7 @@ export function ManagerSlotsPage() {
                 <div className="mt-8 pt-4 border-t border-white/5 space-y-3">
                   <div className="text-[9px] font-black uppercase tracking-widest text-slate-500 font-mono mb-2">Chú thích trạng thái</div>
                   <div className="flex items-center justify-between text-[10px] font-bold text-slate-300 bg-slate-950/40 p-2.5 rounded-xl border border-white/5">
-                    <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-emerald-500/20 border border-emerald-500/40" /> Trống</span>
+                    <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-emerald-500/20 border border-emerald-500/40" />Available</span>
                     <span className="font-mono text-emerald-400 font-black">
                       {items.filter(s => s.status === 'available').length}
                     </span>
@@ -613,13 +613,13 @@ export function ManagerSlotsPage() {
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-[10px] font-bold text-slate-300 bg-slate-950/40 p-2.5 rounded-xl border border-white/5">
-                    <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-purple-500/20 border border-purple-500/40" /> Đã đặt</span>
+                    <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-purple-500/20 border border-purple-500/40" />Reserved</span>
                     <span className="font-mono text-purple-400 font-black">
                       {items.filter(s => s.status === 'reserved').length}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-[10px] font-bold text-slate-300 bg-slate-950/40 p-2.5 rounded-xl border border-white/5">
-                    <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-amber-500/20 border border-amber-500/30" /> Bảo trì</span>
+                    <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-amber-500/20 border border-amber-500/30" />Maintenance</span>
                     <span className="font-mono text-amber-400 font-black">
                       {items.filter(s => s.status === 'maintenance').length}
                     </span>
@@ -650,7 +650,7 @@ export function ManagerSlotsPage() {
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Tầng</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Floor</label>
             <CustomSelect
               value={form.floor}
               onChange={(val) => setForm((f) => ({ ...f, floor: val }))}
@@ -670,13 +670,13 @@ export function ManagerSlotsPage() {
             </p>
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Trạng thái</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Status</label>
             <CustomSelect
               value={form.status}
               onChange={(val) => setForm((f) => ({ ...f, status: val as ParkingSlot['status'] }))}
               options={SLOT_STATUSES.map((s) => ({
                 value: s,
-                label: s === 'available' ? 'Trống' : s === 'occupied' ? 'Đầy' : s === 'reserved' ? 'Đặt chỗ' : 'Bảo trì',
+                label: s === 'available' ? 'Available' : s === 'occupied' ? 'Full' : s === 'reserved' ? 'Reservation' : 'Maintenance',
               }))}
             />
           </div>

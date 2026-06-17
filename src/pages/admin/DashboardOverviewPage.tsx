@@ -38,7 +38,7 @@ export function DashboardOverviewPage() {
   if (error || !data) {
     return (
       <div className="rounded-2xl border border-rose-500/20 bg-rose-950/20 p-5 text-sm font-semibold text-rose-400 backdrop-blur-md">
-        {error || 'Tải dữ liệu thất bại.'}
+        {error || 'Failed to load data.'}
       </div>
     );
   }
@@ -67,8 +67,7 @@ export function DashboardOverviewPage() {
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-orange-500/10 border border-orange-500/20 text-[9px] font-black uppercase tracking-widest text-orange-400 font-mono">
               Cổng Quản Trị Trung Tâm
             </div>
-            <h1 className="mt-2.5 text-3xl font-black tracking-tight text-white sm:text-4xl">
-              Tổng quan <span className="bg-gradient-to-r from-orange-400 via-amber-400 to-purple-400 bg-clip-text text-transparent">Hệ Thống PBMS</span>
+            <h1 className="mt-2.5 text-3xl font-black tracking-tight text-white sm:text-4xl">Overview<span className="bg-gradient-to-r from-orange-400 via-amber-400 to-purple-400 bg-clip-text text-transparent">Hệ Thống PBMS</span>
             </h1>
             <p className="mt-3.5 max-w-2xl text-xs font-semibold text-slate-300 leading-relaxed">
               Trung tâm giám sát toàn diện bãi đỗ xe nhiều tầng. Theo dõi doanh thu thời gian thực, quản lý phân bổ phương thức thanh toán, rà soát giao dịch gần đây và giám sát hoạt động bãi đỗ trực tiếp.

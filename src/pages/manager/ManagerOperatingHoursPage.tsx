@@ -58,7 +58,7 @@ export function ManagerOperatingHoursPage() {
       <div className="flex items-center gap-2">
         <Clock size={18} className="text-primary" />
         <div>
-          <h1 className="text-xl font-bold text-foreground">Giờ hoạt động</h1>
+          <h1 className="text-xl font-bold text-foreground">Operating hours</h1>
           <p className="text-sm text-muted-foreground">
             Đặt giờ mở cửa và đóng cửa của tòa nhà. Ngoài khung giờ này, khách hàng sẽ thấy “đang đóng cửa”.
           </p>
@@ -108,7 +108,7 @@ export function ManagerOperatingHoursPage() {
 
           <Button onClick={handleSave} disabled={saving} className="gap-2">
             {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
-            {saving ? 'Đang lưu...' : 'Lưu giờ hoạt động'}
+            {saving ? 'Saving...' : 'Lưu giờ hoạt động'}
           </Button>
         </CardContent>
       </Card>

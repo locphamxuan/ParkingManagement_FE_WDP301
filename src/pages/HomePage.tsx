@@ -44,7 +44,7 @@ const navigationLinks = [
   { label: 'Giới thiệu', href: '#gioi-thieu' },
   { label: 'Giải pháp', href: '#giai-phap' },
   { label: 'Dịch vụ', href: '#dich-vu' },
-  { label: 'Liên hệ', href: '#lien-he' },
+  { label: 'Contact', href: '#lien-he' },
 ];
 
 const moduleIcons: Record<string, LucideIcon> = {
@@ -247,7 +247,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
                       className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-between"
                       onClick={() => { setMenuOpen(false); onViewProfile(); }}
                     >
-                      <span>Hồ sơ của tôi</span>
+                      <span>My profile</span>
                       {hasMissingInfo && (
                         <span className="flex h-2 w-2 rounded-full bg-rose-500 animate-pulse shadow-[0_0_6px_#f43f5e]" />
                       )}
@@ -257,7 +257,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
                       onClick={() => setMenuOpen(false)}
                       className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-between"
                     >
-                      <span className="flex items-center"><BellRing size={12} className="mr-2" /> Thông báo</span>
+                      <span className="flex items-center"><BellRing size={12} className="mr-2" />Notifications</span>
                       {unreadNotif > 0 && (
                         <span className="rounded-full bg-rose-500 px-1.5 text-[9px] font-bold text-white">
                           {unreadNotif > 9 ? '9+' : unreadNotif}
@@ -281,11 +281,9 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
                       className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white flex items-center"
                       onClick={() => setMenuOpen(false)}
                     >
-                      <MapPinned size={12} className="inline-block mr-2" /> Lịch sử gửi xe
-                    </a>
+                      <MapPinned size={12} className="inline-block mr-2" />Parking history</a>
                     <button className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-rose-400 hover:text-rose-300 border-t border-white/5 mt-1" onClick={onLogout}>
-                      <LogOut size={12} className="inline-block mr-2" /> Đăng xuất
-                    </button>
+                      <LogOut size={12} className="inline-block mr-2" />Log out</button>
                   </motion.div>
                 )}
               </div>
@@ -295,9 +293,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
                 whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(249,115,22,0.45)' }}
                 whileTap={{ scale: 0.95 }}
                 className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider transition-all duration-300"
-              >
-                Đăng nhập
-              </motion.button>
+              >Sign in</motion.button>
             )}
 
           </div>
@@ -583,7 +579,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
                       onClick={() => { if (module.id === 'profile') return onViewProfile(); onAction(module); }}
                       disabled={!module.available}
                     >
-                      {module.available ? module.actionLabel : 'Sắp ra mắt'} <ArrowRight size={12} />
+                      {module.available ? module.actionLabel : 'Coming soon'} <ArrowRight size={12} />
                     </motion.button>
                   </div>
                 </motion.article>
@@ -643,9 +639,9 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
           <div className="flex gap-4">
             <a href="/auth/register" className="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider hover:shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all duration-200">Tạo tài khoản</a>
             {user ? (
-              <button className="px-6 py-3 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-xs uppercase tracking-wider hover:border-orange-500/25 transition-all duration-200" onClick={onViewProfile}>Xem hồ sơ</button>
+              <button className="px-6 py-3 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-xs uppercase tracking-wider hover:border-orange-500/25 transition-all duration-200" onClick={onViewProfile}>View profile</button>
             ) : (
-              <a href="/auth/login" className="px-6 py-3 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-xs uppercase tracking-wider hover:border-orange-500/25 transition-all duration-200 inline-flex items-center">Đăng nhập</a>
+              <a href="/auth/login" className="px-6 py-3 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-xs uppercase tracking-wider hover:border-orange-500/25 transition-all duration-200 inline-flex items-center">Sign in</a>
             )}
           </div>
         </div>
@@ -661,7 +657,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
           </div>
 
           <div>
-            <h4 className="font-black text-white text-xs uppercase tracking-wider">Liên kết nhanh</h4>
+            <h4 className="font-black text-white text-xs uppercase tracking-wider">Quick links</h4>
             <nav className="mt-3 flex flex-col gap-2">
               {navigationLinks.map((link) => (
                 <a key={link.href} href={link.href} className="text-xs hover:text-orange-400 transition-colors">{link.label}</a>
@@ -672,9 +668,9 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
           <div>
             <h4 className="font-black text-white text-xs uppercase tracking-wider">Truy cập cổng</h4>
             <div className="mt-3 flex flex-wrap gap-2">
-              <a href="/auth/login" className="px-3.5 py-2 bg-orange-500/10 border border-orange-500/20 text-orange-400 hover:bg-orange-500 hover:text-slate-950 rounded-xl text-xs font-black uppercase transition-all">Đăng nhập</a>
-              <a href="/auth/register" className="px-3.5 py-2 bg-slate-900 border border-white/5 text-slate-300 hover:border-white/20 rounded-xl text-xs font-bold uppercase transition-all">Đăng ký</a>
-              {user ? <button onClick={onViewProfile} className="px-3.5 py-2 bg-slate-900 border border-white/5 text-slate-300 hover:border-white/20 rounded-xl text-xs font-bold uppercase transition-all">Hồ sơ</button> : null}
+              <a href="/auth/login" className="px-3.5 py-2 bg-orange-500/10 border border-orange-500/20 text-orange-400 hover:bg-orange-500 hover:text-slate-950 rounded-xl text-xs font-black uppercase transition-all">Sign in</a>
+              <a href="/auth/register" className="px-3.5 py-2 bg-slate-900 border border-white/5 text-slate-300 hover:border-white/20 rounded-xl text-xs font-bold uppercase transition-all">Register</a>
+              {user ? <button onClick={onViewProfile} className="px-3.5 py-2 bg-slate-900 border border-white/5 text-slate-300 hover:border-white/20 rounded-xl text-xs font-bold uppercase transition-all">Profile</button> : null}
             </div>
           </div>
         </div>

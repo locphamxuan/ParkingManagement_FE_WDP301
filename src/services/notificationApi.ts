@@ -33,7 +33,7 @@ export const NOTIFICATION_TYPE_LABEL: Record<AppNotificationType, string> = {
   reservation_expired: 'Đặt chỗ hết hạn',
   reservation_overstay: 'Đậu quá giờ',
   feedback_reply: 'Phản hồi đánh giá',
-  general: 'Thông báo',
+  general: 'Notifications',
 };
 
 type Wrap<T> = { data?: T };

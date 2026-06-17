@@ -65,7 +65,7 @@ export function ManagerPricingPage() {
       setVts(vtList.data.items);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Tải thất bại');
+      setError(err instanceof Error ? err.message : 'Failed to load');
     } finally {
       setLoading(false);
     }
@@ -121,7 +121,7 @@ export function ManagerPricingPage() {
       setModalOpen(false);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Lưu thất bại');
+      alert(err instanceof Error ? err.message : 'Save failed');
     }
   };
 
@@ -139,7 +139,7 @@ export function ManagerPricingPage() {
     { key: 'name', title: 'Tên chính sách' },
     {
       key: 'vehicleType',
-      title: 'Loại xe',
+      title: 'Vehicle type',
       render: (row) => (typeof row.vehicleType === 'string' ? row.vehicleType : row.vehicleType.code),
     },
     {
@@ -160,7 +160,7 @@ export function ManagerPricingPage() {
     },
     {
       key: 'isActive',
-      title: 'Trạng thái',
+      title: 'Status',
       render: (row) => <StatusBadge status={row.isActive ? 'active' : 'inactive'} />,
     },
     {
@@ -187,11 +187,11 @@ export function ManagerPricingPage() {
         </Button>
       </div>
       {loading ? (
-        <div className="text-sm text-muted-foreground">Đang tải...</div>
+        <div className="text-sm text-muted-foreground">Loading...</div>
       ) : error ? (
         <div className="text-sm text-red-600">{error}</div>
       ) : (
-        <DataTable title="Bảng giá" rows={items} columns={columns} />
+        <DataTable title="Pricing" rows={items} columns={columns} />
       )}
 
       <ModalForm
@@ -202,14 +202,14 @@ export function ManagerPricingPage() {
       >
         <div className="grid gap-3 md:grid-cols-2">
           <div className="grid gap-1.5 md:col-span-2">
-            <label className="text-xs uppercase text-muted-foreground">Tên</label>
+            <label className="text-xs uppercase text-muted-foreground">Name</label>
             <Input
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Loại xe</label>
+            <label className="text-xs uppercase text-muted-foreground">Vehicle type</label>
             <CustomSelect
               value={form.vehicleType}
               onChange={(val) => setForm((f) => ({ ...f, vehicleType: val }))}

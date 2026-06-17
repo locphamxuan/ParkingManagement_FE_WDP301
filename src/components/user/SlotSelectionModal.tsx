@@ -115,20 +115,20 @@ export function SlotSelectionModal({
                         setSelectedSlot(null);
                       }}
                       options={[
-                        { value: '', label: '-- Chọn tầng --' },
+                        { value: '', label: '-- Select floor --' },
                         ...floorsData.map((f) => ({
                           value: f._id,
                           label: `Tầng ${f.code || f.name || ''} (${f.availableSlots}/${f.totalSlots})`,
                         })),
                       ]}
-                      placeholder="-- Chọn tầng --"
+                      placeholder="-- Select floor --"
                     />
                   )}
                 </div>
                 {selectedVehicleType && (
                   <div className="rounded-xl border border-white/5 bg-white/[0.02] px-4 py-2.5 text-xs text-slate-400 flex items-center gap-2 max-w-md">
                     <span>
-                      Bản đồ đang lọc theo <strong>{selectedVehicleType === 'car' ? 'Ô tô' : 'Xe máy'}</strong>. Các
+                      Bản đồ đang lọc theo <strong>{selectedVehicleType === 'car' ? 'Car' : 'Motorcycle'}</strong>. Các
                       ô đỗ không phù hợp sẽ tự động mờ đi.
                     </span>
                   </div>

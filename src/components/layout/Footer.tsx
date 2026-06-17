@@ -8,17 +8,17 @@ export default function Footer() {
         </div>
 
         <div className="space-y-3">
-          <h4>Liên kết nhanh</h4>
+          <h4>Quick links</h4>
           <ul>
             <li><a href="/">Trang chủ</a></li>
-            <li><a href="/auth/login">Đăng nhập</a></li>
-            <li><a href="/auth/register">Đăng ký</a></li>
-            <li><a href="/">Hồ sơ của tôi</a></li>
+            <li><a href="/auth/login">Sign in</a></li>
+            <li><a href="/auth/register">Register</a></li>
+            <li><a href="/">My profile</a></li>
           </ul>
         </div>
 
         <div className="space-y-3">
-          <h4>Liên hệ</h4>
+          <h4>Contact</h4>
           <p>Email: <a href="mailto:support@example.com">support@example.com</a></p>
           <p>Hotline: <a href="tel:+84900000000">0900 000 000</a></p>
         </div>

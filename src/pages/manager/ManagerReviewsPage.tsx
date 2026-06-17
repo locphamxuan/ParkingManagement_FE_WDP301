@@ -38,7 +38,7 @@ export function ManagerReviewsPage() {
       setReviews(result.data.items);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Tải thất bại');
+      setError(err instanceof Error ? err.message : 'Failed to load');
     } finally {
       setLoading(false);
     }
@@ -103,7 +103,7 @@ export function ManagerReviewsPage() {
   const columns: DataColumn<Feedback>[] = [
     {
       key: 'user',
-      title: 'Người dùng',
+      title: 'Users',
       render: (item) => (
         <div>
           <p className="font-medium text-slate-100">{item.user.fullName}</p>
@@ -113,7 +113,7 @@ export function ManagerReviewsPage() {
     },
     {
       key: 'plateNumber',
-      title: 'Biển số',
+      title: 'Plate number',
       render: (item) => (
         <span className="inline-block rounded bg-slate-800/50 px-2.5 py-1 font-mono text-sm text-amber-300">
           {item.parkingSession.plateNumber}
@@ -145,7 +145,7 @@ export function ManagerReviewsPage() {
     },
     {
       key: 'status',
-      title: 'Trạng thái',
+      title: 'Status',
       render: (item) => {
         const resolved = item.status === 'resolved';
         const Icon = resolved ? CheckCircle : Clock;
@@ -219,9 +219,7 @@ export function ManagerReviewsPage() {
             size="sm"
             onClick={() => setStatusFilter('all')}
             className="text-xs"
-          >
-            Tất cả
-          </Button>
+          >All</Button>
           <Button
             variant={statusFilter === 'pending' ? 'default' : 'outline'}
             size="sm"
@@ -252,7 +250,7 @@ export function ManagerReviewsPage() {
       {/* Data Table */}
       <div className="rounded-xl border border-white/8 bg-slate-800/20 overflow-hidden">
         {loading ? (
-          <div className="py-8 text-center text-slate-400">Đang tải...</div>
+          <div className="py-8 text-center text-slate-400">Loading...</div>
         ) : filteredReviews.length === 0 ? (
           <div className="py-12 text-center">
             <MessageSquare size={32} className="mx-auto mb-2 text-slate-600" />

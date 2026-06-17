@@ -23,9 +23,9 @@ interface AssignStaffModalProps {
 }
 
 const directionLabel: Record<Gate['direction'], string> = {
-  in: 'Cổng vào',
-  out: 'Cổng ra',
-  both: 'Hai chiều',
+  in: 'Entry gate',
+  out: 'Exit gate',
+  both: 'Two-way',
 };
 
 interface Staff {
@@ -82,7 +82,7 @@ export function AssignStaffModal({
         setGateList(gatesRes.data.items);
       })
       .catch((err) => {
-        setError(err instanceof Error ? err.message : 'Tải dữ liệu thất bại');
+        setError(err instanceof Error ? err.message : 'Failed to load data');
       })
       .finally(() => setLoading(false));
   }, [isOpen, buildingId]);
@@ -163,27 +163,26 @@ export function AssignStaffModal({
         {loading ? (
           <div className="flex items-center justify-center py-8">
             <Loader className="animate-spin mr-2" size={20} />
-            <span className="text-sm text-muted-foreground">Đang tải dữ liệu...</span>
+            <span className="text-sm text-muted-foreground">Loading data...</span>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="grid gap-4">
             {/* Staff Selection */}
             <div className="grid gap-2">
-              <label className="text-sm font-medium text-foreground">
-                Nhân Viên <span className="text-red-500">*</span>
+              <label className="text-sm font-medium text-foreground">Staff<span className="text-red-500">*</span>
               </label>
               <CustomSelect
                 value={selectedStaff}
                 onChange={setSelectedStaff}
                 disabled={isSubmitting}
                 options={[
-                  { value: '', label: '-- Chọn nhân viên --' },
+                  { value: '', label: '-- Select staff --' },
                   ...staffList.map((staff) => ({
                     value: staff._id,
                     label: `${staff.fullName} (${staff.email})`,
                   })),
                 ]}
-                placeholder="-- Chọn nhân viên --"
+                placeholder="-- Select staff --"
                 className="h-10 text-sm font-semibold"
               />
             </div>
@@ -198,13 +197,13 @@ export function AssignStaffModal({
                 onChange={setSelectedShift}
                 disabled={isSubmitting}
                 options={[
-                  { value: '', label: '-- Chọn ca --' },
+                  { value: '', label: '-- Select shift --' },
                   ...shiftList.map((shift) => ({
                     value: shift._id,
                     label: `${shift.code} — ${shift.name} (${shift.startTime}–${shift.endTime})`,
                   })),
                 ]}
-                placeholder="-- Chọn ca --"
+                placeholder="-- Select shift --"
                 className="h-10 text-sm font-semibold"
               />
             </div>
@@ -219,13 +218,13 @@ export function AssignStaffModal({
                 onChange={setSelectedGate}
                 disabled={isSubmitting}
                 options={[
-                  { value: '', label: '-- Không phân công cổng --' },
+                  { value: '', label: '-- No gate assigned --' },
                   ...gateList.map((gate) => ({
                     value: gate._id,
                     label: `${gate.code}${gate.name ? ` — ${gate.name}` : ''} (${directionLabel[gate.direction]})`,
                   })),
                 ]}
-                placeholder="-- Không phân công cổng --"
+                placeholder="-- No gate assigned --"
                 className="h-10 text-sm font-semibold"
               />
             </div>
@@ -283,10 +282,10 @@ export function AssignStaffModal({
               >
                 {isSubmitting && <Loader size={16} className="animate-spin" />}
                 {isSubmitting
-                  ? 'Đang lưu...'
+                  ? 'Saving...'
                   : editingData
                     ? 'Cập Nhật'
-                    : 'Gán Staff'}
+                    : 'Assign staff'}
               </Button>
             </div>
           </form>

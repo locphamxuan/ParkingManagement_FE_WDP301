@@ -101,7 +101,7 @@ export function StaffOperationsPage() {
     const clean = plateNumber.trim().toUpperCase();
     if (clean.length >= 3) {
       const detected = detectTypeFromPlate(clean);
-      if (detected !== vehicleType) return `Cảnh báo: Biển số có vẻ là ${detected === 'car' ? 'ô tô' : 'xe máy'}, nhưng bạn chọn ${vehicleType === 'car' ? 'ô tô' : 'xe máy'}.`;
+      if (detected !== vehicleType) return `Cảnh báo: Biển số có vẻ là ${detected === 'car' ? 'car' : 'xe máy'}, nhưng bạn chọn ${vehicleType === 'car' ? 'car' : 'xe máy'}.`;
     }
     return null;
   }, [plateNumber, vehicleType]);
@@ -110,7 +110,7 @@ export function StaffOperationsPage() {
     if (allowedTypes.length === 0) return null;
     const code = vehicleType === 'car' ? 'CAR' : 'MOTORCYCLE';
     if (!allowedTypes.includes(code))
-      return `Tòa nhà này không hỗ trợ loại xe ${vehicleType === 'car' ? 'ô tô' : 'xe máy'}.`;
+      return `Tòa nhà này không hỗ trợ loại xe ${vehicleType === 'car' ? 'car' : 'xe máy'}.`;
     return null;
   }, [allowedTypes, vehicleType]);
 
@@ -213,7 +213,7 @@ export function StaffOperationsPage() {
       setOpMessage({ type: 'ok', text: `Đã tạo phiên gửi xe cho biển số ${currentPlate} thành công.` });
       resetForm();
     } catch (err) {
-      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Check-in thất bại' });
+      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Check-in failed' });
     } finally {
       setLoading(false);
     }
@@ -267,17 +267,16 @@ export function StaffOperationsPage() {
         <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary">Ca vận hành</p>
-            <h2 className="mt-1 text-xl font-semibold text-foreground">Check-in xe vào</h2>
+            <h2 className="mt-1 text-xl font-semibold text-foreground">Check in vehicle</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              {building ? `${building.code} · ${building.name}` : 'Chưa chọn tòa nhà'}
+              {building ? `${building.code} · ${building.name}` : 'No building selected'}
             </p>
           </div>
           <Link
             to="/staff/parked"
             className="inline-flex h-10 items-center justify-center gap-2 self-start rounded-md bg-secondary px-4 text-sm font-semibold text-secondary-foreground transition hover:bg-secondary/80 lg:self-auto"
           >
-            <Car size={14} /> Xe đang đỗ
-          </Link>
+            <Car size={14} />Parked vehicles</Link>
         </div>
       </section>
 
@@ -325,8 +324,7 @@ export function StaffOperationsPage() {
                 {plateNumber.trim().length >= 7 && plateAccountInfo && !plateAccountInfo.hasAccount && (
                   <div className="mt-1 rounded-lg border border-amber-500/20 bg-amber-500/10 p-2.5 flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full bg-amber-500" />
-                    <p className="text-xs text-amber-300">
-                      Biển số <strong className="text-foreground">{plateNumber.toUpperCase()}</strong> — <strong>Khách vãng lai</strong> (chưa có tài khoản).
+                    <p className="text-xs text-amber-300">Plate number<strong className="text-foreground">{plateNumber.toUpperCase()}</strong> — <strong>Guest</strong> (chưa có tài khoản).
                     </p>
                   </div>
                 )}
@@ -357,7 +355,7 @@ export function StaffOperationsPage() {
               </div>
 
               <div className="grid gap-1.5">
-                <label className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Loại xe</label>
+                <label className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Vehicle type</label>
                 <div className="flex gap-2 p-1 rounded-lg bg-muted border border-border">
                   <button
                     type="button"
@@ -365,23 +363,21 @@ export function StaffOperationsPage() {
                     onClick={() => setVehicleType('car')}
                     className={`flex-1 flex items-center justify-center gap-1.5 h-8 rounded-md text-xs font-bold transition-all ${vehicleType === 'car' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground disabled:opacity-30'}`}
                   >
-                    <Car size={13} /> Ô tô
-                  </button>
+                    <Car size={13} />Car</button>
                   <button
                     type="button"
                     disabled={!allowedTypes.includes('MOTORCYCLE')}
                     onClick={() => setVehicleType('motorcycle')}
                     className={`flex-1 flex items-center justify-center gap-1.5 h-8 rounded-md text-xs font-bold transition-all ${vehicleType === 'motorcycle' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground disabled:opacity-30'}`}
                   >
-                    <Bike size={13} /> Xe máy
-                  </button>
+                    <Bike size={13} />Motorcycle</button>
                 </div>
                 {plateTypeWarning && <p className="text-[11px] text-amber-400 flex items-center gap-1"><AlertCircle size={11} /> {plateTypeWarning}</p>}
                 {buildingSupportWarning && <p className="text-[11px] text-rose-400 flex items-center gap-1"><AlertCircle size={11} /> {buildingSupportWarning}</p>}
                 {vehicleTypeMismatch && (
                   <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-2.5 text-[11px] text-rose-300 flex items-center justify-between gap-2">
                     <span className="flex items-center gap-1">
-                      <AlertCircle size={12} /> Loại xe không khớp đăng ký (đã đăng ký: <strong>{plateAccountInfo?.registeredVehicleType === 'car' ? 'Ô tô' : 'Xe máy'}</strong>).
+                      <AlertCircle size={12} /> Loại xe không khớp đăng ký (đã đăng ký: <strong>{plateAccountInfo?.registeredVehicleType === 'car' ? 'Car' : 'Motorcycle'}</strong>).
                     </span>
                     <button type="button" onClick={() => setRejectOpen(true)} className="shrink-0 rounded-md bg-rose-500 px-2.5 py-1 text-[10px] font-bold text-white hover:bg-rose-400">
                       Từ chối
@@ -482,8 +478,7 @@ export function StaffOperationsPage() {
               </div>
               <button onClick={() => { setRejectOpen(false); setRejectReason(''); }} className="text-muted-foreground hover:text-foreground transition">✕</button>
             </div>
-            <p className="text-xs text-muted-foreground mb-3">
-              Biển số <strong className="text-foreground font-mono">{normalizePlate(plateNumber) || plateNumber || '—'}</strong>. Hệ thống sẽ gửi thông báo kèm lý do đến tài khoản khách (nếu biển đã đăng ký).
+            <p className="text-xs text-muted-foreground mb-3">Plate number<strong className="text-foreground font-mono">{normalizePlate(plateNumber) || plateNumber || '—'}</strong>. Hệ thống sẽ gửi thông báo kèm lý do đến tài khoản khách (nếu biển đã đăng ký).
             </p>
             <textarea
               value={rejectReason}
@@ -524,7 +519,7 @@ export function StaffOperationsPage() {
               )}
               <div>
                 <p className="text-[9px] font-black uppercase tracking-[0.24em] opacity-80">
-                  {scannedPlateInfo.hasAccount ? 'Thành viên hệ thống' : 'Khách vãng lai'}
+                  {scannedPlateInfo.hasAccount ? 'Thành viên hệ thống' : 'Guest'}
                 </p>
                 <h3 className="text-base font-bold text-foreground">
                   {scannedPlateInfo.hasAccount ? 'Đối chiếu thành công' : 'Chưa liên kết tài khoản'}
@@ -572,8 +567,8 @@ export function StaffOperationsPage() {
                         <Phone size={16} />
                       </div>
                       <div>
-                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Số điện thoại</p>
-                        <p className="text-sm font-semibold text-foreground">{scannedPlateInfo.user.phone || 'Chưa cập nhật'}</p>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Phone number</p>
+                        <p className="text-sm font-semibold text-foreground">{scannedPlateInfo.user.phone || 'Not updated'}</p>
                       </div>
                     </div>
 
@@ -582,7 +577,7 @@ export function StaffOperationsPage() {
                         <Wallet size={16} />
                       </div>
                       <div>
-                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Số dư ví</p>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Wallet balance</p>
                         <p className="text-base font-black text-emerald-400">{scannedPlateInfo.user.walletBalance.toLocaleString('vi-VN')} đ</p>
                       </div>
                     </div>
@@ -624,9 +619,7 @@ export function StaffOperationsPage() {
                   setScannedPlateInfo(null);
                 }}
                 className="flex-1 text-xs"
-              >
-                Đóng
-              </Button>
+              >Close</Button>
 
               {scannedPlateInfo.activeSession ? (
                 <Link

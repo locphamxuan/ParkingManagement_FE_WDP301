@@ -22,7 +22,7 @@ interface LivePlateCameraProps {
 
 /**
  * Camera 1 — always-on license-plate camera. The live feed is shown immediately
- * (no click-to-open). "Chụp & nhận diện" sends the current frame to the AI scan
+ * (no click-to-open). "Capture & recognize" sends the current frame to the AI scan
  * and returns the recognized plate + the captured image (saved to DB).
  */
 export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps>(function LivePlateCamera(
@@ -89,7 +89,7 @@ export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps
     setSuccess(null);
     const dataUrl = captureFrame();
     if (!dataUrl) {
-      setError('Camera chưa sẵn sàng. Vui lòng thử lại.');
+      setError('Camera not ready. Please try again.');
       return;
     }
     setProcessing(true);
@@ -107,7 +107,7 @@ export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps
         setError('Không đọc được biển số — dùng Camera 2 (QR) bên cạnh để nhận diện.');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Lỗi nhận diện biển số');
+      setError(err instanceof Error ? err.message : 'License plate recognition error');
     } finally {
       setProcessing(false);
     }

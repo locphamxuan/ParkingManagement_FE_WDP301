@@ -29,9 +29,7 @@ export function DashboardOverviewPage() {
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center p-24 text-sm text-slate-400 font-semibold bg-slate-950/40 rounded-3xl border border-white/5 backdrop-blur-md">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-orange-500 border-t-transparent mb-3" />
-        Đang tải dữ liệu tổng quan bãi đỗ...
-      </div>
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-orange-500 border-t-transparent mb-3" />Loading parking overview...</div>
     );
   }
 
@@ -64,10 +62,8 @@ export function DashboardOverviewPage() {
 
         <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-orange-500/10 border border-orange-500/20 text-[9px] font-black uppercase tracking-widest text-orange-400 font-mono">
-              Cổng Quản Trị Trung Tâm
-            </div>
-            <h1 className="mt-2.5 text-3xl font-black tracking-tight text-white sm:text-4xl">Overview<span className="bg-gradient-to-r from-orange-400 via-amber-400 to-purple-400 bg-clip-text text-transparent">Hệ Thống PBMS</span>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-orange-500/10 border border-orange-500/20 text-[9px] font-black uppercase tracking-widest text-orange-400 font-mono">Central Admin Portal</div>
+            <h1 className="mt-2.5 text-3xl font-black tracking-tight text-white sm:text-4xl">Overview<span className="bg-gradient-to-r from-orange-400 via-amber-400 to-purple-400 bg-clip-text text-transparent">PBMS System</span>
             </h1>
             <p className="mt-3.5 max-w-2xl text-xs font-semibold text-slate-300 leading-relaxed">
               Trung tâm giám sát toàn diện bãi đỗ xe nhiều tầng. Theo dõi doanh thu thời gian thực, quản lý phân bổ phương thức thanh toán, rà soát giao dịch gần đây và giám sát hoạt động bãi đỗ trực tiếp.
@@ -75,7 +71,7 @@ export function DashboardOverviewPage() {
           </div>
           <div className="inline-flex items-center gap-2.5 rounded-full bg-slate-950/80 border border-emerald-500/20 px-4 py-2.5 text-xs font-black text-emerald-400 uppercase font-mono shadow-xl self-start sm:self-auto backdrop-blur-md neon-glow-emerald">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]" />
-            <span>Hệ thống Live</span>
+            <span>Live system</span>
           </div>
         </div>
       </motion.section>
@@ -116,14 +112,14 @@ export function DashboardOverviewPage() {
           <div className="absolute -right-16 -top-16 h-32 w-32 rounded-full bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.07),transparent_65%)] pointer-events-none blur-2xl" />
           
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-sm font-black uppercase tracking-wider text-slate-300 font-mono">Phân bổ phương thức</h3>
+            <h3 className="text-sm font-black uppercase tracking-wider text-slate-300 font-mono">Payment method breakdown</h3>
             <span className="px-2 py-0.5 rounded-md bg-blue-500/10 border border-blue-500/20 text-[9px] font-black text-blue-400 font-mono uppercase tracking-wider">Live</span>
           </div>
 
           <div className="h-[240px] w-full flex items-center justify-center cyber-scanline rounded-xl relative">
             {data.paymentMethodDistribution.length === 0 ? (
               <div className="absolute inset-0 flex items-center justify-center">
-                <p className="text-xs text-muted-foreground uppercase tracking-widest font-mono">Chưa có dữ liệu giao dịch</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-widest font-mono">No transaction data</p>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
@@ -194,13 +190,13 @@ export function DashboardOverviewPage() {
       >
         {/* Activity logs */}
         <div className="relative overflow-hidden rounded-3xl glass-premium glow-border-pulse p-6 shadow-2xl">
-          <ActivityTimeline title="Hoạt động bãi đỗ trực tiếp" items={data.liveActivities} />
+          <ActivityTimeline title="Live parking activity" items={data.liveActivities} />
         </div>
 
         {/* Transactions list */}
         <div className="relative overflow-hidden rounded-3xl glass-premium glow-border-pulse p-6 shadow-2xl">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-sm font-black uppercase tracking-wider text-slate-300 font-mono">Giao dịch gần đây</h3>
+            <h3 className="text-sm font-black uppercase tracking-wider text-slate-300 font-mono">Recent transactions</h3>
             <span className="px-2 py-0.5 rounded-md bg-orange-500/10 border border-orange-500/20 text-[9px] font-black text-orange-400 font-mono uppercase tracking-wider">{data.transactions.length} tx</span>
           </div>
           <div className="max-h-[360px] overflow-y-auto pr-1 space-y-3">
@@ -227,7 +223,7 @@ export function DashboardOverviewPage() {
         {/* Operational guardrails */}
         <div className="relative overflow-hidden rounded-3xl glass-premium glow-border-pulse p-6 shadow-2xl">
           <div className="mb-4">
-            <h3 className="text-sm font-black uppercase tracking-wider text-slate-300 font-mono">Rào cản vận hành</h3>
+            <h3 className="text-sm font-black uppercase tracking-wider text-slate-300 font-mono">Operational barriers</h3>
           </div>
           <div className="space-y-3">
             {data.operationalGuardrails.map((rule) => (

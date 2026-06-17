@@ -262,9 +262,7 @@ export function ManagerGatesPage() {
             )}
 
             <div className="flex gap-3 pt-2">
-              <Button type="button" variant="outline" onClick={() => setModalOpen(false)} disabled={submitting} className="flex-1">
-                Hủy
-              </Button>
+              <Button type="button" variant="outline" onClick={() => setModalOpen(false)} disabled={submitting} className="flex-1">Cancel</Button>
               <Button type="submit" disabled={submitting} className="flex-1 gap-2">
                 {submitting && <Loader size={16} className="animate-spin" />}
                 {submitting ? 'Saving...' : editing ? 'Cập nhật' : 'Add gate'}

@@ -17,7 +17,7 @@ export function ConfirmModal({
   title,
   description,
   confirmLabel = 'Delete',
-  cancelLabel = 'Hủy',
+  cancelLabel = 'Cancel',
   onOpenChange,
   onConfirm,
   isConfirming = false,
@@ -40,7 +40,7 @@ export function ConfirmModal({
             disabled={isConfirming}
             className="rounded-xl px-5 py-2 font-bold text-xs"
           >
-            {isConfirming ? 'Đang xóa...' : confirmLabel}
+            {isConfirming ? 'Deleting...' : confirmLabel}
           </Button>
         </div>
       </div>

@@ -61,7 +61,7 @@ export function AdminProfilePage() {
         (Array.isArray(raw?.data) ? (raw.data as AdminUser[]) : []);
       setUsers(Array.isArray(list) ? list : []);
     } catch (err) {
-      setUsersError(err instanceof Error ? err.message : 'Không thể tải danh sách.');
+      setUsersError(err instanceof Error ? err.message : 'Failed to load list.');
     } finally {
       setUsersLoading(false);
     }
@@ -148,7 +148,7 @@ export function AdminProfilePage() {
             <Shield size={20} className="text-rose-400" />
           </div>
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-500 font-mono">Quản trị hệ thống</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-500 font-mono">System administration</p>
             <h1 className="text-xl font-bold text-white mt-0.5 tracking-tight">Profile</h1>
           </div>
         </div>
@@ -266,8 +266,7 @@ export function AdminProfilePage() {
                   onClick={handleCancel}
                   className="gap-2 rounded-xl border border-white/10 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white px-6 h-11 font-black text-xs uppercase tracking-wider transition-all duration-200 cursor-pointer"
                 >
-                  <X size={14} className="text-slate-400" /> Hủy
-                </Button>
+                  <X size={14} className="text-slate-400" />Cancel</Button>
               </div>
             </form>
           ) : (
@@ -336,8 +335,8 @@ export function AdminProfilePage() {
               <Users size={20} className="text-sky-400" />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-sky-500 font-mono">Quản trị danh sách</p>
-              <h2 className="text-lg font-bold text-white mt-0.5 tracking-tight">Danh sách người dùng</h2>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-sky-500 font-mono">Manage list</p>
+              <h2 className="text-lg font-bold text-white mt-0.5 tracking-tight">User list</h2>
             </div>
           </div>
           <Button
@@ -417,9 +416,9 @@ export function AdminProfilePage() {
                   <tr className="border-b border-white/5 bg-slate-950/40 text-[10px] font-black uppercase tracking-widest text-slate-500 font-mono">
                     <th className="py-4 px-5 text-left">Full name</th>
                     <th className="py-4 px-5 text-left">Email</th>
-                    <th className="py-4 px-5 text-left">SĐT</th>
+                    <th className="py-4 px-5 text-left">Phone</th>
                     <th className="py-4 px-5 text-left">Status</th>
-                    <th className="py-4 px-5 text-left">Ngày tạo</th>
+                    <th className="py-4 px-5 text-left">Created date</th>
                     {activeRole === 'manager' || activeRole === 'staff' ? (
                       <th className="py-4 px-5 text-left">Building</th>
                     ) : null}

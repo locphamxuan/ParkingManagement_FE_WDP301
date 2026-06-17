@@ -167,7 +167,7 @@ export function ManagerVehicleTypesPage() {
               <Button size="sm" onClick={handleCreate} disabled={isCreating || !newCode.trim() || !newName.trim()}>
                 {isCreating ? 'Creating...' : 'Tạo loại xe'}
               </Button>
-              <Button size="sm" variant="outline" onClick={() => setShowCreate(false)}>Hủy</Button>
+              <Button size="sm" variant="outline" onClick={() => setShowCreate(false)}>Cancel</Button>
             </div>
           </CardContent>
         </Card>
@@ -207,7 +207,7 @@ export function ManagerVehicleTypesPage() {
                         <Button size="sm" onClick={handleUpdate} disabled={isSaving || !editName.trim()}>
                           {isSaving ? 'Saving...' : 'Save'}
                         </Button>
-                        <Button size="sm" variant="outline" onClick={() => setEditId(null)}>Hủy</Button>
+                        <Button size="sm" variant="outline" onClick={() => setEditId(null)}>Cancel</Button>
                       </div>
                     </div>
                   ) : (

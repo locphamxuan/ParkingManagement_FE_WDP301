@@ -76,7 +76,7 @@ export function BuildingsPage() {
   }
 
   if (error || !data) {
-    return <div className="text-sm text-red-600">{error || 'Tải tòa nhà thất bại.'}</div>;
+    return <div className="text-sm text-red-600">{error || 'Failed to load buildings.'}</div>;
   }
 
   const token = session?.token || '';
@@ -124,7 +124,7 @@ export function BuildingsPage() {
       );
       await refresh();
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Không thể xóa thành viên');
+      setActionError(err instanceof Error ? err.message : 'Unable to remove member');
     } finally {
       setIsDeletingMember(false);
       setPendingDeleteMember(null);
@@ -182,7 +182,7 @@ export function BuildingsPage() {
       await refresh();
       closeModal();
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Không thể lưu tòa nhà');
+      setActionError(err instanceof Error ? err.message : 'Unable to save building');
       setIsSaving(false);
     }
   };
@@ -195,7 +195,7 @@ export function BuildingsPage() {
       await updateBuildingStatus(token, building.backendId || building.id, nextStatus);
       await refresh();
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Không thể đổi trạng thái tòa nhà');
+      setActionError(err instanceof Error ? err.message : 'Unable to change building status');
     }
   };
 
@@ -213,7 +213,7 @@ export function BuildingsPage() {
       await refresh();
       setPendingDeleteBuilding(null);
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Không thể xóa tòa nhà');
+      setActionError(err instanceof Error ? err.message : 'Unable to delete building');
     } finally {
       setIsDeleting(false);
     }
@@ -228,7 +228,7 @@ export function BuildingsPage() {
     { key: 'floors', title: 'Total floors' },
     {
       key: 'occupancyRate',
-      title: 'Tỉ lệ chiếm dụng',
+      title: 'Occupancy rate',
       render: (row) => (
         <div className="w-32">
           <div className="mb-1 text-xs text-muted-foreground">{row.occupancyRate}%</div>
@@ -243,7 +243,7 @@ export function BuildingsPage() {
       title: 'Status',
       render: (row) => <StatusBadge status={row.status} />,
     },
-    { key: 'manager', title: 'Người quản lý' },
+    { key: 'manager', title: 'Manager' },
     {
       key: 'revenueToday',
       title: 'Today\'s revenue',
@@ -265,7 +265,7 @@ export function BuildingsPage() {
             Sửa
           </Button>
           <Button variant="secondary" size="sm" onClick={() => toggleBuildingStatus(row)}>
-            {row.status === 'active' ? 'Ngưng' : 'Kích hoạt'}
+            {row.status === 'active' ? 'Suspend' : 'Activate'}
           </Button>
           <Button variant="ghost" size="sm" onClick={() => removeBuildingById(row)}>Delete</Button>
         </div>
@@ -297,15 +297,11 @@ export function BuildingsPage() {
       <DataTable title="Building" rows={pageRows} columns={columns} />
 
       <div className="flex items-center justify-end gap-2">
-        <Button variant="secondary" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))}>
-          Trước
-        </Button>
+        <Button variant="secondary" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))}>Prev</Button>
         <span className="text-sm text-muted-foreground">
           Trang {page} / {maxPage}
         </span>
-        <Button variant="secondary" size="sm" onClick={() => setPage((p) => Math.min(maxPage, p + 1))}>
-          Tiếp
-        </Button>
+        <Button variant="secondary" size="sm" onClick={() => setPage((p) => Math.min(maxPage, p + 1))}>Next</Button>
       </div>
 
       {/* Members Modal */}
@@ -322,7 +318,7 @@ export function BuildingsPage() {
             </div>
 
             {isMembersLoading ? (
-              <p className="text-sm text-muted-foreground">Đang tải danh sách thành viên...</p>
+              <p className="text-sm text-muted-foreground">Loading members...</p>
             ) : membersError ? (
               <p className="text-sm text-red-600">{membersError}</p>
             ) : (
@@ -342,7 +338,7 @@ export function BuildingsPage() {
                       >Delete</Button>
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground italic">Chưa có quản lý</p>
+                    <p className="text-sm text-muted-foreground italic">No manager yet</p>
                   )}
                 </section>
 
@@ -351,7 +347,7 @@ export function BuildingsPage() {
                     Nhân viên ({membersState.staff.length})
                   </h3>
                   {membersState.staff.length === 0 ? (
-                    <p className="text-sm text-muted-foreground italic">Chưa có nhân viên</p>
+                    <p className="text-sm text-muted-foreground italic">No staff yet</p>
                   ) : (
                     <div className="grid gap-2 max-h-64 overflow-y-auto">
                       {membersState.staff.map((s) => (
@@ -388,7 +384,7 @@ export function BuildingsPage() {
         onOpenChange={(open) => {
           if (!open) closeModal();
         }}
-        title={selectedBuilding ? 'Sửa tòa nhà' : 'Create building'}
+        title={selectedBuilding ? 'Edit building' : 'Create building'}
         onSubmit={saveBuilding}
       >
         <div className="grid gap-3 md:grid-cols-2">
@@ -414,7 +410,7 @@ export function BuildingsPage() {
           />
           {!selectedBuilding ? (
             <Input
-              placeholder="Giá giờ (VND)"
+              placeholder="Hourly rate (VND)"
               value={form.hourlyRate}
               onChange={(e) => setForm((prev) => ({ ...prev, hourlyRate: e.target.value }))}
             />
@@ -425,7 +421,7 @@ export function BuildingsPage() {
 
       <ConfirmModal
         open={Boolean(pendingDeleteBuilding)}
-        title="Xác nhận xóa tòa nhà"
+        title="Confirm building deletion"
         description={`Bạn có chắc chắn muốn xóa tòa nhà ${pendingDeleteBuilding?.name || ''}? Hành động này không thể hoàn tác.`}
         confirmLabel="Delete"
         isConfirming={isDeleting}

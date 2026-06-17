@@ -303,9 +303,7 @@ function PackageSelectModal({
             <button
               onClick={onClose}
               className="flex-1 rounded-lg border border-white/10 bg-slate-950 py-2.5 font-semibold text-slate-300 hover:bg-slate-900"
-            >
-              Hủy
-            </button>
+            >Cancel</button>
             <button
               onClick={handleSubmit}
               disabled={isSubmitting}

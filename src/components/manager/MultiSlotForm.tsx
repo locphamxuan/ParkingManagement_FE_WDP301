@@ -233,9 +233,7 @@ export function MultiSlotForm({ isOpen, onClose, onSubmit, floors, loading = fal
             onClick={handleClose}
             disabled={submitting}
             className="text-sm"
-          >
-            Hủy
-          </Button>
+          >Cancel</Button>
           <Button
             onClick={handleSubmit}
             disabled={submitting || rows.length === 0}

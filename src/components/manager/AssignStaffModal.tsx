@@ -267,9 +267,7 @@ export function AssignStaffModal({
                 onClick={handleClose}
                 disabled={isSubmitting}
                 className="flex-1"
-              >
-                Hủy
-              </Button>
+              >Cancel</Button>
               <Button
                 type="submit"
                 disabled={isSubmitting}

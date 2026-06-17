@@ -20,13 +20,13 @@ import { fmtMoney, fmtTime } from '@/pages/user/reservationsHelper';
 
 function StatusBadge({ status }: { status: string }) {
   const labels: Record<string, string> = {
-    pending: 'Chờ thanh toán',
+    pending: 'Awaiting payment',
     confirmed: 'Reserved',
     checked_in: 'In use',
     completed: 'Completed',
     expired: 'Expired',
     cancelled: 'Cancelled',
-    active: 'Đã mua',
+    active: 'Purchased',
   };
   const colors: Record<string, string> = {
     pending: 'border-amber-500/30 bg-amber-500/10 text-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.1)]',
@@ -283,7 +283,7 @@ export function ReservationHistoryTab() {
                           className="flex items-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-xs font-bold text-rose-400 hover:bg-rose-500/20 hover:border-rose-500/50 transition-all disabled:opacity-50"
                         >
                           <XCircle size={12} />
-                          {cancellingId === r._id ? 'Đang hủy...' : 'Hủy'}
+                          {cancellingId === r._id ? 'Đang hủy...' : 'Cancel'}
                         </button>
                       )}
                     </div>
@@ -291,7 +291,7 @@ export function ReservationHistoryTab() {
 
                   <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5 border-t border-white/[0.03] pt-4">
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Vị trí đỗ</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Parking position</p>
                       <p className="mt-1 text-sm font-bold text-slate-200">{(r.slot as any)?.code ?? '—'}</p>
                     </div>
                     <div>
@@ -303,15 +303,13 @@ export function ReservationHistoryTab() {
                       <p className="mt-1 text-xs font-medium text-slate-300">{r.endTime ? fmtTime(r.endTime) : '—'}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Tiền cọc</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Deposit</p>
                       <p className={`mt-1 text-sm font-black ${r.fee ? 'text-emerald-400' : 'text-slate-500'}`}>
                         {fmtMoney(r.fee)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                        Còn lại phải trả
-                      </p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Remaining to pay</p>
                       <p className="mt-1 text-sm font-black text-orange-400">
                         {fmtMoney(
                           r.parkingSession
@@ -328,13 +326,11 @@ export function ReservationHistoryTab() {
                     <div className="mt-4 rounded-xl border border-white/[0.04] bg-white/[0.01] p-3 shadow-inner">
                       <div className="flex items-center gap-1.5 border-b border-white/[0.04] pb-2 mb-2">
                         <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
-                        <h5 className="text-[10px] font-bold uppercase tracking-wider text-cyan-400">
-                          Phiên gửi xe thực tế
-                        </h5>
+                        <h5 className="text-[10px] font-bold uppercase tracking-wider text-cyan-400">Actual parking session</h5>
                       </div>
                       <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 text-xs">
                         <div>
-                          <span className="text-slate-500 text-[10px] block">Giờ vào:</span>
+                          <span className="text-slate-500 text-[10px] block">Entry time:</span>
                           <span className="text-slate-300 font-medium">{fmtTime(r.parkingSession.entryTime)}</span>
                         </div>
                         <div>
@@ -344,7 +340,7 @@ export function ReservationHistoryTab() {
                           </span>
                         </div>
                         <div className="flex flex-col justify-center">
-                          <span className="text-slate-500 text-[10px] block">Thanh toán thêm:</span>
+                          <span className="text-slate-500 text-[10px] block">Additional payment:</span>
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <span
                               className={`font-black ${
@@ -426,9 +422,7 @@ export function ReservationHistoryTab() {
                             type="button"
                             onClick={() => setCancellingSub(sub)}
                             className="flex items-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-xs font-bold text-rose-400 hover:bg-rose-500/20 hover:border-rose-500/50 transition-all"
-                          >
-                            Hủy
-                          </button>
+                          >Cancel</button>
                         ) : null;
                       })()}
                     </div>
@@ -436,7 +430,7 @@ export function ReservationHistoryTab() {
 
                   <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5 border-t border-white/[0.03] pt-4">
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Chỗ đỗ cố định</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Dedicated parking slot</p>
                       <p className="mt-1 text-sm font-bold text-slate-200">
                         {sub.slot ? ((sub.slot as any).code ?? sub.slot) : 'Không cố định'}
                       </p>
@@ -446,17 +440,17 @@ export function ReservationHistoryTab() {
                       <p className="mt-1 text-xs font-medium text-slate-300">{fmtDateOnly(sub.startDate)}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Ngày kết thúc</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">End date</p>
                       <p className="mt-1 text-xs font-medium text-slate-300">{fmtDateOnly(sub.endDate)}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Giá gói</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Package price</p>
                       <p className="mt-1 text-sm font-black text-emerald-400">
                         {fmtMoney(sub.price ?? sub.package?.price)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Mã gói</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Package code</p>
                       <p className="mt-1 text-xs font-semibold text-slate-300">{sub.package?.code ?? '—'}</p>
                     </div>
                   </div>

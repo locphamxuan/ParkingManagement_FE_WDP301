@@ -834,9 +834,7 @@ export default function ProfilePage() {
                     disabled={isSaving}
                     className="px-5 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 hover:border-white/20 inline-flex items-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    <X size={13} className="stroke-[2.5]" />
-                    Hủy
-                  </button>
+                    <X size={13} className="stroke-[2.5]" />Cancel</button>
                 </div>
               </form>
             ) : (

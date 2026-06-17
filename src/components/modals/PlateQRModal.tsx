@@ -73,7 +73,7 @@ export function PlateQRModal({ isOpen, onClose, qrToken, plateNumber, brand }: P
               {/* Header */}
               <div className="relative bg-gradient-to-r from-purple-500/10 to-fuchsia-500/10 border-b border-white/5 p-6 flex items-center justify-between">
                 <div className="space-y-1">
-                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-purple-400 font-mono">Mã QR phương tiện</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-purple-400 font-mono">Vehicle QR code</p>
                   <h2 className="text-xl font-black text-white font-mono">{plateNumber}</h2>
                 </div>
                 <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors duration-200">
@@ -93,13 +93,13 @@ export function PlateQRModal({ isOpen, onClose, qrToken, plateNumber, brand }: P
                     <p className="text-sm font-semibold text-white font-mono">{plateNumber}</p>
                   </div>
                   <div>
-                    <p className="text-[9px] font-black uppercase tracking-wider text-slate-500 font-mono mb-1">Mã QR (token)</p>
+                    <p className="text-[9px] font-black uppercase tracking-wider text-slate-500 font-mono mb-1">QR code (token)</p>
                     <div className="flex items-center gap-2">
                       <p className="text-xs font-mono text-slate-300 break-all">{qrToken}</p>
                       <button
                         onClick={handleCopy}
                         className="p-1.5 hover:bg-white/10 rounded-lg transition-colors duration-200 flex-shrink-0"
-                        title="Copy mã"
+                        title="Copy code"
                       >
                         {copied ? <Check size={16} className="text-emerald-400" /> : <Copy size={16} className="text-slate-400 hover:text-white" />}
                       </button>
@@ -109,7 +109,7 @@ export function PlateQRModal({ isOpen, onClose, qrToken, plateNumber, brand }: P
 
                 <div className="rounded-2xl bg-purple-500/5 border border-purple-500/20 p-4">
                   <p className="text-xs text-purple-200 leading-relaxed font-semibold">
-                    🛵 <strong>Instructions:</strong> Nhân viên dùng <strong>Camera 2 (Quét QR)</strong> quét mã này để nhận diện phương tiện khi không đọc được biển số.
+                    🛵 <strong>Instructions:</strong>For staff use<strong>Camera 2 (Quét QR)</strong> quét mã này để nhận diện phương tiện khi không đọc được biển số.
                   </p>
                 </div>
 

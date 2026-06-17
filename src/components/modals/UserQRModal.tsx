@@ -79,7 +79,7 @@ export function UserQRModal({ isOpen, onClose, userId, fullName }: UserQRModalPr
               {/* Header */}
               <div className="relative bg-gradient-to-r from-orange-500/10 to-amber-500/10 border-b border-white/5 p-6 flex items-center justify-between">
                 <div className="space-y-1">
-                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-orange-400 font-mono">Mã QR của bạn</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-orange-400 font-mono">Your QR code</p>
                   <h2 className="text-xl font-black text-white">Check-In / Check-Out</h2>
                 </div>
                 <button
@@ -103,7 +103,7 @@ export function UserQRModal({ isOpen, onClose, userId, fullName }: UserQRModalPr
                 {/* User Info */}
                 <div className="space-y-3 rounded-2xl bg-slate-950/60 border border-white/5 p-4">
                   <div>
-                    <p className="text-[9px] font-black uppercase tracking-wider text-slate-500 font-mono mb-1">Tên người dùng</p>
+                    <p className="text-[9px] font-black uppercase tracking-wider text-slate-500 font-mono mb-1">Username</p>
                     <p className="text-sm font-semibold text-white">{fullName || 'Users'}</p>
                   </div>
                   <div>

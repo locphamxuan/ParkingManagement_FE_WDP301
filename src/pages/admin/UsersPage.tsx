@@ -60,11 +60,11 @@ export function UsersPage() {
   }, [data?.users, query, statusFilter]);
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Đang tải danh sách người dùng...</div>;
+    return <div className="text-sm text-muted-foreground">Loading users...</div>;
   }
 
   if (error || !data) {
-    return <div className="text-sm text-red-600">{error || 'Tải người dùng thất bại.'}</div>;
+    return <div className="text-sm text-red-600">{error || 'Failed to load users.'}</div>;
   }
 
   const token = session?.token || '';
@@ -99,7 +99,7 @@ export function UsersPage() {
     if (!token) return;
     const needsBuilding = form.role === 'staff' || form.role === 'manager';
     if (needsBuilding && !form.buildingId) {
-      setActionError('Vui lòng chọn tòa nhà cho nhân viên / quản lý.');
+      setActionError('Please select a building for the staff / manager.');
       return;
     }
     try {
@@ -116,7 +116,7 @@ export function UsersPage() {
       await refresh();
       closeModals();
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Không thể tạo người dùng');
+      setActionError(err instanceof Error ? err.message : 'Unable to create user');
       setIsSaving(false);
     }
   };
@@ -133,7 +133,7 @@ export function UsersPage() {
       await refresh();
       closeModals();
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Không thể cập nhật người dùng');
+      setActionError(err instanceof Error ? err.message : 'Unable to update user');
       setIsSaving(false);
     }
   };
@@ -145,7 +145,7 @@ export function UsersPage() {
       await updateAdminUserStatus(token, user.id, user.status !== 'active');
       await refresh();
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Không thể đổi trạng thái người dùng');
+      setActionError(err instanceof Error ? err.message : 'Unable to change user status');
     }
   };
 
@@ -158,7 +158,7 @@ export function UsersPage() {
       await refresh();
       setPendingDeleteUser(null);
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Không thể xóa người dùng');
+      setActionError(err instanceof Error ? err.message : 'Unable to delete user');
     } finally {
       setIsDeleting(false);
     }
@@ -176,7 +176,7 @@ export function UsersPage() {
     },
     {
       key: 'linkedPlates',
-      title: 'Biển số liên kết',
+      title: 'Linked plates',
       render: (row) => {
         const locallyUpdatedRaw = localStorage.getItem('pbms.locallyUpdatedUsers');
         const locallyUpdated = locallyUpdatedRaw ? JSON.parse(locallyUpdatedRaw) : {};
@@ -208,7 +208,7 @@ export function UsersPage() {
         }));
 
         if (mergedPlates.length === 0) {
-          return <span className="text-muted-foreground italic text-xs">Chưa liên kết</span>;
+          return <span className="text-muted-foreground italic text-xs">Not linked</span>;
         }
 
         return (
@@ -223,7 +223,7 @@ export function UsersPage() {
                     ? 'bg-blue-500/20 border-blue-500/30 text-blue-400'
                     : 'bg-purple-500/20 border-purple-500/30 text-purple-400'
                 }`}
-                title={p.isDefault ? 'Biển số mặc định' : p.vehicleType === 'car' ? 'Car' : 'Motorcycle'}
+                title={p.isDefault ? 'Default plate' : p.vehicleType === 'car' ? 'Car' : 'Motorcycle'}
               >
                 <span>{p.vehicleType === 'car' ? '🚗' : '🏍️'}</span>
                 <span>{p.plateNumber}</span>
@@ -276,7 +276,7 @@ export function UsersPage() {
         onOpenChange={(open) => {
           if (!open) closeModals();
         }}
-        title="Cập nhật người dùng"
+        title="Update user"
         onSubmit={saveUpdate}
       >
         <div className="grid gap-3 md:grid-cols-2">
@@ -316,7 +316,7 @@ export function UsersPage() {
             onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
           />
           <Input
-            placeholder="Mật khẩu"
+            placeholder="Password"
             type="password"
             value={form.password}
             onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))}
@@ -372,7 +372,7 @@ export function UsersPage() {
 
       <ConfirmModal
         open={Boolean(pendingDeleteUser)}
-        title="Xác nhận xóa người dùng"
+        title="Confirm user deletion"
         description={`Xóa vĩnh viễn tài khoản "${pendingDeleteUser?.name || pendingDeleteUser?.email || ''}"? Hành động này không thể hoàn tác.`}
         confirmLabel="Delete"
         isConfirming={isDeleting}

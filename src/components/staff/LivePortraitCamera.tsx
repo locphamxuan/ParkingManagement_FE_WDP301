@@ -69,7 +69,7 @@ export const LivePortraitCamera = forwardRef<LiveCameraHandle, LivePortraitCamer
       <div className="rounded-xl border border-border bg-card/40 p-3 space-y-2.5">
         <div className="flex items-center gap-2">
           <UserSquare size={15} className="text-violet-400" />
-          <p className="text-sm font-semibold text-foreground">Camera 1 · Chân dung tài xế</p>
+          <p className="text-sm font-semibold text-foreground">Camera 1 · Driver portrait</p>
         </div>
 
         <div className="relative aspect-[4/3] overflow-hidden rounded-lg border border-white/10 bg-black/60">

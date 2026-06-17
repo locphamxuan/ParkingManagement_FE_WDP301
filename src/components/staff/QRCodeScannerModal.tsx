@@ -25,7 +25,7 @@ export function QRCodeScannerModal({
   onClose,
   onScanSuccess,
   loading = false,
-  title = 'Quét Mã QR',
+  title = 'Scan QR code',
 }: QRCodeScannerModalProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -238,7 +238,7 @@ export function QRCodeScannerModal({
         setError('Không tìm thấy mã QR trong ảnh. Hãy chụp lại sao cho mã QR rõ, chiếm phần lớn khung hình, không bị loá/nghiêng.');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Lỗi xử lý ảnh');
+      setError(err instanceof Error ? err.message : 'Image processing error');
     } finally {
       URL.revokeObjectURL(url);
     }
@@ -356,8 +356,8 @@ export function QRCodeScannerModal({
                       className="w-full py-8 flex flex-col items-center gap-2 text-sky-300 hover:text-sky-200 transition-colors"
                     >
                       <Upload size={26} />
-                      <span className="text-sm font-semibold">Nhấp để chọn ảnh QR Code</span>
-                      <span className="text-xs text-slate-500">hoặc kéo thả ảnh vào đây</span>
+                      <span className="text-sm font-semibold">Click to choose a QR code image</span>
+                      <span className="text-xs text-slate-500">or drag and drop an image here</span>
                     </button>
                   </div>
                 )}
@@ -365,7 +365,7 @@ export function QRCodeScannerModal({
                 {/* Status */}
                 {scannedCode ? (
                   <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3">
-                    <p className="text-xs font-semibold text-emerald-400">Quét thành công</p>
+                    <p className="text-xs font-semibold text-emerald-400">Scan successful</p>
                     <p className="mt-1 text-sm font-mono text-emerald-300 break-all">{scannedCode}</p>
                   </div>
                 ) : error ? (
@@ -375,8 +375,8 @@ export function QRCodeScannerModal({
                   </div>
                 ) : isScanning ? (
                   <div className="rounded-xl border border-sky-500/20 bg-sky-500/5 p-3">
-                    <p className="text-xs font-semibold text-sky-300">Đang quét QR code...</p>
-                    <p className="mt-1 text-xs text-slate-500">Hướng camera vào mã QR để bắt đầu quét</p>
+                    <p className="text-xs font-semibold text-sky-300">Scanning QR code...</p>
+                    <p className="mt-1 text-xs text-slate-500">Point the camera at the QR code to start scanning</p>
                   </div>
                 ) : null}
 
@@ -384,9 +384,7 @@ export function QRCodeScannerModal({
                 <div className="flex gap-3">
                   {scannedCode ? (
                     <>
-                      <Button type="button" variant="outline" onClick={handleRetry} disabled={loading} className="flex-1">
-                        Quét lại
-                      </Button>
+                      <Button type="button" variant="outline" onClick={handleRetry} disabled={loading} className="flex-1">Scan again</Button>
                       <Button type="button" onClick={onClose} disabled={loading} className="flex-1">
                         {loading ? 'Processing...' : 'Confirm'}
                       </Button>

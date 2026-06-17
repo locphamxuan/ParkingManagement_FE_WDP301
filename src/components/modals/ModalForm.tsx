@@ -22,9 +22,7 @@ export function ModalForm({ open, onOpenChange, title, children, onSubmit }: Mod
             variant="secondary" 
             onClick={() => onOpenChange(false)}
             className="rounded-xl px-5 py-2 font-bold text-xs transition-all duration-200"
-          >
-            Hủy
-          </Button>
+          >Cancel</Button>
           <Button 
             onClick={onSubmit}
             className="rounded-xl px-5 py-2 font-bold text-xs bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-md shadow-orange-500/10 transition-all duration-200 hover:scale-[1.01]"

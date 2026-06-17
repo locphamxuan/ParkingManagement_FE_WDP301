@@ -46,7 +46,7 @@ export function PackageCard({ pkg, isSelected, isLocked, cat, colors, onClick }:
       {isLocked && isHovered && (
         <div className="absolute inset-0 z-30 flex flex-col items-center justify-center rounded-2xl bg-slate-950/70 backdrop-blur-[2px] pointer-events-none">
           <Lock size={22} className="text-slate-400 mb-1" />
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Không phù hợp</span>
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Not suitable</span>
         </div>
       )}
 
@@ -87,7 +87,7 @@ export function PackageCard({ pkg, isSelected, isLocked, cat, colors, onClick }:
       <span
         className={`absolute -top-2.5 right-4 rounded-full bg-gradient-to-r ${colors.accent} px-2.5 py-0.5 text-[8px] font-black uppercase tracking-wider text-slate-950 shadow-[0_0_12px_rgba(251,191,36,0.25)] animate-pulse z-10`}
       >
-        {cat === 'weekly' ? 'Tiết kiệm' : cat === 'monthly' ? 'Phổ biến' : '💎 VIP GIÁ TỐT'}
+        {cat === 'weekly' ? 'Save' : cat === 'monthly' ? 'Popular' : '💎 BEST VIP PRICE'}
       </span>
       <span className={`text-[9px] font-black uppercase tracking-wider ${colors.text} relative z-10`}>
         {categoryLabels[cat]}
@@ -122,8 +122,7 @@ export function PackageCard({ pkg, isSelected, isLocked, cat, colors, onClick }:
           isSelected ? 'border-emerald-400/30 bg-emerald-400/10 text-emerald-200' : 'border-emerald-400/20 bg-emerald-400/5 text-emerald-300'
         }`}
       >
-        <ShieldCheck size={10} /> Chỗ cố định
-      </span>
+        <ShieldCheck size={10} />Dedicated slot</span>
       {isSelected && (
         <motion.div initial={{ scale: 0, rotate: -45 }} animate={{ scale: 1, rotate: 0 }} className="absolute right-3 top-3 z-20">
           <CheckCircle2 size={18} className={`${colors.text} drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]`} />

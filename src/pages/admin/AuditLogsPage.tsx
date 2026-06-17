@@ -15,15 +15,15 @@ const TARGET_LABELS: Record<string, string> = {
   vehicle_types: 'Vehicle type',
   price_policies: 'Pricing',
   long_term_packages: 'Long-term package',
-  reservation_policies: 'Chính sách đặt chỗ',
+  reservation_policies: 'Reservation policy',
   shifts: 'Shift',
-  staff_shifts: 'Phân ca nhân viên',
-  feedbacks: 'Phản hồi',
-  revenue_distributions: 'Phân phối doanh thu',
-  subscription_packages: 'Gói dịch vụ',
-  subscriptions: 'Đăng ký gói',
-  wallets: 'Ví',
-  transactions: 'Giao dịch',
+  staff_shifts: 'Staff shift assignment',
+  feedbacks: 'Feedback',
+  revenue_distributions: 'Revenue distribution',
+  subscription_packages: 'Service packages',
+  subscriptions: 'Subscriptions',
+  wallets: 'Wallet',
+  transactions: 'Transactions',
 };
 
 const targetLabel = (target: string) => TARGET_LABELS[target] ?? target;
@@ -40,7 +40,7 @@ export function AuditLogsPage() {
   const groups = useMemo(() => {
     const map = new Map<string, AuditLog[]>();
     for (const log of logs) {
-      const key = log.target || 'khác';
+      const key = log.target || 'other';
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(log);
     }
@@ -68,30 +68,28 @@ export function AuditLogsPage() {
   }, [groups, currentTab, query, severity]);
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Đang tải nhật ký kiểm toán...</div>;
+    return <div className="text-sm text-muted-foreground">Loading audit logs...</div>;
   }
 
   if (error || !data) {
-    return <div className="text-sm text-red-600">{error || 'Tải nhật ký thất bại.'}</div>;
+    return <div className="text-sm text-red-600">{error || 'Failed to load logs.'}</div>;
   }
 
   const columns: DataColumn<AuditLog>[] = [
-    { key: 'actor', title: 'Người thực hiện' },
+    { key: 'actor', title: 'Performed by' },
     { key: 'action', title: 'Actions' },
     { key: 'details', title: 'Details' },
     { key: 'timestamp', title: 'Time' },
     {
       key: 'severity',
-      title: 'Mức độ',
+      title: 'Severity',
       render: (row) => <StatusBadge status={row.severity} />,
     },
   ];
 
   if (groups.length === 0) {
     return (
-      <div className="rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
-        Chưa có nhật ký kiểm toán nào.
-      </div>
+      <div className="rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">No audit logs yet.</div>
     );
   }
 

@@ -30,9 +30,7 @@ export function BookingSummarySidebar({
       <div className="rounded-3xl border border-white/[0.06] bg-gradient-to-b from-white/[0.04] to-transparent p-5">
         <div className="flex items-center gap-2 mb-5">
           <CalendarClock size={16} className="text-orange-300/70" />
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-300/70">
-            Tóm tắt đặt chỗ
-          </span>
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-300/70">Booking summary</span>
         </div>
 
         <div className="space-y-3">
@@ -43,7 +41,7 @@ export function BookingSummarySidebar({
           <div className="flex justify-between text-xs">
             <span className="font-bold text-slate-400">Mode</span>
             <span className="font-black text-white">
-              {mode === 'hourly' ? 'Theo giờ' : selectedPkgName || 'Long-term package'}
+              {mode === 'hourly' ? 'Hourly' : selectedPkgName || 'Long-term package'}
             </span>
           </div>
           <div className="flex justify-between text-xs">
@@ -79,13 +77,13 @@ export function BookingSummarySidebar({
           </div>
 
           <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-            <p className="text-[9px] font-bold uppercase text-slate-500">Nhận bãi</p>
+            <p className="text-[9px] font-bold uppercase text-slate-500">Check-in</p>
             <p className="mt-1 text-sm font-black text-white">
               {startDateTime ? fmtShort(startDateTime) : '—'}
             </p>
           </div>
           <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-            <p className="text-[9px] font-bold uppercase text-slate-500">Trả bãi</p>
+            <p className="text-[9px] font-bold uppercase text-slate-500">Check-out</p>
             <p className="mt-1 text-sm font-black text-white">
               {endDateTime ? fmtShort(endDateTime) : '—'}
             </p>

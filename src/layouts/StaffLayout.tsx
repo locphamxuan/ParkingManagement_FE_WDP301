@@ -27,7 +27,7 @@ const pageTitle: Record<string, string> = {
   checkout: 'Check-out xe ra',
   parked: 'Parked vehicles',
   reservations: 'Reservation',
-  'my-shifts': 'Ca làm việc của tôi',
+  'my-shifts': 'My shifts',
   sessions: 'Payment tracking',
   incidents: 'Incident management',
 };
@@ -52,7 +52,7 @@ export function StaffLayout() {
       { to: 'parked', label: 'Parked vehicles', icon: Car },
       { to: 'reservations', label: 'Reservation', icon: CalendarCheck2 },
       { to: 'my-shifts', label: 'Shift', icon: CalendarClock },
-      { to: 'sessions', label: 'Thanh toán', icon: Wallet },
+      { to: 'sessions', label: 'Payment', icon: Wallet },
       { to: 'incidents', label: 'Incident', icon: ShieldAlert },
     ],
     [showCheckIn, showCheckOut],

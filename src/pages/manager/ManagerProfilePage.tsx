@@ -214,8 +214,7 @@ export function ManagerProfilePage() {
                   onClick={handleCancel}
                   className="gap-2 rounded-xl border border-white/10 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white px-6 h-11 font-black text-xs uppercase tracking-wider transition-all duration-200 cursor-pointer"
                 >
-                  <X size={14} className="text-slate-400" /> Hủy
-                </Button>
+                  <X size={14} className="text-slate-400" />Cancel</Button>
               </div>
             </form>
           ) : (

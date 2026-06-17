@@ -539,9 +539,7 @@ export default function ReviewsPage() {
                   onClick={() => setModalOpen(false)}
                   disabled={submitting}
                   className="rounded-xl px-5 py-2.5 font-bold text-xs"
-                >
-                  Hủy
-                </Button>
+                >Cancel</Button>
                 <Button
                   type="submit"
                   disabled={submitting}

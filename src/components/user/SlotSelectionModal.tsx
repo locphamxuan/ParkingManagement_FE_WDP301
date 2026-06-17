@@ -92,7 +92,7 @@ export function SlotSelectionModal({
                 ) : isLoadingSlots ? (
                   <div className="flex flex-col items-center justify-center py-20 text-slate-400">
                     <div className="h-8 w-8 animate-spin rounded-full border-2 border-orange-500 border-t-transparent mb-3" />
-                    <span className="text-sm font-medium">Đang tải danh sách ô đỗ...</span>
+                    <span className="text-sm font-medium">Loading slots...</span>
                   </div>
                 ) : null
               }
@@ -127,8 +127,7 @@ export function SlotSelectionModal({
                 </div>
                 {selectedVehicleType && (
                   <div className="rounded-xl border border-white/5 bg-white/[0.02] px-4 py-2.5 text-xs text-slate-400 flex items-center gap-2 max-w-md">
-                    <span>
-                      Bản đồ đang lọc theo <strong>{selectedVehicleType === 'car' ? 'Car' : 'Motorcycle'}</strong>. Các
+                    <span>Map filtered by<strong>{selectedVehicleType === 'car' ? 'Car' : 'Motorcycle'}</strong>. Các
                       ô đỗ không phù hợp sẽ tự động mờ đi.
                     </span>
                   </div>

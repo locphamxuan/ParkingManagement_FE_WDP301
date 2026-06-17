@@ -312,9 +312,7 @@ export function ManagerReviewsPage() {
                 variant="outline"
                 onClick={() => !replying && setReplyModalOpen(false)}
                 disabled={replying}
-              >
-                Hủy
-              </Button>
+              >Cancel</Button>
               <Button
                 onClick={handleReplySubmit}
                 disabled={replying || !replyForm.staffReply.trim()}

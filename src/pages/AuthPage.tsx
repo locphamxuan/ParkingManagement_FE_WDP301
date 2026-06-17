@@ -27,15 +27,15 @@ interface AuthPageProps {
 
 const promoPoints = [
   {
-    title: 'Dễ sử dụng',
+    title: 'Easy to use',
     text: 'Biểu mẫu sáng rõ, thao tác nhanh và đồng bộ màu sắc với landing page trang chủ.',
   },
   {
-    title: 'Đúng bối cảnh',
+    title: 'Context-aware',
     text: 'Hình nền bãi đỗ xe và tông màu cam kem giúp nhận diện rõ đây là hệ thống parking.',
   },
   {
-    title: 'An tâm truy cập',
+    title: 'Secure access',
     text: 'Thông tin tài khoản và các luồng đăng nhập, đăng ký được trình bày ngắn gọn, dễ theo dõi.',
   },
 ];
@@ -181,8 +181,8 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
 
   const title = useMemo(() => {
     if (mode === 'reset-password') return 'Reset password';
-    if (mode === 'forgot-password') return 'Khôi phục mật khẩu';
-    return mode === 'login' ? 'Đăng nhập vào PBMS' : 'Tạo tài khoản PBMS';
+    if (mode === 'forgot-password') return 'Recover password';
+    return mode === 'login' ? 'Sign in to PBMS' : 'Create a PBMS account';
   }, [mode]);
   const description = useMemo(() => {
     if (mode === 'reset-password')
@@ -303,21 +303,21 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
     const email = forgotEmail.trim();
     
     if (!email) {
-      setLocalNotice({ message: 'Vui lòng nhập email của bạn!', type: 'error' });
+      setLocalNotice({ message: 'Please enter your email!', type: 'error' });
       return;
     }
 
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setLocalNotice({ message: 'Email không hợp lệ!', type: 'error' });
+      setLocalNotice({ message: 'Invalid email!', type: 'error' });
       return;
     }
 
     try {
       await forgotPassword(email);
       setModal({
-        title: 'Đã gửi email khôi phục',
+        title: 'Recovery email sent',
         message:
           'Nếu email này có trong hệ thống, chúng tôi đã gửi link đặt lại mật khẩu. Vui lòng kiểm tra hộp thư (kể cả thư mục spam). Link có hiệu lực trong 15 phút.',
         type: 'success',
@@ -329,8 +329,8 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
       });
     } catch (error) {
       setModal({
-        title: 'Gửi email thất bại',
-        message: error instanceof Error ? error.message : 'Gửi email thất bại. Vui lòng thử lại.',
+        title: 'Failed to send email',
+        message: error instanceof Error ? error.message : 'Failed to send email. Please try again.',
         type: 'error',
       });
     }
@@ -350,7 +350,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
 
     // Validation: Mật khẩu không được bỏ trống
     if (!newPassword || !confirmPassword) {
-      setLocalNotice({ message: 'Vui lòng nhập mật khẩu!', type: 'error' });
+      setLocalNotice({ message: 'Please enter your password!', type: 'error' });
       return;
     }
 
@@ -804,9 +804,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                     setLocalNotice(null);
                   }}
                   className="flex-1 h-11 rounded-xl border border-white/10 text-white font-black text-xs uppercase tracking-wider hover:bg-slate-900 transition-all"
-                >
-                  Hủy
-                </button>
+                >Cancel</button>
                 <motion.button 
                   type="submit"
                   disabled={isLoading}
@@ -905,7 +903,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
             </div>
 
             <div className="space-y-1.5 relative">
-              <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Mật khẩu</label>
+              <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Password</label>
               <div className="relative">
                 <input 
                   ref={passwordInputRef}

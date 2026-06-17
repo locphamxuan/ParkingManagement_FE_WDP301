@@ -11,7 +11,7 @@ const fmtTime = (v?: string | null) =>
   v ? new Date(v).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' }) : '—';
 
 const fmtMoney = (n?: number | null) =>
-  n != null ? `${n.toLocaleString('vi-VN')} đ` : '—';
+  n != null ? `${n.toLocaleString('vi-VN')} ₫` : '—';
 
 const STATUS_LABELS: Record<StaffReservation['status'], string> = {
   pending: 'Awaiting confirmation',
@@ -285,7 +285,7 @@ export function StaffReservationsPage() {
             <p className="text-sm text-muted-foreground py-6 text-center">No reservations found.</p>
           ) : (
             <DataTable
-              title={`Đặt chỗ (${filtered.length})`}
+              title={`Reservations (${filtered.length})`}
               rows={filtered}
               columns={columns}
             />

@@ -92,7 +92,7 @@ export function ManagerFloorsPage() {
   };
 
   const onDelete = async (row: Floor) => {
-    if (!window.confirm(`Xóa tầng ${row.code}? Tầng phải không có ô đỗ.`)) return;
+    if (!window.confirm(`Delete floor ${row.code}? The floor must have no slots.`)) return;
     try {
       await managerApi.floors.remove(buildingId, row._id);
       refresh();

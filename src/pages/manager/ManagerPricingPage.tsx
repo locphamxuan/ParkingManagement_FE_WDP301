@@ -126,7 +126,7 @@ export function ManagerPricingPage() {
   };
 
   const deactivate = async (row: PricePolicy) => {
-    if (!window.confirm(`Vô hiệu hóa chính sách "${row.name}"?`)) return;
+    if (!window.confirm(`Disable policy "${row.name}"?`)) return;
     try {
       await managerApi.pricePolicies.deactivate(buildingId, row._id);
       refresh();
@@ -150,7 +150,7 @@ export function ManagerPricingPage() {
     {
       key: 'hourlyRate',
       title: 'Price/hour',
-      render: (row) => `${row.hourlyRate.toLocaleString('vi-VN')} đ`,
+      render: (row) => `${row.hourlyRate.toLocaleString('vi-VN')} ₫`,
     },
     {
       key: 'timeWindow',

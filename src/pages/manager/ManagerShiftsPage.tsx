@@ -87,7 +87,7 @@ export function ManagerShiftsPage() {
   };
 
   const onDelete = async (row: Shift) => {
-    if (!window.confirm(`Xóa ca ${row.code}?`)) return;
+    if (!window.confirm(`Delete shift ${row.code}?`)) return;
     try {
       await managerApi.shifts.remove(buildingId, row._id);
       refresh();

@@ -968,7 +968,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                 {isLoading 
                   ? 'Processing...' 
                   : mode === 'login' && lockTimeLeft > 0 
-                  ? `Bị khóa (Thử lại sau ${Math.floor(lockTimeLeft / 60)}m ${lockTimeLeft % 60}s)` 
+                  ? `Locked (retry in ${Math.floor(lockTimeLeft / 60)}m ${lockTimeLeft % 60}s)` 
                   : mode === 'login' 
                   ? 'Sign in' 
                   : 'Create account'}

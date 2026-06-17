@@ -73,7 +73,7 @@ export function ManagerStaffShiftsPage() {
   };
 
   const onDelete = async (row: StaffShift) => {
-    if (!window.confirm(`Xóa assignment cho ${row.staff?.fullName ?? 'nhân viên'}?`)) return;
+    if (!window.confirm(`Delete assignment for ${row.staff?.fullName ?? 'staff'}?`)) return;
     try {
       await managerApi.shifts.removeStaffShift(buildingId, row._id);
       refresh();

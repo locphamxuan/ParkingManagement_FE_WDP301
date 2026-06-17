@@ -85,7 +85,7 @@ export function StaffShiftsPage() {
           <CardContent className="p-6 text-sm text-muted-foreground">No shifts in this period.</CardContent>
         </Card>
       ) : (
-        <DataTable title={`Ca làm việc (${items.length})`} rows={items} columns={columns} />
+        <DataTable title={`Shifts (${items.length})`} rows={items} columns={columns} />
       )}
     </div>
   );

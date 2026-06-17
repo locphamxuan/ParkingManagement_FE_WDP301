@@ -232,8 +232,8 @@ export function StaffSessionsPage() {
 
   const VIEW_TABS: { value: ViewFilter; label: string }[] = [
     { value: 'all', label: 'All' },
-    { value: 'reservation', label: `Đặt chỗ (${paidReservations.length})` },
-    { value: 'session', label: `Gửi trực tiếp (${activeSessions.length})` },
+    { value: 'reservation', label: `Reservations (${paidReservations.length})` },
+    { value: 'session', label: `Walk-in (${activeSessions.length})` },
   ];
 
   const statCards = [

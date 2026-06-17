@@ -199,7 +199,7 @@ const toAudit = (item: ApiAudit): AuditLog => ({
   target: item.targetTable,
   severity: item.severity || 'low',
   timestamp: item.createdAt ? new Date(item.createdAt).toLocaleString('vi-VN') : '-',
-  details: item.description || `${item.action} trên ${item.targetTable}`,
+  details: item.description || `${item.action} on ${item.targetTable}`,
 });
 
 async function getManagerOverview(token: string, buildingId: string): Promise<ManagerOverviewData | null> {
@@ -300,25 +300,25 @@ export async function getApiAdminDataset(token: string): Promise<AdminDataset> {
       key: 'buildings',
       label: 'Total buildings',
       value: String(overviewRes.data.counts.buildings),
-      delta: `${buildings.filter((b) => b.status === 'active').length} đang hoạt động`,
+      delta: `${buildings.filter((b) => b.status === 'active').length} active`,
     },
     {
       key: 'sessions',
       label: 'Active parking sessions',
       value: overviewRes.data.counts.activeSessions.toLocaleString('vi-VN'),
-      delta: `${overviewRes.data.counts.staff} nhân sự vận hành`,
+      delta: `${overviewRes.data.counts.staff} operations staff`,
     },
     {
       key: 'revenue',
       label: 'Today\'s revenue',
       value: formatCompactCurrency(overviewRes.data.revenue.total ?? overviewRes.data.revenue.today ?? 0),
-      delta: `${paymentMethodDistribution.length} phương thức thanh toán`,
+      delta: `${paymentMethodDistribution.length} payment methods`,
     },
     {
       key: 'users',
       label: 'System-wide users',
       value: overviewRes.data.counts.users.toLocaleString('vi-VN'),
-      delta: `${overviewRes.data.counts.managers} quản lý / ${overviewRes.data.counts.staff} nhân viên`,
+      delta: `${overviewRes.data.counts.managers} managers / ${overviewRes.data.counts.staff} staff`,
     },
   ];
 
@@ -341,7 +341,7 @@ export async function getApiAdminDataset(token: string): Promise<AdminDataset> {
       id: 'ops-staff',
       label: 'Operations personnel',
       value: overviewRes.data.counts.staff.toLocaleString('vi-VN'),
-      trend: `${overviewRes.data.counts.managers} quản lý`,
+      trend: `${overviewRes.data.counts.managers} managers`,
       status: overviewRes.data.counts.staff > 0 ? 'ok' : 'critical',
     },
   ];

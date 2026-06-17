@@ -214,7 +214,7 @@ export default function ReservationsPage() {
         if (!ignore) {
           const errorMsg = err instanceof Error ? err.message : String(err);
           console.error('Error loading floors:', errorMsg, err);
-          setFloorsError(`Lỗi tải tầng: ${errorMsg}`);
+          setFloorsError(`Error loading floors: ${errorMsg}`);
           setFloorsData([]);
         }
       }
@@ -433,7 +433,7 @@ export default function ReservationsPage() {
           setBookingSuccess('Redirecting to the PayOS payment gateway...');
           window.location.href = data.checkoutUrl;
         } else {
-          setBookingSuccess(`Đăng ký gói "${selectedPkg.name}" thành công!`);
+          setBookingSuccess(`Subscribed to "${selectedPkg.name}" successfully!`);
         }
       }
       setSelectedSlot(null);

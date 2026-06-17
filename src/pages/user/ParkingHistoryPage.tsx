@@ -73,9 +73,9 @@ export default function ParkingHistoryPage() {
   );
 
   const TABS: { value: FilterStatus; label: string }[] = [
-    { value: 'all', label: `Tất cả (${items.length})` },
-    { value: 'active', label: `Đang gửi (${items.filter((s) => s.status === 'active').length})` },
-    { value: 'completed', label: `Đã xong (${items.filter((s) => s.status === 'completed').length})` },
+    { value: 'all', label: `All (${items.length})` },
+    { value: 'active', label: `Parking (${items.filter((s) => s.status === 'active').length})` },
+    { value: 'completed', label: `Done (${items.filter((s) => s.status === 'completed').length})` },
   ];
 
   // Guard: redirect after all hooks have been declared

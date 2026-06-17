@@ -69,7 +69,7 @@ export function ManagerStaffPage() {
           <span className="text-xs">Admin must use the "Members" function to assign staff.</span>
         </div>
       ) : (
-        <DataTable title={`Nhân viên (${items.length})`} rows={items} columns={columns} />
+        <DataTable title={`Staff (${items.length})`} rows={items} columns={columns} />
       )}
     </div>
   );

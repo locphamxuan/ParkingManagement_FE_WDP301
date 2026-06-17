@@ -124,7 +124,7 @@ export function ManagerGatesPage() {
   };
 
   const onDelete = async (row: Gate) => {
-    if (!window.confirm(`Xóa cổng ${row.code}?`)) return;
+    if (!window.confirm(`Delete gate ${row.code}?`)) return;
     try {
       await managerApi.gates.remove(buildingId, row._id);
       refresh();

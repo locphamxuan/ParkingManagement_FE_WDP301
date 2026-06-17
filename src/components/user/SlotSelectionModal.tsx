@@ -118,7 +118,7 @@ export function SlotSelectionModal({
                         { value: '', label: '-- Select floor --' },
                         ...floorsData.map((f) => ({
                           value: f._id,
-                          label: `Tầng ${f.code || f.name || ''} (${f.availableSlots}/${f.totalSlots})`,
+                          label: `Floor ${f.code || f.name || ''} (${f.availableSlots}/${f.totalSlots})`,
                         })),
                       ]}
                       placeholder="-- Select floor --"

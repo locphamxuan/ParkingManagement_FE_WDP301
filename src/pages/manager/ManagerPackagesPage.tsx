@@ -133,7 +133,7 @@ export function ManagerPackagesPage() {
   };
 
   const onDelete = async (row: LongTermPackage) => {
-    if (!window.confirm(`Xóa gói "${row.name}"?`)) return;
+    if (!window.confirm(`Delete package "${row.name}"?`)) return;
     try {
       await managerApi.packages.remove(buildingId, row._id);
       refresh();
@@ -154,7 +154,7 @@ export function ManagerPackagesPage() {
     {
       key: 'price',
       title: 'Price',
-      render: (row) => `${row.price.toLocaleString('vi-VN')} đ`,
+      render: (row) => `${row.price.toLocaleString('vi-VN')} ₫`,
     },
     {
       key: 'maxHoursPerDay',
@@ -165,7 +165,7 @@ export function ManagerPackagesPage() {
     {
       key: 'graceDays',
       title: 'Grace (days)',
-      render: (row) => `${row.graceDays ?? 7} ngày`,
+      render: (row) => `${row.graceDays ?? 7} days`,
     },
     { key: 'reservedSlots', title: 'Dedicated slot' },
     {
@@ -173,7 +173,7 @@ export function ManagerPackagesPage() {
       title: 'Benefits',
       render: (row) => (
         <span className="text-xs text-slate-400">
-          {(row.benefits?.length ?? 0) > 0 ? `${row.benefits!.length} ưu đãi` : '—'}
+          {(row.benefits?.length ?? 0) > 0 ? `${row.benefits!.length} benefits` : '—'}
           {row.allowDedicatedSlot ? ' · dedicated' : ''}
         </span>
       ),

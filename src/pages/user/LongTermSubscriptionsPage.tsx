@@ -435,7 +435,7 @@ export default function LongTermSubscriptionsPage() {
   const selectedPackage = selectedPackageForModal;
 
   const handleRenew = async (item: LongTermSubscription) => {
-    if (!window.confirm(`Gia hạn gói "${item.package.name}" cho biển ${item.plateNumber}? Phí sẽ trừ từ ví.`)) return;
+    if (!window.confirm(`Renew package "${item.package.name}" for plate ${item.plateNumber}? The fee will be charged from your wallet.`)) return;
     setMessage(null);
     try {
       await renew(item._id);

@@ -34,7 +34,7 @@ function validatePlate(raw: string, existingPlates: Array<{ plateNumber: string;
 
   // Step 3: duplicate check
   if (existingPlates.some((p) => p.plateNumber.toUpperCase() === plate)) {
-    return { ok: false, error: `Biển số "${plate}" đã được thêm.` };
+    return { ok: false, error: `Plate "${plate}" has been added.` };
   }
 
   return { ok: true };

@@ -110,7 +110,7 @@ export function StaffOperationsPage() {
     if (allowedTypes.length === 0) return null;
     const code = vehicleType === 'car' ? 'CAR' : 'MOTORCYCLE';
     if (!allowedTypes.includes(code))
-      return `Tòa nhà này không hỗ trợ loại xe ${vehicleType === 'car' ? 'car' : 'motorcycle'}.`;
+      return `This building does not support ${vehicleType === 'car' ? 'car' : 'motorcycle'} vehicles.`;
     return null;
   }, [allowedTypes, vehicleType]);
 
@@ -210,7 +210,7 @@ export function StaffOperationsPage() {
         plateImage: plateImg,
         portraitImage: portraitImg,
       });
-      setOpMessage({ type: 'ok', text: `Đã tạo phiên gửi xe cho biển số ${currentPlate} thành công.` });
+      setOpMessage({ type: 'ok', text: `Parking session created for plate ${currentPlate}.` });
       resetForm();
     } catch (err) {
       setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Check-in failed' });
@@ -456,7 +456,7 @@ export function StaffOperationsPage() {
         onScanSuccess={(code: string) => {
           setReservationCode(code);
           setIsQrModalOpen(false);
-          setOpMessage({ type: 'ok', text: `Đã quét mã đặt chỗ: ${code}` });
+          setOpMessage({ type: 'ok', text: `Scanned reservation code: ${code}` });
         }}
         title="Scan reservation code"
       />

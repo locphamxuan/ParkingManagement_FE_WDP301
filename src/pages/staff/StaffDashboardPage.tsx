@@ -81,9 +81,9 @@ function formatSlotLocation(session: ParkingSession): string {
   const slotCode = session.slot?.code || null;
   
   if (!floor && !slotCode) return 'Location —';
-  if (!floor) return `Ô ${slotCode}`;
-  if (!slotCode) return `Tầng ${floor}`;
-  return `Tầng ${floor} • Ô ${slotCode}`;
+  if (!floor) return `Slot ${slotCode}`;
+  if (!slotCode) return `Floor ${floor}`;
+  return `Floor ${floor} • Slot ${slotCode}`;
 }
 
 export function StaffDashboardPage() {

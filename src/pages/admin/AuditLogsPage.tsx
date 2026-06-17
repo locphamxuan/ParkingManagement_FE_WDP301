@@ -132,7 +132,7 @@ export function AuditLogsPage() {
       />
 
       <DataTable
-        title={`Nhật ký: ${currentTab ? targetLabel(currentTab) : ''}`}
+        title={`Logs: ${currentTab ? targetLabel(currentTab) : ''}`}
         rows={filtered}
         columns={columns}
       />

@@ -26,7 +26,7 @@ export default function Footer() {
 
       <div className="mt-6 border-t border-white/20 pt-4">
         <div className="max-w-6xl mx-auto px-4 text-sm text-white/90 text-center">
-          <small>{`(c) ${new Date().getFullYear()} PBMS. Bảo lưu mọi quyền.`}</small>
+          <small>{`(c) ${new Date().getFullYear()} PBMS. All rights reserved.`}</small>
         </div>
       </div>
     </footer>

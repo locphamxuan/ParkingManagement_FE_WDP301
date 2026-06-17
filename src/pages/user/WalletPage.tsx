@@ -493,7 +493,7 @@ export default function WalletPage() {
                 className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-amber-600 text-sm font-black uppercase tracking-wider text-slate-950 shadow-[0_4px_20px_rgba(249,115,22,0.2)] transition-all duration-300 hover:brightness-110 active:scale-98 disabled:opacity-50"
               >
                 <QrCode size={16} />
-                {isSubmitting ? 'Initializing...' : `NẠP TIỀN (${fmtMoney(selectedAmount)})`}
+                {isSubmitting ? 'Initializing...' : `TOP UP (${fmtMoney(selectedAmount)})`}
               </button>
 
               {message && (
@@ -667,7 +667,7 @@ export default function WalletPage() {
                   {/* Transfer Details Form */}
                   {(() => {
                     const qrInfo = parseVietQR(pendingTopUp.qrCode);
-                    const bankName = qrInfo ? BANK_BIN_MAP[qrInfo.bankBin] || `Ngân hàng (BIN: ${qrInfo.bankBin})` : 'MB Bank (Military Commercial Bank)';
+                    const bankName = qrInfo ? BANK_BIN_MAP[qrInfo.bankBin] || `Bank (BIN: ${qrInfo.bankBin})` : 'MB Bank (Military Commercial Bank)';
                     const accNo = qrInfo?.accountNumber || 'VQRQAJNOG7846';
                     const accName = qrInfo?.accountName || 'PHAM XUAN LOC';
 

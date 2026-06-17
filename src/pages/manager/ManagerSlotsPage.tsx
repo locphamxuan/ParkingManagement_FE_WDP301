@@ -284,7 +284,7 @@ export function ManagerSlotsPage() {
   };
 
   const onDelete = async (row: ParkingSlot) => {
-    if (!window.confirm(`Xóa ô ${row.code}?`)) return;
+    if (!window.confirm(`Delete slot ${row.code}?`)) return;
     try {
       await managerApi.slots.remove(buildingId, row._id);
       refresh();
@@ -446,7 +446,7 @@ export function ManagerSlotsPage() {
         <div>
           {viewMode === 'list' ? (
             <div className="glass-panel-dark rounded-3xl border border-white/5 p-6 backdrop-blur-md shadow-2xl">
-              <DataTable title={`Ô đỗ (${items.length})`} rows={items} columns={columns} />
+              <DataTable title={`Slots (${items.length})`} rows={items} columns={columns} />
             </div>
           ) : (
             /* Sci-Fi 3D Visual Map Mode */

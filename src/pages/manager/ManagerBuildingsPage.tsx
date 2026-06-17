@@ -1,84 +1,47 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Building2, Save } from 'lucide-react';
+import { useMemo } from 'react';
+import { Building2, Clock, Layers } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { CustomSelect } from '@/components/ui/select';
-import { managerApi, type ManagerBuilding } from '@/services/manager/managerApi';
 import { useManagerBuildings } from '@/hooks/useManagerBuildings';
 
+const STATUS_LABEL: Record<string, { label: string; dot: string }> = {
+  active: { label: 'Active', dot: 'bg-emerald-500' },
+  maintenance: { label: 'Maintenance', dot: 'bg-amber-500' },
+  inactive: { label: 'Inactive', dot: 'bg-rose-500' },
+};
+
+const statusInfo = (status?: string) => STATUS_LABEL[status ?? 'inactive'] ?? STATUS_LABEL.inactive;
+
 export function ManagerBuildingsPage() {
-  const { buildings, selectedBuilding, selectedBuildingId, setSelectedBuildingId, isLoading, error, refreshBuildings } = useManagerBuildings();
-
-  const [name, setName] = useState('');
-  const [totalFloors, setTotalFloors] = useState('');
-  const [status, setStatus] = useState<ManagerBuilding['status']>('active');
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const [saveSuccess, setSaveSuccess] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-
-  useEffect(() => {
-    if (!selectedBuilding) {
-      setName('');
-      setTotalFloors('');
-      setStatus('active');
-      return;
-    }
-    setName(selectedBuilding.name || '');
-    setTotalFloors(String(selectedBuilding.totalFloors ?? ''));
-    setStatus(selectedBuilding.status || 'active');
-  }, [selectedBuilding]);
+  const { buildings, selectedBuilding, selectedBuildingId, setSelectedBuildingId, isLoading, error } =
+    useManagerBuildings();
 
   const buildingOptions = useMemo(
-    () => buildings.map((b) => ({ id: b._id, label: b.name || b.code || 'Tòa nhà' })),
+    () => buildings.map((b) => ({ id: b._id, label: b.name || b.code || 'Building' })),
     [buildings],
   );
 
-  const handleSave = useCallback(async () => {
-    if (!selectedBuildingId) {
-      setSaveError('Chưa chọn tòa nhà.');
-      return;
-    }
-    setIsSaving(true);
-    setSaveError(null);
-    setSaveSuccess(false);
-    try {
-      const payload: Partial<ManagerBuilding> = {};
-      if (name) payload.name = name;
-      if (totalFloors) payload.totalFloors = Number(totalFloors);
-      if (status) payload.status = status;
-      await managerApi.updateBuilding(selectedBuildingId, payload);
-      await refreshBuildings();
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
-    } catch (err) {
-      setSaveError(err instanceof Error ? err.message : 'Cập nhật tòa nhà thất bại.');
-    } finally {
-      setIsSaving(false);
-    }
-  }, [name, totalFloors, status, selectedBuildingId, refreshBuildings]);
-
   return (
     <div className="space-y-6">
-      {/* Danh sách tòa nhà */}
+      {/* Building list */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-sm">
             <Building2 size={16} className="text-primary" />
-            Danh sách tòa nhà
+            Assigned Buildings
           </CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <p className="text-sm text-muted-foreground">Đang tải danh sách tòa nhà...</p>
+            <p className="text-sm text-muted-foreground">Loading buildings…</p>
           ) : error ? (
             <p className="text-sm text-rose-500">{error}</p>
           ) : buildings.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Không có tòa nhà nào được phân quyền.</p>
+            <p className="text-sm text-muted-foreground">No buildings assigned to this account.</p>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {buildingOptions.map((opt) => {
                 const b = buildings.find((x) => x._id === opt.id)!;
+                const st = statusInfo(b.status);
                 return (
                   <button
                     key={opt.id}
@@ -89,12 +52,10 @@ export function ManagerBuildingsPage() {
                     }`}
                   >
                     <p className="font-semibold text-foreground">{opt.label}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">Mã: {b.code || '—'}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Code: {b.code || '—'}</p>
                     <div className="mt-1 flex items-center gap-1.5">
-                      <span className={`h-1.5 w-1.5 rounded-full ${b.status === 'active' ? 'bg-emerald-500' : b.status === 'maintenance' ? 'bg-amber-500' : 'bg-rose-500'}`} />
-                      <p className="text-xs text-muted-foreground">
-                        {b.status === 'active' ? 'Hoạt động' : b.status === 'maintenance' ? 'Bảo trì' : 'Tạm dừng'}
-                      </p>
+                      <span className={`h-1.5 w-1.5 rounded-full ${st.dot}`} />
+                      <p className="text-xs text-muted-foreground">{st.label}</p>
                     </div>
                   </button>
                 );
@@ -104,65 +65,51 @@ export function ManagerBuildingsPage() {
         </CardContent>
       </Card>
 
-      {/* Form chỉnh sửa */}
+      {/* Building details (read-only) */}
       {selectedBuilding && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Cập nhật thông tin tòa nhà</CardTitle>
+            <CardTitle className="text-sm">Building Details</CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-5">
-            <div className="grid gap-4 sm:grid-cols-2">
-              {/* Tên tòa nhà */}
-              <div className="grid gap-1.5">
-                <label className="text-sm font-medium text-foreground">Tên tòa nhà</label>
-                <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nhập tên tòa nhà" />
-              </div>
-
-              {/* Số tầng */}
-              <div className="grid gap-1.5">
-                <label className="text-sm font-medium text-foreground">Số tầng</label>
-                <Input
-                  type="number"
-                  min={1}
-                  value={totalFloors}
-                  onChange={(e) => setTotalFloors(e.target.value)}
-                  placeholder="Ví dụ: 5"
+          <CardContent className="grid gap-4 sm:grid-cols-2">
+            <DetailRow label="Name" value={selectedBuilding.name || '—'} />
+            <DetailRow label="Code" value={selectedBuilding.code || '—'} />
+            <DetailRow
+              icon={<Layers size={13} className="text-muted-foreground" />}
+              label="Total floors"
+              value={String(selectedBuilding.totalFloors ?? '—')}
+            />
+            <DetailRow label="Status" value={statusInfo(selectedBuilding.status).label} />
+            {(() => {
+              const oh = selectedBuilding.operatingHours as { open?: string; close?: string } | undefined;
+              if (!oh) return null;
+              return (
+                <DetailRow
+                  icon={<Clock size={13} className="text-muted-foreground" />}
+                  label="Operating hours"
+                  value={`${oh.open ?? '—'} – ${oh.close ?? '—'}`}
                 />
-              </div>
-
-              {/* Trạng thái — dropdown */}
-              <div className="grid gap-1.5">
-                <label className="text-sm font-medium text-foreground">Trạng thái</label>
-                <CustomSelect
-                  value={status}
-                  onChange={(val) => setStatus(val as ManagerBuilding['status'])}
-                  options={[
-                    { value: 'active', label: 'Hoạt động (active)' },
-                    { value: 'inactive', label: 'Tạm dừng (inactive)' },
-                    { value: 'maintenance', label: 'Bảo trì (maintenance)' },
-                  ]}
-                />
-              </div>
-            </div>
-
-            {saveError && (
-              <p className="rounded-lg border border-rose-500/25 bg-rose-500/10 px-3 py-2 text-sm text-rose-500">
-                {saveError}
-              </p>
-            )}
-            {saveSuccess && (
-              <p className="rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-600">
-                Lưu thành công!
-              </p>
-            )}
-
-            <Button onClick={handleSave} disabled={isSaving} className="gap-2 w-fit">
-              <Save size={14} />
-              {isSaving ? 'Đang lưu...' : 'Lưu thay đổi'}
-            </Button>
+              );
+            })()}
+            <p className="sm:col-span-2 text-xs text-muted-foreground">
+              To change operating hours, use the “Operating Hours” tab. Other building details are
+              managed by the system administrator.
+            </p>
           </CardContent>
         </Card>
       )}
+    </div>
+  );
+}
+
+function DetailRow({ icon, label, value }: { icon?: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="grid gap-1">
+      <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {icon}
+        {label}
+      </span>
+      <span className="text-sm font-medium text-foreground">{value}</span>
     </div>
   );
 }

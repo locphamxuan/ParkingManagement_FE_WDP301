@@ -7,8 +7,6 @@ import {
   TrendingUp,
   ArrowUpRight,
   Wallet,
-  Crown,
-  CalendarClock,
   Plus,
   ExternalLink,
 } from 'lucide-react';
@@ -21,40 +19,32 @@ import {
   type BuildingWallet,
   type BuildingWalletTransaction,
   type DailyRevenueResult,
-  type AdminSubscriptionPackage,
-  type SubscriptionStatus,
 } from '@/services/manager/managerApi';
 
 const fmtVnd = (n: number | null | undefined) =>
-  n != null ? `${n.toLocaleString('vi-VN')} ₫` : '—';
+  n != null ? `${n.toLocaleString('en-US')} ₫` : '—';
 
 const fmtTime = (iso: string) =>
-  new Date(iso).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' });
-
-const fmtDate = (iso: string | null | undefined) =>
-  iso ? new Date(iso).toLocaleDateString('vi-VN') : '—';
+  new Date(iso).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' });
 
 const TX_REASON_LABELS: Record<string, string> = {
-  parking_fee: 'Phí gửi xe',
-  reservation_fee: 'Phí đặt chỗ',
-  topup: 'Nạp ví',
-  admin_subscription: 'Mua gói hệ thống',
-  transfer_to_system: 'Chuyển cho Admin',
-  refund: 'Hoàn tiền',
+  parking_fee: 'Parking fee',
+  reservation_fee: 'Reservation fee',
+  topup: 'Wallet top-up',
+  admin_subscription: 'System package',
+  transfer_to_system: 'Transfer to admin',
+  refund: 'Refund',
 };
 
 export function ManagerWalletPage() {
-  const { buildingId, refreshSubscription } = useBuildingContext();
+  const { buildingId } = useBuildingContext();
 
   const [wallet, setWallet] = useState<BuildingWallet | null>(null);
   const [daily, setDaily] = useState<DailyRevenueResult | null>(null);
   const [transactions, setTransactions] = useState<BuildingWalletTransaction[]>([]);
-  const [subscription, setSubscription] = useState<SubscriptionStatus | null>(null);
-  const [packages, setPackages] = useState<AdminSubscriptionPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [subscribingId, setSubscribingId] = useState<string | null>(null);
-  const [subMessage, setSubMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+  const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
   const [topupOpen, setTopupOpen] = useState(false);
   const [topupAmount, setTopupAmount] = useState('');
@@ -70,56 +60,30 @@ export function ManagerWalletPage() {
         managerApi.wallet.get(buildingId),
         managerApi.wallet.getDailyRevenue(buildingId),
         managerApi.wallet.listTransactions(buildingId),
-        // managerApi.getSubscriptionStatus(buildingId), // Missing API
-        // managerApi.wallet.listSubscriptionPackages(buildingId), // Missing API
       ]);
       setWallet((walletRes as { data?: { wallet: BuildingWallet } })?.data?.wallet ?? null);
       setDaily((dailyRes as { data?: DailyRevenueResult })?.data ?? null);
       setTransactions((txRes as { data?: { items: BuildingWalletTransaction[] } })?.data?.items ?? []);
-      setSubscription(null);
-      setPackages([]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Tải dữ liệu ví thất bại');
+      setError(err instanceof Error ? err.message : 'Failed to load wallet data.');
     } finally {
       setLoading(false);
     }
   }, [buildingId]);
 
   useEffect(() => {
-    refresh();
+    void refresh();
   }, [refresh]);
-
-  const handleSubscribe = useCallback(
-    async (pkg: AdminSubscriptionPackage) => {
-      if (!buildingId) return;
-      if (!window.confirm(
-        `Mua gói "${pkg.name}" với giá ${fmtVnd(pkg.price)}? Số tiền sẽ được trừ từ ví tòa nhà và chuyển cho Admin.`,
-      )) return;
-      setSubscribingId(pkg._id);
-      setSubMessage(null);
-      try {
-        await managerApi.wallet.subscribe(buildingId, pkg._id);
-        setSubMessage({ type: 'ok', text: `Đã kích hoạt gói "${pkg.name}" thành công.` });
-        await refresh();
-        refreshSubscription?.();
-      } catch (err) {
-        setSubMessage({ type: 'err', text: err instanceof Error ? err.message : 'Đăng ký gói thất bại.' });
-      } finally {
-        setSubscribingId(null);
-      }
-    },
-    [buildingId, refresh, refreshSubscription],
-  );
 
   const handleInitiateTopup = useCallback(async () => {
     if (!buildingId) return;
     const amount = Number(topupAmount);
     if (!amount || amount <= 0) {
-      setSubMessage({ type: 'err', text: 'Số tiền nạp phải lớn hơn 0.' });
+      setMessage({ type: 'err', text: 'Top-up amount must be greater than 0.' });
       return;
     }
     setTopupBusy(true);
-    setSubMessage(null);
+    setMessage(null);
     try {
       const res = await managerApi.wallet.initiateTopup(buildingId, amount);
       const data = (res as { data?: { orderCode: number; checkoutUrl: string } })?.data;
@@ -130,7 +94,7 @@ export function ManagerWalletPage() {
         window.open(data.checkoutUrl, '_blank', 'noopener');
       }
     } catch (err) {
-      setSubMessage({ type: 'err', text: err instanceof Error ? err.message : 'Không thể khởi tạo nạp ví.' });
+      setMessage({ type: 'err', text: err instanceof Error ? err.message : 'Unable to start top-up.' });
     } finally {
       setTopupBusy(false);
     }
@@ -143,14 +107,14 @@ export function ManagerWalletPage() {
       const res = await managerApi.wallet.verifyTopup(buildingId, pendingTopup.orderCode);
       const status = (res as { data?: { status?: string } })?.data?.status;
       if (status === 'success') {
-        setSubMessage({ type: 'ok', text: `Đã nạp ${fmtVnd(pendingTopup.amount)} vào ví tòa nhà.` });
+        setMessage({ type: 'ok', text: `Topped up ${fmtVnd(pendingTopup.amount)} to the building wallet.` });
         setPendingTopup(null);
         await refresh();
       } else {
-        setSubMessage({ type: 'err', text: 'Chưa nhận được thanh toán. Hoàn tất giao dịch rồi thử lại.' });
+        setMessage({ type: 'err', text: 'Payment not received yet. Complete the checkout and try again.' });
       }
     } catch (err) {
-      setSubMessage({ type: 'err', text: err instanceof Error ? err.message : 'Xác nhận nạp ví thất bại.' });
+      setMessage({ type: 'err', text: err instanceof Error ? err.message : 'Top-up verification failed.' });
     } finally {
       setTopupBusy(false);
     }
@@ -159,55 +123,53 @@ export function ManagerWalletPage() {
   if (loading) {
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <RefreshCw size={14} className="animate-spin" /> Đang tải ví tòa nhà...
+        <RefreshCw size={14} className="animate-spin" /> Loading building wallet…
       </div>
     );
   }
 
-  const subActive = subscription?.active ?? false;
-
   return (
     <div className="grid gap-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Wallet size={22} className="text-primary" />
           <div>
-            <h2 className="text-base font-bold text-foreground">Ví tòa nhà & Gói dịch vụ</h2>
+            <h2 className="text-base font-bold text-foreground">Building Wallet</h2>
             <p className="text-xs text-muted-foreground">
-              Doanh thu giữ lại 100% trong ví tòa nhà. Mua gói dịch vụ hệ thống để mở khóa quản lý.
+              Parking revenue is collected into the building wallet.
             </p>
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="secondary" onClick={refresh} className="gap-2 text-xs">
-            <RefreshCw size={13} /> Làm mới
+          <Button variant="secondary" onClick={() => void refresh()} className="gap-2 text-xs">
+            <RefreshCw size={13} /> Refresh
           </Button>
           <Button onClick={() => setTopupOpen((v) => !v)} className="gap-2 text-xs">
-            <Plus size={13} /> Nạp ví
+            <Plus size={13} /> Top up
           </Button>
         </div>
       </div>
 
-      {/* Nạp ví tòa nhà (PayOS) */}
+      {/* Top-up (PayOS) */}
       {topupOpen && (
         <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card/50 p-4">
           <div className="grid gap-1.5">
             <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              Số tiền nạp (VND)
+              Top-up amount (VND)
             </label>
             <Input
               type="number"
               min={1}
               value={topupAmount}
               onChange={(e) => setTopupAmount(e.target.value)}
-              placeholder="VD: 500000"
+              placeholder="e.g. 500000"
               className="w-48"
             />
           </div>
-          <Button onClick={handleInitiateTopup} disabled={topupBusy} className="gap-2">
+          <Button onClick={() => void handleInitiateTopup()} disabled={topupBusy} className="gap-2">
             {topupBusy ? <RefreshCw size={13} className="animate-spin" /> : <ExternalLink size={13} />}
-            Tạo mã thanh toán PayOS
+            Create PayOS payment
           </Button>
         </div>
       )}
@@ -215,15 +177,15 @@ export function ManagerWalletPage() {
       {pendingTopup && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-500/25 bg-amber-500/5 px-4 py-3">
           <p className="text-sm text-amber-300">
-            Đang chờ thanh toán {fmtVnd(pendingTopup.amount)}. Hoàn tất trên cổng PayOS rồi bấm xác nhận.
+            Awaiting payment of {fmtVnd(pendingTopup.amount)}. Finish on the PayOS gateway, then confirm.
           </p>
           <div className="flex gap-2">
             <Button variant="secondary" size="sm" onClick={() => window.open(pendingTopup.checkoutUrl, '_blank', 'noopener')} className="gap-1.5">
-              <ExternalLink size={13} /> Mở lại cổng
+              <ExternalLink size={13} /> Reopen gateway
             </Button>
-            <Button size="sm" onClick={handleVerifyTopup} disabled={topupBusy} className="gap-1.5">
+            <Button size="sm" onClick={() => void handleVerifyTopup()} disabled={topupBusy} className="gap-1.5">
               {topupBusy ? <RefreshCw size={13} className="animate-spin" /> : <CheckCircle2 size={13} />}
-              Tôi đã thanh toán
+              I have paid
             </Button>
           </div>
         </div>
@@ -235,12 +197,25 @@ export function ManagerWalletPage() {
         </div>
       )}
 
-      {/* Thẻ tổng quan */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      {message && (
+        <div
+          className={`flex items-center gap-2 rounded-lg border px-4 py-3 text-sm ${
+            message.type === 'ok'
+              ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
+              : 'border-rose-500/30 bg-rose-500/10 text-rose-400'
+          }`}
+        >
+          {message.type === 'ok' ? <CheckCircle2 size={14} /> : <AlertTriangle size={14} />}
+          {message.text}
+        </div>
+      )}
+
+      {/* Summary cards */}
+      <div className="grid gap-4 sm:grid-cols-2">
         <Card>
           <CardContent className="p-5">
             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              Số dư hiện tại
+              Current balance
             </p>
             <p className="mt-2 text-2xl font-bold text-foreground">{fmtVnd(wallet?.balance)}</p>
           </CardContent>
@@ -249,131 +224,24 @@ export function ManagerWalletPage() {
         <Card>
           <CardContent className="p-5">
             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              Doanh thu hôm nay
+              Today's revenue
             </p>
             <p className="mt-2 text-2xl font-bold text-emerald-400">{fmtVnd(daily?.totalRevenue)}</p>
           </CardContent>
         </Card>
-
-        {/* Subscription status card hidden temporarily due to missing APIs
-        <Card className={subActive ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-amber-500/20 bg-amber-500/5'}>
-          <CardContent className="p-5">
-            <p className={`text-[10px] font-black uppercase tracking-widest ${subActive ? 'text-emerald-400/70' : 'text-amber-400/70'}`}>
-              Gói dịch vụ hệ thống
-            </p>
-            <p className={`mt-2 text-lg font-bold ${subActive ? 'text-emerald-400' : 'text-amber-400'}`}>
-              {subActive ? (subscription?.packageName ?? subscription?.package?.name ?? 'Đang hoạt động') : 'Chưa kích hoạt'}
-            </p>
-            <p className={`mt-1 text-xs ${subActive ? 'text-emerald-400/70' : 'text-amber-400/70'}`}>
-              {subActive
-                ? `Còn ${subscription?.daysRemaining ?? 0} ngày · hết hạn ${fmtDate(subscription?.endDate)}`
-                : 'Mua gói bên dưới để mở khóa bảng điều khiển.'}
-            </p>
-          </CardContent>
-        </Card>
-        */}
       </div>
 
-      {subMessage && (
-        <div
-          className={`flex items-center gap-2 rounded-lg border px-4 py-3 text-sm ${
-            subMessage.type === 'ok'
-              ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
-              : 'border-rose-500/30 bg-rose-500/10 text-rose-400'
-          }`}
-        >
-          {subMessage.type === 'ok' ? <CheckCircle2 size={14} /> : <AlertTriangle size={14} />}
-          {subMessage.text}
-        </div>
-      )}
-
-      {/* Gói dịch vụ hệ thống (mua từ Admin) hidden temporarily due to missing APIs
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-sm">
-            <Crown size={15} className="text-amber-400" />
-            Gói dịch vụ hệ thống
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="mb-3 rounded-lg border border-blue-500/20 bg-blue-500/5 px-4 py-3 text-xs text-blue-400">
-            Hệ thống được bán theo dạng thuê bao: bạn mua một gói dịch vụ (tương tự gói phần mềm theo
-            tháng). Tiền gói được trừ từ ví tòa nhà và chuyển cho Admin. Trong thời gian gói còn hiệu
-            lực, bạn toàn quyền sử dụng bảng điều khiển quản lý.
-          </div>
-
-          {packages.length === 0 ? (
-            <p className="py-4 text-center text-sm text-muted-foreground">
-              Admin chưa phát hành gói dịch vụ nào.
-            </p>
-          ) : (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {packages.map((pkg) => {
-                const isCurrent = subActive && (subscription?.package?._id === pkg._id);
-                return (
-                  <div
-                    key={pkg._id}
-                    className={`flex flex-col rounded-xl border p-4 ${
-                      isCurrent ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-border bg-card/50'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-bold text-foreground">{pkg.name}</p>
-                      {isCurrent && (
-                        <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
-                          Đang dùng
-                        </span>
-                      )}
-                    </div>
-                    <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-                      <CalendarClock size={12} /> {pkg.durationDays} ngày
-                    </p>
-                    <p className="mt-2 text-xl font-black text-amber-400">{fmtVnd(pkg.price)}</p>
-                    {pkg.description && (
-                      <p className="mt-1 text-xs text-muted-foreground">{pkg.description}</p>
-                    )}
-                    {(pkg.features?.length ?? 0) > 0 && (
-                      <ul className="mt-2 space-y-1">
-                        {pkg.features!.map((f, i) => (
-                          <li key={i} className="flex items-start gap-1.5 text-xs text-muted-foreground">
-                            <CheckCircle2 size={12} className="mt-0.5 shrink-0 text-emerald-400" />
-                            <span>{f}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                    <Button
-                      className="mt-3 w-full gap-2"
-                      disabled={subscribingId === pkg._id}
-                      onClick={() => handleSubscribe(pkg)}
-                    >
-                      {subscribingId === pkg._id ? (
-                        <RefreshCw size={13} className="animate-spin" />
-                      ) : (
-                        <Crown size={13} />
-                      )}
-                      {subActive ? 'Gia hạn / Đổi gói' : 'Mua gói'}
-                    </Button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-      */}
-
-      {/* Lịch sử giao dịch */}
+      {/* Recent transactions */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-sm">
             <Clock size={15} className="text-primary" />
-            Giao dịch gần đây
+            Recent transactions
           </CardTitle>
         </CardHeader>
         <CardContent>
           {transactions.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-4 text-center">Chưa có giao dịch.</p>
+            <p className="py-4 text-center text-sm text-muted-foreground">No transactions yet.</p>
           ) : (
             <div className="grid gap-2">
               {transactions.map((tx) => {
@@ -397,7 +265,7 @@ export function ManagerWalletPage() {
                         </p>
                         {tx.note && <p className="text-xs text-muted-foreground">{tx.note}</p>}
                         <p className="text-xs text-muted-foreground">
-                          Số dư sau: {fmtVnd(tx.balanceAfter)}
+                          Balance after: {fmtVnd(tx.balanceAfter)}
                         </p>
                       </div>
                     </div>

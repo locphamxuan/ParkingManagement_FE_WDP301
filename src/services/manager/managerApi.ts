@@ -67,17 +67,6 @@ export interface PricePolicy {
   isActive: boolean;
 }
 
-export interface PolicyPushLog {
-  _id: string;
-  building: string;
-  pricePolicy: { _id: string; name: string };
-  actor: { _id: string; fullName: string; email: string; role: string };
-  action: string;
-  previousValue?: unknown;
-  newValue?: unknown;
-  createdAt: string;
-}
-
 export interface LongTermPackage {
   _id: string;
   building: string;
@@ -210,37 +199,6 @@ export interface DailyRevenueResult {
   settled: boolean;
 }
 
-export interface DailyRevenueSettlement {
-  _id: string;
-  building: string;
-  date: string;
-  revenue: number;
-  targetAmount: number;
-  transferredAmount: number;
-  note?: string;
-  createdAt: string;
-}
-
-export interface AdminSubscriptionPackage {
-  _id: string;
-  name: string;
-  price: number;
-  durationDays: number;
-  description?: string;
-  features?: string[];
-  isActive: boolean;
-  createdAt?: string;
-}
-
-export interface SubscriptionStatus {
-  active: boolean;
-  endDate: string | null;
-  startDate: string | null;
-  daysRemaining: number;
-  package: { _id: string; name: string; price: number; durationDays: number } | null;
-  packageName: string | null;
-}
-
 export interface WalletTopUpResult {
   checkoutUrl: string;
   qrCode: string;
@@ -257,8 +215,6 @@ const path = (buildingId: string, suffix: string) =>
 export const managerApi = {
   listAssignedBuildings: () =>
     api.get<Wrap<ManagerBuilding[] | { items: ManagerBuilding[] }>>('/manager/buildings'),
-  updateBuilding: (id: string, body: Partial<ManagerBuilding>) =>
-    api.put<Wrap<{ building: ManagerBuilding }>>(`/manager/buildings/${id}`, body),
   /** Update only the building open/close hours (dedicated tab). */
   updateOperatingHours: (buildingId: string, body: { open: string; close: string }) =>
     api.put<Wrap<{ building: ManagerBuilding }>>(path(buildingId, '/operating-hours'), body),
@@ -315,8 +271,6 @@ export const managerApi = {
     update: (b: string, id: string, body: Partial<PricePolicy>) =>
       api.put<Wrap<{ item: PricePolicy }>>(path(b, `/price-policies/${id}`), body),
     deactivate: (b: string, id: string) => api.delete(path(b, `/price-policies/${id}`)),
-    pushLogs: (b: string) =>
-      api.get<Wrap<{ items: PolicyPushLog[]; pagination: unknown }>>(path(b, '/policy-push-logs')),
   },
 
   packages: {
@@ -329,9 +283,6 @@ export const managerApi = {
     remove: (b: string, id: string) => api.delete(path(b, `/packages/${id}`)),
     subscriptions: (b: string, q?: Record<string, string | undefined>) =>
       api.get<Wrap<{ items: Subscription[]; pagination: unknown }>>(path(b, '/subscriptions'), { query: q }),
-    /** Manager chủ động thu hồi slot cố định của một subscription. */
-    releaseSlot: (b: string, subscriptionId: string) =>
-      api.post<Wrap<{ item: Subscription }>>(path(b, `/subscriptions/${subscriptionId}/release-slot`), {}),
   },
 
   reservationPolicy: {
@@ -380,19 +331,6 @@ export const managerApi = {
       }),
     listTransactions: (b: string, q?: Record<string, string | undefined>) =>
       api.get<Wrap<{ items: BuildingWalletTransaction[] }>>(path(b, '/wallet/transactions'), { query: q }),
-    listSettlements: (b: string, q?: Record<string, string | undefined>) =>
-      api.get<Wrap<{ items: DailyRevenueSettlement[] }>>(path(b, '/wallet/settlements'), { query: q }),
-
-    /** Admin subscription packages a manager can buy (GET /wallet/subscription-packages). */
-    listSubscriptionPackages: (b: string) =>
-      api.get<Wrap<{ items: AdminSubscriptionPackage[] }>>(path(b, '/wallet/subscription-packages')),
-
-    /** Subscribe to an admin package, paying from the building wallet (POST /wallet/subscribe). */
-    subscribe: (b: string, packageId: string) =>
-      api.post<Wrap<{ wallet: BuildingWallet; package: AdminSubscriptionPackage; subscription: SubscriptionStatus }>>(
-        path(b, '/wallet/subscribe'),
-        { packageId }
-      ),
 
     /** PayOS top-up for the building wallet (POST /wallet/topup). */
     initiateTopup: (b: string, amount: number) =>
@@ -402,11 +340,6 @@ export const managerApi = {
     verifyTopup: (b: string, orderCode: number) =>
       api.get<Wrap<{ status: string; credited: boolean }>>(path(b, `/wallet/topup/${orderCode}/verify`)),
   },
-
-  /** Building admin-subscription status — drives the dashboard gate (GET /subscription). */
-  getSubscriptionStatus: (b: string) =>
-    api.get<Wrap<SubscriptionStatus>>(path(b, '/subscription')),
-
 };
 
 export const unwrapItems = <T,>(payload: Wrap<{ items: T[] }> | Wrap<T[]> | undefined): T[] => {

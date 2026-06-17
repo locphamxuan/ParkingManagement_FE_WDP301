@@ -7,7 +7,6 @@ import { SearchFilterBar } from '@/components/common/SearchFilterBar';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { CustomSelect } from '@/components/ui/select';
 import { useAdminDataset } from '@/hooks/admin/useAdminDataset';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -19,26 +18,16 @@ import {
   revokeStaffFromBuilding,
   revokeManagerFromBuilding,
 } from '@/services/admin/adminCrud';
-import {
-  adminApi,
-  type AdminUser,
-  type AdminSubscriptionPackage,
-  type BuildingSubscriptionStatus,
-} from '@/services/admin/adminApi';
+import { adminApi, type AdminUser } from '@/services/admin/adminApi';
 import type { Building } from '@/types';
 
 const PAGE_SIZE = 10;
-
-const fmtVnd = (n: number) => `${n.toLocaleString('vi-VN')} ₫`;
-const fmtDate = (iso: string | null | undefined) =>
-  iso ? new Date(iso).toLocaleDateString('vi-VN') : '—';
 
 interface MembersState {
   buildingId: string;
   buildingName: string;
   manager: AdminUser | null;
   staff: AdminUser[];
-  subscription: BuildingSubscriptionStatus | null;
 }
 
 export function BuildingsPage() {
@@ -60,10 +49,6 @@ export function BuildingsPage() {
 
   const [pendingDeleteMember, setPendingDeleteMember] = useState<AdminUser | null>(null);
   const [isDeletingMember, setIsDeletingMember] = useState(false);
-
-  const [subPackages, setSubPackages] = useState<AdminSubscriptionPackage[]>([]);
-  const [grantPackageId, setGrantPackageId] = useState('');
-  const [subBusy, setSubBusy] = useState(false);
 
   const [form, setForm] = useState({
     name: '',
@@ -98,70 +83,21 @@ export function BuildingsPage() {
 
   const openViewMembers = async (building: Building) => {
     const bid = building.backendId || building.id;
-    setMembersState({ buildingId: bid, buildingName: building.name, manager: null, staff: [], subscription: null });
+    setMembersState({ buildingId: bid, buildingName: building.name, manager: null, staff: [] });
     setIsMembersLoading(true);
     setMembersError(null);
-    setGrantPackageId('');
     try {
-      const [res, pkgRes] = await Promise.all([
-        adminApi.buildings.getMembers(bid),
-        adminApi.subscriptionPackages.list({ isActive: 'true' }),
-      ]);
+      const res = await adminApi.buildings.getMembers(bid);
       setMembersState({
         buildingId: bid,
         buildingName: building.name,
         manager: res.data?.manager ?? null,
         staff: res.data?.staff ?? [],
-        subscription: res.data?.subscription ?? null,
       });
-      setSubPackages((pkgRes as { data?: { items: AdminSubscriptionPackage[] } })?.data?.items ?? []);
     } catch (err) {
-      setMembersError(err instanceof Error ? err.message : 'Không thể tải danh sách thành viên');
+      setMembersError(err instanceof Error ? err.message : 'Unable to load building members');
     } finally {
       setIsMembersLoading(false);
-    }
-  };
-
-  const reloadMembersSubscription = async (bid: string) => {
-    try {
-      const res = await adminApi.buildings.getMembers(bid);
-      setMembersState((prev) =>
-        prev && prev.buildingId === bid
-          ? { ...prev, subscription: res.data?.subscription ?? null }
-          : prev,
-      );
-    } catch {
-      /* ignore */
-    }
-  };
-
-  const handleGrantSubscription = async () => {
-    if (!membersState || !grantPackageId) return;
-    setSubBusy(true);
-    setMembersError(null);
-    try {
-      await adminApi.buildings.grantSubscription(membersState.buildingId, grantPackageId);
-      await reloadMembersSubscription(membersState.buildingId);
-      setGrantPackageId('');
-    } catch (err) {
-      setMembersError(err instanceof Error ? err.message : 'Không thể cấp gói');
-    } finally {
-      setSubBusy(false);
-    }
-  };
-
-  const handleRevokeSubscription = async () => {
-    if (!membersState) return;
-    if (!window.confirm('Thu hồi gói dịch vụ của tòa nhà này? Bảng điều khiển của quản lý sẽ bị khóa ngay.')) return;
-    setSubBusy(true);
-    setMembersError(null);
-    try {
-      await adminApi.buildings.revokeSubscription(membersState.buildingId);
-      await reloadMembersSubscription(membersState.buildingId);
-    } catch (err) {
-      setMembersError(err instanceof Error ? err.message : 'Không thể thu hồi gói');
-    } finally {
-      setSubBusy(false);
     }
   };
 
@@ -394,56 +330,6 @@ export function BuildingsPage() {
               <p className="text-sm text-red-600">{membersError}</p>
             ) : (
               <div className="grid gap-4">
-                {/* Gói dịch vụ hệ thống - hidden temporarily due to missing APIs
-                <section className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3">
-                  <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-amber-500">
-                    Gói dịch vụ hệ thống
-                  </h3>
-                  {membersState.subscription?.active ? (
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="text-sm">
-                        <p className="font-medium text-foreground">
-                          {membersState.subscription.packageName
-                            ?? membersState.subscription.package?.name
-                            ?? 'Đang hoạt động'}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Còn {membersState.subscription.daysRemaining} ngày · hết hạn{' '}
-                          {fmtDate(membersState.subscription.endDate)}
-                        </p>
-                      </div>
-                      <Button variant="danger" size="sm" disabled={subBusy} onClick={handleRevokeSubscription}>
-                        Thu hồi
-                      </Button>
-                    </div>
-                  ) : (
-                    <p className="mb-2 text-sm italic text-muted-foreground">Chưa có gói đang hoạt động</p>
-                  )}
-
-                  <div className="mt-2 flex items-center gap-2">
-                    <CustomSelect
-                      className="h-9 flex-1"
-                      value={grantPackageId}
-                      onChange={(val) => setGrantPackageId(val)}
-                      placeholder="-- Chọn gói để cấp/gia hạn --"
-                      options={[
-                        { value: '', label: '-- Chọn gói để cấp/gia hạn --' },
-                        ...subPackages.map((p) => ({
-                          value: p._id,
-                          label: `${p.name} · ${fmtVnd(p.price)} · ${p.durationDays} ngày`
-                        }))
-                      ]}
-                    />
-                    <Button size="sm" disabled={subBusy || !grantPackageId} onClick={handleGrantSubscription}>
-                      Cấp gói
-                    </Button>
-                  </div>
-                  <p className="mt-1 text-[11px] text-muted-foreground">
-                    Cấp gói thủ công (miễn phí) — không trừ tiền ví tòa nhà.
-                  </p>
-                </section>
-                */}
-
                 <section>
                   <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     Quản lý

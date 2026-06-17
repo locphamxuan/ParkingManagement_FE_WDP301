@@ -63,8 +63,6 @@ const UsersPage = lazy(() => import('@/pages/admin/UsersPage').then((m) => ({ de
 const RevenueAnalyticsPage = lazy(() => import('@/pages/admin/RevenueAnalyticsPage').then((m) => ({ default: m.RevenueAnalyticsPage })));
 const AuditLogsPage = lazy(() => import('@/pages/admin/AuditLogsPage').then((m) => ({ default: m.AuditLogsPage })));
 const AdminProfilePage = lazy(() => import('@/pages/admin/AdminProfilePage').then((m) => ({ default: m.AdminProfilePage })));
-const SystemWalletPage = lazy(() => import('@/pages/admin/SystemWalletPage').then((m) => ({ default: m.SystemWalletPage })));
-const SubscriptionPackagesPage = lazy(() => import('@/pages/admin/SubscriptionPackagesPage').then((m) => ({ default: m.SubscriptionPackagesPage })));
 const ModulePlaceholderPage = lazy(() => import('@/pages/admin/ModulePlaceholderPage').then((m) => ({ default: m.ModulePlaceholderPage })));
 
 /** Fallback hiển thị khi chunk của page đang được tải. */
@@ -160,17 +158,15 @@ export function AppRouter() {
           <Route path="buildings" element={<BuildingsPage />} />
           <Route path="users" element={<UsersPage />} />
           <Route path="revenue-analytics" element={<RevenueAnalyticsPage />} />
-          <Route path="subscription-packages" element={<SubscriptionPackagesPage />} />
-          <Route path="wallet-governance" element={<SystemWalletPage />} />
           <Route path="audit-logs" element={<AuditLogsPage />} />
           <Route path="profile" element={<AdminProfilePage />} />
           <Route
             path="notifications"
-            element={<ModulePlaceholderPage title="Thông báo" description="Mẫu thông báo, giám sát hàng đợi và kênh gửi." />}
+            element={<ModulePlaceholderPage title="Notifications" description="Notification templates, queue monitoring and delivery channels." />}
           />
           <Route
             path="settings"
-            element={<ModulePlaceholderPage title="Cài đặt" description="Cấu hình nền tảng, chính sách truy cập và tùy chọn vận hành." />}
+            element={<ModulePlaceholderPage title="Settings" description="Platform configuration, access policies and operational options." />}
           />
         </Route>
       </Route>

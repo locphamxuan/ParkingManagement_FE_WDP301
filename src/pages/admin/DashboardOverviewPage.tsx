@@ -121,50 +121,44 @@ export function DashboardOverviewPage() {
             <span className="px-2 py-0.5 rounded-md bg-blue-500/10 border border-blue-500/20 text-[9px] font-black text-blue-400 font-mono uppercase tracking-wider">Live</span>
           </div>
 
-          <div className="h-[240px] w-full flex items-center justify-center cyber-scanline rounded-xl relative">
-            {data.paymentMethodDistribution.length === 0 ? (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <p className="text-xs text-muted-foreground uppercase tracking-widest font-mono">Chưa có dữ liệu giao dịch</p>
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={data.paymentMethodDistribution}
-                    dataKey="value"
-                    nameKey="name"
-                    outerRadius={90}
-                    innerRadius={52}
-                    paddingAngle={4}
-                    stroke="rgba(15,23,42,0.8)"
-                    strokeWidth={2}
-                  >
-                    {data.paymentMethodDistribution.map((entry, index) => (
-                      <Cell
-                        key={entry.name}
-                        fill={pieColors[index % pieColors.length]}
-                        style={{ filter: `drop-shadow(0 0 6px ${pieColors[index % pieColors.length]}90)` }}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        return (
-                          <div className="glass-premium border border-white/10 px-3 py-2 rounded-xl shadow-2xl text-[10px] text-white">
-                            <p className="font-mono font-black uppercase tracking-wider text-slate-400">{payload[0].name}</p>
-                            <p className="font-black mt-1 font-mono text-xs" style={{ color: payload[0].payload.fill }}>
-                              {payload[0].value}%
-                            </p>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
+          <div className="h-[240px] w-full flex items-center justify-center cyber-scanline rounded-xl">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={data.paymentMethodDistribution}
+                  dataKey="value"
+                  nameKey="name"
+                  outerRadius={90}
+                  innerRadius={52}
+                  paddingAngle={4}
+                  stroke="rgba(15,23,42,0.8)"
+                  strokeWidth={2}
+                >
+                  {data.paymentMethodDistribution.map((entry, index) => (
+                    <Cell
+                      key={entry.name}
+                      fill={pieColors[index % pieColors.length]}
+                      style={{ filter: `drop-shadow(0 0 6px ${pieColors[index % pieColors.length]}90)` }}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="glass-premium border border-white/10 px-3 py-2 rounded-xl shadow-2xl text-[10px] text-white">
+                          <p className="font-mono font-black uppercase tracking-wider text-slate-400">{payload[0].name}</p>
+                          <p className="font-black mt-1 font-mono text-xs" style={{ color: payload[0].payload.fill }}>
+                            {payload[0].value}%
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
 
           {/* Neon legend rows */}

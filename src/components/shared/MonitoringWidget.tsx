@@ -1,6 +1,6 @@
 import type { MonitoringMetric } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
-import { StatusBadge } from '@/components/shared/StatusBadge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 
 interface MonitoringWidgetProps {
   metric: MonitoringMetric;

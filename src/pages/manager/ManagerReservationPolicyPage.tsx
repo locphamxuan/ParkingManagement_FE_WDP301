@@ -167,7 +167,7 @@ export function ManagerReservationPolicyPage() {
             </div>
             <div className="grid gap-1.5">
               <label className="text-xs uppercase text-muted-foreground">
-                Hạn hủy trước giờ đặt (giờ)
+                Cancellation cutoff (hours before booking)
               </label>
               <Input
                 type="number"
@@ -178,7 +178,7 @@ export function ManagerReservationPolicyPage() {
                 }
               />
               <p className="text-[11px] text-muted-foreground">
-                Khách phải hủy trước giờ đặt ít nhất số giờ này. 0 = được hủy bất kỳ lúc nào trước giờ đặt.
+                Guests must cancel at least this many hours before the booking time. 0 = cancel any time before booking.
               </p>
             </div>
             <label className="flex items-center gap-2 text-sm md:col-span-2">

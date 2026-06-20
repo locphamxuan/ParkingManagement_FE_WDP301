@@ -1,10 +1,10 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertCircle, CarFront, CheckCircle2, Loader2, MessageSquareText, Star, X } from 'lucide-react';
 import { useSubmitFeedback } from '@/hooks/useFeedbackNotifications';
 import type { PendingFeedbackTarget } from '@/services/feedbackNotificationService';
 
-const REASONS = ['Thai do phuc vu', 'Co so vat chat', 'An ninh', 'Ve sinh', 'Khac'];
+const REASONS = ['Service attitude', 'Facilities', 'Security', 'Cleanliness', 'Other'];
 
 interface FeedbackModalProps {
   open: boolean;
@@ -26,10 +26,10 @@ function getBuildingName(target?: PendingFeedbackTarget | null) {
 }
 
 function formatTime(value?: string) {
-  if (!value) return 'Vua hoan tat';
+  if (!value) return 'Just completed';
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'Vua hoan tat';
-  return date.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' });
+  if (Number.isNaN(date.getTime())) return 'Just completed';
+  return date.toLocaleString('en-US', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 export default function FeedbackModal({ open, targets, onClose, onSubmitted }: FeedbackModalProps) {
@@ -59,7 +59,7 @@ export default function FeedbackModal({ open, targets, onClose, onSubmitted }: F
   const titleLine = useMemo(() => {
     const item = selectedTarget?.item;
     const code = item?.code ? `#${item.code}` : item?.plateNumber || targetId.slice(-6).toUpperCase();
-    return `${getBuildingName(selectedTarget)} - ${code || 'luot do xe'}`;
+    return `${getBuildingName(selectedTarget)} - ${code || 'parking session'}`;
   }, [selectedTarget, targetId]);
 
   const toggleReason = (reason: string) => {
@@ -69,15 +69,15 @@ export default function FeedbackModal({ open, targets, onClose, onSubmitted }: F
   const handleSubmit = async () => {
     setLocalError(null);
     if (!selectedTarget || !targetId) {
-      setLocalError('Khong tim thay luot do xe can danh gia.');
+      setLocalError('Could not find the parking session to review.');
       return;
     }
     if (!rating) {
-      setLocalError('Vui long chon so sao danh gia.');
+      setLocalError('Please select a star rating.');
       return;
     }
     if (comment.length > 150) {
-      setLocalError('Ghi chu toi da 150 ky tu.');
+      setLocalError('Comment must not exceed 150 characters.');
       return;
     }
 
@@ -118,10 +118,10 @@ export default function FeedbackModal({ open, targets, onClose, onSubmitted }: F
                   <div className="inline-flex items-center gap-2 rounded-full border border-orange-400/20 bg-orange-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-orange-300">
                     <MessageSquareText size={13} /> Feedback
                   </div>
-                  <h2 className="mt-4 text-2xl font-black text-white">Danh gia trai nghiem do xe cua ban</h2>
+                  <h2 className="mt-4 text-2xl font-black text-white">Rate your parking experience</h2>
                   <p className="mt-2 text-sm font-semibold text-slate-400">{titleLine}</p>
                 </div>
-                <button type="button" onClick={onClose} className="rounded-full border border-white/10 bg-white/5 p-2 text-slate-400 transition hover:bg-white/10 hover:text-white" aria-label="Dong modal">
+                <button type="button" onClick={onClose} className="rounded-full border border-white/10 bg-white/5 p-2 text-slate-400 transition hover:bg-white/10 hover:text-white" aria-label="Close">
                   <X size={18} />
                 </button>
               </div>
@@ -136,7 +136,7 @@ export default function FeedbackModal({ open, targets, onClose, onSubmitted }: F
                       className={`min-w-[190px] rounded-2xl border px-3 py-2 text-left transition ${index === selectedIndex ? 'border-orange-400/50 bg-orange-500/10 text-white' : 'border-white/10 bg-white/[0.03] text-slate-400 hover:border-white/20'}`}
                     >
                       <div className="flex items-center gap-2 text-xs font-black">
-                        <CarFront size={14} /> {target.item?.plateNumber || target.item?.code || 'Luot do xe'}
+                        <CarFront size={14} /> {target.item?.plateNumber || target.item?.code || 'Parking session'}
                       </div>
                       <div className="mt-1 text-[11px] font-semibold opacity-80">{formatTime(target.item?.exitTime || target.item?.endTime || target.item?.updatedAt)}</div>
                     </button>
@@ -145,7 +145,7 @@ export default function FeedbackModal({ open, targets, onClose, onSubmitted }: F
               ) : null}
 
               <div className="mt-6 rounded-3xl border border-white/10 bg-white/[0.035] p-5">
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">So sao hai long</p>
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Satisfaction rating</p>
                 <div className="mt-3 flex items-center gap-2">
                   {[1, 2, 3, 4, 5].map((star) => {
                     const active = star <= (hoverRating || rating);
@@ -157,13 +157,13 @@ export default function FeedbackModal({ open, targets, onClose, onSubmitted }: F
                         onMouseLeave={() => setHoverRating(0)}
                         onClick={() => setRating(star)}
                         className="rounded-2xl p-1 transition hover:scale-110"
-                        aria-label={`${star} sao`}
+                        aria-label={`${star} stars`}
                       >
                         <Star size={34} className={active ? 'fill-amber-400 text-amber-300 drop-shadow-[0_0_12px_rgba(251,191,36,0.35)]' : 'text-slate-700'} />
                       </button>
                     );
                   })}
-                  <span className="ml-2 text-sm font-bold text-slate-300">{rating ? `${rating}/5 sao` : 'Chon danh gia'}</span>
+                  <span className="ml-2 text-sm font-bold text-slate-300">{rating ? `${rating}/5 stars` : 'Select a rating'}</span>
                 </div>
               </div>
 
@@ -178,14 +178,14 @@ export default function FeedbackModal({ open, targets, onClose, onSubmitted }: F
 
               <div className="mt-5">
                 <div className="mb-2 flex items-center justify-between">
-                  <label className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Ghi chu tu do</label>
+                  <label className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Optional comment</label>
                   <span className={`text-xs font-black ${comment.length > 150 ? 'text-rose-400' : 'text-slate-500'}`}>{comment.length}/150</span>
                 </div>
                 <textarea
                   value={comment}
                   maxLength={150}
                   onChange={(event) => setComment(event.target.value.slice(0, 150))}
-                  placeholder="Chia se ngan gon trai nghiem cua ban..."
+                  placeholder="Share a brief experience..."
                   className="min-h-[110px] w-full resize-none rounded-3xl border border-white/10 bg-slate-900/80 px-4 py-3 text-sm font-semibold text-white outline-none transition placeholder:text-slate-600 focus:border-orange-400/50 focus:ring-4 focus:ring-orange-500/10"
                 />
               </div>
@@ -197,12 +197,12 @@ export default function FeedbackModal({ open, targets, onClose, onSubmitted }: F
               ) : null}
               {success ? (
                 <div className="mt-4 flex items-center gap-2 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm font-bold text-emerald-200">
-                  <CheckCircle2 size={16} /> Cam on ban da gui danh gia.
+                  <CheckCircle2 size={16} /> Thank you for your feedback.
                 </div>
               ) : null}
 
               <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <button type="button" onClick={onClose} className="rounded-2xl border border-white/10 px-5 py-3 text-sm font-black text-slate-300 transition hover:bg-white/5">De sau</button>
+                <button type="button" onClick={onClose} className="rounded-2xl border border-white/10 px-5 py-3 text-sm font-black text-slate-300 transition hover:bg-white/5">Later</button>
                 <button
                   type="button"
                   onClick={handleSubmit}
@@ -210,7 +210,7 @@ export default function FeedbackModal({ open, targets, onClose, onSubmitted }: F
                   className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-400 px-5 py-3 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(249,115,22,0.25)] transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {submitting ? <Loader2 size={16} className="animate-spin" /> : null}
-                  Gui danh gia
+                  Submit review
                 </button>
               </div>
             </div>

@@ -8,6 +8,7 @@ import { UserQRModal } from '@/components/modals/UserQRModal';
 import { PlateQRModal } from '@/components/modals/PlateQRModal';
 import { userApi, type LongTermSubscription } from '@/services/user/userApi';
 import { normalizePlate, isValidVietnamPlate, brandsForVehicleType } from '@/utils/plate';
+import { showToast } from '@/components/common/ToastNotification';
 
 // ─── Vietnamese license plate validation (shared util — canonical 59G2-038.80) ─
 // Series must be letter+digit (59G2) or two letters (30LD); a bare single letter
@@ -305,6 +306,7 @@ export default function ProfilePage() {
       setIsEditing(false);
       setSuccessMessage('Profile & plates updated successfully!');
       setTimeout(() => setSuccessMessage(null), 5000);
+      showToast('Profile & plates updated successfully!', 'success');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to save. Please try again.';
       setApiError(message);
@@ -337,6 +339,7 @@ export default function ProfilePage() {
       });
       setPwSuccess('Password changed successfully!');
       setPwForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      showToast('Password changed successfully!', 'success');
     } catch (err) {
       setPwError(err instanceof Error ? err.message : 'Failed to change password. Check your current password.');
     } finally {

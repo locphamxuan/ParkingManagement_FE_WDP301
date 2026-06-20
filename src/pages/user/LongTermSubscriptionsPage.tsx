@@ -16,6 +16,7 @@ import { useBuildings, useLongTermPackages, useLongTermSubscriptions, useSubscri
 import type { LongTermPackage, LongTermPaymentMethod, LongTermSubscription, ParkingSlot, FloorAvailability } from '@/services/user/userApi';
 import { userApi } from '@/services/user/userApi';
 import { CustomSelect } from '@/components/ui/select';
+import { showToast } from '@/components/common/ToastNotification';
 
 const currency = new Intl.NumberFormat('vi-VN', {
   style: 'currency',
@@ -441,6 +442,7 @@ export default function LongTermSubscriptionsPage() {
       await renew(item._id);
       await refreshSubscriptions();
       setMessage({ type: 'success', text: 'Renewed successfully.' });
+      showToast('Package renewed successfully!', 'success');
     } catch (err) {
       setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Renewal failed' });
     }
@@ -499,6 +501,7 @@ export default function LongTermSubscriptionsPage() {
         type: 'success',
         text: `Subscribed to ${selectedPackageForModal.name} for plate ${data.plateNumber}${data.slotId ? ' (with a dedicated slot)' : ''}.`,
       });
+      showToast(`Subscribed to ${selectedPackageForModal.name} successfully!`, 'success');
       setSelectedPackageForModal(null);
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Error subscribing to package';
@@ -777,7 +780,7 @@ export default function LongTermSubscriptionsPage() {
           <div className="w-full max-w-lg rounded-3xl border border-white/10 bg-slate-900 p-6 shadow-2xl space-y-6">
             <div>
               <h3 className="text-lg font-black text-white">Confirm long-term package cancellation</h3>
-              <p className="text-xs text-slate-400 mt-1">Gói: {cancellingSub.package.name} ({cancellingSub.package.code})</p>
+              <p className="text-xs text-slate-400 mt-1">Package: {cancellingSub.package.name} ({cancellingSub.package.code})</p>
             </div>
 
             <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 p-4 space-y-2 text-xs font-semibold text-rose-300">
@@ -793,7 +796,7 @@ export default function LongTermSubscriptionsPage() {
 
             <div className="space-y-4">
               <div>
-                <span className="text-xs font-bold uppercase text-slate-400 block mb-2">Lý do hủy</span>
+                <span className="text-xs font-bold uppercase text-slate-400 block mb-2">Cancel reason</span>
                 <div className="space-y-2">
                   {[
                     { value: 'change_slot', label: '🚗 Switch to another slot' },

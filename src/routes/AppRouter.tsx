@@ -5,6 +5,7 @@ import { ScrollToTop } from '@/components/common/ScrollToTop';
 import { ProtectedRoute } from '@/routes/ProtectedRoute';
 import { ManagerProtectedRoute } from '@/routes/ManagerProtectedRoute';
 import { StaffProtectedRoute } from '@/routes/StaffProtectedRoute';
+import { UserProtectedRoute } from '@/routes/UserProtectedRoute';
 import { AdminLayout } from '@/layouts/AdminLayout';
 import { ManagerLayout } from '@/layouts/ManagerLayout';
 import { StaffLayout } from '@/layouts/StaffLayout';
@@ -85,15 +86,18 @@ export function AppRouter() {
       <Route path="/auth/reset-password" element={<PublicResetPasswordRoute />} />
       <Route path="/auth/reset_password" element={<PublicResetPasswordRoute />} />
       <Route path="/buildings" element={<BuildingsUserPage />} />
-      <Route path="/profile" element={<ProfilePage />} />
-      <Route path="/wallet" element={<WalletPage />} />
-      <Route path="/reservations" element={<ReservationsPage />} />
-      <Route path="/long-term-subscriptions" element={<LongTermSubscriptionsPage />} />
-      <Route path="/notifications" element={<UserNotificationsPage />} />
-      <Route path="/parking-history" element={<ParkingHistoryPage />} />
       <Route path="/reviews" element={<ReviewsPage />} />
-      <Route path="/user-dashboard" element={<UserDashboardPage />} />
       <Route path="/kiosk" element={<KioskCheckInPage />} />
+
+      <Route element={<UserProtectedRoute />}>
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/wallet" element={<WalletPage />} />
+        <Route path="/reservations" element={<ReservationsPage />} />
+        <Route path="/long-term-subscriptions" element={<LongTermSubscriptionsPage />} />
+        <Route path="/notifications" element={<UserNotificationsPage />} />
+        <Route path="/parking-history" element={<ParkingHistoryPage />} />
+        <Route path="/user-dashboard" element={<UserDashboardPage />} />
+      </Route>
 
       <Route path="/manager/login" element={<Navigate to="/auth/login" replace />} />
       <Route path="/manager" element={<Navigate to="/manager/dashboard" replace />} />

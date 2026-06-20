@@ -477,7 +477,7 @@ export function BuildingsPage() {
                   )}
                 </section>
 
-                {/* Gói dài hạn của tòa nhà */}
+                {/* Building long-term packages */}
                 <section>
                   <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     Long-term packages ({detailState.packages.length})

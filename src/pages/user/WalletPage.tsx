@@ -22,6 +22,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { userApi, type UserWallet, type UserWalletTransaction } from '@/services/user/userApi';
 import QRCode from 'qrcode';
+import { showToast } from '@/components/common/ToastNotification';
 
 const currency = new Intl.NumberFormat('vi-VN', {
   style: 'currency',
@@ -170,6 +171,7 @@ export default function WalletPage() {
         const status = (res as { data?: { status: string } })?.data?.status;
         if (status === 'success' || status === 'PAID') {
           setMessage({ type: 'ok', text: `Topped up ${fmtMoney(pendingTopUp.amount)} to your wallet.` });
+          showToast(`Topped up ${fmtMoney(pendingTopUp.amount)} successfully!`, 'success');
           setPendingTopUp(null);
           refreshWallet();
           clearInterval(pollInterval);
@@ -261,6 +263,7 @@ export default function WalletPage() {
       const status = (res as { data?: { status: string } })?.data?.status;
       if (status === 'success' || status === 'PAID') {
         setMessage({ type: 'ok', text: `Topped up ${fmtMoney(pendingTopUp.amount)} to your wallet.` });
+        showToast(`Topped up ${fmtMoney(pendingTopUp.amount)} successfully!`, 'success');
         setPendingTopUp(null);
         await refreshWallet();
       } else {

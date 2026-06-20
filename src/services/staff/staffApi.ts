@@ -37,9 +37,9 @@ export interface ParkingSession {
   fee?: number | null;
   currentFee?: number | null;        // live fee (per manager PricePolicy) for active sessions
   isMember?: boolean;                 // true if the plate is linked to an account
-  // Gói dài hạn (long_term): miễn phí trong maxHoursPerDay/ngày; currentFee = phí phần vượt.
+  // Long-term package: free within maxHoursPerDay/day; currentFee = fee for overage hours.
   isLongTerm?: boolean;
-  overageHours?: number;             // số giờ đỗ vượt hạn mức (đang tính phí)
+  overageHours?: number;             // hours parked beyond the daily free limit (being charged)
   maxHoursPerDay?: number;           // hạn mức giờ free/ngày của gói (0 = không giới hạn)
   plateImage?: string | null;        // license-plate camera snapshot (Camera 1)
   portraitImage?: string | null;     // QR / account camera snapshot (Camera 2 — driver portrait)
@@ -124,10 +124,10 @@ export interface PlateInfo {
     building: string;
     entryTime: string;
   };
-  /** Gói dài hạn còn hiệu lực → staff phải gán 1 slot trống khi check-in. */
+  /** Active long-term package → staff must assign an available slot on check-in. */
   hasActivePackage?: boolean;
   activePackage?: { id: string; name: string; maxHoursPerDay: number } | null;
-  /** Đặt chỗ còn hiệu lực → luồng "chỉ cần quét", không bắt chụp ảnh. */
+  /** Active reservation → scan-only flow, no photo capture required. */
   hasActiveReservation?: boolean;
   activeReservation?: { id: string; code: string } | null;
 }
@@ -206,7 +206,7 @@ export const staffApi = {
   checkIn: (payload: { plateNumber: string; vehicleType?: string; gate?: string; building?: string; vehicleBrand?: string; plateImage?: string | null; portraitImage?: string | null; slot?: string }) =>
     api.post<Wrap<{ item: ParkingSession }>>('/staff/parking-sessions/check-in', payload),
 
-  // Slot 'available' của 1 tòa nhà — để gán xe mua gói khi check-in.
+  // Available slots in a building — used to assign to long-term package vehicles on check-in.
   freeSlots: (buildingId: string) =>
     api.get<Wrap<{ items: FreeSlot[] }>>('/staff/parking-sessions/free-slots', { query: { building: buildingId } }),
 
@@ -337,7 +337,7 @@ export const staffApi = {
         `/staff/users/lookup-qr/${qrCode}`
       ),
 
-    /** Doanh thu ca của nhân viên cổng ra (tiền đã thu hôm nay). */
+    /** Revenue collected by the exit-gate staff for today's shift. */
     myShiftRevenue: (buildingId: string) =>
       api.get<Wrap<ShiftRevenueSummary>>('/staff/parking-sessions/my-shift-revenue', { query: { building: buildingId } }),
   },

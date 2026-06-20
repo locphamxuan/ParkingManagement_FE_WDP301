@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Building2, Crown, Layers, MessageSquare, Square } from 'lucide-react';
+import { Building2, Layers, MessageSquare, Square } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
@@ -28,11 +27,9 @@ export function ManagerDashboardPage() {
     error: buildingsError,
   } = useManagerBuildings();
 
-  const navigate = useNavigate();
   const [overview, setOverview] = useState<DashboardOverview | null>(null);
   const [isLoadingOverview, setIsLoadingOverview] = useState(false);
   const [overviewError, setOverviewError] = useState<string | null>(null);
-  const needsSubscription = /subscription|gói/i.test(overviewError ?? '');
 
   const userName = useMemo(
     () => session?.displayName || session?.email || 'Management',
@@ -171,25 +168,7 @@ export function ManagerDashboardPage() {
                     <span>Aggregating data...</span>
                   </div>
                 ) : overviewError ? (
-                  needsSubscription ? (
-                    <div className="rounded-2xl border border-amber-500/25 bg-amber-950/20 p-4">
-                      <div className="flex items-center gap-2 text-amber-300">
-                        <Crown size={15} />
-                        <p className="text-xs font-black uppercase tracking-wider font-mono">A service package must be activated</p>
-                      </div>
-                      <p className="mt-2 text-xs font-semibold text-amber-200/80">
-                        The building has no active system package. Buy a package to unlock the manager dashboard.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => navigate('/manager/wallet')}
-                        className="mt-3 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-400 px-4 py-2 text-xs font-black text-slate-950 transition hover:brightness-110"
-                      >
-                        <Crown size={13} />Buy a service package</button>
-                    </div>
-                  ) : (
-                    <p className="text-xs font-semibold text-rose-400 bg-rose-950/20 border border-rose-500/20 p-3.5 rounded-2xl">{overviewError}</p>
-                  )
+                  <p className="text-xs font-semibold text-rose-400 bg-rose-950/20 border border-rose-500/20 p-3.5 rounded-2xl">{overviewError}</p>
                 ) : overview ? (
                   <div className="grid gap-4 grid-cols-2 xl:grid-cols-4">
                     {cards.map((card) => {

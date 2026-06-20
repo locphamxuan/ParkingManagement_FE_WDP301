@@ -27,19 +27,9 @@ export interface AdminUser {
   createdAt?: string;
 }
 
-export interface BuildingSubscriptionStatus {
-  active: boolean;
-  endDate: string | null;
-  startDate: string | null;
-  daysRemaining: number;
-  package: { _id: string; name: string; price: number; durationDays: number } | null;
-  packageName: string | null;
-}
-
 export interface BuildingMembers {
   manager: AdminUser | null;
   staff: AdminUser[];
-  subscription?: BuildingSubscriptionStatus;
 }
 
 export interface AdminAuditLog {
@@ -94,18 +84,6 @@ export interface AdminBuildingPackage {
   price: number;
   isActive: boolean;
 }
-
-export interface AdminSubscriptionPackage {
-  _id: string;
-  name: string;
-  price: number;
-  durationDays: number;
-  description?: string;
-  features?: string[];
-  isActive: boolean;
-  createdAt?: string;
-}
-
 
 export interface RevenueReportRow {
   buildingId: string;

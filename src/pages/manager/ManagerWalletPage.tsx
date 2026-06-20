@@ -31,8 +31,7 @@ const TX_REASON_LABELS: Record<string, string> = {
   parking_fee: 'Parking fee',
   reservation_fee: 'Reservation fee',
   topup: 'Wallet top-up',
-  admin_subscription: 'System package',
-  transfer_to_system: 'Transfer to admin',
+  transfer_to_system: 'System transfer',
   refund: 'Refund',
 };
 

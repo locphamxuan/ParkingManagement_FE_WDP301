@@ -149,11 +149,11 @@ function ModuleCard({
       {/* The moving gradient border layer (only visible on hover for available modules) */}
       {module.available && (
         <motion.div
-          animate={isHovered ? {
+          animate={{
             backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
-          } : {}}
+          }}
           transition={{
-            duration: 4,
+            duration: isHovered ? 4 : 8, // Slower, elegant loop when idle; faster on hover
             repeat: Infinity,
             ease: "linear"
           }}
@@ -162,8 +162,7 @@ function ModuleCard({
             inset: 0,
             background: 'linear-gradient(270deg, #f97316, #fbbf24, #a78bfa, #ec4899, #f43f5e, #f97316)',
             backgroundSize: '400% 400%',
-            opacity: isHovered ? 1 : 0,
-            transition: 'opacity 0.4s ease',
+            opacity: 1, // Always fully visible
             borderRadius: '16px',
             pointerEvents: 'none',
           }}

@@ -1,6 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { ScanLine, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { staffApi } from '@/services/staff/staffApi';
+import { videoConstraintFor } from '@/hooks/useCameraDevices';
 
 export interface PlateScanResult {
   plateNumber: string;
@@ -18,6 +19,8 @@ interface LivePlateCameraProps {
   onDetected: (result: PlateScanResult) => void;
   /** Disable the capture button while the parent is busy. */
   busy?: boolean;
+  /** Thiết bị camera vật lý gán cho vai trò này (nếu có nhiều camera). */
+  deviceId?: string;
 }
 
 /**
@@ -26,7 +29,7 @@ interface LivePlateCameraProps {
  * and returns the recognized plate + the captured image (saved to DB).
  */
 export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps>(function LivePlateCamera(
-  { onDetected, busy = false },
+  { onDetected, busy = false, deviceId },
   ref,
 ) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -42,7 +45,7 @@ export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps
 
     (async () => {
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        stream = await navigator.mediaDevices.getUserMedia({ video: videoConstraintFor(deviceId, 'environment') });
         if (cancelled) {
           stream.getTracks().forEach((t) => t.stop());
           return;
@@ -66,7 +69,7 @@ export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps
       const s = (videoRef.current?.srcObject as MediaStream | null) ?? stream;
       s?.getTracks().forEach((t) => t.stop());
     };
-  }, []);
+  }, [deviceId]);
 
   const captureFrame = (): string | null => {
     const video = videoRef.current;
@@ -99,9 +102,11 @@ export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps
       const data = (res as { data?: { plateNumber?: string; brand?: string | null } })?.data;
       const plateNumber = data?.plateNumber || '';
       const brand = data?.brand ?? null;
+      // Luôn trả ảnh đã chụp (làm bằng chứng/ảnh biển số), kèm số biển nếu AI đọc được.
+      // Nếu AI không đọc ra số, nhân viên nhập tay — ảnh vẫn được lưu.
+      onDetected({ plateNumber, brand, plateImage: dataUrl });
       if (plateNumber) {
         setSuccess(`Biển số: ${plateNumber}${brand ? ` · ${brand}` : ''}`);
-        onDetected({ plateNumber, brand, plateImage: dataUrl });
         setTimeout(() => setSuccess(null), 2500);
       } else {
         setError('Cannot read the plate — use the adjacent Camera 2 (QR) to identify.');

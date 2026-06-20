@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Users } from 'lucide-react';
+import { Eye, Users } from 'lucide-react';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { DataTable, type DataColumn } from '@/components/common/DataTable';
 import { ModalForm } from '@/components/modals/ModalForm';
@@ -18,16 +18,35 @@ import {
   revokeStaffFromBuilding,
   revokeManagerFromBuilding,
 } from '@/services/admin/adminCrud';
-import { adminApi, type AdminUser } from '@/services/admin/adminApi';
+import {
+  adminApi,
+  type AdminUser,
+  type AdminPricePolicy,
+  type AdminBuildingPackage,
+} from '@/services/admin/adminApi';
 import type { Building } from '@/types';
 
 const PAGE_SIZE = 10;
+
+const fmtVnd = (n: number | null | undefined) =>
+  n != null ? `${n.toLocaleString('en-US')} ₫` : '—';
+
+const vehicleTypeLabel = (vt: AdminPricePolicy['vehicleType'] | AdminBuildingPackage['vehicleType']) =>
+  vt && typeof vt === 'object' ? vt.name : '—';
+
 
 interface MembersState {
   buildingId: string;
   buildingName: string;
   manager: AdminUser | null;
   staff: AdminUser[];
+}
+
+interface DetailState {
+  buildingName: string;
+  pricePolicies: AdminPricePolicy[];
+  packages: AdminBuildingPackage[];
+
 }
 
 export function BuildingsPage() {
@@ -49,6 +68,11 @@ export function BuildingsPage() {
 
   const [pendingDeleteMember, setPendingDeleteMember] = useState<AdminUser | null>(null);
   const [isDeletingMember, setIsDeletingMember] = useState(false);
+
+  const [detailState, setDetailState] = useState<DetailState | null>(null);
+  const [isDetailLoading, setIsDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState<string | null>(null);
+
 
   const [form, setForm] = useState({
     name: '',
@@ -100,6 +124,29 @@ export function BuildingsPage() {
       setIsMembersLoading(false);
     }
   };
+
+  const openViewDetail = async (building: Building) => {
+    const bid = building.backendId || building.id;
+    setDetailState({ buildingName: building.name, pricePolicies: [], packages: [] });
+    setIsDetailLoading(true);
+    setDetailError(null);
+    try {
+      const [policyRes, pkgRes] = await Promise.all([
+        adminApi.buildings.listPricePolicies(bid),
+        adminApi.buildings.listPackages(bid),
+      ]);
+      setDetailState({
+        buildingName: building.name,
+        pricePolicies: (policyRes as { data?: { items: AdminPricePolicy[] } })?.data?.items ?? [],
+        packages: (pkgRes as { data?: { items: AdminBuildingPackage[] } })?.data?.items ?? [],
+      });
+    } catch (err) {
+      setDetailError(err instanceof Error ? err.message : 'Unable to load building details');
+    } finally {
+      setIsDetailLoading(false);
+    }
+  };
+
 
   const confirmDeleteMember = async () => {
     if (!token || !pendingDeleteMember || !membersState) return;
@@ -258,6 +305,14 @@ export function BuildingsPage() {
             variant="secondary"
             size="sm"
             className="gap-1"
+            onClick={() => openViewDetail(row)}
+          >
+            <Eye size={12} /> Chi tiết
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="gap-1"
             onClick={() => openViewMembers(row)}
           >
             <Users size={12} />Members</Button>
@@ -367,6 +422,82 @@ export function BuildingsPage() {
                               onClick={() => setPendingDeleteMember(s)}
                             >Delete</Button>
                           </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </section>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : null}
+
+      {/* Building Detail Modal (read-only operator view) */}
+      {detailState ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-2xl rounded-2xl border border-border bg-background p-6 shadow-xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold">
+                Building details — {detailState.buildingName}
+              </h2>
+              <Button variant="ghost" size="sm" onClick={() => setDetailState(null)}>
+                ✕
+              </Button>
+            </div>
+
+            {isDetailLoading ? (
+              <p className="text-sm text-muted-foreground">Loading building details...</p>
+            ) : detailError ? (
+              <p className="text-sm text-red-600">{detailError}</p>
+            ) : (
+              <div className="grid max-h-[70vh] gap-5 overflow-y-auto">
+                {/* Chính sách giá */}
+                <section>
+                  <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    Price policies ({detailState.pricePolicies.length})
+                  </h3>
+                  {detailState.pricePolicies.length === 0 ? (
+                    <p className="text-sm italic text-muted-foreground">No price policies configured for this building.</p>
+                  ) : (
+                    <div className="grid gap-2">
+                      {detailState.pricePolicies.map((p) => (
+                        <div key={p._id} className="flex items-center justify-between rounded-xl border border-border bg-card p-3 text-sm">
+                          <div>
+                            <p className="font-medium">{p.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {vehicleTypeLabel(p.vehicleType)} · {fmtVnd(p.hourlyRate)}/h
+                              {p.dailyCap ? ` · daily cap ${fmtVnd(p.dailyCap)}` : ''}
+                            </p>
+                          </div>
+                          <StatusBadge status={p.isActive ? 'active' : 'inactive'} />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </section>
+
+                {/* Gói dài hạn của tòa nhà */}
+                <section>
+                  <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    Long-term packages ({detailState.packages.length})
+                  </h3>
+                  {detailState.packages.length === 0 ? (
+                    <p className="text-sm italic text-muted-foreground">No long-term packages published for this building.</p>
+                  ) : (
+                    <div className="grid gap-2">
+                      {detailState.packages.map((pkg) => (
+                        <div key={pkg._id} className="flex items-center justify-between rounded-xl border border-border bg-card p-3 text-sm">
+                          <div>
+                            <p className="font-medium">
+                              {pkg.name}
+                              {pkg.code && <span className="ml-1.5 font-mono text-xs text-muted-foreground">{pkg.code}</span>}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {vehicleTypeLabel(pkg.vehicleType)} · {fmtVnd(pkg.price)} · {pkg.durationDays} days
+                            </p>
+                          </div>
+                          <StatusBadge status={pkg.isActive ? 'active' : 'inactive'} />
                         </div>
                       ))}
                     </div>

@@ -14,13 +14,13 @@ const STATUS_FILTERS = [
 
 const fmtDate = (v?: string) => (v ? new Date(v).toLocaleDateString('en-GB') : '—');
 
-// Read slot code + floor name from the populated slot.
 const slotLabel = (slot: Subscription['slot']): { code: string; floor: string } | null => {
   if (!slot || typeof slot === 'string') return null;
   const floor =
     slot.floor && typeof slot.floor === 'object' ? slot.floor.name || slot.floor.code || '' : '';
   return { code: slot.code, floor };
 };
+
 
 export function ManagerSubscriptionsPage() {
   const { buildingId } = useBuildingContext();

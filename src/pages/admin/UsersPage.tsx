@@ -172,7 +172,7 @@ export function UsersPage() {
     {
       key: 'walletBalance',
       title: 'Wallet balance',
-      render: (row) => `${row.walletBalance.toLocaleString('vi-VN')} ₫`,
+      render: (row) => `${row.walletBalance.toLocaleString('en-US')} ₫`,
     },
     {
       key: 'linkedPlates',
@@ -210,7 +210,6 @@ export function UsersPage() {
         if (mergedPlates.length === 0) {
           return <span className="text-muted-foreground italic text-xs">Not linked</span>;
         }
-
         return (
           <div className="flex flex-wrap gap-1.5">
             {mergedPlates.map((p) => (
@@ -242,7 +241,7 @@ export function UsersPage() {
       render: (row) => (
         <div className="flex flex-wrap gap-2">
           <Button variant="ghost" size="sm" onClick={() => openEditModal(row)}>
-            Sửa
+            Edit
           </Button>
           <Button variant="secondary" size="sm" onClick={() => toggleStatus(row)}>
             {row.status === 'active' ? 'Lock' : 'Open'}

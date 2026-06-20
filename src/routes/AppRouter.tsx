@@ -136,8 +136,8 @@ export function AppRouter() {
           <Route index element={<StaffDashboardPage />} />
           <Route path="dashboard" element={<StaffDashboardPage />} />
           <Route path="operations" element={<StaffOperationsPage />} />
-          <Route path="checkout" element={<StaffParkedPage />} />
-          <Route path="parked" element={<StaffParkedPage readOnly />} />
+          <Route path="checkout" element={<StaffParkedPage view="scanner" />} />
+          <Route path="parked" element={<StaffParkedPage view="list" />} />
           <Route path="reservations" element={<StaffReservationsPage />} />
           <Route path="my-shifts" element={<StaffShiftsPage />} />
           <Route path="sessions" element={<StaffSessionsPage />} />

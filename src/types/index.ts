@@ -38,6 +38,7 @@ export interface AuditLog {
   severity: 'low' | 'medium' | 'high' | 'critical';
   timestamp: string;
   details: string;
+  building?: string;
 }
 
 export interface FraudAlert {

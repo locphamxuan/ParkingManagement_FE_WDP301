@@ -116,6 +116,8 @@ export interface ReservationPolicy {
   maxDurationHours: number;
   /** % penalty surcharge on overstay time. 0 = no penalty. */
   overstayPenaltyPercent: number;
+  /** Số giờ trước giờ đặt mà khách còn được hủy. 0 = hủy bất kỳ lúc nào trước giờ đặt. */
+  cancellationCutoffHours: number;
   isActive: boolean;
 }
 

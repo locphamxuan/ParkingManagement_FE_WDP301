@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { DataTable, type DataColumn } from '@/components/common/DataTable';
 import { SearchFilterBar } from '@/components/common/SearchFilterBar';
 import { StatusBadge } from '@/components/common/StatusBadge';
+import { Button } from '@/components/ui/button';
 import { useAdminDataset } from '@/hooks/admin/useAdminDataset';
 import type { AuditLog } from '@/types';
 
@@ -28,13 +29,34 @@ const TARGET_LABELS: Record<string, string> = {
 
 const targetLabel = (target: string) => TARGET_LABELS[target] ?? target;
 
+const ACTION_VERBS: Record<string, string> = {
+  CREATE: 'Created',
+  UPDATE: 'Updated',
+  DELETE: 'Deleted',
+  ASSIGN: 'Assigned',
+  REVOKE: 'Revoked',
+  GRANT: 'Granted',
+  RESPOND: 'Responded',
+  DISTRIBUTE: 'Distributed',
+  LOGIN: 'Logged in',
+  LOGOUT: 'Logged out',
+};
+const friendlyDetails = (log: AuditLog) => {
+  const verbKey = Object.keys(ACTION_VERBS).find((v) => log.action.startsWith(v));
+  if (!verbKey) return log.details;
+  return `${ACTION_VERBS[verbKey]} ${targetLabel(log.target).toLowerCase()}`;
+};
+
+const PAGE_SIZE = 8;
+
 export function AuditLogsPage() {
   const { data, isLoading, error } = useAdminDataset();
   const [query, setQuery] = useState('');
   const [severity, setSeverity] = useState('all');
   const [activeTab, setActiveTab] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
 
-  const logs = data?.auditLogs ?? [];
+  const logs = useMemo(() => data?.auditLogs ?? [], [data?.auditLogs]);
 
   // Group logs by target table to split into sub-tabs.
   const groups = useMemo(() => {
@@ -61,11 +83,16 @@ export function AuditLogsPage() {
         log.actor.toLowerCase().includes(q) ||
         log.action.toLowerCase().includes(q) ||
         log.target.toLowerCase().includes(q) ||
-        log.details.toLowerCase().includes(q);
+        log.details.toLowerCase().includes(q) ||
+        (log.building?.toLowerCase().includes(q) ?? false);
       const matchSeverity = severity === 'all' || log.severity === severity;
       return matchQuery && matchSeverity;
     });
   }, [groups, currentTab, query, severity]);
+
+  const maxPage = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, maxPage);
+  const pageRows = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   if (isLoading) {
     return <div className="text-sm text-muted-foreground">Loading audit logs...</div>;
@@ -103,7 +130,10 @@ export function AuditLogsPage() {
             <button
               key={g.key}
               type="button"
-              onClick={() => setActiveTab(g.key)}
+              onClick={() => {
+                setActiveTab(g.key);
+                setPage(1);
+              }}
               className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
                 isActive
                   ? 'border-primary bg-primary/10 text-primary'
@@ -125,17 +155,52 @@ export function AuditLogsPage() {
 
       <SearchFilterBar
         query={query}
-        onQueryChange={setQuery}
+        onQueryChange={(value) => {
+          setPage(1);
+          setQuery(value);
+        }}
         filterValue={severity}
-        onFilterChange={setSeverity}
+        onFilterChange={(value) => {
+          setPage(1);
+          setSeverity(value);
+        }}
         filterOptions={['all', 'low', 'medium', 'high', 'critical']}
       />
 
       <DataTable
         title={`Logs: ${currentTab ? targetLabel(currentTab) : ''}`}
-        rows={filtered}
+        rows={pageRows}
         columns={columns}
       />
+
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs text-muted-foreground">
+          {filtered.length > 0
+            ? `${(safePage - 1) * PAGE_SIZE + 1}–${Math.min(safePage * PAGE_SIZE, filtered.length)} / ${filtered.length} records`
+            : 'No matching records'}
+        </span>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={safePage <= 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          >
+            Previous
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            Page {safePage} / {maxPage}
+          </span>
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={safePage >= maxPage}
+            onClick={() => setPage((p) => Math.min(maxPage, p + 1))}
+          >
+            Next
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

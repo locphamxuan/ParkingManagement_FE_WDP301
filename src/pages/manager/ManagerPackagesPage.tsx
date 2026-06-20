@@ -16,12 +16,9 @@ interface FormState {
   vehicleType: string;
   durationDays: string;
   price: string;
-  reservedSlots: string;
   maxHoursPerDay: string;
-  graceDays: string;
   description: string;
   benefits: string;
-  allowDedicatedSlot: boolean;
   isActive: boolean;
 }
 
@@ -31,12 +28,9 @@ const empty: FormState = {
   vehicleType: '',
   durationDays: '30',
   price: '0',
-  reservedSlots: '0',
   maxHoursPerDay: '',
-  graceDays: '7',
   description: '',
   benefits: '',
-  allowDedicatedSlot: false,
   isActive: true,
 };
 
@@ -85,12 +79,9 @@ export function ManagerPackagesPage() {
       vehicleType: typeof row.vehicleType === 'string' ? row.vehicleType : row.vehicleType._id,
       durationDays: String(row.durationDays),
       price: String(row.price),
-      reservedSlots: String(row.reservedSlots),
       maxHoursPerDay: row.maxHoursPerDay != null ? String(row.maxHoursPerDay) : '',
-      graceDays: row.graceDays != null ? String(row.graceDays) : '7',
       description: row.description ?? '',
       benefits: (row.benefits ?? []).join('\n'),
-      allowDedicatedSlot: row.allowDedicatedSlot ?? false,
       isActive: row.isActive,
     });
     setModalOpen(true);
@@ -107,16 +98,13 @@ export function ManagerPackagesPage() {
       vehicleType: form.vehicleType,
       durationDays: Number(form.durationDays),
       price: Number(form.price),
-      reservedSlots: Number(form.reservedSlots),
       // Leave empty → BE sets a default by duration (week 5 / month 7 / year 10).
       ...(form.maxHoursPerDay.trim() !== '' ? { maxHoursPerDay: Number(form.maxHoursPerDay) } : {}),
-      ...(form.graceDays.trim() !== '' ? { graceDays: Number(form.graceDays) } : {}),
       description: form.description.trim(),
       benefits: form.benefits
         .split('\n')
         .map((b) => b.trim())
         .filter(Boolean),
-      allowDedicatedSlot: form.allowDedicatedSlot,
       isActive: form.isActive,
     };
     try {
@@ -154,7 +142,7 @@ export function ManagerPackagesPage() {
     {
       key: 'price',
       title: 'Price',
-      render: (row) => `${row.price.toLocaleString('vi-VN')} ₫`,
+      render: (row) => `${row.price.toLocaleString('en-US')} ₫`,
     },
     {
       key: 'maxHoursPerDay',
@@ -163,18 +151,11 @@ export function ManagerPackagesPage() {
         row.maxHoursPerDay && row.maxHoursPerDay > 0 ? `${row.maxHoursPerDay}h` : 'Unlimited',
     },
     {
-      key: 'graceDays',
-      title: 'Grace (days)',
-      render: (row) => `${row.graceDays ?? 7} days`,
-    },
-    { key: 'reservedSlots', title: 'Dedicated slot' },
-    {
       key: 'benefits',
       title: 'Benefits',
       render: (row) => (
         <span className="text-xs text-slate-400">
           {(row.benefits?.length ?? 0) > 0 ? `${row.benefits!.length} benefits` : '—'}
-          {row.allowDedicatedSlot ? ' · dedicated' : ''}
         </span>
       ),
     },
@@ -273,17 +254,7 @@ export function ManagerPackagesPage() {
               className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-orange-500/40"
             />
           </div>
-          <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Number of dedicated slots</label>
-            <Input
-              type="number"
-              min={0}
-              value={form.reservedSlots}
-              onChange={(e) => setForm((f) => ({ ...f, reservedSlots: e.target.value }))}
-              className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-orange-500/40"
-            />
-          </div>
-          <div className="grid gap-1.5">
+          <div className="grid gap-1.5 md:col-span-2">
             <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Max hours / day</label>
             <Input
               type="number"
@@ -295,19 +266,6 @@ export function ManagerPackagesPage() {
             />
             <p className="text-[11px] text-slate-400">
               Free parking hours/day. Excess is charged at the normal rate. Leave empty → default week 5h / month 7h / year 10h. 0 = unlimited.
-            </p>
-          </div>
-          <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Hold slot after expiry (days)</label>
-            <Input
-              type="number"
-              min={1}
-              value={form.graceDays}
-              onChange={(e) => setForm((f) => ({ ...f, graceDays: e.target.value }))}
-              className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-orange-500/40"
-            />
-            <p className="text-[11px] text-slate-400">
-              After the package expires, keep the dedicated slot for this many extra days (grace) before releasing. Default 7.
             </p>
           </div>
           <div className="grid gap-1.5 md:col-span-2">
@@ -329,15 +287,6 @@ export function ManagerPackagesPage() {
             />
             <p className="text-[11px] text-slate-400">These benefits will be shown to customers when choosing a package.</p>
           </div>
-          <label className="flex items-center gap-3 text-xs font-bold text-slate-300 md:col-span-2 select-none">
-            <input
-              type="checkbox"
-              checked={form.allowDedicatedSlot}
-              onChange={(e) => setForm((f) => ({ ...f, allowDedicatedSlot: e.target.checked }))}
-              className="w-4 h-4 rounded border-white/10 bg-slate-950 text-orange-500 focus:ring-0 cursor-pointer"
-            />
-            <span>Allow holding a dedicated parking slot</span>
-          </label>
           <label className="flex items-center gap-3 text-xs font-bold text-slate-300 md:col-span-2 select-none">
             <input
               type="checkbox"

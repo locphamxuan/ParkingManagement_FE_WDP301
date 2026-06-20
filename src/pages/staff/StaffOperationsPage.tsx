@@ -4,13 +4,11 @@ import {
   AlertCircle,
   Car,
   Bike,
-  User,
-  Mail,
-  Phone,
-  Wallet,
-  Calendar,
-  ShieldCheck,
-  ShieldAlert,
+  ArrowLeft,
+  ArrowRight,
+  UserSquare,
+  QrCode,
+  Settings,
   Image as ImageIcon,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -23,7 +21,7 @@ import { staffApi, type PlateInfo } from '@/services/staff/staffApi';
 import { LivePlateCamera, type PlateScanResult, type LiveCameraHandle } from '@/components/staff/LivePlateCamera';
 import { LiveQRCamera } from '@/components/staff/LiveQRCamera';
 import { LivePortraitCamera } from '@/components/staff/LivePortraitCamera';
-import { QRCodeScannerModal } from '@/components/staff/QRCodeScannerModal';
+import { useCameraDevices, type CameraRole } from '@/hooks/useCameraDevices';
 import { normalizePlate } from '@/utils/plate';
 
 type VehicleKind = 'car' | 'motorcycle';
@@ -54,20 +52,30 @@ export function StaffOperationsPage() {
   const qrCamRef = useRef<LiveCameraHandle>(null);
   const portraitCamRef = useRef<LiveCameraHandle>(null);
 
+  // Assign physical camera devices to each role (supports multiple real cameras).
+  const { devices, assignment, assign, requestAndRefresh } = useCameraDevices();
+  const [cameraSettingsOpen, setCameraSettingsOpen] = useState(false);
+  // Number of DISTINCT assigned devices — needs 2+ for "open multiple cameras at once" to be meaningful.
+  const distinctDeviceCount = new Set(
+    [assignment.plate, assignment.portrait, assignment.qr].filter(Boolean),
+  ).size;
+  // Multi-camera mode: open all 3 simultaneously for simultaneous capture (counter with multiple cameras).
+  const [multiCamMode, setMultiCamMode] = useState(() => distinctDeviceCount >= 2);
+
+  // Sequential wizard: only 1 camera active per step.
+  //  1: Identify vehicle (plate AI / QR) · 2: Capture portrait · 3: Confirm & check-in
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [identifyMode, setIdentifyMode] = useState<'plate' | 'qr'>('plate');
+
   // Plate → account info (display only; guest when no account)
-  const [plateAccountInfo, setPlateAccountInfo] = useState<{ hasAccount: boolean; registeredVehicleType?: 'car' | 'motorcycle' | null; user: { id: string; fullName: string; email: string } | null } | null>(null);
-  // Reject (từ chối) check-in flow
+  const [plateAccountInfo, setPlateAccountInfo] = useState<PlateInfo | null>(null);
+  // Floating package: when plate has an active package, staff must choose an empty slot.
+  const [freeSlots, setFreeSlots] = useState<{ _id: string; code: string; floor?: { name?: string; code?: string } | null }[]>([]);
+  const [selectedSlotId, setSelectedSlotId] = useState('');
+
+  // Reject check-in flow
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
-
-  // Plate verification popup after scanning
-  const [scannedPlateInfo, setScannedPlateInfo] = useState<PlateInfo | null>(null);
-  const [isPlateInfoModalOpen, setIsPlateInfoModalOpen] = useState(false);
-  const [isPlateInfoLoading, setIsPlateInfoLoading] = useState(false);
-
-  // Reservation check-in
-  const [reservationCode, setReservationCode] = useState('');
-  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
 
   // Both vehicle types supported by default (staff can always override)
   const allowedTypes = ALLOWED_TYPES;
@@ -121,7 +129,7 @@ export function StaffOperationsPage() {
       staffApi
         .lookupPlate(clean)
         .then((res) => {
-          setPlateAccountInfo((res as { data?: typeof plateAccountInfo })?.data ?? null);
+          setPlateAccountInfo((res as { data?: PlateInfo })?.data ?? null);
         })
         .catch(() => undefined);
     } else {
@@ -129,28 +137,66 @@ export function StaffOperationsPage() {
     }
   }, [plateNumber]);
 
-  // Camera 1 recognizes the plate → save the plate photo + open the verification popup.
-  const handlePlateDetected = ({ plateNumber: plate, brand, plateImage: img }: PlateScanResult) => {
-    setPlateImage(img);
-    void openPlateInfo(plate, brand);
-  };
+  // Plate has active package → load empty slots for the building so staff can assign a spot.
+  const hasActivePackage = Boolean(plateAccountInfo?.hasActivePackage);
+  const hasActiveReservation = Boolean(plateAccountInfo?.hasActiveReservation);
+  // Check-in kind determines photo rules:
+  //  - 'package'/'reservation': scan only (plate/QR) for identification — no photo required.
+  //  - 'standard' (guest / regular user): plate photo + portrait both required.
+  const checkInKind: 'package' | 'reservation' | 'standard' = hasActivePackage
+    ? 'package'
+    : hasActiveReservation
+      ? 'reservation'
+      : 'standard';
+  useEffect(() => {
+    if (!hasActivePackage || !buildingId) {
+      setFreeSlots([]);
+      setSelectedSlotId('');
+      return;
+    }
+    let cancelled = false;
+    staffApi
+      .freeSlots(buildingId)
+      .then((res) => {
+        if (!cancelled) setFreeSlots((res as { data?: { items?: typeof freeSlots } })?.data?.items ?? []);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [hasActivePackage, buildingId]);
 
-  // Look up the plate then open the verification popup (used by both Camera 1 and Camera 2/QR).
-  const openPlateInfo = async (plate: string, brand: string | null = null) => {
+  // Apply recognized plate (AI/QR) → lookup runs automatically via effect on plateNumber.
+  const applyPlate = (plate: string, brand: string | null = null) => {
     const clean = normalizePlate(plate) || plate.trim().toUpperCase();
     setPlateNumber(clean);
     if (brand) setVehicleBrand(brand);
-    setIsPlateInfoLoading(true);
-    try {
-      const res = await staffApi.lookupPlate(clean);
-      const info = (res as { data?: PlateInfo })?.data ?? null;
-      setScannedPlateInfo(info ?? { plateNumber: clean, hasAccount: false });
-    } catch {
-      setScannedPlateInfo({ plateNumber: clean, hasAccount: false });
-    } finally {
-      setIsPlateInfoLoading(false);
-      setIsPlateInfoModalOpen(true);
+  };
+
+  // Plate camera: always save the captured image; only apply plate number if AI read it.
+  // Do NOT auto-advance step — wait for lookup to determine kind (package/reservation/standard).
+  const handlePlateDetected = ({ plateNumber: plate, brand, plateImage: img }: PlateScanResult) => {
+    setPlateImage(img);
+    if (plate) applyPlate(plate, brand);
+  };
+
+  // Leave step 1 → Portrait capture step. ALL check-in kinds require a portrait photo
+  // (for identity verification at exit). Plate photo is additionally required for guest /
+  // standard users (package/reservation use scan for identification so plate is optional).
+  const proceedFromIdentify = () => {
+    setStep(2);
+  };
+
+  // Step 2: capture portrait from portrait camera → save image → advance to Confirm.
+  const capturePortraitAndNext = () => {
+    const img = portraitCamRef.current?.capture() ?? null;
+    if (!img) {
+      setOpMessage({ type: 'err', text: 'Portrait camera not ready. Please try again.' });
+      return;
     }
+    setPortraitImage(img);
+    setOpMessage(null);
+    setStep(3);
   };
 
   // Camera 3: scan QR (plate token PLT- or account ID) → open popup. The portrait photo
@@ -172,9 +218,11 @@ export function StaffOperationsPage() {
       if (data.kind === 'plate' && data.plate?.plateNumber) {
         if (data.plate.vehicleType === 'motorcycle') setVehicleType('motorcycle');
         else if (data.plate.vehicleType) setVehicleType('car');
-        await openPlateInfo(data.plate.plateNumber, data.plate.brand ?? null);
+        applyPlate(data.plate.plateNumber, data.plate.brand ?? null);
+        // Do not auto-advance step — wait for lookup to determine kind; staff presses "Continue".
+        setOpMessage({ type: 'ok', text: `Plate ${data.plate.plateNumber} identified. Press "Continue".` });
       } else if (data.user) {
-        setOpMessage({ type: 'ok', text: `Account identified: ${data.user.fullName} (${data.user.email}). Portrait photo saved.` });
+        setOpMessage({ type: 'ok', text: `Account identified: ${data.user.fullName} (${data.user.email}). Please scan or enter the vehicle plate.` });
       } else {
         setOpMessage({ type: 'err', text: 'QR code does not match any account or vehicle.' });
       }
@@ -189,10 +237,19 @@ export function StaffOperationsPage() {
     setPlateImage(null);
     setPortraitImage(null);
     setPlateAccountInfo(null);
+    setFreeSlots([]);
+    setSelectedSlotId('');
+    setStep(1);
+    setIdentifyMode('plate');
   };
 
   const onCheckIn = async () => {
     setOpMessage(null);
+    // Floating package: must select an empty slot before check-in.
+    if (hasActivePackage && !selectedSlotId) {
+      setOpMessage({ type: 'err', text: 'This vehicle has a long-term package — please select an empty slot before check-in.' });
+      return;
+    }
     setLoading(true);
     const currentPlate = normalizePlate(plateNumber) || plateNumber.trim().toUpperCase();
     // Ensure BOTH images are captured at check-in: use the already-scanned frame
@@ -209,6 +266,7 @@ export function StaffOperationsPage() {
         vehicleBrand: vehicleBrand || undefined,
         plateImage: plateImg,
         portraitImage: portraitImg,
+        slot: hasActivePackage && selectedSlotId ? selectedSlotId : undefined,
       });
       setOpMessage({ type: 'ok', text: `Parking session created for plate ${currentPlate}.` });
       resetForm();
@@ -248,18 +306,6 @@ export function StaffOperationsPage() {
     plateAccountInfo?.registeredVehicleType && plateAccountInfo.registeredVehicleType !== vehicleType
   );
 
-  const onCheckInReservation = async () => {
-    if (!reservationCode.trim()) return;
-    setOpMessage(null);
-    try {
-      await staffApi.checkInReservation(reservationCode.trim());
-      setOpMessage({ type: 'ok', text: 'Reservation check-in successful.' });
-      setReservationCode('');
-    } catch (err) {
-      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Reservation check-in failed' });
-    }
-  };
-
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="grid gap-6">
       {/* Header */}
@@ -280,129 +326,445 @@ export function StaffOperationsPage() {
         </div>
       </section>
 
-      {/* 3 separate cameras: Portrait · Plate · QR */}
-      <section className="grid gap-4 lg:grid-cols-3">
-        <LivePortraitCamera ref={portraitCamRef} paused={isPlateInfoModalOpen} />
-        <LivePlateCamera ref={plateCamRef} onDetected={handlePlateDetected} busy={loading || isPlateInfoLoading} />
-        <LiveQRCamera ref={qrCamRef} onResult={handleResolveIdQr} paused={isPlateInfoModalOpen} />
-      </section>
-
-      {/* Main panel */}
-      <section className="grid gap-6 xl:grid-cols-[1.05fr,0.95fr]">
-        {/* Operations form */}
+      {/* Check-in — Sequential mode (1 camera/step) or Multi-camera (all open at once) */}
+      <section className={`mx-auto w-full space-y-4 ${multiCamMode ? 'max-w-6xl' : 'max-w-3xl'}`}>
         <Card>
           <CardHeader>
-            <CardTitle>Incoming vehicle info</CardTitle>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <CardTitle>Check-in vehicle</CardTitle>
+              <div className="flex items-center gap-2">
+                {/* Mode toggle */}
+                <div className="flex rounded-lg border border-border bg-muted p-0.5 text-[11px] font-bold">
+                  <button
+                    type="button"
+                    onClick={() => setMultiCamMode(false)}
+                    className={`rounded-md px-2.5 py-1 transition ${!multiCamMode ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    Sequential
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMultiCamMode(true)}
+                    className={`rounded-md px-2.5 py-1 transition ${multiCamMode ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    Multi-camera
+                  </button>
+                </div>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => { setCameraSettingsOpen(true); void requestAndRefresh(); }}
+                  className="gap-1.5 text-xs"
+                  title="Assign cameras to each role (when multiple cameras available)"
+                >
+                  <Settings size={13} /> Camera settings
+                </Button>
+              </div>
+            </div>
+            {/* Step indicator (sequential mode only) */}
+            {!multiCamMode && (
+            <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-bold">
+              {[
+                { n: 1, label: 'Identify vehicle' },
+                { n: 2, label: 'Capture portrait' },
+                { n: 3, label: 'Confirm' },
+              ].map((s, i) => (
+                <div key={s.n} className="flex items-center gap-2">
+                  <span className={`flex h-6 w-6 items-center justify-center rounded-full text-[10px] ${step >= s.n ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>{s.n}</span>
+                  <span className={step === s.n ? 'text-foreground' : 'text-muted-foreground'}>{s.label}</span>
+                  {i < 2 && <span className="mx-1 hidden h-px w-5 bg-border sm:inline-block" />}
+                </div>
+              ))}
+            </div>
+            )}
           </CardHeader>
           <CardContent className="space-y-5">
-            <div className="space-y-4">
-              <div className="grid gap-1.5">
-                <label className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Biển số xe</label>
-                <Input
-                  value={plateNumber}
-                  onChange={(e) => setPlateNumber(e.target.value)}
-                  onBlur={(e) => {
-                    const n = normalizePlate(e.target.value);
-                    if (n) setPlateNumber(n);
-                  }}
-                  placeholder="59G2-038.80"
-                  onKeyDown={(e) => e.key === 'Enter' && onCheckIn()}
-                />
-                {vehicleBrand && (
-                  <span className="inline-flex w-fit items-center gap-1 rounded-full border border-sky-500/30 bg-sky-500/10 px-2.5 py-1 text-[11px] font-semibold text-sky-300">
-                    <Car size={11} /> Brand: {vehicleBrand}
-                  </span>
+            {/* ══ MULTI-CAMERA MODE — all 3 open at once, simultaneous capture ══ */}
+            {multiCamMode && (
+              <div className="space-y-5">
+                <div className="grid gap-3 lg:grid-cols-3">
+                  <LivePlateCamera ref={plateCamRef} onDetected={handlePlateDetected} busy={loading} deviceId={assignment.plate} />
+                  <LivePortraitCamera ref={portraitCamRef} deviceId={assignment.portrait} />
+                  <LiveQRCamera ref={qrCamRef} onResult={handleResolveIdQr} deviceId={assignment.qr} />
+                </div>
+
+                {distinctDeviceCount < 2 && (
+                  <p className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-2.5 text-[11px] text-amber-300">
+                    Currently sharing 1 webcam for all 3 roles so the frames look identical. Connect additional cameras and go to "Camera settings" to assign each one separately for simultaneous plate and portrait capture.
+                  </p>
                 )}
-                {plateNumber.trim().length >= 7 && plateAccountInfo?.hasAccount && (
-                  <div className="mt-1 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-2.5 flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                    <p className="text-xs text-emerald-400">Member:<strong className="text-foreground">{plateAccountInfo.user?.fullName}</strong> ({plateAccountInfo.user?.email})
+
+                {/* Plate number + account */}
+                <div className="grid gap-1.5">
+                  <label className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Plate number</label>
+                  <Input
+                    value={plateNumber}
+                    onChange={(e) => setPlateNumber(e.target.value)}
+                    onBlur={(e) => { const n = normalizePlate(e.target.value); if (n) setPlateNumber(n); }}
+                    placeholder="59G2-038.80"
+                    onKeyDown={(e) => { if (e.key === 'Enter' && !(!plateNumber.trim() || loading || !!buildingSupportWarning || (hasActivePackage && !selectedSlotId))) onCheckIn(); }}
+                  />
+                  {vehicleBrand && (
+                    <span className="inline-flex w-fit items-center gap-1 rounded-full border border-sky-500/30 bg-sky-500/10 px-2.5 py-1 text-[11px] font-semibold text-sky-300">
+                      <Car size={11} /> Brand: {vehicleBrand}
+                    </span>
+                  )}
+                  {plateNumber.trim().length >= 7 && plateAccountInfo?.hasAccount && (
+                    <div className="mt-1 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-2.5 text-xs text-emerald-400">
+                      Member: <strong className="text-foreground">{plateAccountInfo.user?.fullName}</strong> ({plateAccountInfo.user?.email})
+                    </div>
+                  )}
+                  {plateNumber.trim().length >= 7 && plateAccountInfo && !plateAccountInfo.hasAccount && (
+                    <div className="mt-1 rounded-lg border border-amber-500/20 bg-amber-500/10 p-2.5 text-xs text-amber-300">
+                      <strong className="text-foreground">Guest</strong> (no account).
+                    </div>
+                  )}
+                  {plateNumber.trim().length >= 7 && checkInKind === 'package' && (
+                    <div className="mt-1 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-300">
+                      🅿️ Vehicle has a long-term package{plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''} — select an empty slot below.
+                    </div>
+                  )}
+                  {plateNumber.trim().length >= 7 && checkInKind === 'reservation' && (
+                    <div className="mt-1 rounded-lg border border-sky-500/30 bg-sky-500/10 p-2.5 text-xs text-sky-300">
+                      📅 Vehicle has a reservation{plateAccountInfo?.activeReservation?.code ? ` (code ${plateAccountInfo.activeReservation.code})` : ''}.
+                    </div>
+                  )}
+                </div>
+
+                {/* Vehicle type + warnings */}
+                <div className="grid gap-1.5">
+                  <label className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Vehicle type</label>
+                  <div className="flex gap-2 p-1 rounded-lg bg-muted border border-border">
+                    <button type="button" disabled={!allowedTypes.includes('CAR')} onClick={() => setVehicleType('car')}
+                      className={`flex-1 flex items-center justify-center gap-1.5 h-8 rounded-md text-xs font-bold transition-all ${vehicleType === 'car' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground disabled:opacity-30'}`}>
+                      <Car size={13} /> Car
+                    </button>
+                    <button type="button" disabled={!allowedTypes.includes('MOTORCYCLE')} onClick={() => setVehicleType('motorcycle')}
+                      className={`flex-1 flex items-center justify-center gap-1.5 h-8 rounded-md text-xs font-bold transition-all ${vehicleType === 'motorcycle' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground disabled:opacity-30'}`}>
+                      <Bike size={13} /> Motorcycle
+                    </button>
+                  </div>
+                  {plateTypeWarning && <p className="text-[11px] text-amber-400 flex items-center gap-1"><AlertCircle size={11} /> {plateTypeWarning}</p>}
+                  {buildingSupportWarning && <p className="text-[11px] text-rose-400 flex items-center gap-1"><AlertCircle size={11} /> {buildingSupportWarning}</p>}
+                  {vehicleTypeMismatch && (
+                    <p className="text-[11px] text-rose-300 flex items-center gap-1">
+                      <AlertCircle size={12} /> Vehicle type does not match registration (registered: <strong>{plateAccountInfo?.registeredVehicleType === 'car' ? 'Car' : 'Motorcycle'}</strong>).
                     </p>
+                  )}
+                </div>
+
+                {/* Package: select empty slot */}
+                {hasActivePackage && (
+                  <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 space-y-2">
+                    <p className="text-[11px] font-bold text-amber-300 flex items-center gap-1"><AlertCircle size={12} /> Select an empty slot:</p>
+                    <select value={selectedSlotId} onChange={(e) => setSelectedSlotId(e.target.value)}
+                      className="h-10 w-full rounded-lg border border-white/10 bg-slate-950 px-3 text-sm font-semibold text-white outline-none focus:border-amber-400/60">
+                      <option value="">-- Select an empty slot --</option>
+                      {freeSlots.map((s) => (
+                        <option key={s._id} value={s._id}>{s.code}{s.floor?.name || s.floor?.code ? ` · ${s.floor?.name || s.floor?.code}` : ''}</option>
+                      ))}
+                    </select>
+                    {freeSlots.length === 0 && <p className="text-[11px] text-rose-300">No empty slots available.</p>}
                   </div>
                 )}
-                {plateNumber.trim().length >= 7 && plateAccountInfo && !plateAccountInfo.hasAccount && (
-                  <div className="mt-1 rounded-lg border border-amber-500/20 bg-amber-500/10 p-2.5 flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-amber-500" />
-                    <p className="text-xs text-amber-300">Plate number<strong className="text-foreground">{plateNumber.toUpperCase()}</strong> — <strong>Guest</strong>(no account).</p>
-                  </div>
-                )}
-              </div>
 
-              {/* Captured snapshots preview */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Plate photo</p>
-                  <div className="aspect-[4/3] overflow-hidden rounded-lg border border-border bg-muted/40 flex items-center justify-center">
-                    {plateImage ? (
-                      <img src={plateImage} alt="Plate photo" className="h-full w-full object-cover" />
-                    ) : (
-                      <ImageIcon size={20} className="text-muted-foreground/40" />
-                    )}
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Portrait photo</p>
-                  <div className="aspect-[4/3] overflow-hidden rounded-lg border border-border bg-muted/40 flex items-center justify-center">
-                    {portraitImage ? (
-                      <img src={portraitImage} alt="Portrait photo" className="h-full w-full object-cover" />
-                    ) : (
-                      <ImageIcon size={20} className="text-muted-foreground/40" />
-                    )}
-                  </div>
+                <p className="text-[11px] text-muted-foreground">Plate and portrait photos are captured simultaneously from all cameras when you press Check-in.</p>
+
+                <div className="flex gap-2">
+                  <Button
+                    onClick={onCheckIn}
+                    disabled={!plateNumber.trim() || loading || !!buildingSupportWarning || (hasActivePackage && !selectedSlotId)}
+                    className="flex-1 h-11 gap-2 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60"
+                  >
+                    <ScanLine size={16} /> Check-in (entry)
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => setRejectOpen(true)} disabled={loading || !plateNumber.trim()}
+                    className="h-11 border-rose-500/40 text-rose-400 hover:bg-rose-500/10">
+                    Reject
+                  </Button>
                 </div>
               </div>
+            )}
 
-              <div className="grid gap-1.5">
-                <label className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Vehicle type</label>
+            {/* ── STEP 1 — Identify vehicle ── */}
+            {!multiCamMode && step === 1 && (
+              <div className="space-y-4">
                 <div className="flex gap-2 p-1 rounded-lg bg-muted border border-border">
                   <button
                     type="button"
-                    disabled={!allowedTypes.includes('CAR')}
-                    onClick={() => setVehicleType('car')}
-                    className={`flex-1 flex items-center justify-center gap-1.5 h-8 rounded-md text-xs font-bold transition-all ${vehicleType === 'car' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground disabled:opacity-30'}`}
+                    onClick={() => setIdentifyMode('plate')}
+                    className={`flex-1 flex items-center justify-center gap-1.5 h-9 rounded-md text-xs font-bold transition-all ${identifyMode === 'plate' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground'}`}
                   >
-                    <Car size={13} />Car</button>
+                    <ScanLine size={13} /> Scan plate (AI)
+                  </button>
                   <button
                     type="button"
-                    disabled={!allowedTypes.includes('MOTORCYCLE')}
-                    onClick={() => setVehicleType('motorcycle')}
-                    className={`flex-1 flex items-center justify-center gap-1.5 h-8 rounded-md text-xs font-bold transition-all ${vehicleType === 'motorcycle' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground disabled:opacity-30'}`}
+                    onClick={() => setIdentifyMode('qr')}
+                    className={`flex-1 flex items-center justify-center gap-1.5 h-9 rounded-md text-xs font-bold transition-all ${identifyMode === 'qr' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground'}`}
                   >
-                    <Bike size={13} />Motorcycle</button>
+                    <QrCode size={13} /> Scan QR
+                  </button>
                 </div>
-                {plateTypeWarning && <p className="text-[11px] text-amber-400 flex items-center gap-1"><AlertCircle size={11} /> {plateTypeWarning}</p>}
-                {buildingSupportWarning && <p className="text-[11px] text-rose-400 flex items-center gap-1"><AlertCircle size={11} /> {buildingSupportWarning}</p>}
-                {vehicleTypeMismatch && (
-                  <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-2.5 text-[11px] text-rose-300 flex items-center justify-between gap-2">
-                    <span className="flex items-center gap-1">
-                      <AlertCircle size={12} />Vehicle type does not match registration (registered:<strong>{plateAccountInfo?.registeredVehicleType === 'car' ? 'Car' : 'Motorcycle'}</strong>).
+
+                {identifyMode === 'plate' ? (
+                  <LivePlateCamera ref={plateCamRef} onDetected={handlePlateDetected} busy={loading} deviceId={assignment.plate} />
+                ) : (
+                  <LiveQRCamera ref={qrCamRef} onResult={handleResolveIdQr} deviceId={assignment.qr} />
+                )}
+
+                <div className="grid gap-1.5">
+                  <label className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Plate number (or enter manually)</label>
+                  <Input
+                    value={plateNumber}
+                    onChange={(e) => setPlateNumber(e.target.value)}
+                    onBlur={(e) => {
+                      const n = normalizePlate(e.target.value);
+                      if (n) setPlateNumber(n);
+                    }}
+                    placeholder="59G2-038.80"
+                    onKeyDown={(e) => { if (e.key === 'Enter' && plateNumber.trim().length >= 7 && !(checkInKind === 'standard' && !plateImage)) proceedFromIdentify(); }}
+                  />
+                  {vehicleBrand && (
+                    <span className="inline-flex w-fit items-center gap-1 rounded-full border border-sky-500/30 bg-sky-500/10 px-2.5 py-1 text-[11px] font-semibold text-sky-300">
+                      <Car size={11} /> Brand: {vehicleBrand}
                     </span>
-                    <button type="button" onClick={() => setRejectOpen(true)} className="shrink-0 rounded-md bg-rose-500 px-2.5 py-1 text-[10px] font-bold text-white hover:bg-rose-400">
-                      Từ chối
-                    </button>
+                  )}
+                  {plateNumber.trim().length >= 7 && plateAccountInfo?.hasAccount && (
+                    <div className="mt-1 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-2.5 flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                      <p className="text-xs text-emerald-400">
+                        Member: <strong className="text-foreground">{plateAccountInfo.user?.fullName}</strong> ({plateAccountInfo.user?.email})
+                      </p>
+                    </div>
+                  )}
+                  {plateNumber.trim().length >= 7 && plateAccountInfo && !plateAccountInfo.hasAccount && (
+                    <div className="mt-1 rounded-lg border border-amber-500/20 bg-amber-500/10 p-2.5 flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-amber-500" />
+                      <p className="text-xs text-amber-300">
+                        Plate <strong className="text-foreground">{plateNumber.toUpperCase()}</strong> — <strong>Guest</strong> (no account).
+                      </p>
+                    </div>
+                  )}
+                  {/* Check-in kind badge */}
+                  {plateNumber.trim().length >= 7 && checkInKind === 'package' && (
+                    <div className="mt-1 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-300">
+                      🅿️ Vehicle has a <strong>long-term package</strong>{plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''} — next step: capture portrait &amp; select empty slot.
+                    </div>
+                  )}
+                  {plateNumber.trim().length >= 7 && checkInKind === 'reservation' && (
+                    <div className="mt-1 rounded-lg border border-sky-500/30 bg-sky-500/10 p-2.5 text-xs text-sky-300">
+                      📅 Vehicle has a <strong>reservation</strong>{plateAccountInfo?.activeReservation?.code ? ` (code ${plateAccountInfo.activeReservation.code})` : ''} — next step: capture portrait to confirm.
+                    </div>
+                  )}
+                  {plateNumber.trim().length >= 7 && checkInKind === 'standard' && !plateImage && (
+                    <div className="mt-1 rounded-lg border border-rose-500/20 bg-rose-500/10 p-2.5 text-[11px] text-rose-300">
+                      <strong>Plate photo required</strong>: press "Capture &amp; scan" on the plate camera (mandatory for guests / standard users).
+                    </div>
+                  )}
+                </div>
+
+                <Button
+                  onClick={proceedFromIdentify}
+                  disabled={plateNumber.trim().length < 7 || !!buildingSupportWarning || (checkInKind === 'standard' && !plateImage)}
+                  className="w-full h-11 gap-2 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60"
+                >
+                  Continue <ArrowRight size={16} />
+                </Button>
+              </div>
+            )}
+
+            {/* ── STEP 2 — Capture portrait ── */}
+            {!multiCamMode && step === 2 && (
+              <div className="space-y-4">
+                <LivePortraitCamera ref={portraitCamRef} deviceId={assignment.portrait} />
+                {portraitImage && (
+                  <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2 text-xs text-emerald-400">
+                    <UserSquare size={14} /> Portrait captured — you can retake if needed.
                   </div>
                 )}
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" onClick={() => setStep(1)} className="h-11 gap-1">
+                    <ArrowLeft size={16} /> Back
+                  </Button>
+                  <Button onClick={capturePortraitAndNext} className="flex-1 h-11 gap-2 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110">
+                    <UserSquare size={16} /> {portraitImage ? 'Retake & continue' : 'Capture portrait & continue'}
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Action buttons */}
-            <div className="flex gap-2">
-              <Button
-                onClick={onCheckIn}
-                disabled={!plateNumber.trim() || loading || !!buildingSupportWarning}
-                className="flex-1 h-11 gap-2 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60"
-              >
-                <ScanLine size={16} />Check-in (entry)</Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setRejectOpen(true)}
-                disabled={loading || !plateNumber.trim()}
-                className="h-11 border-rose-500/40 text-rose-400 hover:bg-rose-500/10"
-              >
-                Từ chối
-              </Button>
-            </div>
+            {/* ── STEP 3 — Confirm & check-in ── */}
+            {!multiCamMode && step === 3 && (
+              <div className="space-y-5">
+                {/* Check-in kind banner */}
+                {checkInKind === 'package' && (
+                  <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-300">
+                    🅿️ Vehicle has a long-term package{plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''} — select an empty slot below then check-in.
+                  </div>
+                )}
+                {checkInKind === 'reservation' && (
+                  <div className="rounded-lg border border-sky-500/30 bg-sky-500/10 p-2.5 text-xs text-sky-300">
+                    📅 Vehicle has a reservation{plateAccountInfo?.activeReservation?.code ? ` (code ${plateAccountInfo.activeReservation.code})` : ''} — confirm to allow entry.
+                  </div>
+                )}
+
+                {/* Captured photos — portrait required for all; plate required for guest/standard */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                      Plate photo{checkInKind !== 'standard' ? ' (optional)' : ''}
+                    </p>
+                    <div className="aspect-[4/3] overflow-hidden rounded-lg border border-border bg-muted/40 flex items-center justify-center">
+                      {plateImage ? (
+                        <img src={plateImage} alt="Plate photo" className="h-full w-full object-cover" />
+                      ) : (
+                        <ImageIcon size={20} className="text-muted-foreground/40" />
+                      )}
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Portrait photo</p>
+                    <div className="aspect-[4/3] overflow-hidden rounded-lg border border-border bg-muted/40 flex items-center justify-center">
+                      {portraitImage ? (
+                        <img src={portraitImage} alt="Portrait photo" className="h-full w-full object-cover" />
+                      ) : (
+                        <ImageIcon size={20} className="text-muted-foreground/40" />
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Plate number + account */}
+                <div className="grid gap-1.5">
+                  <label className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Plate number</label>
+                  <Input
+                    value={plateNumber}
+                    onChange={(e) => setPlateNumber(e.target.value)}
+                    onBlur={(e) => {
+                      const n = normalizePlate(e.target.value);
+                      if (n) setPlateNumber(n);
+                    }}
+                    placeholder="59G2-038.80"
+                  />
+                  {vehicleBrand && (
+                    <span className="inline-flex w-fit items-center gap-1 rounded-full border border-sky-500/30 bg-sky-500/10 px-2.5 py-1 text-[11px] font-semibold text-sky-300">
+                      <Car size={11} /> Brand: {vehicleBrand}
+                    </span>
+                  )}
+                  {plateNumber.trim().length >= 7 && plateAccountInfo?.hasAccount && (
+                    <div className="mt-1 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-2.5 flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                      <p className="text-xs text-emerald-400">
+                        Member: <strong className="text-foreground">{plateAccountInfo.user?.fullName}</strong> ({plateAccountInfo.user?.email})
+                      </p>
+                    </div>
+                  )}
+                  {plateNumber.trim().length >= 7 && plateAccountInfo && !plateAccountInfo.hasAccount && (
+                    <div className="mt-1 rounded-lg border border-amber-500/20 bg-amber-500/10 p-2.5 flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-amber-500" />
+                      <p className="text-xs text-amber-300">
+                        Plate <strong className="text-foreground">{plateNumber.toUpperCase()}</strong> — <strong>Guest</strong> (no account).
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Vehicle type + warnings */}
+                <div className="grid gap-1.5">
+                  <label className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Vehicle type</label>
+                  <div className="flex gap-2 p-1 rounded-lg bg-muted border border-border">
+                    <button
+                      type="button"
+                      disabled={!allowedTypes.includes('CAR')}
+                      onClick={() => setVehicleType('car')}
+                      className={`flex-1 flex items-center justify-center gap-1.5 h-8 rounded-md text-xs font-bold transition-all ${vehicleType === 'car' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground disabled:opacity-30'}`}
+                    >
+                      <Car size={13} /> Car
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!allowedTypes.includes('MOTORCYCLE')}
+                      onClick={() => setVehicleType('motorcycle')}
+                      className={`flex-1 flex items-center justify-center gap-1.5 h-8 rounded-md text-xs font-bold transition-all ${vehicleType === 'motorcycle' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground disabled:opacity-30'}`}
+                    >
+                      <Bike size={13} /> Motorcycle
+                    </button>
+                  </div>
+                  {plateTypeWarning && <p className="text-[11px] text-amber-400 flex items-center gap-1"><AlertCircle size={11} /> {plateTypeWarning}</p>}
+                  {buildingSupportWarning && <p className="text-[11px] text-rose-400 flex items-center gap-1"><AlertCircle size={11} /> {buildingSupportWarning}</p>}
+                  {vehicleTypeMismatch && (
+                    <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-2.5 text-[11px] text-rose-300 flex items-center justify-between gap-2">
+                      <span className="flex items-center gap-1">
+                        <AlertCircle size={12} /> Vehicle type does not match registration (registered: <strong>{plateAccountInfo?.registeredVehicleType === 'car' ? 'Car' : 'Motorcycle'}</strong>).
+                      </span>
+                      <button type="button" onClick={() => setRejectOpen(true)} className="shrink-0 rounded-md bg-rose-500 px-2.5 py-1 text-[10px] font-bold text-white hover:bg-rose-400">
+                        Reject
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Long-term package: must select an empty slot */}
+                {hasActivePackage && (
+                  <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 space-y-2">
+                    <p className="text-[11px] font-bold text-amber-300 flex items-center gap-1">
+                      <AlertCircle size={12} /> Vehicle has a long-term package
+                      {plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''}
+                      {plateAccountInfo?.activePackage?.maxHoursPerDay
+                        ? ` · free ${plateAccountInfo.activePackage.maxHoursPerDay}h/day`
+                        : ''} — select an empty slot:
+                    </p>
+                    <select
+                      value={selectedSlotId}
+                      onChange={(e) => setSelectedSlotId(e.target.value)}
+                      className="h-10 w-full rounded-lg border border-white/10 bg-slate-950 px-3 text-sm font-semibold text-white outline-none focus:border-amber-400/60"
+                    >
+                      <option value="">-- Select an empty slot --</option>
+                      {freeSlots.map((s) => (
+                        <option key={s._id} value={s._id}>
+                          {s.code}{s.floor?.name || s.floor?.code ? ` · ${s.floor?.name || s.floor?.code}` : ''}
+                        </option>
+                      ))}
+                    </select>
+                    {freeSlots.length === 0 && (
+                      <p className="text-[11px] text-rose-300">No empty slots available in this building.</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Missing photo warning: portrait required for all; plate required for guest/standard */}
+                {(!portraitImage || (checkInKind === 'standard' && !plateImage)) && (
+                  <p className="text-[11px] text-rose-300 flex items-center gap-1">
+                    <AlertCircle size={12} /> <strong>Portrait photo</strong> required
+                    {checkInKind === 'standard' ? <> and <strong>plate photo</strong></> : null} before check-in (go back to the previous step to capture).
+                  </p>
+                )}
+
+                {/* Action buttons */}
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" onClick={() => setStep(2)} className="h-11 gap-1">
+                    <ArrowLeft size={16} /> Back
+                  </Button>
+                  <Button
+                    onClick={onCheckIn}
+                    disabled={!plateNumber.trim() || loading || !!buildingSupportWarning || !portraitImage || (hasActivePackage && !selectedSlotId) || (checkInKind === 'standard' && !plateImage)}
+                    className="flex-1 h-11 gap-2 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60"
+                  >
+                    <ScanLine size={16} /> Check-in (entry)
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setRejectOpen(true)}
+                    disabled={loading || !plateNumber.trim()}
+                    className="h-11 border-rose-500/40 text-rose-400 hover:bg-rose-500/10"
+                  >
+                    Reject
+                  </Button>
+                </div>
+              </div>
+            )}
 
             {/* Operation feedback */}
             {opMessage && (
@@ -413,55 +775,79 @@ export function StaffOperationsPage() {
           </CardContent>
         </Card>
 
-        {/* Reservation + instructions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Reservation check-in</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-xs text-muted-foreground">
-              Customers with a reservation can self check-in at the gate by scanning the vehicle QR (no staff needed).
-              Staff can also enter/scan the reservation code here.
-            </p>
-            <div className="flex gap-2">
-              <Input
-                value={reservationCode}
-                onChange={(e) => setReservationCode(e.target.value)}
-                placeholder="Reservation code / ID"
-                onKeyDown={(e) => e.key === 'Enter' && onCheckInReservation()}
-              />
-              <Button type="button" onClick={() => setIsQrModalOpen(true)} variant="secondary" className="shrink-0 gap-1.5">
-                Scan QR
-              </Button>
-              <Button
-                type="button"
-                onClick={onCheckInReservation}
-                disabled={!reservationCode.trim()}
-                className="shrink-0 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60"
-              >
-                Check-in
-              </Button>
-            </div>
-            <div className="rounded-xl border border-border bg-card/50 p-4 text-xs text-muted-foreground">
-              <p className="font-semibold text-foreground mb-1">Exit / payment</p>Charging &amp; releasing vehicles is done by exit-gate staff. See the list in the tab<Link to="/staff/parked" className="font-semibold text-primary hover:underline">"Parked vehicles"</Link>.
-            </div>
-          </CardContent>
-        </Card>
+        {/* Note: packages & reservations are auto-detected on scan — no manual code entry needed */}
+        <div className="rounded-xl border border-border bg-card/50 p-4 text-xs text-muted-foreground">
+          <p className="mb-1 flex items-center gap-1.5 font-semibold text-foreground">
+            <ScanLine size={13} className="text-primary" /> Packages &amp; reservations auto-detected
+          </p>
+          Vehicles with a <strong>long-term package</strong> or <strong>prior reservation</strong> are automatically matched as soon as the plate / QR is scanned in step 1 — no manual code entry needed.
+          Payment collection &amp; vehicle release are handled by exit-gate staff in the{' '}
+          <Link to="/staff/parked" className="font-semibold text-primary hover:underline">"Parked vehicles"</Link> tab.
+        </div>
       </section>
 
-      {/* QR Scanner Modal (reservation code) */}
-      <QRCodeScannerModal
-        isOpen={isQrModalOpen}
-        onClose={() => setIsQrModalOpen(false)}
-        onScanSuccess={(code: string) => {
-          setReservationCode(code);
-          setIsQrModalOpen(false);
-          setOpMessage({ type: 'ok', text: `Scanned reservation code: ${code}` });
-        }}
-        title="Scan reservation code"
-      />
+      {/* Camera settings — assign physical devices to each role */}
+      {cameraSettingsOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+          <motion.div initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+            className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-2xl"
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary">Devices</p>
+                <h3 className="text-xl font-semibold text-foreground">Camera settings</h3>
+              </div>
+              <button onClick={() => setCameraSettingsOpen(false)} className="text-muted-foreground hover:text-foreground transition">✕</button>
+            </div>
 
-      {/* Từ chối check-in */}
+            <p className="mb-4 text-xs text-muted-foreground">
+              When multiple cameras are available (plate / portrait / QR), assign each role to a separate device
+              so they can all open simultaneously and capture the correct image. On a single-webcam machine all roles share the same device.
+            </p>
+
+            <div className="space-y-3">
+              {([
+                { role: 'plate' as CameraRole, label: 'Camera 1 · Plate' },
+                { role: 'qr' as CameraRole, label: 'Camera 2 · QR' },
+                { role: 'portrait' as CameraRole, label: 'Camera 3 · Portrait' },
+              ]).map(({ role, label }) => (
+                <div key={role} className="grid gap-1.5">
+                  <label className="text-xs font-semibold text-foreground">{label}</label>
+                  <select
+                    value={assignment[role] ?? ''}
+                    onChange={(e) => assign(role, e.target.value)}
+                    className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-primary/50"
+                  >
+                    <option value="">— Auto (default) —</option>
+                    {devices.map((d, i) => (
+                      <option key={d.deviceId} value={d.deviceId}>
+                        {d.label || `Camera ${i + 1}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ))}
+            </div>
+
+            {devices.length === 0 && (
+              <p className="mt-3 text-[11px] text-amber-400">
+                No devices found — press "Refresh" and grant camera permission in the browser.
+              </p>
+            )}
+
+            <div className="mt-5 flex justify-between gap-2">
+              <Button type="button" variant="secondary" onClick={() => void requestAndRefresh()} className="gap-1.5 text-xs">
+                <Settings size={13} /> Refresh list
+              </Button>
+              <Button onClick={() => setCameraSettingsOpen(false)} className="bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 text-xs">
+                Done
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Reject check-in */}
       {rejectOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
           <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
@@ -470,11 +856,11 @@ export function StaffOperationsPage() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.24em] text-rose-400">Reject entry</p>
-                <h3 className="text-xl font-semibold text-foreground">Lý do từ chối</h3>
+                <h3 className="text-xl font-semibold text-foreground">Rejection reason</h3>
               </div>
               <button onClick={() => { setRejectOpen(false); setRejectReason(''); }} className="text-muted-foreground hover:text-foreground transition">✕</button>
             </div>
-            <p className="text-xs text-muted-foreground mb-3">Plate number<strong className="text-foreground font-mono">{normalizePlate(plateNumber) || plateNumber || '—'}</strong>. The system will send a notification with the reason to the customer's account (if the plate is registered).</p>
+            <p className="text-xs text-muted-foreground mb-3">Plate <strong className="text-foreground font-mono">{normalizePlate(plateNumber) || plateNumber || '—'}</strong>. The system will send a notification with the reason to the customer's account (if the plate is registered).</p>
             <textarea
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
@@ -485,150 +871,6 @@ export function StaffOperationsPage() {
             <div className="mt-4 grid grid-cols-2 gap-3">
               <Button variant="secondary" onClick={() => { setRejectOpen(false); setRejectReason(''); }} className="text-xs">Cancel</Button>
               <Button onClick={onReject} disabled={!rejectReason.trim()} className="bg-rose-500 text-white hover:bg-rose-400 text-xs disabled:opacity-60">Confirm rejection</Button>
-            </div>
-          </motion.div>
-        </div>
-      )}
-
-      {/* Plate verification modal after scanning */}
-      {isPlateInfoModalOpen && scannedPlateInfo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
-          <motion.div
-            initial={{ scale: 0.92, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-            className="w-full max-w-md overflow-hidden rounded-2xl border border-border bg-card shadow-2xl"
-          >
-            {/* Header with status gradient */}
-            <div className={`px-6 py-4 flex items-center gap-3 border-b border-border bg-gradient-to-r ${
-              scannedPlateInfo.hasAccount
-                ? 'from-emerald-500/10 to-teal-500/10 text-emerald-400'
-                : 'from-amber-500/10 to-orange-500/10 text-amber-400'
-            }`}>
-              {scannedPlateInfo.hasAccount ? (
-                <ShieldCheck className="h-5 w-5 shrink-0" />
-              ) : (
-                <ShieldAlert className="h-5 w-5 shrink-0" />
-              )}
-              <div>
-                <p className="text-[9px] font-black uppercase tracking-[0.24em] opacity-80">
-                  {scannedPlateInfo.hasAccount ? 'System member' : 'Guest'}
-                </p>
-                <h3 className="text-base font-bold text-foreground">
-                  {scannedPlateInfo.hasAccount ? 'Verified successfully' : 'No linked account'}
-                </h3>
-              </div>
-            </div>
-
-            <div className="p-6 space-y-5">
-              {/* Realistic Vehicle Plate Visualizer */}
-              <div className="flex justify-center">
-                <div className="relative border-4 border-slate-800 bg-white text-slate-900 px-6 py-2.5 rounded-xl font-mono font-black text-2xl tracking-widest shadow-lg flex flex-col items-center min-w-[200px] select-none before:content-[''] before:absolute before:inset-0.5 before:border before:border-slate-300 before:rounded-lg">
-                  <span className="text-[8px] font-sans font-black uppercase tracking-widest text-slate-400 border-b border-slate-100 w-full text-center pb-0.5 mb-1 z-10">
-                    VIỆT NAM
-                  </span>
-                  <span className="z-10 drop-shadow-[0_1px_1px_rgba(0,0,0,0.15)]">{scannedPlateInfo.plateNumber}</span>
-                </div>
-              </div>
-
-              {/* Status and Details */}
-              {scannedPlateInfo.hasAccount && scannedPlateInfo.user ? (
-                <div className="space-y-3">
-                  <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="rounded-full bg-emerald-500/15 p-2 text-emerald-400">
-                        <User size={16} />
-                      </div>
-                      <div>
-                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Full name</p>
-                        <p className="text-sm font-semibold text-foreground">{scannedPlateInfo.user.fullName}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 border-t border-border/50 pt-2.5">
-                      <div className="rounded-full bg-emerald-500/15 p-2 text-emerald-400">
-                        <Mail size={16} />
-                      </div>
-                      <div>
-                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Email</p>
-                        <p className="text-sm font-semibold text-foreground truncate max-w-[240px]">{scannedPlateInfo.user.email}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 border-t border-border/50 pt-2.5">
-                      <div className="rounded-full bg-emerald-500/15 p-2 text-emerald-400">
-                        <Phone size={16} />
-                      </div>
-                      <div>
-                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Phone number</p>
-                        <p className="text-sm font-semibold text-foreground">{scannedPlateInfo.user.phone || 'Not updated'}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 border-t border-border/50 pt-2.5">
-                      <div className="rounded-full bg-emerald-500/15 p-2 text-emerald-400">
-                        <Wallet size={16} />
-                      </div>
-                      <div>
-                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Wallet balance</p>
-                        <p className="text-base font-black text-emerald-400">{scannedPlateInfo.user.walletBalance.toLocaleString('vi-VN')} ₫</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 space-y-3 text-center">
-                  <p className="text-sm text-amber-200/90 leading-relaxed">The system found no member account linked to the plate<strong className="text-amber-400 font-mono">{scannedPlateInfo.plateNumber}</strong>.
-                  </p>
-                  <p className="text-xs text-muted-foreground italic">Guest — staff handle check-in manually as usual.</p>
-                </div>
-              )}
-
-              {/* Active Session Status — parked → go to the Parked tab */}
-              {scannedPlateInfo.activeSession && (
-                <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-3 flex gap-2.5 items-start">
-                  <div className="rounded-lg bg-rose-500/10 p-2 text-rose-400 shrink-0">
-                    <Calendar size={15} />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-rose-400">Vehicles parked in the lot — exit-gate staff will release them</p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">
-                      At: {new Date(scannedPlateInfo.activeSession.entryTime).toLocaleString('vi-VN')}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Actions Footer */}
-            <div className="bg-muted/50 border-t border-border/80 px-6 py-4 flex gap-3">
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  setIsPlateInfoModalOpen(false);
-                  setScannedPlateInfo(null);
-                }}
-                className="flex-1 text-xs"
-              >Close</Button>
-
-              {scannedPlateInfo.activeSession ? (
-                <Link
-                  to="/staff/parked"
-                  className="flex-1 inline-flex h-10 items-center justify-center rounded-md bg-gradient-to-r from-orange-500 to-amber-400 text-xs font-bold text-slate-950"
-                >View parked vehicles</Link>
-              ) : (
-                <Button
-                  onClick={async () => {
-                    setIsPlateInfoModalOpen(false);
-                    setScannedPlateInfo(null);
-                    await onCheckIn();
-                  }}
-                  disabled={!!buildingSupportWarning}
-                  className="flex-1 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 font-bold text-xs"
-                >
-                  Check-in ngay
-                </Button>
-              )}
             </div>
           </motion.div>
         </div>

@@ -1,10 +1,13 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { UserSquare, Loader2 } from 'lucide-react';
 import type { LiveCameraHandle } from '@/components/staff/LivePlateCamera';
+import { videoConstraintFor } from '@/hooks/useCameraDevices';
 
 interface LivePortraitCameraProps {
   /** Pause stream rendering (kept for API parity; portrait cam always on). */
   paused?: boolean;
+  /** Thiết bị camera vật lý gán cho vai trò chân dung. */
+  deviceId?: string;
 }
 
 /**
@@ -13,7 +16,7 @@ interface LivePortraitCameraProps {
  * the driver portrait (so staff can compare the person at check-out).
  */
 export const LivePortraitCamera = forwardRef<LiveCameraHandle, LivePortraitCameraProps>(
-  function LivePortraitCamera(_props, ref) {
+  function LivePortraitCamera({ deviceId }, ref) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [active, setActive] = useState(false);
@@ -39,7 +42,7 @@ export const LivePortraitCamera = forwardRef<LiveCameraHandle, LivePortraitCamer
 
       (async () => {
         try {
-          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+          stream = await navigator.mediaDevices.getUserMedia({ video: videoConstraintFor(deviceId, 'user') });
           if (cancelled) {
             stream.getTracks().forEach((t) => t.stop());
             return;
@@ -63,7 +66,7 @@ export const LivePortraitCamera = forwardRef<LiveCameraHandle, LivePortraitCamer
         const s = (videoRef.current?.srcObject as MediaStream | null) ?? stream;
         s?.getTracks().forEach((t) => t.stop());
       };
-    }, []);
+    }, [deviceId]);
 
     return (
       <div className="rounded-xl border border-border bg-card/40 p-3 space-y-2.5">

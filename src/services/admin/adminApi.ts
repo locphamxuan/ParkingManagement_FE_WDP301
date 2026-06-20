@@ -84,6 +84,29 @@ export interface AdminPricePolicy {
   effectiveTo?: string | null;
 }
 
+/** Read-only view of a building's long-term (customer) package. */
+export interface AdminBuildingPackage {
+  _id: string;
+  name: string;
+  code: string;
+  vehicleType?: { _id: string; code: string; name: string } | string | null;
+  durationDays: number;
+  price: number;
+  isActive: boolean;
+}
+
+export interface AdminSubscriptionPackage {
+  _id: string;
+  name: string;
+  price: number;
+  durationDays: number;
+  description?: string;
+  features?: string[];
+  isActive: boolean;
+  createdAt?: string;
+}
+
+
 export interface RevenueReportRow {
   buildingId: string;
   buildingName?: string;
@@ -149,7 +172,7 @@ export const adminApi = {
       ),
     /** Read-only: a building's long-term packages. */
     listPackages: (buildingId: string) =>
-      api.get<Wrap<{ items: unknown[] }>>(`/admin/buildings/${buildingId}/packages`),
+      api.get<Wrap<{ items: AdminBuildingPackage[] }>>(`/admin/buildings/${buildingId}/packages`),
   },
 
   users: {

@@ -21,16 +21,8 @@ interface IncidentRow {
 
 const SEVERITY_LABELS: Record<string, string> = {
   medium: 'Medium',
-  high: 'Cao',
+  high: 'High',
   critical: 'Severe',
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  open: 'Open',
-  investigating: 'Processing',
-  escalated: 'Leo thang',
-  resolved: 'Resolved',
-  closed: 'Close',
 };
 
 export function StaffIncidentsPage() {
@@ -53,7 +45,7 @@ export function StaffIncidentsPage() {
     severity: item.severity || 'medium',
     status: (item.status as IncidentStatus) || 'open',
     timestamp: item.createdAt
-      ? new Date(item.createdAt).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })
+      ? new Date(item.createdAt).toLocaleString('en-GB', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })
       : '—',
     note: item.note || '—',
   });
@@ -137,10 +129,10 @@ export function StaffIncidentsPage() {
       </section>
 
       <section className="grid gap-3 lg:grid-cols-[1.15fr,0.85fr]">
-        {/* Tổng quan */}
+        {/* Overview */}
         <Card>
           <CardHeader>
-            <CardTitle>Tổng quan sự cố</CardTitle>
+            <CardTitle>Incident overview</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-3 md:grid-cols-3">
@@ -149,7 +141,7 @@ export function StaffIncidentsPage() {
                 <p className="mt-2 text-2xl font-semibold text-foreground">{counts.open}</p>
               </div>
               <div className="rounded-xl border border-border bg-card/50 p-4">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Leo thang</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Escalated</p>
                 <p className="mt-2 text-2xl font-semibold text-foreground">{counts.escalated}</p>
               </div>
               <div className="rounded-xl border border-border bg-card/50 p-4">
@@ -217,10 +209,10 @@ export function StaffIncidentsPage() {
         </div>
       )}
 
-      {/* List sự cố */}
+      {/* Incident list */}
       <Card>
         <CardHeader>
-          <CardTitle>List sự cố ({filtered.length})</CardTitle>
+          <CardTitle>Incidents ({filtered.length})</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4">
@@ -240,7 +232,7 @@ export function StaffIncidentsPage() {
             >
               <option value="all">All severities</option>
               <option value="medium">Medium</option>
-              <option value="high">Cao</option>
+              <option value="high">High</option>
               <option value="critical">Severe</option>
             </select>
           </div>

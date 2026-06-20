@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { RefreshCcw, CheckCircle2, Car } from 'lucide-react';
+import { RefreshCcw, CheckCircle2, Car, ScanLine, QrCode, UserSquare, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { useAuth } from '@/hooks/useAuth';
+import { useAssignedGates } from '@/hooks/staff/useAssignedGates';
 import { staffApi, type ParkingSession } from '@/services/staff/staffApi';
 import { LivePlateCamera, type PlateScanResult, type LiveCameraHandle } from '@/components/staff/LivePlateCamera';
 import { LiveQRCamera } from '@/components/staff/LiveQRCamera';
@@ -51,16 +52,19 @@ function CompareImg({ src, label }: { src?: string | null; label: string }) {
 }
 
 /**
- * Một component dùng cho 2 route:
- *  - /staff/checkout  (readOnly=false) → tab "Check-out": camera scans →
- *    verify portrait + plate photos → charge & release the vehicle. (exit-gate staff)
- *  - /staff/parked    (readOnly=true)  → the "Parked vehicles" tab: read-only list.
- *    (both staff types can view, no payment action)
+ * One component, two views:
+ *  - view="scanner" (/staff/checkout · tab "Check-out"): camera only — scans
+ *    plate / QR to locate a vehicle then opens the payment modal. No list shown.
+ *  - view="list" (/staff/parked · tab "Parked vehicles"): list of parked vehicles;
+ *    exit-gate staff can click a vehicle to check out, others can only view.
  */
-export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
+export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }) {
   const { buildingId, building } = useBuildingContext();
   const { user } = useAuth();
-  const canCheckout = !readOnly;
+  const { showCheckOut } = useAssignedGates();
+  // Scanner view (Check-out tab) always allows operations; list view (Parked vehicles tab)
+  // only allows checkout for exit-gate staff, others get read-only access.
+  const canCheckout = view === 'scanner' ? true : showCheckOut;
 
   const [sessions, setSessions] = useState<ParkingSession[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,6 +76,10 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
   const [paymentMethod, setPaymentMethod] = useState<PaymentKind>('cash');
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
+
+  // Scanner to locate a vehicle (sequential — single camera). Checkout wizard: step 1 capture exit portrait · step 2 charge.
+  const [identifyMode, setIdentifyMode] = useState<'plate' | 'qr'>('plate');
+  const [coStep, setCoStep] = useState<1 | 2>(1);
 
   const [bankTransfer, setBankTransfer] = useState<BankTransferState | null>(null);
   const [verifying, setVerifying] = useState(false);
@@ -107,17 +115,39 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
     [sessions],
   );
 
+  // Open the checkout modal for a session. The list payload omits base64 images to keep it
+  // lightweight → fetch full detail to load the entry photos (plate + portrait) for comparison.
+  const openCheckout = useCallback(async (session: ParkingSession, exitPlateImage: string | null = null) => {
+    setOpMessage(null);
+    setCheckoutTarget(session);
+    setPaymentMethod('cash');
+    setCoStep(1);
+    // Keep the exit plate image if already scanned (scanner path); null when opened from a card click.
+    setCapturedPlateImage(exitPlateImage);
+    setCapturedPortraitImage(null);
+    try {
+      const res = await staffApi.sessions.detail(session._id);
+      const full = (res as { data?: ParkingSession })?.data;
+      if (full) {
+        setCheckoutTarget((prev) =>
+          prev && prev._id === session._id
+            ? { ...prev, plateImage: full.plateImage, portraitImage: full.portraitImage }
+            : prev,
+        );
+      }
+    } catch {
+      /* comparison photos are supplementary — ignore if detail fetch fails */
+    }
+  }, []);
+
   // Identify the active session for a plate and open the checkout/payment modal.
-  // Same business flow as check-in: scan to identify, then process the vehicle.
-  const openCheckoutByPlate = (plate: string) => {
+  const openCheckoutByPlate = (plate: string, exitPlateImage: string | null = null) => {
     const clean = normalizePlate(plate) || plate.trim().toUpperCase();
     const found = sessions.find(
       (s) => (normalizePlate(s.plateNumber) || s.plateNumber.toUpperCase()) === clean,
     );
     if (found) {
-      setOpMessage(null);
-      setCheckoutTarget(found);
-      setPaymentMethod('cash');
+      void openCheckout(found, exitPlateImage);
     } else {
       setOpMessage({
         type: 'err',
@@ -126,10 +156,9 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
     }
   };
 
-  // Camera 1 — plate. Save a frame to compare with the entry photo.
+  // Plate camera: save the exit frame for comparison with the entry photo, then locate the vehicle.
   const handlePlateDetected = ({ plateNumber, plateImage }: PlateScanResult) => {
-    setCapturedPlateImage(plateImage);
-    openCheckoutByPlate(plateNumber);
+    openCheckoutByPlate(plateNumber, plateImage);
   };
 
   // Camera 3 — QR (plate token PLT- / account ID). Reservation/guests only need to
@@ -161,8 +190,10 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
     const target = checkoutTarget;
     if (!target) return;
     setOpMessage(null);
+    const dueFee = target.currentFee ?? target.fee ?? 0;
     try {
-      if (paymentMethod === 'bank_transfer') {
+      // Only create a bank-transfer QR when there is actually a fee due (subscription within limit = 0₫).
+      if (paymentMethod === 'bank_transfer' && dueFee > 0) {
         const res = await staffApi.initiateSessionPayment(target._id);
         const d = (res as unknown as { data?: { orderCode: number; checkoutUrl: string; amount: number; plateNumber?: string } })?.data;
         if (d) {
@@ -179,11 +210,16 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
       // Exit portrait: prefer the captured photo, otherwise grab a frame from the portrait camera.
       const exitPortrait = capturedPortraitImage ?? portraitCamRef.current?.capture() ?? null;
       await staffApi.checkOut(target._id, {
-        paymentMethod,
+        paymentMethod: dueFee > 0 ? paymentMethod : 'cash',
         exitPlateImage: capturedPlateImage,
         exitPortraitImage: exitPortrait,
       });
-      setOpMessage({ type: 'ok', text: `Charged & released vehicle ${target.plateNumber}.` });
+      setOpMessage({
+        type: 'ok',
+        text: dueFee > 0
+          ? `Charged & released vehicle ${target.plateNumber}.`
+          : `Released vehicle ${target.plateNumber} (free under subscription).`,
+      });
       setPaymentMethod('cash');
       setCheckoutTarget(null);
       setCapturedPlateImage(null);
@@ -243,87 +279,109 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
   };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="grid gap-6">
-      {/* Header */}
-      <section className="relative overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-sm">
-        <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary">
-              {canCheckout ? 'Operations shift · Exit gate' : 'Lot monitoring'}
-            </p>
-            <h2 className="mt-1 text-xl font-semibold text-foreground">
-              {canCheckout ? 'Check-out xe ra' : 'Parked vehicles'}
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {building ? `${building.code} · ${building.name}` : 'No building selected'}
-              {canCheckout
-                ? ' · Scan plate / QR or click a vehicle to charge and release'
-                : ' · Parked vehicles list (read-only)'}
-            </p>
-          </div>
-          <Button variant="secondary" onClick={refreshSessions} className="gap-2 self-start lg:self-auto">
-            <RefreshCcw size={14} />Refresh</Button>
-        </div>
-      </section>
-
-      {/* Metrics */}
-      <section className="grid gap-3 sm:grid-cols-2">
-        <Card>
-          <CardContent className="p-5">
-            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-muted-foreground">Parked</p>
-            <p className="mt-3 text-3xl font-semibold text-foreground">{loading ? '–' : sessions.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-5">
-            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-muted-foreground">Estimated total fee</p>
-            <p className="mt-3 text-3xl font-semibold text-primary">{loading ? '–' : fmtMoney(totalFee)}</p>
-          </CardContent>
-        </Card>
-      </section>
-
-      {/* 3 separate cameras — scan to release a vehicle (portrait · plate · QR).
-          Only shown to exit-gate staff. */}
-      {canCheckout && (
-        <>
-          <section className="grid gap-4 lg:grid-cols-3">
-            <LivePortraitCamera ref={portraitCamRef} paused={!!checkoutTarget || !!bankTransfer || rejectOpen} />
-            <LivePlateCamera onDetected={handlePlateDetected} busy={loading} />
-            <LiveQRCamera onResult={handleResolveIdQr} paused={!!checkoutTarget || !!bankTransfer || rejectOpen} />
-          </section>
-          <p className="-mt-2 text-center text-[11px] text-muted-foreground">
-            Scan the plate (Camera 1) or vehicle/account QR (Camera 2) to release. Reservation customers only need to scan the vehicle QR.
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="space-y-5">
+      {/* Header — title + inline stats + refresh */}
+      <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-primary">
+            {view === 'scanner' ? 'Exit gate · Scan' : canCheckout ? 'Exit gate' : 'Lot monitoring'}
           </p>
-        </>
-      )}
+          <h2 className="mt-0.5 text-xl font-bold text-foreground">
+            {view === 'scanner' ? 'Check-out' : 'Parked vehicles'}
+          </h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {building ? `${building.code} · ${building.name}` : 'No building selected'}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="rounded-xl border border-border bg-background px-4 py-2 text-center min-w-[88px]">
+            <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Parked</p>
+            <p className="text-lg font-bold text-foreground">{loading ? '–' : sessions.length}</p>
+          </div>
+          <div className="rounded-xl border border-border bg-background px-4 py-2 text-center">
+            <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Estimated total fee</p>
+            <p className="text-lg font-bold text-primary">{loading ? '–' : fmtMoney(totalFee)}</p>
+          </div>
+          <Button variant="secondary" onClick={refreshSessions} className="gap-2 h-11">
+            <RefreshCcw size={14} /> Refresh
+          </Button>
+        </div>
+      </div>
 
-      {!canCheckout && (
-        <div className="rounded-xl border border-sky-500/25 bg-sky-500/5 px-4 py-3 text-sm text-sky-300">Mode<strong>chỉ xem</strong>the parked vehicles list. Releasing &amp; charging is done in the tab<strong>“Check-out xe ra”</strong>(exit-gate staff).</div>
-      )}
-
-      {opMessage && (
-        <div className={`rounded-xl border p-4 text-sm ${opMessage.type === 'ok' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' : 'border-rose-500/30 bg-rose-500/10 text-rose-400'}`}>
-          {opMessage.text}
+      {/* ══ VIEW “scanner” — Check-out tab: camera scan only ══ */}
+      {view === 'scanner' && (
+        <div className=”mx-auto w-full max-w-xl space-y-4”>
+          {!canCheckout ? (
+            <div className=”rounded-xl border border-amber-500/25 bg-amber-500/5 px-4 py-3 text-sm text-amber-300”>
+              This account is not assigned to an exit gate — cannot release vehicles.
+            </div>
+          ) : !checkoutTarget && !bankTransfer && !rejectOpen ? (
+            <section className=”space-y-3 rounded-2xl border border-border bg-card p-5”>
+              <div className=”flex gap-2 p-1 rounded-lg bg-muted border border-border”>
+                <button
+                  type=”button”
+                  onClick={() => setIdentifyMode('plate')}
+                  className={`flex-1 flex items-center justify-center gap-1.5 h-9 rounded-md text-xs font-bold transition-all ${identifyMode === 'plate' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground'}`}
+                >
+                  <ScanLine size={13} /> Scan plate (AI)
+                </button>
+                <button
+                  type=”button”
+                  onClick={() => setIdentifyMode('qr')}
+                  className={`flex-1 flex items-center justify-center gap-1.5 h-9 rounded-md text-xs font-bold transition-all ${identifyMode === 'qr' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground'}`}
+                >
+                  <QrCode size={13} /> Scan QR
+                </button>
+              </div>
+              {identifyMode === 'plate' ? (
+                <LivePlateCamera onDetected={handlePlateDetected} busy={loading} />
+              ) : (
+                <LiveQRCamera onResult={handleResolveIdQr} />
+              )}
+              <p className=”text-center text-[11px] text-muted-foreground”>
+                Scan plate / vehicle QR to locate a vehicle and open the payment modal. View all vehicles in the “Parked vehicles” tab.
+              </p>
+            </section>
+          ) : null}
+          {opMessage && (
+            <div className={`rounded-xl border p-4 text-sm ${opMessage.type === 'ok' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' : 'border-rose-500/30 bg-rose-500/10 text-rose-400'}`}>
+              {opMessage.text}
+            </div>
+          )}
         </div>
       )}
 
-      {/* Parked list */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Parked vehicles list</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <p className="text-sm text-muted-foreground">Loading...</p>
-          ) : error ? (
-            <p className="text-sm text-rose-400">{error}</p>
-          ) : sessions.length === 0 ? (
-            <div className="py-10 text-center">
-              <Car size={28} className="mx-auto mb-2 text-muted-foreground/40" />
-              <p className="text-sm text-muted-foreground">No parked vehicles.</p>
+      {/* ══ VIEW “list” — Parked vehicles tab: list (click to check out) ══ */}
+      {view === 'list' && (
+        <div className=”space-y-4”>
+          {!canCheckout && (
+            <div className=”rounded-xl border border-sky-500/25 bg-sky-500/5 px-4 py-3 text-sm text-sky-300”>
+              <strong>Read-only</strong> mode. Releasing vehicles &amp; charging is handled by exit-gate staff.
             </div>
-          ) : (
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          )}
+
+          {opMessage && (
+            <div className={`rounded-xl border p-4 text-sm ${opMessage.type === 'ok' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' : 'border-rose-500/30 bg-rose-500/10 text-rose-400'}`}>
+              {opMessage.text}
+            </div>
+          )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Parked vehicles list</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <p className=”text-sm text-muted-foreground”>Loading...</p>
+              ) : error ? (
+                <p className=”text-sm text-rose-400”>{error}</p>
+              ) : sessions.length === 0 ? (
+                <div className=”py-10 text-center”>
+                  <Car size={28} className=”mx-auto mb-2 text-muted-foreground/40” />
+                  <p className=”text-sm text-muted-foreground”>No parked vehicles.</p>
+                </div>
+              ) : (
+                <div className=”grid gap-3 sm:grid-cols-2 2xl:grid-cols-3”>
               {sessions.map((s) => {
                 const floor = s.slot?.floor?.name || s.slot?.floor?.code || '—';
                 const slotCode = s.slot?.code || '—';
@@ -332,7 +390,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
                   <button
                     key={s._id}
                     type="button"
-                    onClick={canCheckout ? () => { setCheckoutTarget(s); setPaymentMethod('cash'); } : undefined}
+                    onClick={canCheckout ? () => void openCheckout(s) : undefined}
                     title={canCheckout ? 'Click to charge & release' : 'Only exit-gate staff can release vehicles'}
                     className={`block w-full rounded-xl border border-border bg-card p-3.5 text-left transition ${canCheckout ? 'cursor-pointer hover:border-primary/40 hover:bg-primary/5' : 'cursor-default'}`}
                   >
@@ -345,11 +403,22 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
                           </span>
                         )}
                       </div>
-                      {isMember ? (
-                        <span className="shrink-0 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[9px] font-black uppercase text-emerald-400">Members</span>
-                      ) : (
-                        <span className="shrink-0 rounded-full bg-amber-500/15 px-2 py-0.5 text-[9px] font-black uppercase text-amber-400">Guest</span>
-                      )}
+                      <div className="flex shrink-0 items-center gap-1">
+                        {s.isLongTerm && (
+                          <span className="rounded-full bg-orange-500/15 px-2 py-0.5 text-[9px] font-black uppercase text-orange-400">
+                            Subscription
+                          </span>
+                        )}
+                        {isMember ? (
+                          <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[9px] font-black uppercase text-emerald-400">
+                            Member
+                          </span>
+                        ) : (
+                          <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[9px] font-black uppercase text-amber-400">
+                            Guest
+                          </span>
+                        )}
+                      </div>
                     </div>
                     {isMember && s.user?.fullName && (
                       <p className="mt-0.5 text-[11px] text-muted-foreground truncate">{s.user.fullName}{s.user.email ? ` · ${s.user.email}` : ''}</p>
@@ -357,7 +426,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
                     {/* Which staff checked in, via which gate (entry) */}
                     <p className="mt-0.5 text-[11px] text-muted-foreground truncate">
                       Check-in: {s.staff?.fullName ?? '—'}
-                      {s.entryGate?.code ? ` · cổng ${s.entryGate.code}` : ''}
+                      {s.entryGate?.code ? ` · gate ${s.entryGate.code}` : ''}
                     </p>
 
                     {/* Camera snapshots */}
@@ -399,8 +468,14 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
                       </div>
                     </div>
                     <div className="mt-2 flex items-center justify-between">
-                      <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Estimated fee</span>
-                      <span className="font-bold text-primary">{fmtMoney(s.currentFee ?? s.fee)}</span>
+                      <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                        {s.isLongTerm ? 'Overage fee' : 'Estimated fee'}
+                      </span>
+                      <span className="font-bold text-primary">
+                        {(s.currentFee ?? s.fee ?? 0) > 0
+                          ? fmtMoney(s.currentFee ?? s.fee)
+                          : s.isLongTerm ? 'Free' : fmtMoney(0)}
+                      </span>
                     </div>
                     {canCheckout && (
                       <p className="mt-2 text-center text-[11px] font-semibold text-primary">Click to charge & release →</p>
@@ -412,6 +487,8 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
           )}
         </CardContent>
       </Card>
+        </div>
+      )}
 
       {/* Payment & release */}
       {checkoutTarget && (
@@ -424,9 +501,52 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
                 <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary">Payment · Exit</p>
                 <h3 className="text-xl font-semibold text-foreground font-mono">{checkoutTarget.plateNumber}</h3>
               </div>
-              <button onClick={() => { setCheckoutTarget(null); setPaymentMethod('cash'); setCapturedPlateImage(null); setCapturedPortraitImage(null); }} className="text-muted-foreground hover:text-foreground transition">✕</button>
+              <button onClick={() => { setCheckoutTarget(null); setPaymentMethod('cash'); setCoStep(1); setCapturedPlateImage(null); setCapturedPortraitImage(null); }} className="text-muted-foreground hover:text-foreground transition">✕</button>
             </div>
 
+            {/* Step indicator */}
+            <div className="mb-4 flex items-center gap-2 text-[11px] font-bold">
+              {[{ n: 1, label: 'Capture exit portrait' }, { n: 2, label: 'Verify & charge' }].map((s, i) => (
+                <div key={s.n} className="flex items-center gap-2">
+                  <span className={`flex h-6 w-6 items-center justify-center rounded-full text-[10px] ${coStep >= s.n ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>{s.n}</span>
+                  <span className={coStep === s.n ? 'text-foreground' : 'text-muted-foreground'}>{s.label}</span>
+                  {i < 1 && <span className="mx-1 h-px w-5 bg-border" />}
+                </div>
+              ))}
+            </div>
+
+            {/* ── STEP 1 — Capture exit portrait ── */}
+            {coStep === 1 && (
+              <div className="space-y-4">
+                <LivePortraitCamera ref={portraitCamRef} />
+                {capturedPortraitImage && (
+                  <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2 text-xs text-emerald-400">
+                    <UserSquare size={14} /> Exit portrait captured — you may retake it.
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" onClick={() => setCoStep(2)} className="h-11 gap-1">
+                    Skip
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      const img = portraitCamRef.current?.capture() ?? null;
+                      if (!img) { setOpMessage({ type: 'err', text: 'Portrait camera not ready. Please try again.' }); return; }
+                      setCapturedPortraitImage(img);
+                      setOpMessage(null);
+                      setCoStep(2);
+                    }}
+                    className="flex-1 h-11 gap-2 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110"
+                  >
+                    <UserSquare size={16} /> {capturedPortraitImage ? 'Retake & continue' : 'Capture portrait & continue'} <ArrowRight size={16} />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* ── STEP 2 — Verify photos & charge ── */}
+            {coStep === 2 && (
+            <>
             {/* Photo comparison: at entry (saved) vs at exit (just scanned) */}
             <div className="mb-4 rounded-xl border border-amber-500/25 bg-amber-500/5 p-3">
               <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-amber-400">Verify plate &amp; portrait photos</p>
@@ -437,58 +557,82 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
                   <CompareImg src={checkoutTarget.plateImage} label="Plate number" />
                   <CompareImg src={checkoutTarget.portraitImage} label="Portrait" />
                 </div>
-                {/* Cột: lúc ra */}
+                {/* Column: at exit */}
                 <div className="space-y-1.5">
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">At exit (just scanned)</p>
                   <CompareImg src={capturedPlateImage} label="Plate number" />
                   <CompareImg src={capturedPortraitImage} label="Portrait" />
                 </div>
               </div>
-              <p className="mt-2 text-[11px] text-muted-foreground">Staff verify whether they match. If they do not, click<strong className="text-rose-400">Từ chối</strong>.
+              <p className="mt-2 text-[11px] text-muted-foreground">Staff verify whether they match. If they do not, click <strong className="text-rose-400">Reject</strong>.
               </p>
             </div>
 
             <div className="rounded-xl border border-border bg-card/50 p-4 space-y-1.5 text-sm">
-              <div className="flex justify-between"><span className="text-muted-foreground">Guest</span><span className="font-medium text-foreground">{(checkoutTarget.isMember ?? checkoutTarget.user) ? (checkoutTarget.user?.fullName || 'Members') : 'Guest'}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Customer</span><span className="font-medium text-foreground">{(checkoutTarget.isMember ?? checkoutTarget.user) ? (checkoutTarget.user?.fullName || 'Member') : 'Guest'}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Vehicle type</span><span className="font-medium text-foreground">{checkoutTarget.vehicleType?.name ?? '—'}{checkoutTarget.vehicleBrand ? ` · ${checkoutTarget.vehicleBrand}` : ''}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">At</span><span className="font-medium text-foreground">{fmtTime(checkoutTarget.entryTime)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Entry time</span><span className="font-medium text-foreground">{fmtTime(checkoutTarget.entryTime)}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Parking duration</span><span className="font-medium text-foreground">{fmtDuration(checkoutTarget.entryTime)}</span></div>
-              <div className="flex justify-between border-t border-border/60 pt-1.5"><span className="text-muted-foreground">NV check-in</span><span className="font-medium text-foreground">{checkoutTarget.staff?.fullName ?? '—'}{checkoutTarget.entryGate?.code ? ` · cổng ${checkoutTarget.entryGate.code}` : ''}</span></div>
+              <div className="flex justify-between border-t border-border/60 pt-1.5"><span className="text-muted-foreground">Check-in staff</span><span className="font-medium text-foreground">{checkoutTarget.staff?.fullName ?? '—'}{checkoutTarget.entryGate?.code ? ` · gate ${checkoutTarget.entryGate.code}` : ''}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Check-out staff</span><span className="font-medium text-emerald-400">{user?.fullName || user?.email || 'You'}</span></div>
             </div>
 
+            {checkoutTarget.isLongTerm && (
+              <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
+                Long-term subscription vehicle{checkoutTarget.maxHoursPerDay ? ` · free up to ${checkoutTarget.maxHoursPerDay}h/day` : ''}.{' '}
+                {(checkoutTarget.overageHours ?? 0) > 0
+                  ? `Parked ${checkoutTarget.overageHours?.toFixed(1)}h over the limit → overage charged at standard rate.`
+                  : 'Within limit → no charge.'}
+              </div>
+            )}
+
             <div className="mt-4 rounded-xl border border-primary/30 bg-primary/10 p-4 flex items-center justify-between">
               <span className="text-sm font-semibold text-foreground">Amount due</span>
-              <span className="font-mono text-2xl font-black text-primary">{fmtMoney(checkoutTarget.currentFee ?? checkoutTarget.fee)}</span>
+              <span className="font-mono text-2xl font-black text-primary">
+                {(checkoutTarget.currentFee ?? checkoutTarget.fee ?? 0) > 0
+                  ? fmtMoney(checkoutTarget.currentFee ?? checkoutTarget.fee)
+                  : 'Free'}
+              </span>
             </div>
 
-            <p className="mt-4 mb-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">Payment method</p>
-            <div className="grid gap-2 sm:grid-cols-3">
-              {[{ value: 'cash', label: 'Cash' }, { value: 'bank_transfer', label: 'Bank transfer' }, { value: 'wallet', label: 'Trừ ví' }].map((m) => (
-                <button
-                  key={m.value}
-                  type="button"
-                  onClick={() => setPaymentMethod(m.value as PaymentKind)}
-                  className={`rounded-xl border px-3 py-2.5 text-center text-sm font-medium transition ${paymentMethod === m.value ? 'border-primary/40 bg-primary/10 text-foreground' : 'border-border bg-card text-muted-foreground hover:border-primary/20'}`}
-                >
-                  {m.label}
-                </button>
-              ))}
-            </div>
+            {(checkoutTarget.currentFee ?? checkoutTarget.fee ?? 0) > 0 && (
+              <>
+                <p className="mt-4 mb-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">Payment method</p>
+                <div className="grid gap-2 sm:grid-cols-3">
+                  {[{ value: 'cash', label: 'Cash' }, { value: 'bank_transfer', label: 'Bank transfer' }, { value: 'wallet', label: 'Deduct wallet' }].map((m) => (
+                    <button
+                      key={m.value}
+                      type="button"
+                      onClick={() => setPaymentMethod(m.value as PaymentKind)}
+                      className={`rounded-xl border px-3 py-2.5 text-center text-sm font-medium transition ${paymentMethod === m.value ? 'border-primary/40 bg-primary/10 text-foreground' : 'border-border bg-card text-muted-foreground hover:border-primary/20'}`}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
 
-            <div className="mt-5 grid grid-cols-[1fr_auto] gap-2">
-              <Button onClick={onCheckOut} disabled={loading} className="h-11 gap-2 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60">
-                <CheckCircle2 size={16} /> {paymentMethod === 'bank_transfer' ? 'Create payment QR' : `Charge ${fmtMoney(checkoutTarget.currentFee ?? checkoutTarget.fee)} & release`}
+            <div className="mt-5 flex gap-2">
+              <Button type="button" variant="outline" onClick={() => setCoStep(1)} className="h-11 gap-1">
+                <ArrowLeft size={16} /> Back
+              </Button>
+              <Button onClick={onCheckOut} disabled={loading} className="flex-1 h-11 gap-2 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60">
+                <CheckCircle2 size={16} /> {(checkoutTarget.currentFee ?? checkoutTarget.fee ?? 0) <= 0
+                  ? 'Release (free)'
+                  : paymentMethod === 'bank_transfer' ? 'Create payment QR' : `Charge ${fmtMoney(checkoutTarget.currentFee ?? checkoutTarget.fee)} & release`}
               </Button>
               <Button type="button" variant="outline" onClick={() => setRejectOpen(true)} className="h-11 border-rose-500/40 text-rose-400 hover:bg-rose-500/10">
-                Từ chối
+                Reject
               </Button>
             </div>
+            </>
+            )}
           </motion.div>
         </div>
       )}
 
-      {/* Reject (xe ra) */}
+      {/* Reject exit */}
       {rejectOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
           <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
@@ -496,8 +640,8 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
           >
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-rose-400">Từ chối cho xe ra</p>
-                <h3 className="text-xl font-semibold text-foreground">Lý do từ chối</h3>
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-rose-400">Reject vehicle exit</p>
+                <h3 className="text-xl font-semibold text-foreground">Rejection reason</h3>
               </div>
               <button onClick={() => { setRejectOpen(false); setRejectReason(''); }} className="text-muted-foreground hover:text-foreground transition">✕</button>
             </div>
@@ -505,7 +649,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               rows={3}
-              placeholder="Lý do từ chối cho xe ra..."
+              placeholder="Reason for rejecting vehicle exit..."
               className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-rose-500/50"
             />
             <div className="mt-4 grid grid-cols-2 gap-3">
@@ -521,7 +665,7 @@ export function StaffParkedPage({ readOnly = false }: { readOnly?: boolean }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
           <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl">
             <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary">Bank transfer</p>
-            <h3 className="mt-1 text-xl font-semibold text-foreground">Thu phí gửi xe</h3>
+            <h3 className="mt-1 text-xl font-semibold text-foreground">Parking fee payment</h3>
             <div className="mt-4 rounded-xl border border-border bg-card/50 p-4 space-y-2">
               <div className="flex justify-between text-sm"><span className="text-muted-foreground">Plate number</span><span className="font-semibold text-foreground">{bankTransfer.plate}</span></div>
               <div className="flex justify-between text-sm"><span className="text-muted-foreground">Amount</span><span className="font-mono text-lg font-bold text-amber-400">{bankTransfer.amount.toLocaleString('vi-VN')} ₫</span></div>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   AlertTriangle,
+  ArrowRight,
   Building2,
   CalendarClock,
   Car,
@@ -9,12 +10,12 @@ import {
   Clock,
   DoorOpen,
   Gauge,
+  ScanLine,
   ShieldAlert,
   Ticket,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ScanLine } from 'lucide-react';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import {
@@ -27,14 +28,14 @@ import {
 } from '@/services/staff/staffApi';
 
 function fmtTime(iso: string) {
-  return new Date(iso).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+  return new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 }
 
 function fmtDateFull() {
-  return new Date().toLocaleDateString('vi-VN', {
+  return new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     day: '2-digit',
-    month: '2-digit',
+    month: 'long',
     year: 'numeric',
   });
 }
@@ -48,30 +49,23 @@ interface StatCardProps {
   value: number | string;
   icon: React.ElementType;
   accent: string;
-  bg: string;
   loading?: boolean;
-  glowColor: string;
 }
 
-function StatCard({ label, value, icon: Icon, accent, bg, loading, glowColor }: StatCardProps) {
+function StatCard({ label, value, icon: Icon, accent, loading }: StatCardProps) {
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-white/8 bg-slate-900/40 p-5 backdrop-blur-md shadow-lg transition-all duration-305 hover:scale-[1.02] hover:shadow-[0_8px_30px_rgba(0,0,0,0.25)] hover:border-white/12 group">
-      {/* Glow effect */}
-      <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl ${glowColor} opacity-10 blur-xl pointer-events-none group-hover:opacity-20 transition-opacity duration-300`} />
-      
-      <div className="flex items-start justify-between relative z-10">
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500 font-mono">{label}</p>
-          {loading ? (
-            <Skeleton className="mt-2.5 h-9 w-14" />
-          ) : (
-            <p className="mt-1.5 text-4xl font-black tabular-nums text-white tracking-tight">{value}</p>
-          )}
-        </div>
-        <div className={`flex h-11 w-11 items-center justify-center rounded-xl border ${accent} ${bg} group-hover:scale-105 transition-transform duration-300`}>
-          <Icon size={18} className="text-slate-200" />
-        </div>
+    <div className="rounded-2xl border border-white/10 bg-slate-900/40 p-4">
+      <div className="flex items-center justify-between">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{label}</p>
+        <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${accent}`}>
+          <Icon size={15} />
+        </span>
       </div>
+      {loading ? (
+        <Skeleton className="mt-2 h-8 w-12" />
+      ) : (
+        <p className="mt-1.5 text-3xl font-bold tabular-nums text-white">{value}</p>
+      )}
     </div>
   );
 }
@@ -79,7 +73,7 @@ function StatCard({ label, value, icon: Icon, accent, bg, loading, glowColor }: 
 function formatSlotLocation(session: ParkingSession): string {
   const floor = session.slot?.floor?.name || session.slot?.floor?.code || null;
   const slotCode = session.slot?.code || null;
-  
+
   if (!floor && !slotCode) return 'Location —';
   if (!floor) return `Slot ${slotCode}`;
   if (!slotCode) return `Floor ${floor}`;
@@ -117,13 +111,10 @@ export function StaffDashboardPage() {
         const rawInc =
           (incidentRes as { data?: { items?: StaffIncident[] } | StaffIncident[] })?.data;
         setIncidents(
-          Array.isArray(rawInc)
-            ? rawInc
-            : (rawInc as { items?: StaffIncident[] })?.items ?? [],
+          Array.isArray(rawInc) ? rawInc : (rawInc as { items?: StaffIncident[] })?.items ?? [],
         );
 
-        const rawRes =
-          (resRes as { data?: { items?: StaffReservation[] } })?.data?.items ?? [];
+        const rawRes = (resRes as { data?: { items?: StaffReservation[] } })?.data?.items ?? [];
         setReservations(Array.isArray(rawRes) ? rawRes : []);
 
         setError(null);
@@ -169,6 +160,7 @@ export function StaffDashboardPage() {
 
   const showCheckIn = assignedGates.some((g) => g.direction === 'in' || g.direction === 'both') || assignedGates.length === 0;
   const showCheckOut = assignedGates.some((g) => g.direction === 'out' || g.direction === 'both') || assignedGates.length === 0;
+  const taskCount = (showCheckIn ? 1 : 0) + (showCheckOut ? 1 : 0);
 
   const stats = [
     {
@@ -202,9 +194,9 @@ export function StaffDashboardPage() {
       label: 'Open incidents',
       value: openIncidents.length,
       icon: ShieldAlert,
-      accent: openIncidents.length > 0 ? 'border-rose-500/30 bg-rose-500/10' : 'border-white/5 bg-slate-950/20',
-      bg: openIncidents.length > 0 ? 'bg-rose-500/10' : 'bg-slate-950/20',
-      glowColor: openIncidents.length > 0 ? 'from-rose-500/20 to-transparent' : 'from-slate-500/10 to-transparent',
+      accent: openIncidents.length > 0
+        ? 'border border-rose-500/30 bg-rose-500/10 text-rose-400'
+        : 'border border-white/10 bg-slate-950/40 text-slate-400',
       loading,
     },
   ];
@@ -212,7 +204,7 @@ export function StaffDashboardPage() {
   if (!loading && !building) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="max-w-sm rounded-3xl border border-amber-500/30 bg-amber-500/10 p-8 text-center backdrop-blur-md shadow-lg">
+        <div className="max-w-sm rounded-2xl border border-amber-500/30 bg-amber-500/10 p-8 text-center">
           <Building2 size={36} className="mx-auto mb-3 text-amber-400" />
           <p className="text-base font-extrabold text-amber-300">No building selected</p>
           <p className="mt-1 text-sm text-slate-400 font-medium">Please select a building from the left menu to start your shift.</p>
@@ -226,7 +218,7 @@ export function StaffDashboardPage() {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="space-y-6 max-w-6xl mx-auto"
+      className="space-y-5"
     >
       {/* Hero */}
       <div className="relative overflow-hidden rounded-3xl border border-white/8 bg-slate-900/40 p-6 backdrop-blur-md shadow-lg">
@@ -257,7 +249,7 @@ export function StaffDashboardPage() {
                     className="flex items-center gap-1.5 rounded-xl border border-teal-500/20 bg-teal-500/10 px-3.5 py-2 text-xs font-black uppercase tracking-wider text-teal-400 shadow-[0_0_10px_rgba(20,184,166,0.08)]"
                   >
                     <DoorOpen size={13} />
-                    Cổng {g.code}{g.name ? ` · ${g.name}` : ''} · {directionText(g.direction)}
+                    Gate {g.code}{g.name ? ` · ${g.name}` : ''} · {directionText(g.direction)}
                   </div>
                 ))
               ) : (
@@ -276,20 +268,13 @@ export function StaffDashboardPage() {
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {stats.map((s) => (
-          <StatCard key={s.label} {...s} />
-        ))}
-      </div>
-
-      {/* Interactive Action Cards */}
+      {/* Main actions */}
       {!loading && (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className={`grid gap-3 ${taskCount === 2 ? 'sm:grid-cols-2' : 'grid-cols-1'}`}>
           {showCheckIn && (
             <Link
               to="/staff/operations"
-              className="group relative overflow-hidden rounded-3xl border border-emerald-500/20 bg-slate-900/35 p-5 transition-all duration-300 hover:border-emerald-500/40 hover:bg-slate-900/60 hover:shadow-[0_8px_30px_rgba(16,185,129,0.15)] hover:scale-[1.02]"
+              className="group relative overflow-hidden flex items-center gap-4 rounded-2xl border border-emerald-500/25 bg-emerald-500/[0.06] p-5 transition-colors hover:bg-emerald-500/10"
             >
               <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-emerald-500/5 to-transparent blur-xl pointer-events-none" />
 
@@ -305,12 +290,13 @@ export function StaffDashboardPage() {
                   <p className="text-xs text-slate-400 mt-0.5 font-medium">Scan plate / QR to admit a vehicle</p>
                 </div>
               </div>
+              <ArrowRight size={18} className="shrink-0 ml-auto text-emerald-400 transition-transform group-hover:translate-x-1" />
             </Link>
           )}
           {showCheckOut && (
             <Link
               to="/staff/checkout"
-              className="group relative overflow-hidden rounded-3xl border border-orange-500/20 bg-slate-900/35 p-5 transition-all duration-300 hover:border-orange-500/40 hover:bg-slate-900/60 hover:shadow-[0_8px_30px_rgba(249,115,22,0.15)] hover:scale-[1.02]"
+              className="group relative overflow-hidden flex items-center gap-4 rounded-2xl border border-orange-500/25 bg-orange-500/[0.06] p-5 transition-colors hover:bg-orange-500/10"
             >
               <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-orange-500/5 to-transparent blur-xl pointer-events-none" />
 
@@ -322,10 +308,11 @@ export function StaffDashboardPage() {
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500 font-mono">
                     {assignedGates.length > 0 ? 'Assigned exit gate' : 'Tasks'}
                   </p>
-                  <h3 className="mt-0.5 text-base font-extrabold text-white tracking-tight">Check-out xe ra</h3>
-                  <p className="text-xs text-slate-400 mt-0.5 font-medium">Scan plate / QR → verify photo → charge & release</p>
+                  <h3 className="mt-0.5 text-base font-extrabold text-white tracking-tight">Check out vehicle</h3>
+                  <p className="text-xs text-slate-400 mt-0.5 font-medium">Scan plate / QR → verify photo → charge &amp; release</p>
                 </div>
               </div>
+              <ArrowRight size={18} className="shrink-0 ml-auto text-orange-400 transition-transform group-hover:translate-x-1" />
             </Link>
           )}
           <Link
@@ -348,21 +335,25 @@ export function StaffDashboardPage() {
         </div>
       )}
 
-      {/* Error */}
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        {stats.map((s) => (
+          <StatCard key={s.label} {...s} />
+        ))}
+      </div>
+
+      {/* Banners */}
       {error && (
-        <div className="flex items-center gap-3 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3.5 shadow-[0_0_15px_rgba(244,63,94,0.1)]">
-          <AlertTriangle size={16} className="shrink-0 text-rose-450" />
-          <p className="text-sm font-semibold text-rose-350">{error}</p>
+        <div className="flex items-center gap-3 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-400">
+          <AlertTriangle size={16} className="shrink-0" /> {error}
         </div>
       )}
-
-      {/* Open incidents banner */}
       {!loading && openIncidents.length > 0 && (
         <div className="flex items-start gap-3 rounded-2xl border border-rose-500/30 bg-rose-500/8 px-4 py-3.5 shadow-[0_0_15px_rgba(244,63,94,0.08)]">
           <ShieldAlert size={16} className="mt-0.5 shrink-0 text-rose-400" />
           <div>
             <p className="text-sm font-extrabold text-rose-300">
-              {openIncidents.length} open incidents
+              {openIncidents.length} open incident{openIncidents.length > 1 ? 's' : ''}
             </p>
             <p className="text-xs text-slate-400 mt-0.5 font-medium">Go to the Incidents tab to view details and handle them promptly.</p>
           </div>
@@ -371,7 +362,7 @@ export function StaffDashboardPage() {
 
       {/* Main grid */}
       <div className="grid gap-6 xl:grid-cols-2">
-        {/* Shift */}
+        {/* Today's shifts */}
         <div className="rounded-3xl border border-white/8 bg-slate-900/40 p-6 backdrop-blur-md shadow-lg relative overflow-hidden">
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-[radial-gradient(circle_at_center,rgba(20,184,166,0.03),transparent_60%)] pointer-events-none blur-2xl" />
 
@@ -420,7 +411,7 @@ export function StaffDashboardPage() {
                     {s.gate ? (
                       <p className="mt-1.5 inline-flex items-center gap-1 rounded-md border border-teal-500/20 bg-teal-500/10 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-teal-400 font-mono">
                         <DoorOpen size={10} />
-                        Cổng {s.gate.code}
+                        Gate {s.gate.code}
                         {s.gate.name ? ` · ${s.gate.name}` : ''}
                         {' · '}
                         {s.gate.direction === 'in' ? 'Entry gate' : s.gate.direction === 'out' ? 'Exit gate' : 'Two-way'}
@@ -429,7 +420,7 @@ export function StaffDashboardPage() {
                       <p className="mt-1.5 text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono italic">No gate assigned</p>
                     )}
                     {s.note && (
-                      <p className="mt-1 truncate text-[11px] text-slate-500 italic">Ghi chú: {s.note}</p>
+                      <p className="mt-1 truncate text-[11px] text-slate-500 italic">Note: {s.note}</p>
                     )}
                   </div>
                   <StatusBadge status={s.status} />
@@ -471,17 +462,16 @@ export function StaffDashboardPage() {
                   className="flex items-center gap-3 rounded-2xl border border-white/5 bg-slate-950/35 px-4 py-3.5 transition-all duration-300 hover:border-emerald-500/10 hover:bg-slate-950/60"
                 >
                   <div className="flex h-9 min-w-[90px] items-center justify-center rounded-xl border border-amber-500/20 bg-amber-500/5 px-2.5 shadow-[0_0_10px_rgba(245,158,11,0.05)]">
-                    <span className="font-mono text-xs font-black tracking-widest text-amber-450">
+                    <span className="font-mono text-xs font-black tracking-widest text-amber-300">
                       {session.plateNumber}
                     </span>
                   </div>
-                  <div className="min-w-0 flex-1 pl-1">
-                    <p className="truncate text-xs text-slate-400 font-medium">
-                      <DoorOpen size={11} className="mr-1 inline-block text-slate-550" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-xs text-slate-400">
                       {session.entryGate?.name ?? session.entryGate?.code ?? '—'}
                       {session.vehicleType ? ` · ${session.vehicleType.name}` : ''}
                     </p>
-                    <p className="mt-1.5 text-xs font-bold text-orange-450 font-sans">
+                    <p className="mt-1.5 text-xs font-bold text-orange-300">
                       {formatSlotLocation(session)}
                     </p>
                     <p className="mt-0.5 text-[11px] text-slate-500 font-mono">
@@ -492,10 +482,9 @@ export function StaffDashboardPage() {
                 </div>
               ))
             )}
-
             {!loading && activeSessions.length > 5 && (
-              <p className="pt-1.5 text-center text-xs font-bold text-slate-500 font-mono tracking-wide">
-                +{activeSessions.length - 5} XE KHÁC
+              <p className="mt-3 text-center text-xs font-semibold text-slate-500">
+                +{activeSessions.length - 5} more vehicles
               </p>
             )}
           </div>

@@ -28,7 +28,13 @@ interface AdminOverviewData {
     /** @deprecated legacy alias — backend now returns `total`. */
     today?: number;
     byMethod: Record<string, { amount: number; count: number }>;
+    weekly?: Array<{ date: string; revenue: number; sessions: number }>;
   };
+  buildingStats?: Array<{
+    buildingId: string;
+    occupancyRate: number;
+    revenueToday: number;
+  }>;
 }
 
 interface Paginated<T> {
@@ -116,7 +122,7 @@ const formatChartDate = (dateValue: string): string => {
 const toBuilding = (
   item: ApiBuilding,
   managerNameById: Map<string, string>,
-  overview?: ManagerOverviewData,
+  stats?: { occupancyRate: number; revenueToday: number },
 ): Building => {
   // Handle manager field that can be a populated object, a string ID, or null
   let managerName = 'Chưa gán';
@@ -137,10 +143,10 @@ const toBuilding = (
     name: item.name,
     address: item.address?.fullAddress || 'Chưa cập nhật địa chỉ',
     floors: item.totalFloors || 0,
-    occupancyRate: Number(overview?.slots?.occupancyRate || 0),
+    occupancyRate: stats?.occupancyRate ?? 0,
     status: item.status || 'inactive',
     manager: managerName,
-    revenueToday: Number(overview?.revenue?.today ?? 0),
+    revenueToday: stats?.revenueToday ?? 0,
   };
 };
 
@@ -193,31 +199,31 @@ const toUser = (item: ApiUser): UserRecord => {
 };
 
 const ACTION_TRANSLATIONS: Record<string, string> = {
-  ASSIGN_STAFF_SHIFT: 'Phân công ca trực',
-  UPDATE_STAFF_SHIFT: 'Cập nhật ca trực',
-  CREATE_RESERVATION: 'Đặt chỗ đỗ xe',
-  UPDATE_RESERVATION: 'Cập nhật đặt chỗ',
-  CANCEL_RESERVATION: 'Hủy đặt chỗ',
-  CHECK_IN: 'Check-in xe vào',
-  CHECK_OUT: 'Check-out xe ra',
-  TOP_UP: 'Nạp tiền ví',
-  BLOCK_USER: 'Khóa tài khoản',
-  UNBLOCK_USER: 'Mở khóa tài khoản',
-  CREATE_BUILDING: 'Thêm tòa nhà',
-  UPDATE_BUILDING: 'Cập nhật tòa nhà',
-  ADD_LICENSE_PLATE: 'Thêm biển số',
-  REMOVE_LICENSE_PLATE: 'Xóa biển số',
+  ASSIGN_STAFF_SHIFT: 'Assign staff shift',
+  UPDATE_STAFF_SHIFT: 'Update staff shift',
+  CREATE_RESERVATION: 'Create reservation',
+  UPDATE_RESERVATION: 'Update reservation',
+  CANCEL_RESERVATION: 'Cancel reservation',
+  CHECK_IN: 'Check-in',
+  CHECK_OUT: 'Check-out',
+  TOP_UP: 'Top up wallet',
+  BLOCK_USER: 'Block user',
+  UNBLOCK_USER: 'Unblock user',
+  CREATE_BUILDING: 'Create building',
+  UPDATE_BUILDING: 'Update building',
+  ADD_LICENSE_PLATE: 'Add license plate',
+  REMOVE_LICENSE_PLATE: 'Remove license plate',
 };
 
 const TARGET_TRANSLATIONS: Record<string, string> = {
-  staff_shifts: 'ca trực nhân viên',
-  reservations: 'lượt đặt chỗ',
-  buildings: 'tòa nhà',
-  users: 'tài khoản người dùng',
-  license_plates: 'biển số xe',
-  parking_sessions: 'phiên gửi xe',
-  wallets: 'ví tiền',
-  transactions: 'giao dịch',
+  staff_shifts: 'staff shifts',
+  reservations: 'reservations',
+  buildings: 'buildings',
+  users: 'users',
+  license_plates: 'license plates',
+  parking_sessions: 'parking sessions',
+  wallets: 'wallets',
+  transactions: 'transactions',
 };
 
 const getActionLabel = (action: string): string => {
@@ -235,20 +241,8 @@ const toAudit = (item: ApiAudit): AuditLog => ({
   target: item.targetTable,
   severity: item.severity || 'low',
   timestamp: item.createdAt ? new Date(item.createdAt).toLocaleString('vi-VN') : '-',
-  details: item.description || `${getActionLabel(item.action)} trên ${getTargetLabel(item.targetTable)}`,
+  details: item.description || `${getActionLabel(item.action)} on ${getTargetLabel(item.targetTable)}`,
 });
-
-async function getManagerOverview(token: string, buildingId: string): Promise<ManagerOverviewData | null> {
-  try {
-    const response = await requestJson<ApiEnvelope<ManagerOverviewData>>({
-      path: `/manager/buildings/${buildingId}/dashboard`,
-      token,
-    });
-    return response.data;
-  } catch {
-    return null;
-  }
-}
 
 export async function getApiAdminDataset(token: string): Promise<AdminDataset> {
   const [overviewRes, buildingsRes, usersRes, auditRes] = await Promise.all([
@@ -268,50 +262,28 @@ export async function getApiAdminDataset(token: string): Promise<AdminDataset> {
       .map((user) => [String(user._id), user.fullName]),
   );
 
-  const managerOverviews = await Promise.all(
-    buildingItems.map(async (building) => ({
-      buildingId: building._id,
-      data: await getManagerOverview(token, building._id),
-    })),
-  );
-  const managerOverviewMap = new Map(managerOverviews.map((x) => [x.buildingId, x.data]));
+  const buildingStatsList = overviewRes.data.buildingStats || [];
+  const statsMap = new Map(buildingStatsList.map((s) => [s.buildingId, s]));
 
   const buildings: Building[] = buildingItems.map((item) =>
-    toBuilding(item, managerNameById, managerOverviewMap.get(item._id) || undefined),
+    toBuilding(item, managerNameById, statsMap.get(item._id)),
   );
 
   const users: UserRecord[] = userItems.map(toUser);
   const auditLogs: AuditLog[] = auditItems.map(toAudit);
 
-  const weeklyMap = new Map<string, { revenue: number; sessions: number; occupancySum: number; count: number }>();
+  const weeklyData = overviewRes.data.revenue.weekly || [];
+  const totalOccupancy = buildings.reduce((acc, b) => acc + b.occupancyRate, 0);
+  const avgOccupancy = buildings.length > 0 ? Math.round((totalOccupancy / buildings.length) * 10) / 10 : 0;
 
-  managerOverviews.forEach(({ data }) => {
-    if (!data?.revenue?.weekly) return;
-
-    data.revenue.weekly.forEach((point) => {
-      const current = weeklyMap.get(point.date) || {
-        revenue: 0,
-        sessions: 0,
-        occupancySum: 0,
-        count: 0,
-      };
-      current.revenue += Number(point.revenue || 0);
-      current.sessions += Number(point.sessions || 0);
-      current.occupancySum += Number(data?.slots?.occupancyRate || 0);
-      current.count += 1;
-      weeklyMap.set(point.date, current);
-    });
-  });
-
-  const revenueTrend: RevenuePoint[] = Array.from(weeklyMap.entries())
-    .sort(([a], [b]) => (a > b ? 1 : -1))
-    .slice(-7)
-    .map(([date, value]) => ({
-      date: formatChartDate(date),
-      revenue: Math.round(value.revenue),
-      occupancy: value.count > 0 ? Math.round((value.occupancySum / value.count) * 10) / 10 : 0,
-      sessions: value.sessions,
-    }));
+  const revenueTrend: RevenuePoint[] = weeklyData
+    .map((point) => ({
+      date: formatChartDate(point.date),
+      revenue: Math.round(point.revenue),
+      occupancy: avgOccupancy,
+      sessions: point.sessions,
+    }))
+    .sort((a, b) => (a.date > b.date ? 1 : -1));
 
   let paymentMethodDistribution = Object.entries(overviewRes.data.revenue.byMethod || {}).map(
     ([method, summary]) => ({

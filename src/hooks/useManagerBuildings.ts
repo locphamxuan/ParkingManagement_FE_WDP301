@@ -1,42 +1,30 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { managerApi, type ManagerBuildingRecord } from '@/services/managerApi';
+import { useCallback, useEffect, useMemo } from 'react';
+import { useManagerStore } from '@/store/managerStore';
 
 export function useManagerBuildings() {
-  const { session } = useAuth();
-  const [buildings, setBuildings] = useState<ManagerBuildingRecord[]>([]);
-  const [selectedBuildingId, setSelectedBuildingId] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const token = session?.token;
+  const {
+    buildings,
+    selectedBuildingId,
+    selectBuilding,
+    loadBuildings,
+    isLoading,
+    error,
+  } = useManagerStore();
 
   const refreshBuildings = useCallback(async () => {
-    if (!token) {
-      setBuildings([]);
-      setError('No active session found.');
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
     try {
-      const response = await managerApi.getAssignedBuildings(token);
-      setBuildings(response);
-      if (response.length > 0) {
-        setSelectedBuildingId((current) => current || response[0]._id);
-      }
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to load buildings.');
-    } finally {
-      setIsLoading(false);
+      await loadBuildings();
+    } catch {
+      // handled inside store
     }
-  }, [token]);
+  }, [loadBuildings]);
 
   useEffect(() => {
-    void refreshBuildings();
-  }, [refreshBuildings]);
+    // Only load if the list is empty to prevent duplicate API requests on mount/page switch
+    if (buildings.length === 0) {
+      void refreshBuildings();
+    }
+  }, [buildings.length, refreshBuildings]);
 
   const selectedBuilding = useMemo(
     () => buildings.find((building) => building._id === selectedBuildingId) ?? null,
@@ -45,8 +33,8 @@ export function useManagerBuildings() {
 
   return {
     buildings,
-    selectedBuildingId,
-    setSelectedBuildingId,
+    selectedBuildingId: selectedBuildingId || '',
+    setSelectedBuildingId: selectBuilding,
     selectedBuilding,
     refreshBuildings,
     isLoading,

@@ -47,20 +47,20 @@ export function ActivityTimeline({ title, items }: ActivityTimelineProps) {
                   : 'bg-blue-500 shadow-[0_0_8px_#3b82f6]';
 
             const translations: Record<string, string> = {
-              ASSIGN_STAFF_SHIFT: 'Phân công ca trực',
-              UPDATE_STAFF_SHIFT: 'Cập nhật ca trực',
-              CREATE_RESERVATION: 'Đặt chỗ đỗ xe',
-              UPDATE_RESERVATION: 'Cập nhật đặt chỗ',
-              CANCEL_RESERVATION: 'Hủy đặt chỗ',
-              CHECK_IN: 'Check-in xe vào',
-              CHECK_OUT: 'Check-out xe ra',
-              TOP_UP: 'Nạp tiền ví',
-              BLOCK_USER: 'Khóa tài khoản',
-              UNBLOCK_USER: 'Mở khóa tài khoản',
-              CREATE_BUILDING: 'Thêm tòa nhà',
-              UPDATE_BUILDING: 'Cập nhật tòa nhà',
-              ADD_LICENSE_PLATE: 'Thêm biển số',
-              REMOVE_LICENSE_PLATE: 'Xóa biển số',
+              ASSIGN_STAFF_SHIFT: 'Assign Staff Shift',
+              UPDATE_STAFF_SHIFT: 'Update Staff Shift',
+              CREATE_RESERVATION: 'Create Reservation',
+              UPDATE_RESERVATION: 'Update Reservation',
+              CANCEL_RESERVATION: 'Cancel Reservation',
+              CHECK_IN: 'Vehicle Check-in',
+              CHECK_OUT: 'Vehicle Check-out',
+              TOP_UP: 'Top Up Wallet',
+              BLOCK_USER: 'Block User',
+              UNBLOCK_USER: 'Unblock User',
+              CREATE_BUILDING: 'Create Building',
+              UPDATE_BUILDING: 'Update Building',
+              ADD_LICENSE_PLATE: 'Add License Plate',
+              REMOVE_LICENSE_PLATE: 'Remove License Plate',
             };
             const friendlyAction = translations[item.action] || item.action.replace(/_/g, ' ');
 
@@ -83,7 +83,7 @@ export function ActivityTimeline({ title, items }: ActivityTimelineProps) {
                   </p>
 
                   <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">
-                    <span>Tác nhân:</span>
+                    <span>Actor:</span>
                     <span className="text-slate-400 font-mono lowercase truncate max-w-[200px]" title={item.actor}>
                       {item.actor}
                     </span>

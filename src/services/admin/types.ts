@@ -28,6 +28,14 @@ export interface TransactionItem {
   time: string;
 }
 
+export interface LiveActivityItem {
+  id: string;
+  action: string;
+  actor: string;
+  details: string;
+  timestamp: string;
+}
+
 export interface AdminDataset {
   dashboardStats: readonly DashboardStat[];
   revenueTrend: RevenuePoint[];
@@ -38,6 +46,6 @@ export interface AdminDataset {
   auditLogs: AuditLog[];
   fraudAlerts: FraudAlert[];
   monitoringMetrics: MonitoringMetric[];
-  liveActivities: string[];
+  liveActivities: LiveActivityItem[];
   operationalGuardrails: string[];
 }

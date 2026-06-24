@@ -193,6 +193,42 @@ const toUser = (item: ApiUser): UserRecord => {
   };
 };
 
+const ACTION_TRANSLATIONS: Record<string, string> = {
+  ASSIGN_STAFF_SHIFT: 'Phân công ca trực',
+  UPDATE_STAFF_SHIFT: 'Cập nhật ca trực',
+  CREATE_RESERVATION: 'Đặt chỗ đỗ xe',
+  UPDATE_RESERVATION: 'Cập nhật đặt chỗ',
+  CANCEL_RESERVATION: 'Hủy đặt chỗ',
+  CHECK_IN: 'Check-in xe vào',
+  CHECK_OUT: 'Check-out xe ra',
+  TOP_UP: 'Nạp tiền ví',
+  BLOCK_USER: 'Khóa tài khoản',
+  UNBLOCK_USER: 'Mở khóa tài khoản',
+  CREATE_BUILDING: 'Thêm tòa nhà',
+  UPDATE_BUILDING: 'Cập nhật tòa nhà',
+  ADD_LICENSE_PLATE: 'Thêm biển số',
+  REMOVE_LICENSE_PLATE: 'Xóa biển số',
+};
+
+const TARGET_TRANSLATIONS: Record<string, string> = {
+  staff_shifts: 'ca trực nhân viên',
+  reservations: 'lượt đặt chỗ',
+  buildings: 'tòa nhà',
+  users: 'tài khoản người dùng',
+  license_plates: 'biển số xe',
+  parking_sessions: 'phiên gửi xe',
+  wallets: 'ví tiền',
+  transactions: 'giao dịch',
+};
+
+const getActionLabel = (action: string): string => {
+  return ACTION_TRANSLATIONS[action] || action.replace(/_/g, ' ').toLowerCase().replace(/^\w/, c => c.toUpperCase());
+};
+
+const getTargetLabel = (table: string): string => {
+  return TARGET_TRANSLATIONS[table] || table;
+};
+
 const toAudit = (item: ApiAudit): AuditLog => ({
   id: item._id,
   actor: item.actor?.email || item.actor?.fullName || 'unknown',
@@ -200,7 +236,7 @@ const toAudit = (item: ApiAudit): AuditLog => ({
   target: item.targetTable,
   severity: item.severity || 'low',
   timestamp: item.createdAt ? new Date(item.createdAt).toLocaleString('vi-VN') : '-',
-  details: item.description || `${item.action} on ${item.targetTable}`,
+  details: item.description || `${getActionLabel(item.action)} trên ${getTargetLabel(item.targetTable)}`,
 });
 
 async function getManagerOverview(token: string, buildingId: string): Promise<ManagerOverviewData | null> {
@@ -347,9 +383,13 @@ export async function getApiAdminDataset(token: string): Promise<AdminDataset> {
     },
   ];
 
-  const liveActivities = auditLogs.slice(0, 5).map(
-    (log) => `${log.action}: ${log.details}`,
-  );
+  const liveActivities = auditLogs.slice(0, 5).map((log) => ({
+    id: log.id,
+    action: log.action,
+    actor: log.actor,
+    details: log.details,
+    timestamp: log.timestamp,
+  }));
 
   return {
     dashboardStats,

@@ -23,14 +23,14 @@ export interface VehicleType {
 export interface ParkingSlot {
   _id: string;
   code: string;
-  /** Số tầng (legacy) hoặc object tầng đã populate (name/code). */
+  /** Floor number (legacy) or a populated floor object (name/code). */
   floor?: number | { _id: string; name?: string; code?: string } | null;
   status?: 'available' | 'occupied' | 'reserved' | 'maintenance';
   vehicleType?: { _id: string; name: string; code: string } | null;
   reservable?: boolean;
-  /** Chỉ chọn được slot khi selectable = true (available & không bị gói nào giữ). */
+  /** A slot is only selectable when selectable = true (available & not held by any package). */
   selectable?: boolean;
-  /** Chủ slot nếu đang bị một gói dài hạn giữ (biển số + tên tài khoản). */
+  /** Slot owner if held by a long-term package (plate + account name). */
   owner?: { plateNumber: string; accountName: string | null } | null;
 }
 
@@ -109,7 +109,7 @@ export interface LongTermPackage {
   price: number;
   reservedSlots?: number;
   allowDedicatedSlot?: boolean;
-  /** Số giờ đỗ miễn phí tối đa/ngày (vượt sẽ tính phí theo giờ). 0 = không giới hạn. */
+  /** Max free parking hours per day (excess is charged hourly). 0 = unlimited. */
   maxHoursPerDay?: number;
   benefits?: string[];
   isActive?: boolean;
@@ -134,7 +134,7 @@ export interface LongTermSubscription {
   startDate: string;
   endDate: string;
   status: 'pending' | 'active' | 'expired' | 'cancelled';
-  /** Đã thu hồi slot cố định sau grace (hoặc do manager) hay chưa. */
+  /** Whether the dedicated slot was released after grace (or by the manager). */
   slotReleased?: boolean;
   cancelReason?: 'change_slot' | 'change_vehicle' | 'no_longer_needed' | 'pricing_issue' | 'other' | null;
   cancelNote?: string | null;
@@ -172,18 +172,18 @@ export interface ReservationEstimate {
   estimatedFee: number;
   depositAmount: number;
   remainingFee: number;
-  /** % cọc khi đặt (do manager cấu hình). */
+  /** Deposit % at booking (configured by the manager). */
   depositPercent?: number;
-  /** % còn lại thu sau checkout = 100 - depositPercent. */
+  /** Remaining % charged after checkout = 100 - depositPercent. */
   remainingPercent?: number;
   hourlyRate: number;
   hours: number;
   regularHours: number;
   peakHours: number;
   peakRate: number;
-  /** Thời lượng thực của khung đặt chỗ (phút). */
+  /** Actual duration of the booking window (minutes). */
   durationMinutes?: number;
-  /** True nếu phí bị nâng lên mức tối thiểu (lượt rất ngắn). */
+  /** True if the fee was raised to the minimum (very short session). */
   minimumApplied?: boolean;
 }
 
@@ -212,9 +212,9 @@ export interface UserWalletTransaction {
 
 export interface Feedback {
   _id: string;
-  user: { _id: string; fullName: string; email: string; avatar?: string | null };
-  building: { _id: string; name: string; code: string };
-  parkingSession: { _id: string; plateNumber: string; entryTime: string; exitTime: string; fee: number; status: string };
+  user: { _id: string; fullName: string; email: string; avatar?: string | null } | null;
+  building: { _id: string; name: string; code: string } | null;
+  parkingSession: { _id: string; plateNumber: string; entryTime: string; exitTime: string; fee: number; status: string } | null;
   rating: number;
   comment: string;
   portraitImageUrl?: string | null;
@@ -299,7 +299,7 @@ export const userApi = {
     }) =>
       api.post<Wrap<{ reservation: Reservation }>>('/users/reservations', body),
 
-    /** Cancel reservation — BE hoàn refundPercent% tiền cọc vào ví. */
+    /** Cancel reservation — BE refunds refundPercent% of the deposit to the wallet. */
     cancel: (id: string) =>
       api.delete<Wrap<{ reservation: Reservation; refund: number; amountPaid: number; refundPercent: number }>>(
         `/users/reservations/${id}`,
@@ -311,10 +311,6 @@ export const userApi = {
     /** Get user's parking history */
     list: (query?: { limit?: number; page?: number; fromDate?: string; toDate?: string }) =>
       api.get<Wrap<ListResult<ParkingHistory>>>('/users/parking-history', { query }),
-
-    /** Get parking session detail */
-    get: (id: string) =>
-      api.get<Wrap<{ session: ParkingHistory }>>(`/users/parking-history/${id}`),
   },
 
   // ========== LONG-TERM PACKAGES ==========
@@ -322,13 +318,6 @@ export const userApi = {
     /** Get list of available long-term packages (BE returns { packages }). */
     list: (query?: { buildingId?: string; limit?: number; page?: number }) =>
       api.get<Wrap<{ packages: LongTermPackage[] }>>('/users/long-term/packages', { query }),
-
-    /**
-     * Get package detail. NOTE: the backend has no GET /packages/:id endpoint;
-     * kept for the demo hook only — prefer filtering the list result.
-     */
-    get: (id: string) =>
-      api.get<Wrap<{ package: LongTermPackage }>>(`/users/long-term/packages/${id}`),
   },
 
   // ========== LONG-TERM SUBSCRIPTIONS ==========
@@ -339,10 +328,6 @@ export const userApi = {
         query,
       }),
 
-    /** Get subscription detail */
-    get: (id: string) =>
-      api.get<Wrap<{ subscription: LongTermSubscription }>>(`/users/long-term/subscriptions/${id}`),
-
     /** Subscribe to a long-term package (BE expects { packageId, plateNumber, slotId?, startDate? }). */
     create: (body: { packageId: string; plateNumber: string; slotId?: string; startDate?: string }) =>
       api.post<Wrap<{ subscription: LongTermSubscription }>>(
@@ -350,7 +335,7 @@ export const userApi = {
         body
       ),
 
-    /** Renew (gia hạn) — cộng dồn endDate, trừ ví, giữ slot (POST /subscriptions/:id/renew). */
+    /** Renew — extends endDate, charges the wallet, keeps the slot (POST /subscriptions/:id/renew). */
     renew: (id: string) =>
       api.post<Wrap<{ subscription: LongTermSubscription }>>(
         `/users/long-term/subscriptions/${id}/renew`,

@@ -6,14 +6,14 @@ import { ManagerSubscriptionsPage } from '@/pages/manager/ManagerSubscriptionsPa
 type Tab = 'packages' | 'subscribers';
 
 const TABS: { key: Tab; label: string; icon: typeof Package }[] = [
-  { key: 'packages', label: 'Danh sách gói', icon: Package },
-  { key: 'subscribers', label: 'Khách đăng ký', icon: Users },
+  { key: 'packages', label: 'Package list', icon: Package },
+  { key: 'subscribers', label: 'Subscribers', icon: Users },
 ];
 
 /**
- * Gộp 2 màn trước đây ("Gói" + "Gói của khách") thành một trang với sub-tab
- * để gọn sidebar. "Danh sách gói" là danh mục gói dài hạn của tòa nhà; "Khách
- * đăng ký" là các lượt khách đã mua gói.
+ * Consolidates the previous "Packages" and "Customer Packages" screens into one page
+ * with sub-tabs to keep the sidebar compact. "Package list" shows the building's
+ * long-term package catalog; "Subscribers" lists customers who have purchased packages.
  */
 export function ManagerPackagesHubPage() {
   const [tab, setTab] = useState<Tab>('packages');

@@ -1,7 +1,7 @@
 const STORAGE_TOKEN = 'pbms.token';
 
-// Hỗ trợ cả hai tên biến môi trường từng dùng (VITE_API_BASE và VITE_API_BASE_URL)
-// để giữ tương thích sau khi hợp nhất 2 HTTP client về một.
+// Support both env var names used previously (VITE_API_BASE and VITE_API_BASE_URL)
+// to stay compatible after merging the two HTTP clients into one.
 const API_BASE =
   (import.meta.env.VITE_API_BASE as string | undefined) ||
   (import.meta.env.VITE_API_BASE_URL as string | undefined) ||
@@ -22,7 +22,7 @@ interface ApiOptions {
   body?: unknown;
   query?: Record<string, string | number | boolean | undefined | null>;
   signal?: AbortSignal;
-  /** Ghi đè token (nếu không truyền sẽ lấy từ localStorage). */
+  /** Override token (falls back to localStorage if not provided). */
   token?: string;
 }
 
@@ -104,9 +104,9 @@ export const api = {
 
 export const API_BASE_URL = API_BASE;
 
-// ── Adapter tương thích (thay cho services/client/pbmsApi cũ) ────────────────
-// Giữ nguyên chữ ký `requestJson` để các caller (auth, admin) không phải đổi,
-// nhưng nội bộ dùng chung `apiRequest` → chỉ còn MỘT triển khai HTTP.
+// ── Compatibility adapter (replaces the old services/client/pbmsApi) ────────────────
+// Keep the requestJson signature so callers (auth, admin) do not need changes,
+// but internally share apiRequest → only ONE HTTP implementation.
 export const DEFAULT_API_BASE = API_BASE;
 
 export function normalizeApiBase(value: string = DEFAULT_API_BASE): string {
@@ -114,7 +114,7 @@ export function normalizeApiBase(value: string = DEFAULT_API_BASE): string {
 }
 
 interface RequestJsonOptions {
-  /** Không còn dùng (mọi call đi qua API_BASE chung); giữ để tương thích chữ ký. */
+  /** No longer used (all calls go through the shared API_BASE); kept for signature compatibility. */
   apiBase?: string;
   path: string;
   method?: Method;

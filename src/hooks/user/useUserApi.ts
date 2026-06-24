@@ -236,50 +236,6 @@ export function useParkingHistory(query?: {
   return { ...state, refresh };
 }
 
-export function useParkingHistoryItem(id: string) {
-  const [state, setState] = useState<FetchState<ParkingHistory>>({
-    data: null,
-    isLoading: true,
-    error: null,
-  });
-
-  useEffect(() => {
-    if (!id) return;
-
-    const fetchSession = async () => {
-      setState({ data: null, isLoading: true, error: null });
-      try {
-        const result = await userApi.parkingHistory.get(id);
-        setState({ data: result.data.session, isLoading: false, error: null });
-      } catch (error) {
-        setState({
-          data: null,
-          isLoading: false,
-          error: error instanceof Error ? error : new Error('Unknown error'),
-        });
-      }
-    };
-
-    fetchSession();
-  }, [id]);
-
-  const refresh = useCallback(async () => {
-    setState((prev) => ({ ...prev, isLoading: true }));
-    try {
-      const result = await userApi.parkingHistory.get(id);
-      setState({ data: result.data.session, isLoading: false, error: null });
-    } catch (error) {
-      setState({
-        data: null,
-        isLoading: false,
-        error: error instanceof Error ? error : new Error('Unknown error'),
-      });
-    }
-  }, [id]);
-
-  return { ...state, refresh };
-}
-
 // ========== LONG-TERM PACKAGES HOOKS ==========
 
 export function useLongTermPackages(query?: {
@@ -332,50 +288,6 @@ export function useLongTermPackages(query?: {
       }));
     }
   }, [query]);
-
-  return { ...state, refresh };
-}
-
-export function useLongTermPackage(id: string) {
-  const [state, setState] = useState<FetchState<LongTermPackage>>({
-    data: null,
-    isLoading: true,
-    error: null,
-  });
-
-  useEffect(() => {
-    if (!id) return;
-
-    const fetchPackage = async () => {
-      setState({ data: null, isLoading: true, error: null });
-      try {
-        const result = await userApi.longTermPackages.get(id);
-        setState({ data: result.data.package, isLoading: false, error: null });
-      } catch (error) {
-        setState({
-          data: null,
-          isLoading: false,
-          error: error instanceof Error ? error : new Error('Unknown error'),
-        });
-      }
-    };
-
-    fetchPackage();
-  }, [id]);
-
-  const refresh = useCallback(async () => {
-    setState((prev) => ({ ...prev, isLoading: true }));
-    try {
-      const result = await userApi.longTermPackages.get(id);
-      setState({ data: result.data.package, isLoading: false, error: null });
-    } catch (error) {
-      setState({
-        data: null,
-        isLoading: false,
-        error: error instanceof Error ? error : new Error('Unknown error'),
-      });
-    }
-  }, [id]);
 
   return { ...state, refresh };
 }
@@ -434,50 +346,6 @@ export function useLongTermSubscriptions(query?: {
       }));
     }
   }, [query]);
-
-  return { ...state, refresh };
-}
-
-export function useLongTermSubscription(id: string) {
-  const [state, setState] = useState<FetchState<LongTermSubscription>>({
-    data: null,
-    isLoading: true,
-    error: null,
-  });
-
-  useEffect(() => {
-    if (!id) return;
-
-    const fetchSubscription = async () => {
-      setState({ data: null, isLoading: true, error: null });
-      try {
-        const result = await userApi.longTermSubscriptions.get(id);
-        setState({ data: result.data.subscription, isLoading: false, error: null });
-      } catch (error) {
-        setState({
-          data: null,
-          isLoading: false,
-          error: error instanceof Error ? error : new Error('Unknown error'),
-        });
-      }
-    };
-
-    fetchSubscription();
-  }, [id]);
-
-  const refresh = useCallback(async () => {
-    setState((prev) => ({ ...prev, isLoading: true }));
-    try {
-      const result = await userApi.longTermSubscriptions.get(id);
-      setState({ data: result.data.subscription, isLoading: false, error: null });
-    } catch (error) {
-      setState({
-        data: null,
-        isLoading: false,
-        error: error instanceof Error ? error : new Error('Unknown error'),
-      });
-    }
-  }, [id]);
 
   return { ...state, refresh };
 }

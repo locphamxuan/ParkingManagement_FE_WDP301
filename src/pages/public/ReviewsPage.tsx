@@ -66,7 +66,7 @@ export default function ReviewsPage() {
         setPage(p);
       })
       .catch((err) => {
-        setError(err instanceof Error ? err.message : 'Tải đánh giá thất bại');
+        setError(err instanceof Error ? err.message : 'Failed to load reviews');
       })
       .finally(() => setLoading(false));
   }, [selectedBuilding, selectedRating]);
@@ -105,7 +105,7 @@ export default function ReviewsPage() {
         setSelectedSessionId(completed[0]._id);
       }
     } catch (err) {
-      setSessionsError(err instanceof Error ? err.message : 'Không thể tải lịch sử gửi xe.');
+      setSessionsError(err instanceof Error ? err.message : 'Unable to load parking history.');
     } finally {
       setLoadingSessions(false);
     }
@@ -115,11 +115,11 @@ export default function ReviewsPage() {
   const handleSubmitFeedback = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedSessionId) {
-      setSubmitError('Vui lòng chọn một phiên gửi xe để đánh giá.');
+      setSubmitError('Please select a parking session to review.');
       return;
     }
     if (!commentInput.trim()) {
-      setSubmitError('Vui lòng nhập nội dung đánh giá.');
+      setSubmitError('Please enter your review.');
       return;
     }
 
@@ -128,7 +128,7 @@ export default function ReviewsPage() {
 
     const sessionObj = sessions.find((s) => s._id === selectedSessionId);
     if (!sessionObj) {
-      setSubmitError('Phiên gửi xe không hợp lệ.');
+      setSubmitError('Invalid parking session.');
       setSubmitting(false);
       return;
     }
@@ -146,7 +146,7 @@ export default function ReviewsPage() {
         loadReviews(1);
       }, 1500);
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Gửi đánh giá thất bại. Vui lòng thử lại.');
+      setSubmitError(err instanceof Error ? err.message : 'Failed to submit review. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -181,9 +181,9 @@ export default function ReviewsPage() {
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
               <MessageSquare size={20} className="text-orange-400 animate-pulse" />
-              <h1 className="text-lg font-black tracking-tight text-white">Đánh giá dịch vụ</h1>
+              <h1 className="text-lg font-black tracking-tight text-white">Service reviews</h1>
             </div>
-            <p className="text-xs text-slate-400">Xem ý kiến và đóng góp từ khách hàng của hệ thống</p>
+            <p className="text-xs text-slate-400">View feedback and suggestions from system customers</p>
           </div>
           
         </div>
@@ -193,21 +193,17 @@ export default function ReviewsPage() {
         {/* Title Banner */}
         <div className="text-center py-6">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-orange-400">
-            <Sparkles size={11} /> Đánh giá thực tế
-          </span>
-          <h2 className="mt-3 text-3xl font-black text-white tracking-tight">
-            Khách hàng nói gì về <span className="bg-gradient-to-r from-orange-400 to-amber-500 bg-clip-text text-transparent">chúng tôi</span>
+            <Sparkles size={11} />Real reviews</span>
+          <h2 className="mt-3 text-3xl font-black text-white tracking-tight">What customers say about<span className="bg-gradient-to-r from-orange-400 to-amber-500 bg-clip-text text-transparent">us</span>
           </h2>
-          <p className="mt-2 text-sm text-slate-400 max-w-md mx-auto">
-            Hệ thống luôn ghi nhận phản hồi để không ngừng cải thiện chất lượng bãi đỗ xe.
-          </p>
+          <p className="mt-2 text-sm text-slate-400 max-w-md mx-auto">The system always records feedback to continuously improve parking quality.</p>
         </div>
 
         {/* Stats & Filters Box */}
         <div className="grid gap-6 md:grid-cols-3">
           {/* Average Stats Card */}
           <div className="rounded-3xl border border-white/8 bg-white/3 p-6 flex flex-col justify-center items-center text-center">
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Điểm trung bình</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Average rating</p>
             <div className="mt-2 flex items-baseline gap-2">
               <span className="text-5xl font-black text-white">{stats.avg}</span>
               <span className="text-slate-500 text-lg">/ 5.0</span>
@@ -222,21 +218,21 @@ export default function ReviewsPage() {
                 />
               ))}
             </div>
-            <p className="mt-2 text-xs text-slate-400">Dựa trên {stats.total} lượt đánh giá</p>
+            <p className="mt-2 text-xs text-slate-400">Based on {stats.total} reviews</p>
           </div>
 
           {/* Filters Card */}
           <div className="md:col-span-2 rounded-3xl border border-white/8 bg-white/3 p-6 space-y-4">
-            <p className="text-xs font-black uppercase tracking-wider text-slate-300">Bộ lọc đánh giá</p>
+            <p className="text-xs font-black uppercase tracking-wider text-slate-300">Review filters</p>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="text-[11px] font-bold text-slate-400 uppercase">Tòa nhà / Bãi xe</label>
+                <label className="text-[11px] font-bold text-slate-400 uppercase">Building / Parking lot</label>
                 <select
                   value={selectedBuilding}
                   onChange={(e) => setSelectedBuilding(e.target.value)}
                   className="mt-1.5 w-full rounded-xl border border-white/10 bg-slate-900 px-3 py-2.5 text-xs text-white focus:border-orange-500/50 focus:outline-none focus:ring-1 focus:ring-orange-500/50 transition-all"
                 >
-                  <option value="all">Tất cả bãi xe</option>
+                  <option value="all">All parking lots</option>
                   {buildings.map((b) => (
                     <option key={b._id} value={b._id}>
                       {b.name}
@@ -246,13 +242,13 @@ export default function ReviewsPage() {
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-slate-400 uppercase">Số sao</label>
+                <label className="text-[11px] font-bold text-slate-400 uppercase">Rating</label>
                 <select
                   value={selectedRating}
                   onChange={(e) => setSelectedRating(e.target.value)}
                   className="mt-1.5 w-full rounded-xl border border-white/10 bg-slate-900 px-3 py-2.5 text-xs text-white focus:border-orange-500/50 focus:outline-none focus:ring-1 focus:ring-orange-500/50 transition-all"
                 >
-                  <option value="all">Tất cả sao</option>
+                  <option value="all">All ratings</option>
                   <option value="5">5 sao ⭐⭐⭐⭐⭐</option>
                   <option value="4">4 sao ⭐⭐⭐⭐</option>
                   <option value="3">3 sao ⭐⭐⭐</option>
@@ -271,8 +267,7 @@ export default function ReviewsPage() {
                 }}
                 className="text-xs font-semibold text-slate-400 hover:text-white transition-colors flex items-center gap-1.5"
               >
-                <RefreshCw size={12} /> Đặt lại bộ lọc
-              </button>
+                <RefreshCw size={12} />Reset filters</button>
             </div>
           </div>
         </div>
@@ -281,16 +276,16 @@ export default function ReviewsPage() {
         {loading ? (
           <div className="py-20 text-center space-y-3">
             <RefreshCw className="mx-auto animate-spin text-orange-500" size={32} />
-            <p className="text-sm text-slate-450 font-medium">Đang tải danh sách đánh giá...</p>
+            <p className="text-sm text-slate-450 font-medium">Loading reviews...</p>
           </div>
         ) : reviews.length === 0 ? (
           <div className="rounded-3xl border border-white/8 bg-white/3 p-16 text-center max-w-md mx-auto">
             <MessageSquare size={48} className="mx-auto mb-4 text-slate-650" />
-            <p className="text-base font-bold text-slate-300">Chưa có đánh giá nào</p>
+            <p className="text-base font-bold text-slate-300">No reviews yet</p>
             <p className="mt-1.5 text-xs text-slate-500 leading-relaxed">
               {selectedBuilding !== 'all' || selectedRating !== 'all'
-                ? 'Không tìm thấy đánh giá nào khớp với bộ lọc hiện tại.'
-                : 'Hãy là người đầu tiên gửi đánh giá trải nghiệm gửi xe của bạn!'}
+                ? 'No reviews match the current filters.'
+                : 'Be the first to review your parking experience!'}
             </p>
           </div>
         ) : (
@@ -334,10 +329,10 @@ export default function ReviewsPage() {
                       {/* Header details */}
                       <div className="space-y-1">
                         <p className="font-bold text-white leading-tight">
-                          {item.user?.fullName || item.user?.email || 'Người dùng ẩn danh'}
+                          {item.user?.fullName || item.user?.email || 'Anonymous user'}
                         </p>
                         <p className="text-[10px] font-semibold text-slate-450 tracking-wide">
-                          Khách hàng · {item.building?.name || 'Bãi đỗ'}
+                          Customer · {item.building?.name || 'Parking lot'}
                         </p>
                       </div>
                     </div>
@@ -368,9 +363,7 @@ export default function ReviewsPage() {
                       <div className="mt-4 rounded-2xl border border-orange-500/15 bg-orange-500/5 p-4 space-y-1">
                         <div className="flex items-center gap-1.5">
                           <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />
-                          <p className="text-[10px] font-black uppercase tracking-wider text-orange-400">
-                            Phản hồi từ quản trị viên
-                          </p>
+                          <p className="text-[10px] font-black uppercase tracking-wider text-orange-400">Response from administrator</p>
                           {item.repliedBy?.fullName && (
                             <span className="text-[10px] text-slate-450">({item.repliedBy.fullName})</span>
                           )}
@@ -393,9 +386,7 @@ export default function ReviewsPage() {
                   disabled={page <= 1 || loading}
                   onClick={() => loadReviews(page - 1)}
                   className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold text-slate-300 hover:text-white disabled:opacity-40 hover:bg-white/10 transition-all"
-                >
-                  ← Trước
-                </button>
+                >← Prev</button>
                 <span className="text-xs text-slate-400 font-bold">
                   Trang {page} / {totalPages}
                 </span>
@@ -414,18 +405,18 @@ export default function ReviewsPage() {
       </main>
 
       {/* Review Submission Modal */}
-      <Modal open={modalOpen} onOpenChange={setModalOpen} title="Đánh giá dịch vụ gửi xe">
+      <Modal open={modalOpen} onOpenChange={setModalOpen} title="Rate parking service">
         <div className="text-slate-700 text-sm leading-relaxed p-1">
           {loadingSessions ? (
             <div className="py-12 text-center space-y-2">
               <RefreshCw className="mx-auto animate-spin text-orange-500" size={24} />
-              <p className="text-xs text-stone-500">Đang kiểm tra lịch sử gửi xe của bạn...</p>
+              <p className="text-xs text-stone-500">Checking your parking history...</p>
             </div>
           ) : sessionsError ? (
             <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-4 flex gap-3 text-red-650 items-start">
               <AlertTriangle className="shrink-0 mt-0.5" size={16} />
               <div className="space-y-1">
-                <p className="font-bold text-sm">Lỗi tải dữ liệu</p>
+                <p className="font-bold text-sm">Error loading data</p>
                 <p className="text-xs leading-relaxed">{sessionsError}</p>
               </div>
             </div>
@@ -435,36 +426,32 @@ export default function ReviewsPage() {
                 <AlertTriangle size={24} />
               </div>
               <div className="space-y-1 px-4">
-                <p className="font-black text-stone-850 text-base">Yêu cầu hoàn thành dịch vụ</p>
+                <p className="font-black text-stone-850 text-base">Service completion required</p>
                 <p className="text-xs text-stone-500 leading-relaxed">
-                  Hệ thống ghi nhận bạn chưa hoàn thành phiên gửi xe nào. Vui lòng sử dụng dịch vụ và hoàn tất thanh toán trước khi thực hiện đánh giá.
+                  You have not completed any parking sessions yet. Please use the service and complete payment before leaving a review.
                 </p>
               </div>
               <Button
                 variant="secondary"
                 onClick={() => setModalOpen(false)}
                 className="mt-2 rounded-xl text-xs font-bold px-5 py-2.5"
-              >
-                Đã hiểu
-              </Button>
+              >Got it</Button>
             </div>
           ) : submitSuccess ? (
             <div className="py-8 text-center space-y-3">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-500">
                 <CheckCircle size={32} />
               </div>
-              <p className="font-black text-stone-850 text-base">Cảm ơn đánh giá của bạn!</p>
-              <p className="text-xs text-stone-500">Ý kiến đóng góp đã được gửi lên hệ thống và đang chờ phê duyệt.</p>
+              <p className="font-black text-stone-850 text-base">Thank you for your review!</p>
+              <p className="text-xs text-stone-500">Your feedback has been submitted and is awaiting approval.</p>
             </div>
           ) : (
             <form onSubmit={handleSubmitFeedback} className="space-y-4">
-              <p className="text-xs text-stone-500">
-                Ý kiến của bạn giúp chúng tôi cải thiện chất lượng bãi đỗ xe tốt hơn mỗi ngày.
-              </p>
+              <p className="text-xs text-stone-500">Your feedback helps us improve parking quality every day.</p>
 
               {/* Sessions Select */}
               <div className="space-y-1.5">
-                <label className="text-xs font-black text-stone-600 uppercase">Chọn lượt gửi xe đã hoàn thành</label>
+                <label className="text-xs font-black text-stone-600 uppercase">Select a completed parking session</label>
                 <select
                   value={selectedSessionId}
                   onChange={(e) => setSelectedSessionId(e.target.value)}
@@ -473,7 +460,7 @@ export default function ReviewsPage() {
                 >
                   {sessions.map((s) => (
                     <option key={s._id} value={s._id}>
-                      {s.plateNumber} tại {s.building.name} (Check-out: {fmtTime(s.checkOut)})
+                      {s.plateNumber} at {s.building.name} (Check-out: {fmtTime(s.checkOut)})
                     </option>
                   ))}
                 </select>
@@ -481,7 +468,7 @@ export default function ReviewsPage() {
 
               {/* Stars Input */}
               <div className="space-y-1.5">
-                <label className="text-xs font-black text-stone-600 uppercase">Mức độ hài lòng</label>
+                <label className="text-xs font-black text-stone-600 uppercase">Satisfaction level</label>
                 <div className="flex gap-1.5 py-1">
                   {Array.from({ length: 5 }).map((_, i) => {
                     const index = i + 1;
@@ -512,18 +499,18 @@ export default function ReviewsPage() {
 
               {/* Comment Input */}
               <div className="space-y-1.5">
-                <label className="text-xs font-black text-stone-600 uppercase">Nội dung đánh giá</label>
+                <label className="text-xs font-black text-stone-600 uppercase">Review content</label>
                 <textarea
                   value={commentInput}
                   onChange={(e) => setCommentInput(e.target.value)}
-                  placeholder="Nhập trải nghiệm, đóng góp ý kiến của bạn về chỗ đỗ, thái độ nhân viên..."
+                  placeholder="Share your experience and feedback about the parking, staff attitude..."
                   rows={4}
                   required
                   maxLength={1000}
                   className="w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs text-stone-850 placeholder:text-stone-400 focus:border-orange-500 focus:outline-none transition-all resize-none"
                 />
                 <div className="text-right text-[10px] text-stone-400">
-                  {commentInput.length} / 1000 ký tự
+                  {commentInput.length} / 1000 characters
                 </div>
               </div>
 
@@ -543,15 +530,13 @@ export default function ReviewsPage() {
                   onClick={() => setModalOpen(false)}
                   disabled={submitting}
                   className="rounded-xl px-5 py-2.5 font-bold text-xs"
-                >
-                  Hủy
-                </Button>
+                >Cancel</Button>
                 <Button
                   type="submit"
                   disabled={submitting}
                   className="rounded-xl px-5 py-2.5 font-bold text-xs bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-md shadow-orange-500/10 transition-all"
                 >
-                  {submitting ? 'Đang gửi...' : 'Gửi đánh giá'}
+                  {submitting ? 'Sending...' : 'Submit review'}
                 </Button>
               </div>
             </form>

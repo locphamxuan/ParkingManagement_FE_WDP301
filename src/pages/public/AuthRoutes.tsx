@@ -17,28 +17,28 @@ function mapAuthErrorMessage(message: string): string {
   const normalized = message.trim().toLowerCase();
 
   if (normalized.includes('invalid email or password')) {
-    return 'Email hoặc mật khẩu không đúng.';
+    return 'Incorrect email or password.';
   }
   if (normalized.includes('account is deactivated')) {
-    return 'Tài khoản đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.';
+    return 'This account has been disabled. Please contact an administrator.';
   }
   if (normalized.includes('email already registered')) {
-    return 'Email đã được đăng ký.';
+    return 'Email is already registered.';
   }
   if (normalized.includes('password must be at least 6 characters')) {
-    return 'Mật khẩu phải có ít nhất 6 ký tự.';
+    return 'Password must be at least 6 characters.';
   }
   if (normalized.includes('valid email is required')) {
-    return 'Email không hợp lệ.';
+    return 'Invalid email.';
   }
   if (normalized.includes('full name is required')) {
-    return 'Vui lòng nhập họ và tên.';
+    return 'Please enter your full name.';
   }
   if (normalized.includes('invalid phone number')) {
-    return 'Số điện thoại không hợp lệ.';
+    return 'Invalid phone number.';
   }
 
-  return message || 'Không thể xử lý yêu cầu, vui lòng thử lại.';
+  return message || 'Unable to process the request, please try again.';
 }
 
 function usePublicAuthFlow(initialMode: 'login' | 'register') {
@@ -73,7 +73,7 @@ function usePublicAuthFlow(initialMode: 'login' | 'register') {
           const session = await login(payload.email, payload.password);
 
           setNotice({
-            message: 'Đăng nhập thành công.',
+            message: 'Signed in successfully.',
             type: 'success',
           });
 
@@ -98,17 +98,17 @@ function usePublicAuthFlow(initialMode: 'login' | 'register') {
           const user = response?.data?.user;
 
           if (!token || !user) {
-            throw new Error('Phản hồi xác thực không hợp lệ từ máy chủ.');
+            throw new Error('Invalid authentication response from server.');
           }
 
           setNotice({
-            message: 'Đăng ký thành công.',
+            message: 'Registered successfully.',
             type: 'success',
           });
           navigate('/', { replace: true });
         }
       } catch (error) {
-        const message = error instanceof Error ? mapAuthErrorMessage(error.message) : 'không thể xử lý yêu cầu';
+        const message = error instanceof Error ? mapAuthErrorMessage(error.message) : 'unable to process the request';
         setNotice({ message, type: 'error' });
         throw error;
       } finally {
@@ -139,7 +139,7 @@ export function PublicRegisterRoute() {
 }
 
 export function PublicResetPasswordRoute() {
-  const flow = usePublicAuthFlow('login'); // AuthPage sẽ tự động đọc token từ URL và chuyển sang chế độ đặt lại mật khẩu
+  const flow = usePublicAuthFlow('login'); // AuthPage will automatically read the token from the URL and switch to reset-password mode
   return <AuthPage {...flow} />;
 }
 

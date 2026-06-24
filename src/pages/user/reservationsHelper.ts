@@ -47,7 +47,7 @@ export function normalizeVehicleTypeCode(raw?: string | null): VehicleKind | 'al
     code.includes('bike')
   )
     return 'motorcycle';
-  if (code.includes('car') || code.includes('ô tô') || code.includes('oto') || code.includes('ôto')) return 'car';
+  if (code.includes('car') || code.includes('car') || code.includes('oto') || code.includes('car')) return 'car';
   return 'all';
 }
 
@@ -56,24 +56,24 @@ export function isCarPackage(pkg: LongTermPackage): boolean {
   if (vt && typeof vt === 'object') {
     const code = String(vt.code || vt.name || '').toLowerCase();
     if (code.includes('motor') || code.includes('moto') || code.includes('xe') || code.includes('bike')) return false;
-    if (code.includes('car') || code.includes('oto') || code.includes('ô tô') || code.includes('ôto')) return true;
+    if (code.includes('car') || code.includes('oto') || code.includes('car') || code.includes('car')) return true;
   }
   if (typeof vt === 'string') {
     const code = vt.toLowerCase();
     if (code.includes('motor') || code.includes('moto') || code.includes('xe') || code.includes('bike')) return false;
-    if (code.includes('car') || code.includes('oto') || code.includes('ô tô') || code.includes('ôto')) return true;
+    if (code.includes('car') || code.includes('oto') || code.includes('car') || code.includes('car')) return true;
   }
   const name = String(pkg.name || '').toLowerCase();
   const codeAttr = String(pkg.code || '').toLowerCase();
   if (
-    name.includes('xe máy') ||
+    name.includes('motorcycle') ||
     name.includes('motor') ||
     name.includes('moto') ||
     codeAttr.includes('moto') ||
     codeAttr.includes('bike')
   )
     return false;
-  if (name.includes('ô tô') || name.includes('oto') || name.includes('car') || codeAttr.includes('car')) return true;
+  if (name.includes('car') || name.includes('oto') || name.includes('car') || codeAttr.includes('car')) return true;
   return false;
 }
 
@@ -99,7 +99,7 @@ export function packageCategory(pkg: LongTermPackage): 'weekly' | 'monthly' | 'y
   return 'yearly';
 }
 
-export const categoryLabels = { weekly: 'Gói tuần', monthly: 'Gói tháng', yearly: 'Gói năm' };
+export const categoryLabels = { weekly: 'Weekly package', monthly: 'Monthly package', yearly: 'Yearly package' };
 
 export const categoryColors = {
   weekly: {

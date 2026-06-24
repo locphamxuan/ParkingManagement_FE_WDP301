@@ -22,7 +22,7 @@ export function CustomSelect({
   value,
   onChange,
   options,
-  placeholder = 'Chọn một mục...',
+  placeholder = 'Select an item...',
   className,
   disabled = false,
 }: CustomSelectProps) {
@@ -76,9 +76,7 @@ export function CustomSelect({
             style={{ top: '100%' }}
           >
             {options.length === 0 ? (
-              <li className="px-3.5 py-2.5 text-xs font-semibold text-slate-500 text-center">
-                Không có lựa chọn nào
-              </li>
+              <li className="px-3.5 py-2.5 text-xs font-semibold text-slate-500 text-center">No options available</li>
             ) : (
               options.map((opt) => {
                 const isSelected = opt.value === value;

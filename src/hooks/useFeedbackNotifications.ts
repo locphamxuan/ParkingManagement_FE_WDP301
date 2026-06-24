@@ -22,7 +22,7 @@ export function useFeedbackPending(enabled = true) {
       const next = await fetchPendingFeedback();
       setData(next);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Khong the tai danh sach danh gia');
+      setError(err instanceof Error ? err.message : 'Failed to load pending reviews');
       setData({ count: 0, items: [] });
     } finally {
       setLoading(false);
@@ -47,7 +47,7 @@ export function useSubmitFeedback() {
       const result = await submitFeedback(payload);
       return result;
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Gui danh gia that bai';
+      const message = err instanceof Error ? err.message : 'Failed to submit review';
       setError(message);
       throw err;
     } finally {
@@ -73,7 +73,7 @@ export function useUserNotifications(enabled = true) {
       setItems(data.items);
       setUnread(data.unread);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Khong the tai thong bao');
+      setError(err instanceof Error ? err.message : 'Failed to load notifications');
       setItems([]);
       setUnread(0);
     } finally {

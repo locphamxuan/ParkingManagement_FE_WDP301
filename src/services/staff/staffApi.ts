@@ -16,7 +16,7 @@ export interface MyShift {
   _id: string;
   shift: { _id: string; code: string; name: string; startTime: string; endTime: string };
   building: { _id: string; name: string; code: string };
-  /** Gate assigned by the manager for this shift (ra / vào). */
+  /** Gate assigned by the manager for this shift (exit / entry). */
   gate?: { _id: string; code: string; name?: string; direction: 'in' | 'out' | 'both'; status?: string } | null;
   workDate: string;
   status: 'scheduled' | 'active' | 'completed' | 'cancelled';
@@ -37,16 +37,18 @@ export interface ParkingSession {
   fee?: number | null;
   currentFee?: number | null;        // live fee (per manager PricePolicy) for active sessions
   isMember?: boolean;                 // true if the plate is linked to an account
-  // Gói dài hạn (long_term): miễn phí trong maxHoursPerDay/ngày; currentFee = phí phần vượt.
+  // Long-term package: free within maxHoursPerDay/day; currentFee = fee for overage hours.
   isLongTerm?: boolean;
-  overageHours?: number;             // số giờ đỗ vượt hạn mức (đang tính phí)
-  maxHoursPerDay?: number;           // hạn mức giờ free/ngày của gói (0 = không giới hạn)
+  overageHours?: number;             // hours parked beyond the daily free limit (being charged)
+  maxHoursPerDay?: number;           // free-hour limit per day from the package (0 = unlimited)
   plateImage?: string | null;        // license-plate camera snapshot (Camera 1)
   portraitImage?: string | null;     // QR / account camera snapshot (Camera 2 — driver portrait)
   user?: { _id: string; fullName?: string; email?: string } | null;
   staff?: { _id: string; fullName?: string; email?: string } | null; // check-in staff
   paymentMethod?: 'cash' | 'wallet' | 'qr' | 'card' | 'payos' | 'long_term' | null;
   status: 'active' | 'completed' | 'cancelled';
+  note?: string | null;
+  reservation?: { _id: string; code?: string; estimatedFee?: number; fee?: number } | null;
 }
 
 export interface StaffReservation {
@@ -124,10 +126,10 @@ export interface PlateInfo {
     building: string;
     entryTime: string;
   };
-  /** Gói dài hạn còn hiệu lực → staff phải gán 1 slot trống khi check-in. */
+  /** Active long-term package → staff must assign an available slot on check-in. */
   hasActivePackage?: boolean;
   activePackage?: { id: string; name: string; maxHoursPerDay: number } | null;
-  /** Đặt chỗ còn hiệu lực → luồng "chỉ cần quét", không bắt chụp ảnh. */
+  /** Active reservation → scan-only flow, no photo capture required. */
   hasActiveReservation?: boolean;
   activeReservation?: { id: string; code: string } | null;
 }
@@ -136,8 +138,26 @@ export interface ShiftRevenueItem {
   _id: string;
   plateNumber: string | null;
   amount: number;
-  method: 'cash' | 'wallet' | 'qr' | 'card' | 'payos';
+  method: 'cash' | 'wallet' | 'qr' | 'card' | 'payos' | 'long_term';
   createdAt: string;
+  /** True when this session was under a long-term package. */
+  isLongTerm?: boolean;
+  /** Populated when the plate is linked to a registered user account. */
+  user?: { _id: string; fullName?: string } | null;
+  /** Populated when this session was pre-booked via a reservation. */
+  reservation?: { _id: string; code?: string } | null;
+  /** Alias returned by some BE versions — same meaning as user != null. */
+  isMember?: boolean;
+}
+
+/** Derived session category for revenue breakdown. */
+export type SessionCategory = 'package' | 'reservation' | 'account' | 'walkin';
+
+export function categorizeSession(item: ShiftRevenueItem): SessionCategory {
+  if (item.isLongTerm) return 'package';
+  if (item.reservation) return 'reservation';
+  if (item.user || item.isMember) return 'account';
+  return 'walkin';
 }
 
 export interface ShiftRevenueSummary {
@@ -145,6 +165,8 @@ export interface ShiftRevenueSummary {
   total: number;
   count: number;
   byMethod: { cash: number; wallet: number; online: number };
+  /** Pre-computed by BE when available; otherwise FE derives it via categorizeSession. */
+  byType?: { package: number; reservation: number; account: number; walkin: number };
   items: ShiftRevenueItem[];
 }
 
@@ -199,6 +221,9 @@ export const staffApi = {
   myShifts: (q?: Record<string, string | undefined>) =>
     api.get<Wrap<{ items: MyShift[] } | MyShift[]>>('/staff/my-shifts', { query: q }),
 
+  submitShiftReport: (shiftId: string) =>
+    api.post<Wrap<{ item: MyShift }>>(`/staff/my-shifts/${shiftId}/submit-report`, {}),
+
   // Parking Sessions — top-level methods (correct backend paths)
   getActiveSessions: (query?: Record<string, string | number | boolean | undefined>) =>
     api.get<Wrap<ApiList<ParkingSession>>>('/staff/parking-sessions/active', { query }),
@@ -206,7 +231,7 @@ export const staffApi = {
   checkIn: (payload: { plateNumber: string; vehicleType?: string; gate?: string; building?: string; vehicleBrand?: string; plateImage?: string | null; portraitImage?: string | null; slot?: string }) =>
     api.post<Wrap<{ item: ParkingSession }>>('/staff/parking-sessions/check-in', payload),
 
-  // Slot 'available' của 1 tòa nhà — để gán xe mua gói khi check-in.
+  // Available slots in a building — used to assign to long-term package vehicles on check-in.
   freeSlots: (buildingId: string) =>
     api.get<Wrap<{ items: FreeSlot[] }>>('/staff/parking-sessions/free-slots', { query: { building: buildingId } }),
 
@@ -215,7 +240,7 @@ export const staffApi = {
     body?: {
       paymentMethod?: string;
       bypassMismatch?: boolean;
-      /** Ảnh lúc xe RA để lưu bằng chứng / đối chiếu. */
+      /** Photo at vehicle EXIT for evidence / verification. */
       exitPlateImage?: string | null;
       exitPortraitImage?: string | null;
     },
@@ -228,8 +253,8 @@ export const staffApi = {
   verifySessionPayment: (orderCode: number) =>
     api.get<Wrap<PaymentStatus>>(`/staff/parking-sessions/payment/${orderCode}/status`),
 
-  lookupPlate: (plateNumber: string) =>
-    api.get<Wrap<PlateInfo>>(`/staff/parking-sessions/lookup-plate/${plateNumber}`),
+  lookupPlate: (plateNumber: string, signal?: AbortSignal) =>
+    api.get<Wrap<PlateInfo>>(`/staff/parking-sessions/lookup-plate/${plateNumber}`, { signal }),
 
   lookupUserQr: (qrCode: string) =>
     api.get<Wrap<{ hasAccount: boolean; user: { id: string; fullName: string; email: string } | null }>>(
@@ -247,9 +272,6 @@ export const staffApi = {
         activeSessions: { id: string; building: string; plateNumber: string; entryTime: string; fee: number }[];
       }>
     >(`/staff/users/lookup-plate-qr/${qrCode}`),
-
-  addCustomerPlate: (customerId: string, payload: { plateNumber: string; vehicleType?: string }) =>
-    api.post<Wrap<{ success: boolean }>>(`/staff/users/${customerId}/license-plates`, payload),
 
   // AI camera (Camera 1): send a captured frame (base64, data-URL prefix allowed),
   // get back the recognized plate + brand and the resolved owner account.
@@ -340,9 +362,13 @@ export const staffApi = {
         `/staff/users/lookup-qr/${qrCode}`
       ),
 
-    /** Doanh thu ca của nhân viên cổng ra (tiền đã thu hôm nay). */
+    /** Revenue collected by the exit-gate staff for today's shift. */
     myShiftRevenue: (buildingId: string) =>
       api.get<Wrap<ShiftRevenueSummary>>('/staff/parking-sessions/my-shift-revenue', { query: { building: buildingId } }),
+
+    /** Vehicles checked in by entry-gate staff today. */
+    myCheckins: (buildingId: string) =>
+      api.get<Wrap<{ items: Array<{ _id: string; plateNumber: string; entryTime: string; entryGate?: { code: string; name?: string } | null; slot?: { code: string } | null; vehicleType?: { name: string } | null }> }>>('/staff/parking-sessions/my-checkins', { query: { building: buildingId } }),
   },
 
   // Reservations

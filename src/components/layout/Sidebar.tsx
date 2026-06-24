@@ -2,13 +2,11 @@ import { NavLink } from 'react-router-dom';
 import {
   Building2,
   ChevronLeft,
-  CircleDollarSign,
-  Crown,
   FileSearch,
   Fingerprint,
   LayoutDashboard,
+  TrendingUp,
   Users,
-  Wallet,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/utils/cn';
@@ -19,10 +17,11 @@ interface SidebarProps {
 }
 
 const modules = [
-  { to: '', label: 'Tổng quan', icon: LayoutDashboard },
-  { to: 'buildings', label: 'Tòa nhà', icon: Building2 },
-  { to: 'users', label: 'Người dùng', icon: Users },
-  { to: 'audit-logs', label: 'Nhật ký kiểm tra', icon: FileSearch },
+  { to: '', label: 'Overview', icon: LayoutDashboard },
+  { to: 'buildings', label: 'Buildings', icon: Building2 },
+  { to: 'users', label: 'Users', icon: Users },
+  { to: 'revenue-analytics', label: 'Revenue', icon: TrendingUp },
+  { to: 'audit-logs', label: 'Audit Logs', icon: FileSearch },
 ] as const;
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
@@ -36,7 +35,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       <div className="mb-6 flex items-center justify-between rounded-2xl border border-white/8 bg-slate-800/60 p-3 shadow-sm backdrop-blur-md">
         {!collapsed ? (
           <div className="pl-1">
-            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">Môi trường</p>
+            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">Environment</p>
             <p className="text-xs font-extrabold text-slate-100">ADMIN PORTAL</p>
           </div>
         ) : (

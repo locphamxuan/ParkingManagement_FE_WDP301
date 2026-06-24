@@ -31,8 +31,8 @@ export function HomeRoute() {
 
   const onViewReservationHistory = useCallback(() => {
     if (!session) { onOpenAuth('login'); return; }
-    // Lịch sử ĐẶT CHỖ → mở chế độ xem lịch sử đặt chỗ trong trang đặt chỗ
-    // (KHÔNG phải trang lịch sử gửi xe).
+    // Reservation history → open the reservation-history view in the booking page
+    // (NOT the parking-history page).
     navigate('/reservations', { state: { openHistory: true } });
   }, [navigate, onOpenAuth, session]);
 

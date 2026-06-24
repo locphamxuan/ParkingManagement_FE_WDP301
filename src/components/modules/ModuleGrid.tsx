@@ -16,11 +16,11 @@ export default function ModuleGrid({ modules, compact = false, onAction }: Modul
         >
           <div className="flex justify-between items-start gap-4">
             <div>
-              <p className="text-xs uppercase text-gray-500">{module.available ? 'Sẵn sàng' : 'Sắp ra mắt'}</p>
+              <p className="text-xs uppercase text-gray-500">{module.available ? 'Ready' : 'Coming soon'}</p>
               <h3 className="mt-1 text-lg font-semibold">{module.title}</h3>
             </div>
             <span className="px-3 py-1 rounded-full text-sm font-semibold text-orange-700 bg-orange-100">
-              {module.available ? 'Mở ngay' : 'Chờ thêm'}
+              {module.available ? 'Open now' : 'Waiting'}
             </span>
           </div>
 

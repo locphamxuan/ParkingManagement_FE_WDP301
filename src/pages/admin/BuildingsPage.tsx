@@ -29,10 +29,11 @@ import type { Building } from '@/types';
 const PAGE_SIZE = 10;
 
 const fmtVnd = (n: number | null | undefined) =>
-  n != null ? `${n.toLocaleString('vi-VN')} ₫` : '—';
+  n != null ? `${n.toLocaleString('en-US')} ₫` : '—';
 
 const vehicleTypeLabel = (vt: AdminPricePolicy['vehicleType'] | AdminBuildingPackage['vehicleType']) =>
   vt && typeof vt === 'object' ? vt.name : '—';
+
 
 interface MembersState {
   buildingId: string;
@@ -45,6 +46,7 @@ interface DetailState {
   buildingName: string;
   pricePolicies: AdminPricePolicy[];
   packages: AdminBuildingPackage[];
+
 }
 
 export function BuildingsPage() {
@@ -71,6 +73,7 @@ export function BuildingsPage() {
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState<string | null>(null);
 
+
   const [form, setForm] = useState({
     name: '',
     code: '',
@@ -93,11 +96,11 @@ export function BuildingsPage() {
   }, [data?.buildings, query, statusFilter]);
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Đang tải danh sách tòa nhà...</div>;
+    return <div className="text-sm text-muted-foreground">Loading buildings...</div>;
   }
 
   if (error || !data) {
-    return <div className="text-sm text-red-600">{error || 'Tải tòa nhà thất bại.'}</div>;
+    return <div className="text-sm text-red-600">{error || 'Failed to load buildings.'}</div>;
   }
 
   const token = session?.token || '';
@@ -116,7 +119,7 @@ export function BuildingsPage() {
         staff: res.data?.staff ?? [],
       });
     } catch (err) {
-      setMembersError(err instanceof Error ? err.message : 'Không thể tải danh sách thành viên');
+      setMembersError(err instanceof Error ? err.message : 'Unable to load building members');
     } finally {
       setIsMembersLoading(false);
     }
@@ -138,11 +141,12 @@ export function BuildingsPage() {
         packages: (pkgRes as { data?: { items: AdminBuildingPackage[] } })?.data?.items ?? [],
       });
     } catch (err) {
-      setDetailError(err instanceof Error ? err.message : 'Không thể tải chi tiết tòa nhà');
+      setDetailError(err instanceof Error ? err.message : 'Unable to load building details');
     } finally {
       setIsDetailLoading(false);
     }
   };
+
 
   const confirmDeleteMember = async () => {
     if (!token || !pendingDeleteMember || !membersState) return;
@@ -167,7 +171,7 @@ export function BuildingsPage() {
       );
       await refresh();
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Không thể xóa thành viên');
+      setActionError(err instanceof Error ? err.message : 'Unable to remove member');
     } finally {
       setIsDeletingMember(false);
       setPendingDeleteMember(null);
@@ -225,7 +229,7 @@ export function BuildingsPage() {
       await refresh();
       closeModal();
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Không thể lưu tòa nhà');
+      setActionError(err instanceof Error ? err.message : 'Unable to save building');
       setIsSaving(false);
     }
   };
@@ -238,7 +242,7 @@ export function BuildingsPage() {
       await updateBuildingStatus(token, building.backendId || building.id, nextStatus);
       await refresh();
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Không thể đổi trạng thái tòa nhà');
+      setActionError(err instanceof Error ? err.message : 'Unable to change building status');
     }
   };
 
@@ -256,7 +260,7 @@ export function BuildingsPage() {
       await refresh();
       setPendingDeleteBuilding(null);
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Không thể xóa tòa nhà');
+      setActionError(err instanceof Error ? err.message : 'Unable to delete building');
     } finally {
       setIsDeleting(false);
     }
@@ -266,12 +270,12 @@ export function BuildingsPage() {
   const pageRows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const columns: DataColumn<Building>[] = [
-    { key: 'name', title: 'Tên tòa nhà' },
-    { key: 'address', title: 'Địa chỉ' },
-    { key: 'floors', title: 'Số tầng' },
+    { key: 'name', title: 'Building name' },
+    { key: 'address', title: 'Address' },
+    { key: 'floors', title: 'Total floors' },
     {
       key: 'occupancyRate',
-      title: 'Mức độ đông đúc',
+      title: 'Occupancy rate',
       render: (row) => (
         <div className="w-32">
           <div className="mb-1 text-xs text-muted-foreground">{row.occupancyRate}%</div>
@@ -283,18 +287,18 @@ export function BuildingsPage() {
     },
     {
       key: 'status',
-      title: 'Trạng thái',
+      title: 'Status',
       render: (row) => <StatusBadge status={row.status} />,
     },
-    { key: 'manager', title: 'Người quản lý' },
+    { key: 'manager', title: 'Manager' },
     {
       key: 'revenueToday',
-      title: 'Doanh thu hôm nay',
+      title: 'Today\'s revenue',
       render: (row) => `${row.revenueToday.toLocaleString('vi-VN')} ₫`,
     },
     {
       key: 'actions',
-      title: 'Hành động',
+      title: 'Actions',
       render: (row) => (
         <div className="flex flex-wrap gap-2">
           <Button
@@ -303,7 +307,7 @@ export function BuildingsPage() {
             className="gap-1"
             onClick={() => openViewDetail(row)}
           >
-            <Eye size={12} /> Chi tiết
+            <Eye size={12} /> Details
           </Button>
           <Button
             variant="secondary"
@@ -311,17 +315,14 @@ export function BuildingsPage() {
             className="gap-1"
             onClick={() => openViewMembers(row)}
           >
-            <Users size={12} /> Thành viên
-          </Button>
+            <Users size={12} />Members</Button>
           <Button variant="ghost" size="sm" onClick={() => openEditModal(row)}>
-            Sửa
+            Edit
           </Button>
           <Button variant="secondary" size="sm" onClick={() => toggleBuildingStatus(row)}>
-            {row.status === 'active' ? 'Ngưng' : 'Kích hoạt'}
+            {row.status === 'active' ? 'Suspend' : 'Activate'}
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => removeBuildingById(row)}>
-            Xóa
-          </Button>
+          <Button variant="ghost" size="sm" onClick={() => removeBuildingById(row)}>Delete</Button>
         </div>
       ),
     },
@@ -345,21 +346,17 @@ export function BuildingsPage() {
           }}
           filterOptions={['all', 'active', 'inactive', 'maintenance', 'warning']}
         />
-        <Button onClick={openCreateModal}>Tạo tòa nhà</Button>
+        <Button onClick={openCreateModal}>Create building</Button>
       </div>
 
-      <DataTable title="Tòa nhà" rows={pageRows} columns={columns} />
+      <DataTable title="Building" rows={pageRows} columns={columns} />
 
       <div className="flex items-center justify-end gap-2">
-        <Button variant="secondary" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))}>
-          Trước
-        </Button>
+        <Button variant="secondary" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))}>Prev</Button>
         <span className="text-sm text-muted-foreground">
           Trang {page} / {maxPage}
         </span>
-        <Button variant="secondary" size="sm" onClick={() => setPage((p) => Math.min(maxPage, p + 1))}>
-          Tiếp
-        </Button>
+        <Button variant="secondary" size="sm" onClick={() => setPage((p) => Math.min(maxPage, p + 1))}>Next</Button>
       </div>
 
       {/* Members Modal */}
@@ -368,7 +365,7 @@ export function BuildingsPage() {
           <div className="w-full max-w-lg rounded-2xl border border-border bg-background p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold">
-                Thành viên — {membersState.buildingName}
+                Members — {membersState.buildingName}
               </h2>
               <Button variant="ghost" size="sm" onClick={() => setMembersState(null)}>
                 ✕
@@ -376,15 +373,13 @@ export function BuildingsPage() {
             </div>
 
             {isMembersLoading ? (
-              <p className="text-sm text-muted-foreground">Đang tải danh sách thành viên...</p>
+              <p className="text-sm text-muted-foreground">Loading members...</p>
             ) : membersError ? (
               <p className="text-sm text-red-600">{membersError}</p>
             ) : (
               <div className="grid gap-4">
                 <section>
-                  <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    Quản lý
-                  </h3>
+                  <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Management</h3>
                   {membersState.manager ? (
                     <div className="flex items-center justify-between rounded-xl border border-border bg-card p-3 text-sm">
                       <div>
@@ -395,21 +390,19 @@ export function BuildingsPage() {
                         variant="danger"
                         size="sm"
                         onClick={() => setPendingDeleteMember(membersState.manager!)}
-                      >
-                        Xóa
-                      </Button>
+                      >Delete</Button>
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground italic">Chưa có quản lý</p>
+                    <p className="text-sm text-muted-foreground italic">No manager yet</p>
                   )}
                 </section>
 
                 <section>
                   <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    Nhân viên ({membersState.staff.length})
+                    Staff ({membersState.staff.length})
                   </h3>
                   {membersState.staff.length === 0 ? (
-                    <p className="text-sm text-muted-foreground italic">Chưa có nhân viên</p>
+                    <p className="text-sm text-muted-foreground italic">No staff yet</p>
                   ) : (
                     <div className="grid gap-2 max-h-64 overflow-y-auto">
                       {membersState.staff.map((s) => (
@@ -427,9 +420,7 @@ export function BuildingsPage() {
                               variant="danger"
                               size="sm"
                               onClick={() => setPendingDeleteMember(s)}
-                            >
-                              Xóa
-                            </Button>
+                            >Delete</Button>
                           </div>
                         </div>
                       ))}
@@ -448,7 +439,7 @@ export function BuildingsPage() {
           <div className="w-full max-w-2xl rounded-2xl border border-border bg-background p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold">
-                Chi tiết tòa nhà — {detailState.buildingName}
+                Building details — {detailState.buildingName}
               </h2>
               <Button variant="ghost" size="sm" onClick={() => setDetailState(null)}>
                 ✕
@@ -456,18 +447,18 @@ export function BuildingsPage() {
             </div>
 
             {isDetailLoading ? (
-              <p className="text-sm text-muted-foreground">Đang tải chi tiết tòa nhà...</p>
+              <p className="text-sm text-muted-foreground">Loading building details...</p>
             ) : detailError ? (
               <p className="text-sm text-red-600">{detailError}</p>
             ) : (
               <div className="grid max-h-[70vh] gap-5 overflow-y-auto">
-                {/* Chính sách giá */}
+                {/* Price policies */}
                 <section>
                   <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    Chính sách giá ({detailState.pricePolicies.length})
+                    Price policies ({detailState.pricePolicies.length})
                   </h3>
                   {detailState.pricePolicies.length === 0 ? (
-                    <p className="text-sm italic text-muted-foreground">Tòa nhà chưa cấu hình chính sách giá.</p>
+                    <p className="text-sm italic text-muted-foreground">No price policies configured for this building.</p>
                   ) : (
                     <div className="grid gap-2">
                       {detailState.pricePolicies.map((p) => (
@@ -475,8 +466,8 @@ export function BuildingsPage() {
                           <div>
                             <p className="font-medium">{p.name}</p>
                             <p className="text-xs text-muted-foreground">
-                              {vehicleTypeLabel(p.vehicleType)} · {fmtVnd(p.hourlyRate)}/giờ
-                              {p.dailyCap ? ` · trần ngày ${fmtVnd(p.dailyCap)}` : ''}
+                              {vehicleTypeLabel(p.vehicleType)} · {fmtVnd(p.hourlyRate)}/h
+                              {p.dailyCap ? ` · daily cap ${fmtVnd(p.dailyCap)}` : ''}
                             </p>
                           </div>
                           <StatusBadge status={p.isActive ? 'active' : 'inactive'} />
@@ -486,13 +477,13 @@ export function BuildingsPage() {
                   )}
                 </section>
 
-                {/* Gói dài hạn của tòa nhà */}
+                {/* Building long-term packages */}
                 <section>
                   <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    Gói dài hạn ({detailState.packages.length})
+                    Long-term packages ({detailState.packages.length})
                   </h3>
                   {detailState.packages.length === 0 ? (
-                    <p className="text-sm italic text-muted-foreground">Tòa nhà chưa phát hành gói dài hạn nào.</p>
+                    <p className="text-sm italic text-muted-foreground">No long-term packages published for this building.</p>
                   ) : (
                     <div className="grid gap-2">
                       {detailState.packages.map((pkg) => (
@@ -503,7 +494,7 @@ export function BuildingsPage() {
                               {pkg.code && <span className="ml-1.5 font-mono text-xs text-muted-foreground">{pkg.code}</span>}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              {vehicleTypeLabel(pkg.vehicleType)} · {fmtVnd(pkg.price)} · {pkg.durationDays} ngày
+                              {vehicleTypeLabel(pkg.vehicleType)} · {fmtVnd(pkg.price)} · {pkg.durationDays} days
                             </p>
                           </div>
                           <StatusBadge status={pkg.isActive ? 'active' : 'inactive'} />
@@ -524,46 +515,46 @@ export function BuildingsPage() {
         onOpenChange={(open) => {
           if (!open) closeModal();
         }}
-        title={selectedBuilding ? 'Sửa tòa nhà' : 'Tạo tòa nhà'}
+        title={selectedBuilding ? 'Edit building' : 'Create building'}
         onSubmit={saveBuilding}
       >
         <div className="grid gap-3 md:grid-cols-2">
           <Input
-            placeholder="Tên tòa nhà"
+            placeholder="Building name"
             value={form.name}
             onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
           />
           <Input
-            placeholder="Mã tòa nhà"
+            placeholder="Building code"
             value={form.code}
             onChange={(e) => setForm((prev) => ({ ...prev, code: e.target.value }))}
           />
           <Input
-            placeholder="Địa chỉ"
+            placeholder="Address"
             value={form.address}
             onChange={(e) => setForm((prev) => ({ ...prev, address: e.target.value }))}
           />
           <Input
-            placeholder="Số tầng"
+            placeholder="Total floors"
             value={form.floors}
             onChange={(e) => setForm((prev) => ({ ...prev, floors: e.target.value }))}
           />
           {!selectedBuilding ? (
             <Input
-              placeholder="Giá giờ (VND)"
+              placeholder="Hourly rate (VND)"
               value={form.hourlyRate}
               onChange={(e) => setForm((prev) => ({ ...prev, hourlyRate: e.target.value }))}
             />
           ) : null}
         </div>
-        {isSaving ? <p className="text-xs text-muted-foreground">Đang lưu...</p> : null}
+        {isSaving ? <p className="text-xs text-muted-foreground">Saving...</p> : null}
       </ModalForm>
 
       <ConfirmModal
         open={Boolean(pendingDeleteBuilding)}
-        title="Xác nhận xóa tòa nhà"
-        description={`Bạn có chắc chắn muốn xóa tòa nhà ${pendingDeleteBuilding?.name || ''}? Hành động này không thể hoàn tác.`}
-        confirmLabel="Xóa"
+        title="Confirm building deletion"
+        description={`Are you sure you want to delete the building ${pendingDeleteBuilding?.name || ''}? This action cannot be undone.`}
+        confirmLabel="Delete"
         isConfirming={isDeleting}
         onOpenChange={(open) => {
           if (!open) setPendingDeleteBuilding(null);
@@ -573,9 +564,9 @@ export function BuildingsPage() {
 
       <ConfirmModal
         open={Boolean(pendingDeleteMember)}
-        title={`Xóa tài khoản ${pendingDeleteMember?.role === 'manager' ? 'quản lý' : 'nhân viên'}`}
-        description={`Xóa vĩnh viễn tài khoản "${pendingDeleteMember?.fullName || pendingDeleteMember?.email || ''}" (${pendingDeleteMember?.email || ''})? Hành động này không thể hoàn tác.`}
-        confirmLabel="Xóa"
+        title={`Delete ${pendingDeleteMember?.role === 'manager' ? 'manager' : 'staff'} account`}
+        description={`Permanently delete the account "${pendingDeleteMember?.fullName || pendingDeleteMember?.email || ''}" (${pendingDeleteMember?.email || ''})? This action cannot be undone.`}
+        confirmLabel="Delete"
         isConfirming={isDeletingMember}
         onOpenChange={(open) => {
           if (!open) setPendingDeleteMember(null);

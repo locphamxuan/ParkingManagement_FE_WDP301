@@ -61,6 +61,7 @@ interface ApiUser {
   isActive?: boolean;
   licensePlates?: Array<{ plateNumber?: string }>;
   phone?: string;
+  walletBalance?: number;
 }
 
 interface ApiAudit {
@@ -92,16 +93,16 @@ interface ManagerOverviewData {
 }
 
 const OPERATIONAL_GUARDRAILS = [
-  'Mã thẻ online phải gắn với tài khoản người dùng đã xác thực và biển số liên kết.',
-  'Khách walk-in chỉ được vào qua phiên gửi xe hợp lệ và đóng phí trước khi rời bãi.',
-  'Mọi thay đổi chính sách giá, khóa tài khoản, điều chỉnh phí đều phải có audit log.',
+  'An online card code must be tied to a verified user account and a linked plate.',
+  'Walk-in customers may only enter via a valid parking session and must pay before leaving.',
+  'Every pricing change, account lock and fee adjustment must have an audit log.',
 ];
 
 const METHOD_LABELS: Record<string, string> = {
-  wallet: 'Ví ứng dụng',
+  wallet: 'App wallet',
   qr: 'QR',
-  cash: 'Tiền mặt',
-  card: 'Thẻ ngân hàng',
+  cash: 'Cash',
+  card: 'Bank card',
 };
 
 const formatCompactCurrency = (amount: number): string =>
@@ -119,12 +120,12 @@ const toBuilding = (
   overview?: ManagerOverviewData,
 ): Building => {
   // Handle manager field that can be a populated object, a string ID, or null
-  let managerName = 'Chưa gán';
+  let managerName = 'Unassigned';
   
   if (item.manager) {
     if (typeof item.manager === 'object' && 'fullName' in item.manager) {
       // Manager is a populated object with fullName
-      managerName = item.manager.fullName || 'Chưa gán';
+      managerName = item.manager.fullName || 'Unassigned';
     } else if (typeof item.manager === 'string') {
       // Manager is a string ID, look up in the map or show truncated ID
       managerName = managerNameById.get(item.manager) || `ID: ${item.manager.slice(0, 8)}`;
@@ -135,7 +136,7 @@ const toBuilding = (
     id: item.code || item._id,
     backendId: item._id,
     name: item.name,
-    address: item.address?.fullAddress || 'Chưa cập nhật địa chỉ',
+    address: item.address?.fullAddress || 'Address not updated',
     floors: item.totalFloors || 0,
     occupancyRate: Number(overview?.slots?.occupancyRate || 0),
     status: item.status || 'inactive',
@@ -174,7 +175,7 @@ const toUser = (item: ApiUser): UserRecord => {
       email: item.email,
       role: item.role,
       status: item.isActive === false ? 'blocked' : 'active',
-      walletBalance: 0,
+      walletBalance: item.walletBalance ?? 0,
       linkedPlates: mergedPlates,
       phone: localUser.phone || item.phone || '',
     };
@@ -186,7 +187,7 @@ const toUser = (item: ApiUser): UserRecord => {
     email: item.email,
     role: item.role,
     status: item.isActive === false ? 'blocked' : 'active',
-    walletBalance: 0,
+    walletBalance: item.walletBalance ?? 0,
     linkedPlates: backendPlates,
     phone: item.phone || '',
   };
@@ -199,7 +200,7 @@ const toAudit = (item: ApiAudit): AuditLog => ({
   target: item.targetTable,
   severity: item.severity || 'low',
   timestamp: item.createdAt ? new Date(item.createdAt).toLocaleString('vi-VN') : '-',
-  details: item.description || `${item.action} trên ${item.targetTable}`,
+  details: item.description || `${item.action} on ${item.targetTable}`,
 });
 
 async function getManagerOverview(token: string, buildingId: string): Promise<ManagerOverviewData | null> {
@@ -298,50 +299,50 @@ export async function getApiAdminDataset(token: string): Promise<AdminDataset> {
   const dashboardStats = [
     {
       key: 'buildings',
-      label: 'Tổng số tòa nhà',
+      label: 'Total buildings',
       value: String(overviewRes.data.counts.buildings),
-      delta: `${buildings.filter((b) => b.status === 'active').length} đang hoạt động`,
+      delta: `${buildings.filter((b) => b.status === 'active').length} active`,
     },
     {
       key: 'sessions',
-      label: 'Phiên đỗ đang hoạt động',
+      label: 'Active parking sessions',
       value: overviewRes.data.counts.activeSessions.toLocaleString('vi-VN'),
-      delta: `${overviewRes.data.counts.staff} nhân sự vận hành`,
+      delta: `${overviewRes.data.counts.staff} operations staff`,
     },
     {
       key: 'revenue',
-      label: 'Doanh thu hôm nay',
+      label: 'Today\'s revenue',
       value: formatCompactCurrency(overviewRes.data.revenue.total ?? overviewRes.data.revenue.today ?? 0),
-      delta: `${paymentMethodDistribution.length} phương thức thanh toán`,
+      delta: `${paymentMethodDistribution.length} payment methods`,
     },
     {
       key: 'users',
-      label: 'Người dùng toàn hệ thống',
+      label: 'System-wide users',
       value: overviewRes.data.counts.users.toLocaleString('vi-VN'),
-      delta: `${overviewRes.data.counts.managers} quản lý / ${overviewRes.data.counts.staff} nhân viên`,
+      delta: `${overviewRes.data.counts.managers} managers / ${overviewRes.data.counts.staff} staff`,
     },
   ];
 
   const monitoringMetrics: MonitoringMetric[] = [
     {
       id: 'active-buildings',
-      label: 'Tòa nhà hoạt động',
+      label: 'Active buildings',
       value: `${buildings.filter((b) => b.status === 'active').length}/${buildings.length}`,
-      trend: 'Theo trạng thái hiện tại',
+      trend: 'By current status',
       status: buildings.some((b) => b.status === 'maintenance') ? 'warning' : 'ok',
     },
     {
       id: 'active-sessions',
-      label: 'Phiên đang hoạt động',
+      label: 'Active sessions',
       value: overviewRes.data.counts.activeSessions.toLocaleString('vi-VN'),
-      trend: 'Cập nhật theo thời gian thực',
+      trend: 'Updated in real time',
       status: overviewRes.data.counts.activeSessions > 0 ? 'ok' : 'warning',
     },
     {
       id: 'ops-staff',
-      label: 'Nhân sự vận hành',
+      label: 'Operations personnel',
       value: overviewRes.data.counts.staff.toLocaleString('vi-VN'),
-      trend: `${overviewRes.data.counts.managers} quản lý`,
+      trend: `${overviewRes.data.counts.managers} managers`,
       status: overviewRes.data.counts.staff > 0 ? 'ok' : 'critical',
     },
   ];

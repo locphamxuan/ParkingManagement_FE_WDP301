@@ -34,7 +34,7 @@ export default function KioskCheckInPage() {
         entryTime: data?.parkingSession?.entryTime ?? new Date().toISOString(),
       });
     } catch (err) {
-      setResult({ type: 'err', text: err instanceof Error ? err.message : 'Check-in thất bại' });
+      setResult({ type: 'err', text: err instanceof Error ? err.message : 'Check-in failed' });
     } finally {
       setBusy(false);
       // Auto-clear the result so the next car can scan.
@@ -60,9 +60,9 @@ export default function KioskCheckInPage() {
           <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-400">
             <QrCode size={28} />
           </div>
-          <h1 className="text-2xl font-black">Tự check-in đặt chỗ</h1>
+          <h1 className="text-2xl font-black">Self check-in reservation</h1>
           <p className="mt-1 text-sm text-slate-400">
-            Khách đã đặt chỗ trước: đưa mã QR phương tiện vào camera để tự động vào bãi (không cần qua nhân viên).
+            Customers with a reservation: present the vehicle QR to the camera to enter automatically (no staff needed).
           </p>
         </div>
 
@@ -70,8 +70,7 @@ export default function KioskCheckInPage() {
 
         {busy && (
           <div className="flex items-center justify-center gap-2 text-sm text-slate-300">
-            <Loader2 size={16} className="animate-spin" /> Đang xử lý...
-          </div>
+            <Loader2 size={16} className="animate-spin" />Processing...</div>
         )}
 
         {result?.type === 'ok' && (
@@ -79,9 +78,9 @@ export default function KioskCheckInPage() {
             className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5 text-center"
           >
             <CheckCircle2 size={40} className="mx-auto mb-2 text-emerald-400" />
-            <p className="text-lg font-bold text-emerald-300">Mời xe vào bãi</p>
+            <p className="text-lg font-bold text-emerald-300">Admit vehicle</p>
             <p className="mt-1 font-mono text-xl font-black text-white">{result.plate}</p>
-            {result.code && <p className="text-xs text-slate-400">Mã đặt chỗ: {result.code}</p>}
+            {result.code && <p className="text-xs text-slate-400">Reservation code: {result.code}</p>}
             <p className="mt-1 text-xs text-slate-400">{new Date(result.entryTime).toLocaleString('vi-VN')}</p>
           </motion.div>
         )}
@@ -95,8 +94,7 @@ export default function KioskCheckInPage() {
 
         <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-4">
           <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
-            <Car size={13} /> Nhập biển số thủ công (nếu không quét được QR)
-          </p>
+            <Car size={13} />Enter plate manually (if QR cannot be scanned)</p>
           <div className="flex gap-2">
             <Input
               value={manualPlate}

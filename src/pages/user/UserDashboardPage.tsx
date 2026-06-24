@@ -28,11 +28,11 @@ const fmtTime = (s?: string | null) =>
   s ? new Date(s).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' }) : '—';
 
 const STATUS_LABELS: Record<string, string> = {
-  pending: 'Đang chờ',
-  confirmed: 'Đã xác nhận',
-  checked_in: 'Đã check-in',
-  expired: 'Hết hạn',
-  cancelled: 'Đã hủy',
+  pending: 'Pending',
+  confirmed: 'Confirmed',
+  checked_in: 'Checked in',
+  expired: 'Expired',
+  cancelled: 'Cancelled',
 };
 
 export default function UserDashboardPage() {
@@ -78,13 +78,13 @@ export default function UserDashboardPage() {
   };
 
   const quickLinks = [
-    { icon: Wallet, label: 'Ví của tôi', desc: 'Nạp tiền & lịch sử giao dịch', href: '/wallet', color: 'text-emerald-400 border-emerald-500/20 bg-emerald-500/5' },
-    { icon: Building2, label: 'Tòa nhà', desc: 'Xem bãi đỗ xe hiện có', href: '/buildings', color: 'text-blue-400 border-blue-500/20 bg-blue-500/5' },
-    { icon: CalendarClock, label: 'Đặt chỗ', desc: 'Đặt vị trí trước', href: '/reservations', color: 'text-orange-400 border-orange-500/20 bg-orange-500/5' },
-    { icon: History, label: 'Lịch sử gửi xe', desc: 'Xem các phiên gửi xe trước', href: '/parking-history', color: 'text-violet-400 border-violet-500/20 bg-violet-500/5' },
-    { icon: Package, label: 'Gói dài hạn', desc: 'Đăng ký gói tháng', href: '/long-term-subscriptions', color: 'text-amber-400 border-amber-500/20 bg-amber-500/5' },
-    { icon: Bell, label: 'Thông báo', desc: 'Xem tất cả thông báo', href: '/notifications', color: 'text-rose-400 border-rose-500/20 bg-rose-500/5' },
-    { icon: User, label: 'Hồ sơ', desc: 'Cập nhật thông tin cá nhân', href: '/profile', color: 'text-slate-400 border-slate-500/20 bg-slate-500/5' },
+    { icon: Wallet, label: 'My wallet', desc: 'Top up & transaction history', href: '/wallet', color: 'text-emerald-400 border-emerald-500/20 bg-emerald-500/5' },
+    { icon: Building2, label: 'Building', desc: 'View available parking lots', href: '/buildings', color: 'text-blue-400 border-blue-500/20 bg-blue-500/5' },
+    { icon: CalendarClock, label: 'Reservation', desc: 'Book a slot in advance', href: '/reservations', color: 'text-orange-400 border-orange-500/20 bg-orange-500/5' },
+    { icon: History, label: 'Parking history', desc: 'View past parking sessions', href: '/parking-history', color: 'text-violet-400 border-violet-500/20 bg-violet-500/5' },
+    { icon: Package, label: 'Long-term package', desc: 'Subscribe to a monthly package', href: '/long-term-subscriptions', color: 'text-amber-400 border-amber-500/20 bg-amber-500/5' },
+    { icon: Bell, label: 'Notifications', desc: 'View all notifications', href: '/notifications', color: 'text-rose-400 border-rose-500/20 bg-rose-500/5' },
+    { icon: User, label: 'Profile', desc: 'Update personal information', href: '/profile', color: 'text-slate-400 border-slate-500/20 bg-slate-500/5' },
   ];
 
   const activeReservations = reservations.filter((r) =>
@@ -99,7 +99,7 @@ export default function UserDashboardPage() {
           <div>
             <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">PBMS</p>
             <p className="text-sm font-bold text-white">
-              Xin chào, {session.displayName || session.email}
+              Hello, {session.displayName || session.email}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -128,7 +128,7 @@ export default function UserDashboardPage() {
           <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-orange-500/10 blur-2xl" />
           <div className="relative flex items-center justify-between">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-orange-300/70">Số dư ví</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-orange-300/70">Wallet balance</p>
               <p className="mt-1 text-3xl font-black text-white">
                 {loading ? '…' : fmtVnd.format(wallet?.balance ?? 0)}
               </p>
@@ -138,8 +138,7 @@ export default function UserDashboardPage() {
               onClick={() => navigate('/wallet')}
               className="flex items-center gap-1.5 rounded-xl border border-orange-500/30 bg-orange-500/10 px-4 py-2 text-xs font-bold text-orange-300 hover:bg-orange-500/20 transition-colors"
             >
-              <Wallet size={13} /> Nạp tiền
-            </button>
+              <Wallet size={13} />Top up</button>
           </div>
         </div>
 
@@ -152,14 +151,14 @@ export default function UserDashboardPage() {
                   <Car size={16} className="text-emerald-400" />
                 </div>
                 <div>
-                  <p className="text-[9px] font-bold uppercase tracking-widest text-emerald-400">Xe đang gửi</p>
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-emerald-400">Parked vehicles</p>
                   <p className="font-mono text-sm font-black text-amber-300">{activeSession.plateNumber}</p>
                 </div>
               </div>
               <div className="text-right">
                 <p className="text-[10px] text-slate-400">{activeSession.building?.name}</p>
                 <p className="flex items-center justify-end gap-1 text-[10px] text-emerald-400">
-                  <Clock size={10} /> Vào {fmtTime(activeSession.checkIn)}
+                  <Clock size={10} /> In {fmtTime(activeSession.checkIn)}
                 </p>
               </div>
             </div>
@@ -171,15 +170,13 @@ export default function UserDashboardPage() {
           <div>
             <div className="mb-3 flex items-center justify-between">
               <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                Đặt chỗ đang hoạt động ({activeReservations.length})
+                Active reservations ({activeReservations.length})
               </p>
               <button
                 type="button"
                 onClick={() => navigate('/reservations', { state: { openHistory: true } })}
                 className="text-[10px] text-orange-400 hover:text-orange-300 font-semibold"
-              >
-                Xem tất cả →
-              </button>
+              >View all →</button>
             </div>
             <div className="space-y-2">
               {activeReservations.slice(0, 3).map((r) => (
@@ -204,7 +201,7 @@ export default function UserDashboardPage() {
 
         {/* Quick navigation */}
         <div>
-          <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">Truy cập nhanh</p>
+          <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">Quick access</p>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {quickLinks.map((link) => {
               const Icon = link.icon;
@@ -230,7 +227,7 @@ export default function UserDashboardPage() {
         {/* License plates */}
         {session.licensePlates && session.licensePlates.length > 0 && (
           <div>
-            <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">Biển số xe của tôi</p>
+            <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">My plates</p>
             <div className="flex flex-wrap gap-2">
               {session.licensePlates.map((p) => (
                 <span
@@ -244,7 +241,7 @@ export default function UserDashboardPage() {
                   }`}
                 >
                   {p.vehicleType === 'motorcycle' ? '🏍️' : '🚗'} {p.plateNumber}
-                  {p.isDefault && <span className="text-[9px] font-sans font-bold uppercase">(Mặc định)</span>}
+                  {p.isDefault && <span className="text-[9px] font-sans font-bold uppercase">(Default)</span>}
                 </span>
               ))}
             </div>

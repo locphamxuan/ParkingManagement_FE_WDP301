@@ -3,6 +3,7 @@ import {
   Building2,
   ChevronLeft,
   ClipboardList,
+  ClipboardCheck,
   Flag,
   LayoutDashboard,
   MapPin,
@@ -26,21 +27,22 @@ interface ManagerSidebarProps {
 }
 
 const modules = [
-  { to: '', label: 'Tổng quan', icon: LayoutDashboard },
-  { to: 'buildings', label: 'Tòa nhà', icon: Building2 },
-  { to: 'vehicle-types', label: 'Loại xe', icon: Truck },
-  { to: 'floors', label: 'Tầng', icon: ClipboardList },
-  { to: 'gates', label: 'Cổng', icon: Flag },
-  { to: 'slots', label: 'Chỗ đỗ', icon: Square },
-  { to: 'operating-hours', label: 'Giờ hoạt động', icon: Clock },
-  { to: 'price-policies', label: 'Giá', icon: SlidersHorizontal },
-  { to: 'reservation-policy', label: 'Đặt chỗ', icon: MapPin },
-  { to: 'packages', label: 'Gói', icon: Package },
-  { to: 'subscriptions', label: 'Gói của khách', icon: Fingerprint },
-  { to: 'shifts', label: 'Ca trực & Gán ca', icon: Users },
-  { to: 'staff', label: 'Nhân viên', icon: User },
-  { to: 'reviews', label: 'Xem đánh giá', icon: MessageSquare },
-  { to: 'wallet', label: 'Ví tòa nhà', icon: Wallet },
+  { to: '', label: 'Overview', icon: LayoutDashboard },
+  { to: 'buildings', label: 'Building', icon: Building2 },
+  { to: 'vehicle-types', label: 'Vehicle type', icon: Truck },
+  { to: 'floors', label: 'Floor', icon: ClipboardList },
+  { to: 'gates', label: 'Gate', icon: Flag },
+  { to: 'slots', label: 'Parking slots', icon: Square },
+  { to: 'operating-hours', label: 'Operating hours', icon: Clock },
+  { to: 'price-policies', label: 'Price', icon: SlidersHorizontal },
+  { to: 'reservation-policy', label: 'Reservation', icon: MapPin },
+  { to: 'packages', label: 'Package', icon: Package },
+  { to: 'subscriptions', label: 'Customer packages', icon: Fingerprint },
+  { to: 'shifts', label: 'Shifts & Assignments', icon: Users },
+  { to: 'shift-reports', label: 'Shift reports', icon: ClipboardCheck },
+  { to: 'staff', label: 'Staff', icon: User },
+  { to: 'reviews', label: 'Reviews', icon: MessageSquare },
+  { to: 'wallet', label: 'Building wallet', icon: Wallet },
 ] as const;
 
 export function ManagerSidebar({ collapsed, onToggle }: ManagerSidebarProps) {
@@ -54,7 +56,7 @@ export function ManagerSidebar({ collapsed, onToggle }: ManagerSidebarProps) {
       <div className="mb-6 flex items-center justify-between rounded-2xl border border-white/8 bg-slate-800/60 p-3 shadow-sm backdrop-blur-md">
         {!collapsed ? (
           <div className="pl-1">
-            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">Môi trường</p>
+            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">Environment</p>
             <p className="text-xs font-extrabold text-slate-100">MANAGER PORTAL</p>
           </div>
         ) : (

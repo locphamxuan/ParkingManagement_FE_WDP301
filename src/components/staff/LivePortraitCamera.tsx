@@ -6,12 +6,12 @@ import { videoConstraintFor } from '@/hooks/useCameraDevices';
 interface LivePortraitCameraProps {
   /** Pause stream rendering (kept for API parity; portrait cam always on). */
   paused?: boolean;
-  /** Thiết bị camera vật lý gán cho vai trò chân dung. */
+  /** Physical camera device assigned to the portrait role. */
   deviceId?: string;
 }
 
 /**
- * Camera CHÂN DUNG (riêng biệt) — always-on front camera that only shows the live
+ * PORTRAIT camera (separate) — always-on front camera that only shows the live
  * feed. No scanning. The parent grabs a frame via capture() at check-in to store
  * the driver portrait (so staff can compare the person at check-out).
  */
@@ -29,8 +29,12 @@ export const LivePortraitCamera = forwardRef<LiveCameraHandle, LivePortraitCamer
         if (!video || !canvas || video.videoWidth === 0) return null;
         const ctx = canvas.getContext('2d');
         if (!ctx) return null;
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
+        // Downscale to max 1280px wide (same as the plate camera) to keep the
+        // portrait snapshot a light payload when stored at check-in/check-out.
+        const MAX_W = 1280;
+        const scale = Math.min(1, MAX_W / video.videoWidth);
+        canvas.width = Math.round(video.videoWidth * scale);
+        canvas.height = Math.round(video.videoHeight * scale);
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         return canvas.toDataURL('image/jpeg', 0.8);
       },
@@ -57,7 +61,7 @@ export const LivePortraitCamera = forwardRef<LiveCameraHandle, LivePortraitCamer
           }
           setError(null);
         } catch {
-          if (!cancelled) setError('Không thể truy cập camera chân dung. Vui lòng cấp quyền.');
+          if (!cancelled) setError('Cannot access the portrait camera. Please grant permission.');
         }
       })();
 
@@ -72,7 +76,7 @@ export const LivePortraitCamera = forwardRef<LiveCameraHandle, LivePortraitCamer
       <div className="rounded-xl border border-border bg-card/40 p-3 space-y-2.5">
         <div className="flex items-center gap-2">
           <UserSquare size={15} className="text-violet-400" />
-          <p className="text-sm font-semibold text-foreground">Camera 3 · Chân dung tài xế</p>
+          <p className="text-sm font-semibold text-foreground">Camera 1 · Driver portrait</p>
         </div>
 
         <div className="relative aspect-[4/3] overflow-hidden rounded-lg border border-white/10 bg-black/60">
@@ -100,9 +104,7 @@ export const LivePortraitCamera = forwardRef<LiveCameraHandle, LivePortraitCamer
           )}
         </div>
 
-        <p className="text-center text-[11px] text-muted-foreground">
-          Ảnh chân dung được chụp khi check-in để đối chiếu lúc lấy xe.
-        </p>
+        <p className="text-center text-[11px] text-muted-foreground">The portrait photo is taken at check-in to verify when picking up the vehicle.</p>
 
         <canvas ref={canvasRef} className="hidden" />
       </div>

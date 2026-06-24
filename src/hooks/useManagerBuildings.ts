@@ -1,38 +1,29 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { managerApi, type ManagerBuildingRecord } from '@/services/managerApi';
+import { managerApi, type ManagerBuilding } from '@/services/manager/managerApi';
 
 export function useManagerBuildings() {
-  const { session } = useAuth();
-  const [buildings, setBuildings] = useState<ManagerBuildingRecord[]>([]);
+  const [buildings, setBuildings] = useState<ManagerBuilding[]>([]);
   const [selectedBuildingId, setSelectedBuildingId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const token = session?.token;
-
   const refreshBuildings = useCallback(async () => {
-    if (!token) {
-      setBuildings([]);
-      setError('No active session found.');
-      return;
-    }
-
     setIsLoading(true);
     setError(null);
-
     try {
-      const response = await managerApi.getAssignedBuildings(token);
-      setBuildings(response);
-      if (response.length > 0) {
-        setSelectedBuildingId((current) => current || response[0]._id);
+      const res = await managerApi.listAssignedBuildings();
+      const payload = res?.data as ManagerBuilding[] | { items?: ManagerBuilding[] } | undefined;
+      const list = Array.isArray(payload) ? payload : payload?.items ?? [];
+      setBuildings(list);
+      if (list.length > 0) {
+        setSelectedBuildingId((current) => current || list[0]._id);
       }
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to load buildings.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load buildings.');
     } finally {
       setIsLoading(false);
     }
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     void refreshBuildings();

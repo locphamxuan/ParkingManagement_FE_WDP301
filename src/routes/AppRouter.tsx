@@ -1,10 +1,11 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { ScrollToTop } from '@/components/common/ScrollToTop';
-// Guards + layouts: eager (nhỏ, là khung luôn cần). Page: lazy để tách chunk.
+// Guards + layouts: eager (small, always-needed shell). Pages: lazy to split chunks.
 import { ProtectedRoute } from '@/routes/ProtectedRoute';
 import { ManagerProtectedRoute } from '@/routes/ManagerProtectedRoute';
 import { StaffProtectedRoute } from '@/routes/StaffProtectedRoute';
+import { UserProtectedRoute } from '@/routes/UserProtectedRoute';
 import { AdminLayout } from '@/layouts/AdminLayout';
 import { ManagerLayout } from '@/layouts/ManagerLayout';
 import { StaffLayout } from '@/layouts/StaffLayout';
@@ -41,6 +42,7 @@ const ManagerReservationPolicyPage = lazy(() => import('@/pages/manager/ManagerR
 const ManagerPackagesPage = lazy(() => import('@/pages/manager/ManagerPackagesPage').then((m) => ({ default: m.ManagerPackagesPage })));
 const ManagerSubscriptionsPage = lazy(() => import('@/pages/manager/ManagerSubscriptionsPage').then((m) => ({ default: m.ManagerSubscriptionsPage })));
 const ManagerShiftManagementPage = lazy(() => import('@/pages/manager/ManagerShiftManagementPage').then((m) => ({ default: m.ManagerShiftManagementPage })));
+const ManagerShiftReportsPage = lazy(() => import('@/pages/manager/ManagerShiftReportsPage').then((m) => ({ default: m.ManagerShiftReportsPage })));
 const ManagerOperatingHoursPage = lazy(() => import('@/pages/manager/ManagerOperatingHoursPage').then((m) => ({ default: m.ManagerOperatingHoursPage })));
 const ManagerStaffPage = lazy(() => import('@/pages/manager/ManagerStaffPage').then((m) => ({ default: m.ManagerStaffPage })));
 const ManagerWalletPage = lazy(() => import('@/pages/manager/ManagerWalletPage').then((m) => ({ default: m.ManagerWalletPage })));
@@ -63,16 +65,12 @@ const UsersPage = lazy(() => import('@/pages/admin/UsersPage').then((m) => ({ de
 const RevenueAnalyticsPage = lazy(() => import('@/pages/admin/RevenueAnalyticsPage').then((m) => ({ default: m.RevenueAnalyticsPage })));
 const AuditLogsPage = lazy(() => import('@/pages/admin/AuditLogsPage').then((m) => ({ default: m.AuditLogsPage })));
 const AdminProfilePage = lazy(() => import('@/pages/admin/AdminProfilePage').then((m) => ({ default: m.AdminProfilePage })));
-const SystemWalletPage = lazy(() => import('@/pages/admin/SystemWalletPage').then((m) => ({ default: m.SystemWalletPage })));
-const SubscriptionPackagesPage = lazy(() => import('@/pages/admin/SubscriptionPackagesPage').then((m) => ({ default: m.SubscriptionPackagesPage })));
 const ModulePlaceholderPage = lazy(() => import('@/pages/admin/ModulePlaceholderPage').then((m) => ({ default: m.ModulePlaceholderPage })));
 
-/** Fallback hiển thị khi chunk của page đang được tải. */
+/** Fallback shown while the page chunk is loading. */
 function RouteFallback() {
   return (
-    <div className="flex min-h-[40vh] items-center justify-center text-sm text-slate-400">
-      Đang tải…
-    </div>
+    <div className="flex min-h-[40vh] items-center justify-center text-sm text-slate-400">Loading…</div>
   );
 }
 
@@ -89,15 +87,18 @@ export function AppRouter() {
       <Route path="/auth/reset-password" element={<PublicResetPasswordRoute />} />
       <Route path="/auth/reset_password" element={<PublicResetPasswordRoute />} />
       <Route path="/buildings" element={<BuildingsUserPage />} />
-      <Route path="/profile" element={<ProfilePage />} />
-      <Route path="/wallet" element={<WalletPage />} />
-      <Route path="/reservations" element={<ReservationsPage />} />
-      <Route path="/long-term-subscriptions" element={<LongTermSubscriptionsPage />} />
-      <Route path="/notifications" element={<UserNotificationsPage />} />
-      <Route path="/parking-history" element={<ParkingHistoryPage />} />
       <Route path="/reviews" element={<ReviewsPage />} />
-      <Route path="/user-dashboard" element={<UserDashboardPage />} />
       <Route path="/kiosk" element={<KioskCheckInPage />} />
+
+      <Route element={<UserProtectedRoute />}>
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/wallet" element={<WalletPage />} />
+        <Route path="/reservations" element={<ReservationsPage />} />
+        <Route path="/long-term-subscriptions" element={<LongTermSubscriptionsPage />} />
+        <Route path="/notifications" element={<UserNotificationsPage />} />
+        <Route path="/parking-history" element={<ParkingHistoryPage />} />
+        <Route path="/user-dashboard" element={<UserDashboardPage />} />
+      </Route>
 
       <Route path="/manager/login" element={<Navigate to="/auth/login" replace />} />
       <Route path="/manager" element={<Navigate to="/manager/dashboard" replace />} />
@@ -116,6 +117,7 @@ export function AppRouter() {
           <Route path="packages" element={<ManagerPackagesPage />} />
           <Route path="subscriptions" element={<ManagerSubscriptionsPage />} />
           <Route path="shifts" element={<ManagerShiftManagementPage />} />
+          <Route path="shift-reports" element={<ManagerShiftReportsPage />} />
           <Route path="staff-shifts" element={<Navigate to="/manager/shifts" replace />} />
           <Route path="operating-hours" element={<ManagerOperatingHoursPage />} />
           <Route path="staff" element={<ManagerStaffPage />} />
@@ -125,8 +127,8 @@ export function AppRouter() {
             path="settings"
             element={
               <ManagerPlaceholderPage
-                title="Cài đặt"
-                description="Cấu hình bảo mật, thông báo và tham số vận hành cho manager."
+                title="Settings"
+                description="Configure security, notifications and operational parameters for the manager."
               />
             }
           />
@@ -160,17 +162,15 @@ export function AppRouter() {
           <Route path="buildings" element={<BuildingsPage />} />
           <Route path="users" element={<UsersPage />} />
           <Route path="revenue-analytics" element={<RevenueAnalyticsPage />} />
-          <Route path="subscription-packages" element={<SubscriptionPackagesPage />} />
-          <Route path="wallet-governance" element={<SystemWalletPage />} />
           <Route path="audit-logs" element={<AuditLogsPage />} />
           <Route path="profile" element={<AdminProfilePage />} />
           <Route
             path="notifications"
-            element={<ModulePlaceholderPage title="Thông báo" description="Mẫu thông báo, giám sát hàng đợi và kênh gửi." />}
+            element={<ModulePlaceholderPage title="Notifications" description="Notification templates, queue monitoring and delivery channels." />}
           />
           <Route
             path="settings"
-            element={<ModulePlaceholderPage title="Cài đặt" description="Cấu hình nền tảng, chính sách truy cập và tùy chọn vận hành." />}
+            element={<ModulePlaceholderPage title="Settings" description="Platform configuration, access policies and operational options." />}
           />
         </Route>
       </Route>

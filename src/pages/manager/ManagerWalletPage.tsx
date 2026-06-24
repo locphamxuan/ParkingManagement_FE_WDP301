@@ -22,16 +22,17 @@ import {
 } from '@/services/manager/managerApi';
 
 const fmtVnd = (n: number | null | undefined) =>
-  n != null ? `${n.toLocaleString('vi-VN')} ₫` : '—';
+  n != null ? `${n.toLocaleString('en-US')} ₫` : '—';
 
 const fmtTime = (iso: string) =>
-  new Date(iso).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' });
+  new Date(iso).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' });
 
 const TX_REASON_LABELS: Record<string, string> = {
-  parking_fee: 'Phí gửi xe',
-  reservation_fee: 'Phí đặt chỗ',
-  topup: 'Nạp ví',
-  refund: 'Hoàn tiền',
+  parking_fee: 'Parking fee',
+  reservation_fee: 'Reservation fee',
+  topup: 'Wallet top-up',
+  transfer_to_system: 'System transfer',
+  refund: 'Refund',
 };
 
 export function ManagerWalletPage() {
@@ -63,21 +64,21 @@ export function ManagerWalletPage() {
       setDaily((dailyRes as { data?: DailyRevenueResult })?.data ?? null);
       setTransactions((txRes as { data?: { items: BuildingWalletTransaction[] } })?.data?.items ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Tải dữ liệu ví thất bại');
+      setError(err instanceof Error ? err.message : 'Failed to load wallet data.');
     } finally {
       setLoading(false);
     }
   }, [buildingId]);
 
   useEffect(() => {
-    refresh();
+    void refresh();
   }, [refresh]);
 
   const handleInitiateTopup = useCallback(async () => {
     if (!buildingId) return;
     const amount = Number(topupAmount);
     if (!amount || amount <= 0) {
-      setMessage({ type: 'err', text: 'Số tiền nạp phải lớn hơn 0.' });
+      setMessage({ type: 'err', text: 'Top-up amount must be greater than 0.' });
       return;
     }
     setTopupBusy(true);
@@ -92,7 +93,7 @@ export function ManagerWalletPage() {
         window.open(data.checkoutUrl, '_blank', 'noopener');
       }
     } catch (err) {
-      setMessage({ type: 'err', text: err instanceof Error ? err.message : 'Không thể khởi tạo nạp ví.' });
+      setMessage({ type: 'err', text: err instanceof Error ? err.message : 'Unable to start top-up.' });
     } finally {
       setTopupBusy(false);
     }
@@ -105,14 +106,14 @@ export function ManagerWalletPage() {
       const res = await managerApi.wallet.verifyTopup(buildingId, pendingTopup.orderCode);
       const status = (res as { data?: { status?: string } })?.data?.status;
       if (status === 'success') {
-        setMessage({ type: 'ok', text: `Đã nạp ${fmtVnd(pendingTopup.amount)} vào ví tòa nhà.` });
+        setMessage({ type: 'ok', text: `Topped up ${fmtVnd(pendingTopup.amount)} to the building wallet.` });
         setPendingTopup(null);
         await refresh();
       } else {
-        setMessage({ type: 'err', text: 'Chưa nhận được thanh toán. Hoàn tất giao dịch rồi thử lại.' });
+        setMessage({ type: 'err', text: 'Payment not received yet. Complete the checkout and try again.' });
       }
     } catch (err) {
-      setMessage({ type: 'err', text: err instanceof Error ? err.message : 'Xác nhận nạp ví thất bại.' });
+      setMessage({ type: 'err', text: err instanceof Error ? err.message : 'Top-up verification failed.' });
     } finally {
       setTopupBusy(false);
     }
@@ -121,7 +122,7 @@ export function ManagerWalletPage() {
   if (loading) {
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <RefreshCw size={14} className="animate-spin" /> Đang tải ví tòa nhà...
+        <RefreshCw size={14} className="animate-spin" /> Loading building wallet…
       </div>
     );
   }
@@ -129,45 +130,45 @@ export function ManagerWalletPage() {
   return (
     <div className="grid gap-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Wallet size={22} className="text-primary" />
           <div>
-            <h2 className="text-base font-bold text-foreground">Ví tòa nhà</h2>
+            <h2 className="text-base font-bold text-foreground">Building Wallet</h2>
             <p className="text-xs text-muted-foreground">
-              Toàn bộ doanh thu gửi xe được giữ lại 100% trong ví tòa nhà.
+              Parking revenue is collected into the building wallet.
             </p>
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="secondary" onClick={refresh} className="gap-2 text-xs">
-            <RefreshCw size={13} /> Làm mới
+          <Button variant="secondary" onClick={() => void refresh()} className="gap-2 text-xs">
+            <RefreshCw size={13} /> Refresh
           </Button>
           <Button onClick={() => setTopupOpen((v) => !v)} className="gap-2 text-xs">
-            <Plus size={13} /> Nạp ví
+            <Plus size={13} /> Top up
           </Button>
         </div>
       </div>
 
-      {/* Nạp ví tòa nhà (PayOS) */}
+      {/* Top-up (PayOS) */}
       {topupOpen && (
         <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card/50 p-4">
           <div className="grid gap-1.5">
             <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              Số tiền nạp (VND)
+              Top-up amount (VND)
             </label>
             <Input
               type="number"
               min={1}
               value={topupAmount}
               onChange={(e) => setTopupAmount(e.target.value)}
-              placeholder="VD: 500000"
+              placeholder="e.g. 500000"
               className="w-48"
             />
           </div>
-          <Button onClick={handleInitiateTopup} disabled={topupBusy} className="gap-2">
+          <Button onClick={() => void handleInitiateTopup()} disabled={topupBusy} className="gap-2">
             {topupBusy ? <RefreshCw size={13} className="animate-spin" /> : <ExternalLink size={13} />}
-            Tạo mã thanh toán PayOS
+            Create PayOS payment
           </Button>
         </div>
       )}
@@ -175,15 +176,15 @@ export function ManagerWalletPage() {
       {pendingTopup && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-500/25 bg-amber-500/5 px-4 py-3">
           <p className="text-sm text-amber-300">
-            Đang chờ thanh toán {fmtVnd(pendingTopup.amount)}. Hoàn tất trên cổng PayOS rồi bấm xác nhận.
+            Awaiting payment of {fmtVnd(pendingTopup.amount)}. Finish on the PayOS gateway, then confirm.
           </p>
           <div className="flex gap-2">
             <Button variant="secondary" size="sm" onClick={() => window.open(pendingTopup.checkoutUrl, '_blank', 'noopener')} className="gap-1.5">
-              <ExternalLink size={13} /> Mở lại cổng
+              <ExternalLink size={13} /> Reopen gateway
             </Button>
-            <Button size="sm" onClick={handleVerifyTopup} disabled={topupBusy} className="gap-1.5">
+            <Button size="sm" onClick={() => void handleVerifyTopup()} disabled={topupBusy} className="gap-1.5">
               {topupBusy ? <RefreshCw size={13} className="animate-spin" /> : <CheckCircle2 size={13} />}
-              Tôi đã thanh toán
+              I have paid
             </Button>
           </div>
         </div>
@@ -208,12 +209,12 @@ export function ManagerWalletPage() {
         </div>
       )}
 
-      {/* Thẻ tổng quan */}
+      {/* Summary cards */}
       <div className="grid gap-4 sm:grid-cols-2">
         <Card>
           <CardContent className="p-5">
             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              Số dư hiện tại
+              Current balance
             </p>
             <p className="mt-2 text-2xl font-bold text-foreground">{fmtVnd(wallet?.balance)}</p>
           </CardContent>
@@ -222,24 +223,24 @@ export function ManagerWalletPage() {
         <Card>
           <CardContent className="p-5">
             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              Doanh thu hôm nay
+              Today's revenue
             </p>
             <p className="mt-2 text-2xl font-bold text-emerald-400">{fmtVnd(daily?.totalRevenue)}</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Lịch sử giao dịch */}
+      {/* Recent transactions */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-sm">
             <Clock size={15} className="text-primary" />
-            Giao dịch gần đây
+            Recent transactions
           </CardTitle>
         </CardHeader>
         <CardContent>
           {transactions.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-4 text-center">Chưa có giao dịch.</p>
+            <p className="py-4 text-center text-sm text-muted-foreground">No transactions yet.</p>
           ) : (
             <div className="grid gap-2">
               {transactions.map((tx) => {
@@ -263,7 +264,7 @@ export function ManagerWalletPage() {
                         </p>
                         {tx.note && <p className="text-xs text-muted-foreground">{tx.note}</p>}
                         <p className="text-xs text-muted-foreground">
-                          Số dư sau: {fmtVnd(tx.balanceAfter)}
+                          Balance after: {fmtVnd(tx.balanceAfter)}
                         </p>
                       </div>
                     </div>

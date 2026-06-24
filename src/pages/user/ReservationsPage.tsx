@@ -214,7 +214,7 @@ export default function ReservationsPage() {
         if (!ignore) {
           const errorMsg = err instanceof Error ? err.message : String(err);
           console.error('Error loading floors:', errorMsg, err);
-          setFloorsError(`Lỗi tải tầng: ${errorMsg}`);
+          setFloorsError(`Error loading floors: ${errorMsg}`);
           setFloorsData([]);
         }
       }
@@ -393,7 +393,7 @@ export default function ReservationsPage() {
 
     if (mode === 'hourly') {
       if (startDateTime.getTime() < Date.now() - 5 * 60 * 1000) {
-        setBookingError('Thời gian nhận bãi không được ở trong quá khứ. Vui lòng chọn thời gian khác.');
+        setBookingError('The check-in time cannot be in the past. Please choose another time.');
         return;
       }
     }
@@ -404,8 +404,8 @@ export default function ReservationsPage() {
         // Find vehicleTypeId from building's vehicle types
         const vt = vehicleTypesForBuilding.find((v) => {
           const c = (v.code || v.name || '').toLowerCase();
-          if (selectedVehicleType === 'motorcycle') return /motor|xe|máy|bike|moto/i.test(c);
-          return /car|oto|ô t|auto/i.test(c);
+          if (selectedVehicleType === 'motorcycle') return /motor|bike|moto/i.test(c);
+          return /car|oto|auto/i.test(c);
         });
 
         // Find the slot's _id
@@ -420,7 +420,7 @@ export default function ReservationsPage() {
           endTime: endDateTime.toISOString(),
           slotId: slotRecord?._id,
         });
-        setBookingSuccess(`Đặt chỗ thành công! Ô ${selectedSlot} từ ${fmtShort(startDateTime)} đến ${fmtShort(endDateTime)}`);
+        setBookingSuccess(`Booking successful! Slot ${selectedSlot} from ${fmtShort(startDateTime)} to ${fmtShort(endDateTime)}`);
       } else if (selectedPkg) {
         const res = await userApi.longTermSubscriptions.create({
           packageId: selectedPkg._id,
@@ -430,16 +430,16 @@ export default function ReservationsPage() {
         });
         const data = (res as any)?.data;
         if (data?.checkoutUrl) {
-          setBookingSuccess('Chuyển hướng đến cổng thanh toán PayOS...');
+          setBookingSuccess('Redirecting to the PayOS payment gateway...');
           window.location.href = data.checkoutUrl;
         } else {
-          setBookingSuccess(`Đăng ký gói "${selectedPkg.name}" thành công!`);
+          setBookingSuccess(`Subscribed to "${selectedPkg.name}" successfully!`);
         }
       }
       setSelectedSlot(null);
       setShowSlotModal(false);
     } catch (err) {
-      setBookingError(err instanceof Error ? err.message : 'Không thể hoàn tất đặt chỗ');
+      setBookingError(err instanceof Error ? err.message : 'Unable to complete the booking');
     } finally {
       setIsSubmitting(false);
     }
@@ -459,22 +459,20 @@ export default function ReservationsPage() {
           <button type="button" onClick={() => navigate('/')}
             className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-xs font-black uppercase tracking-wider text-slate-300 transition hover:border-orange-300/30 hover:text-orange-200"
           >
-            <ArrowLeft size={14} /> Trang chủ
-          </button>
+            <ArrowLeft size={14} />Home</button>
           <div className="flex gap-2">
             <button type="button" onClick={() => setShowHistory(true)}
               className="inline-flex items-center gap-2 rounded-xl border border-yellow-500/20 bg-yellow-500/5 px-4 py-2 text-xs font-black uppercase tracking-wider text-yellow-400 transition hover:border-yellow-400/40 hover:bg-yellow-500/10 hover:text-yellow-300"
             >
-              <CalendarClock size={14} /> Lịch sử
-            </button>
+              <CalendarClock size={14} />History</button>
           </div>
         </motion.div>
 
         {/* ── Tab Bar ── */}
         <div className="mb-6 flex items-center gap-1 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-1.5">
           {[
-            { key: 'hourly' as BookingMode, label: 'Đặt theo giờ', icon: <Timer size={14} /> },
-            { key: 'package' as BookingMode, label: 'Đăng ký gói dài hạn', icon: <Package size={14} /> },
+            { key: 'hourly' as BookingMode, label: 'Hourly booking', icon: <Timer size={14} /> },
+            { key: 'package' as BookingMode, label: 'Subscribe to long-term package', icon: <Package size={14} /> },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -506,24 +504,24 @@ export default function ReservationsPage() {
             <div className="rounded-3xl border border-white/[0.06] bg-white/[0.02] p-5">
               <div className="flex items-center gap-2 mb-4">
                 <Building2 size={16} className="text-cyan-300/70" />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300/70">Thông tin cơ bản</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300/70">Basic information</span>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Tòa nhà</span>
+                  <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Building</span>
                   <CustomSelect
                     value={selectedBuildingId}
                     onChange={handleBuildingChange}
                     options={[
-                      { value: '', label: '-- Chọn tòa nhà --' },
+                      { value: '', label: '-- Select building --' },
                       ...rows.map((r) => ({ value: r.building._id, label: r.building.name })),
                     ]}
-                    placeholder="-- Chọn tòa nhà --"
+                    placeholder="-- Select building --"
                   />
                 </div>
                 <div>
-                  <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Loại xe</span>
+                  <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Vehicle type</span>
                   <CustomSelect
                     value={selectedVehicleType}
                     onChange={(val) => {
@@ -533,11 +531,11 @@ export default function ReservationsPage() {
                       setSelectedPkg(null);
                     }}
                     options={[
-                      { value: '', label: '-- Chọn loại xe --' },
-                      { value: 'car', label: '🚗 Ô tô' },
-                      { value: 'motorcycle', label: '🏍️ Xe máy' },
+                      { value: '', label: '-- Select vehicle type --' },
+                      { value: 'car', label: '🚗 Car' },
+                      { value: 'motorcycle', label: '🏍️ Motorcycle' },
                     ]}
-                    placeholder="-- Chọn loại xe --"
+                    placeholder="-- Select vehicle type --"
                   />
                 </div>
               </div>
@@ -546,20 +544,20 @@ export default function ReservationsPage() {
               <div className="mt-4">
                 <div className="flex items-center gap-2 mb-2">
                   <Zap size={14} className="text-amber-300/70" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Biển số xe</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">License plate</span>
                 </div>
                 <CustomSelect
                   value={selectedPlate}
                   onChange={setSelectedPlate}
                   disabled={plateOptions.length === 0}
                   options={[
-                    { value: '', label: plateOptions.length === 0 ? '-- Tất cả biển số xe phù hợp đều đã đặt chỗ --' : '-- Chọn biển số --' },
+                    { value: '', label: plateOptions.length === 0 ? '-- All suitable plates already have reservations --' : '-- Select plate --' },
                     ...plateOptions.map((p) => ({
                       value: p.plateNumber,
-                      label: `${p.plateNumber} — ${p.vehicleType === 'motorcycle' ? '🏍️ Xe máy' : '🚗 Ô tô'}`,
+                      label: `${p.plateNumber} — ${p.vehicleType === 'motorcycle' ? '🏍️ Motorcycle' : '🚗 Car'}`,
                     })),
                   ]}
-                  placeholder="-- Chọn biển số --"
+                  placeholder="-- Select plate --"
                 />
               </div>
             </div>
@@ -574,19 +572,17 @@ export default function ReservationsPage() {
                   <div className="rounded-3xl border border-white/[0.06] bg-white/[0.02] p-5">
                     <div className="flex items-center gap-2 mb-4">
                       <CalendarClock size={16} className="text-orange-300/70" />
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-300/70">Chọn ngày nhận xe</span>
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-300/70">Select check-in date</span>
                     </div>
                     <MiniCalendar selectedDate={selectedDate} onSelect={setSelectedDate} maxDate={maxCalDate} />
-                    <p className="mt-2 text-[10px] font-semibold text-slate-500">
-                      Chỉ được đặt trước tối đa 7 ngày
-                    </p>
+                    <p className="mt-2 text-[10px] font-semibold text-slate-500">Can book up to 7 days in advance</p>
                   </div>
 
                   {/* Time */}
                   <div className="rounded-3xl border border-white/[0.06] bg-white/[0.02] p-5">
                     <div className="flex items-center gap-2 mb-3">
                       <Clock size={16} className="text-orange-300/70" />
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-300/70">Giờ nhận xe</span>
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-300/70">Check-in time</span>
                     </div>
                     <TimeScroller selected={selectedTime} onSelect={setSelectedTime} />
                   </div>
@@ -595,7 +591,7 @@ export default function ReservationsPage() {
                   <div className="rounded-3xl border border-white/[0.06] bg-white/[0.02] p-5">
                     <div className="flex items-center gap-2 mb-3">
                       <Timer size={16} className="text-orange-300/70" />
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-300/70">Số giờ sử dụng</span>
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-300/70">Hours of use</span>
                     </div>
                     <DurationSelector hours={durationHours} onSelect={setDurationHours} />
                   </div>
@@ -610,12 +606,12 @@ export default function ReservationsPage() {
                   {/* Package Cards */}
                   <div className="rounded-3xl border border-white/[0.06] bg-white/[0.02] p-5">
                     <div className="flex items-center gap-2 mb-4">
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-300/70">Chọn gói dài hạn</span>
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-300/70">Select long-term package</span>
                     </div>
 
                     {packages.length === 0 ? (
                       <p className="text-sm text-slate-500 font-semibold py-4 text-center">
-                        {isLoadingBuildings ? 'Đang tải...' : 'Không có gói nào cho tòa nhà này.'}
+                        {isLoadingBuildings ? 'Loading...' : 'No packages for this building.'}
                       </p>
                     ) : (
                       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -657,15 +653,15 @@ export default function ReservationsPage() {
                     <div className="rounded-3xl border border-white/[0.06] bg-white/[0.02] p-5">
                       <div className="flex items-center gap-2 mb-4">
                         <CalendarClock size={16} className="text-purple-300/70" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-300/70">Ngày bắt đầu gói</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-300/70">Package start date</span>
                       </div>
                       <MiniCalendar selectedDate={pkgStartDate} onSelect={setPkgStartDate} maxDate={maxCalDate} />
                       <p className="mt-2 text-[10px] font-semibold text-slate-500">
                         {selectedPkg.durationDays <= 7
-                          ? 'Gói tuần: chọn trong vòng 7 ngày tới'
+                          ? 'Weekly package: choose within the next 7 days'
                           : selectedPkg.durationDays <= 30
-                            ? 'Gói tháng: chọn trong tháng này hoặc tháng sau'
-                            : 'Gói năm: chọn trong năm nay hoặc năm sau'}
+                            ? 'Monthly package: choose this month or next month'
+                            : 'Yearly package: choose this year or next year'}
                       </p>
                     </div>
                   )}
@@ -677,7 +673,7 @@ export default function ReservationsPage() {
             <div className="rounded-3xl border border-white/[0.06] bg-white/[0.02] p-5">
               <div className="flex items-center gap-2 mb-3">
                 <MapPin size={16} className="text-cyan-300/70" />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300/70">Chọn chỗ đỗ</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300/70">Select slot</span>
               </div>
 
               <div className="flex items-center gap-3">
@@ -689,10 +685,9 @@ export default function ReservationsPage() {
                   whileTap={{ scale: 0.99 }}
                   className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-cyan-300/20 bg-cyan-300/5 px-4 py-4 text-sm font-black uppercase tracking-wider text-cyan-200 transition-all hover:bg-cyan-300/10 disabled:cursor-not-allowed disabled:border-slate-700 disabled:text-slate-500 disabled:bg-transparent"
                 >
-                  <MapPin size={16} /> Chọn chỗ đỗ
-                </motion.button>
+                  <MapPin size={16} />Select slot</motion.button>
                 <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-center min-w-[100px]">
-                  <p className="text-[9px] font-bold uppercase text-slate-500">Ô đỗ</p>
+                  <p className="text-[9px] font-bold uppercase text-slate-500">Slot</p>
                   <p className="mt-1 font-mono text-xl font-black text-orange-300">{selectedSlot || '—'}</p>
                 </div>
               </div>
@@ -721,14 +716,14 @@ export default function ReservationsPage() {
             <div className="hidden text-xs font-semibold text-slate-400 sm:block">
               {startDateTime && endDateTime ? (
                 <>
-                  <span className="text-white">Nhận bãi:</span> {fmtShort(startDateTime)}
+                  <span className="text-white">Check-in:</span> {fmtShort(startDateTime)}
                   <span className="mx-2 text-slate-600">—</span>
-                  <span className="text-white">Trả bãi:</span> {fmtShort(endDateTime)}
+                  <span className="text-white">Check-out:</span> {fmtShort(endDateTime)}
                   <span className="mx-2 text-slate-600">|</span>
                   <span className="text-emerald-300 font-black">{fmtMoney(estimatedAmount)}</span>
                 </>
               ) : (
-                'Chọn thời gian và chỗ đỗ để đặt chỗ'
+                'Select a time and slot to book'
               )}
             </div>
             <motion.button
@@ -740,7 +735,7 @@ export default function ReservationsPage() {
               className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-400 px-6 py-3 text-sm font-black uppercase tracking-wider text-slate-950 shadow-[0_0_24px_rgba(249,115,22,0.3)] transition-all disabled:cursor-not-allowed disabled:from-slate-700 disabled:to-slate-700 disabled:text-slate-400 disabled:shadow-none"
             >
               <ShieldCheck size={16} />
-              {isSubmitting ? 'Đang xử lý...' : mode === 'hourly' ? 'Xác nhận đặt chỗ' : 'Mua gói'}
+              {isSubmitting ? 'Processing...' : mode === 'hourly' ? 'Confirm booking' : 'Buy package'}
             </motion.button>
           </div>
         </div>
@@ -795,8 +790,8 @@ export default function ReservationsPage() {
                     <CalendarClock size={20} className="text-orange-400" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-black text-white tracking-wide">Lịch sử đặt chỗ</h2>
-                    <p className="text-[10px] text-slate-500 font-semibold tracking-wider uppercase mt-0.5">Theo dõi & Quản lý các lượt đỗ xe</p>
+                    <h2 className="text-lg font-black text-white tracking-wide">Reservation history</h2>
+                    <p className="text-[10px] text-slate-500 font-semibold tracking-wider uppercase mt-0.5">Track & manage your parking sessions</p>
                   </div>
                 </div>
                 <button

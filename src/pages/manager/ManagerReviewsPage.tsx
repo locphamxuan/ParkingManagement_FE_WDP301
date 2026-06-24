@@ -38,7 +38,7 @@ export function ManagerReviewsPage() {
       setReviews(result.data.items);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Tải thất bại');
+      setError(err instanceof Error ? err.message : 'Failed to load');
     } finally {
       setLoading(false);
     }
@@ -56,7 +56,7 @@ export function ManagerReviewsPage() {
 
   const handleReplySubmit = async () => {
     if (!replyForm.staffReply.trim()) {
-      alert('Vui lòng nhập phản hồi');
+      alert('Please enter a response');
       return;
     }
 
@@ -75,7 +75,7 @@ export function ManagerReviewsPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Gửi phản hồi thất bại');
+        throw new Error(errorData.message || 'Failed to submit response');
       }
 
       await refresh();
@@ -83,7 +83,7 @@ export function ManagerReviewsPage() {
       setReplyForm({ reviewId: '', staffReply: '' });
       setSelectedReview(null);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Gửi phản hồi thất bại');
+      alert(err instanceof Error ? err.message : 'Failed to submit response');
     } finally {
       setReplying(false);
     }
@@ -93,36 +93,36 @@ export function ManagerReviewsPage() {
     if (!searchTerm.trim()) return true;
     const searchLower = searchTerm.toLowerCase();
     return (
-      review.user.fullName.toLowerCase().includes(searchLower) ||
-      review.user.email.toLowerCase().includes(searchLower) ||
-      review.parkingSession.plateNumber.toLowerCase().includes(searchLower) ||
-      review.comment.toLowerCase().includes(searchLower)
+      (review.user?.fullName ?? '').toLowerCase().includes(searchLower) ||
+      (review.user?.email ?? '').toLowerCase().includes(searchLower) ||
+      (review.parkingSession?.plateNumber ?? '').toLowerCase().includes(searchLower) ||
+      (review.comment ?? '').toLowerCase().includes(searchLower)
     );
   });
 
   const columns: DataColumn<Feedback>[] = [
     {
       key: 'user',
-      title: 'Người dùng',
+      title: 'Users',
       render: (item) => (
         <div>
-          <p className="font-medium text-slate-100">{item.user.fullName}</p>
-          <p className="text-xs text-slate-400">{item.user.email}</p>
+          <p className="font-medium text-slate-100">{item.user?.fullName ?? '—'}</p>
+          <p className="text-xs text-slate-400">{item.user?.email ?? ''}</p>
         </div>
       ),
     },
     {
       key: 'plateNumber',
-      title: 'Biển số',
+      title: 'Plate number',
       render: (item) => (
         <span className="inline-block rounded bg-slate-800/50 px-2.5 py-1 font-mono text-sm text-amber-300">
-          {item.parkingSession.plateNumber}
+          {item.parkingSession?.plateNumber ?? '—'}
         </span>
       ),
     },
     {
       key: 'rating',
-      title: 'Đánh giá',
+      title: 'Rating',
       render: (item) => (
         <div className="flex items-center gap-1">
           {Array.from({ length: 5 }).map((_, i) => (
@@ -138,14 +138,14 @@ export function ManagerReviewsPage() {
     },
     {
       key: 'comment',
-      title: 'Bình luận',
+      title: 'Comment',
       render: (item) => (
         <p className="line-clamp-2 text-sm text-slate-300">{item.comment}</p>
       ),
     },
     {
       key: 'status',
-      title: 'Trạng thái',
+      title: 'Status',
       render: (item) => {
         const resolved = item.status === 'resolved';
         const Icon = resolved ? CheckCircle : Clock;
@@ -158,14 +158,14 @@ export function ManagerReviewsPage() {
             }`}
           >
             <Icon size={12} />
-            {resolved ? 'Đã trả lời' : 'Chờ trả lời'}
+            {resolved ? 'Replied' : 'Awaiting reply'}
           </span>
         );
       },
     },
     {
       key: 'createdAt',
-      title: 'Ngày',
+      title: 'Date',
       render: (item) => (
         <span className="text-xs text-slate-400">
           {new Date(item.createdAt).toLocaleDateString('vi-VN')}
@@ -174,7 +174,7 @@ export function ManagerReviewsPage() {
     },
     {
       key: 'actions',
-      title: 'Thao tác',
+      title: 'Actions',
       render: (item) => (
         <Button
           size="sm"
@@ -183,7 +183,7 @@ export function ManagerReviewsPage() {
           className="text-xs hover:bg-orange-500/10"
         >
           <MessageSquare size={14} className="mr-1" />
-          {item.status === 'resolved' ? 'Chỉnh sửa' : 'Trả lời'}
+          {item.status === 'resolved' ? 'Edit' : 'Reply'}
         </Button>
       ),
     },
@@ -194,12 +194,12 @@ export function ManagerReviewsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-100">Xem Đánh giá</h1>
-          <p className="mt-1 text-sm text-slate-400">Quản lý và trả lời đánh giá từ người dùng</p>
+          <h1 className="text-2xl font-bold text-slate-100">Reviews</h1>
+          <p className="mt-1 text-sm text-slate-400">Manage and reply to user reviews</p>
         </div>
         <div className="text-right">
           <div className="text-3xl font-bold text-orange-500">{filteredReviews.length}</div>
-          <p className="text-xs text-slate-400">tổng số đánh giá</p>
+          <p className="text-xs text-slate-400">total reviews</p>
         </div>
       </div>
 
@@ -207,7 +207,7 @@ export function ManagerReviewsPage() {
       <div className="flex flex-col gap-4 rounded-xl border border-white/8 bg-slate-800/30 p-4 md:flex-row md:items-center md:justify-between">
         <div className="flex-1">
           <Input
-            placeholder="Tìm kiếm theo tên, email, biển số hoặc nội dung..."
+            placeholder="Search by name, email, plate or content..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="max-w-md"
@@ -219,25 +219,19 @@ export function ManagerReviewsPage() {
             size="sm"
             onClick={() => setStatusFilter('all')}
             className="text-xs"
-          >
-            Tất cả
-          </Button>
+          >All</Button>
           <Button
             variant={statusFilter === 'pending' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setStatusFilter('pending')}
             className="text-xs"
-          >
-            Chờ trả lời
-          </Button>
+          >Awaiting reply</Button>
           <Button
             variant={statusFilter === 'resolved' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setStatusFilter('resolved')}
             className="text-xs"
-          >
-            Đã trả lời
-          </Button>
+          >Replied</Button>
         </div>
       </div>
 
@@ -252,14 +246,14 @@ export function ManagerReviewsPage() {
       {/* Data Table */}
       <div className="rounded-xl border border-white/8 bg-slate-800/20 overflow-hidden">
         {loading ? (
-          <div className="py-8 text-center text-slate-400">Đang tải...</div>
+          <div className="py-8 text-center text-slate-400">Loading...</div>
         ) : filteredReviews.length === 0 ? (
           <div className="py-12 text-center">
             <MessageSquare size={32} className="mx-auto mb-2 text-slate-600" />
-            <p className="text-slate-400">Không có đánh giá nào</p>
+            <p className="text-slate-400">No reviews</p>
           </div>
         ) : (
-          <DataTable title="Danh sách đánh giá" columns={columns} rows={filteredReviews} />
+          <DataTable title="Reviews list" columns={columns} rows={filteredReviews} />
         )}
       </div>
 
@@ -267,15 +261,15 @@ export function ManagerReviewsPage() {
       <Modal isOpen={replyModalOpen} onClose={() => !replying && setReplyModalOpen(false)}>
         <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto">
           <div className="border-b border-white/8 p-6">
-            <h2 className="text-xl font-bold text-slate-100">Trả lời đánh giá</h2>
+            <h2 className="text-xl font-bold text-slate-100">Reply to review</h2>
             {selectedReview && (
               <div className="mt-4 space-y-3 rounded-lg bg-slate-800/40 p-4">
                 <div>
-                  <p className="text-xs font-semibold text-slate-400">NGƯỜI DÙNG</p>
-                  <p className="mt-1 font-medium text-slate-100">{selectedReview.user.fullName}</p>
+                  <p className="text-xs font-semibold text-slate-400">USER</p>
+                  <p className="mt-1 font-medium text-slate-100">{selectedReview.user?.fullName ?? '—'}</p>
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-slate-400">ĐÁNH GIÁ</p>
+                  <p className="text-xs font-semibold text-slate-400">RATING</p>
                   <div className="mt-1 flex items-center gap-2">
                     {Array.from({ length: 5 }).map((_, i) => (
                       <Star
@@ -299,15 +293,13 @@ export function ManagerReviewsPage() {
 
           <div className="space-y-4 p-6">
             <div>
-              <label className="block text-sm font-semibold text-slate-200 mb-2">
-                Phản hồi của bạn *
-              </label>
+              <label className="block text-sm font-semibold text-slate-200 mb-2">Your response *</label>
               <textarea
                 value={replyForm.staffReply}
                 onChange={(e) =>
                   setReplyForm({ ...replyForm, staffReply: e.target.value })
                 }
-                placeholder="Nhập phản hồi cho đánh giá này..."
+                placeholder="Enter a response to this review..."
                 rows={5}
                 className="w-full rounded-lg border border-white/10 bg-slate-800/60 px-4 py-2 text-slate-100 placeholder-slate-500 focus:border-orange-500/50 focus:outline-none focus:ring-1 focus:ring-orange-500/20"
               />
@@ -318,15 +310,13 @@ export function ManagerReviewsPage() {
                 variant="outline"
                 onClick={() => !replying && setReplyModalOpen(false)}
                 disabled={replying}
-              >
-                Hủy
-              </Button>
+              >Cancel</Button>
               <Button
                 onClick={handleReplySubmit}
                 disabled={replying || !replyForm.staffReply.trim()}
                 className="bg-orange-500 hover:bg-orange-600"
               >
-                {replying ? 'Đang gửi...' : 'Gửi phản hồi'}
+                {replying ? 'Sending...' : 'Submit response'}
               </Button>
             </div>
           </div>

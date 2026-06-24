@@ -14,14 +14,14 @@ export function ManagerVehicleTypesPage() {
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
-  // Form tạo mới
+  // Create form
   const [showCreate, setShowCreate] = useState(false);
   const [newCode, setNewCode] = useState('');
   const [newName, setNewName] = useState('');
   const [newDesc, setNewDesc] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
-  // Form chỉnh sửa
+  // Edit form
   const [editId, setEditId] = useState<string | null>(null);
   const [editCode, setEditCode] = useState('');
   const [editName, setEditName] = useState('');
@@ -36,7 +36,7 @@ export function ManagerVehicleTypesPage() {
       const res = await managerApi.vehicleTypes.list(buildingId);
       setItems((res as { data?: { items: VehicleType[] } })?.data?.items ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Không thể tải loại xe.');
+      setError(err instanceof Error ? err.message : 'Unable to load vehicle types.');
     } finally {
       setLoading(false);
     }
@@ -46,7 +46,7 @@ export function ManagerVehicleTypesPage() {
 
   const handleCreate = async () => {
     if (!newCode.trim() || !newName.trim()) {
-      setFeedback({ type: 'err', text: 'Mã và tên loại xe là bắt buộc.' });
+      setFeedback({ type: 'err', text: 'Vehicle type code and name are required.' });
       return;
     }
     setIsCreating(true);
@@ -61,10 +61,10 @@ export function ManagerVehicleTypesPage() {
       setNewName('');
       setNewDesc('');
       setShowCreate(false);
-      setFeedback({ type: 'ok', text: 'Tạo loại xe thành công.' });
+      setFeedback({ type: 'ok', text: 'Vehicle type created successfully.' });
       await load();
     } catch (err) {
-      setFeedback({ type: 'err', text: err instanceof Error ? err.message : 'Lỗi khi tạo loại xe.' });
+      setFeedback({ type: 'err', text: err instanceof Error ? err.message : 'Error creating vehicle type.' });
     } finally {
       setIsCreating(false);
     }
@@ -89,10 +89,10 @@ export function ManagerVehicleTypesPage() {
         description: editDesc.trim() || undefined,
       });
       setEditId(null);
-      setFeedback({ type: 'ok', text: 'Cập nhật loại xe thành công.' });
+      setFeedback({ type: 'ok', text: 'Vehicle type updated successfully.' });
       await load();
     } catch (err) {
-      setFeedback({ type: 'err', text: err instanceof Error ? err.message : 'Lỗi khi cập nhật.' });
+      setFeedback({ type: 'err', text: err instanceof Error ? err.message : 'Error updating.' });
     } finally {
       setIsSaving(false);
     }
@@ -102,10 +102,10 @@ export function ManagerVehicleTypesPage() {
     setFeedback(null);
     try {
       await managerApi.vehicleTypes.remove(buildingId, id);
-      setFeedback({ type: 'ok', text: 'Đã xóa loại xe.' });
+      setFeedback({ type: 'ok', text: 'Vehicle type deleted.' });
       await load();
     } catch (err) {
-      setFeedback({ type: 'err', text: err instanceof Error ? err.message : 'Lỗi khi xóa.' });
+      setFeedback({ type: 'err', text: err instanceof Error ? err.message : 'Error deleting.' });
     }
   };
 
@@ -115,11 +115,10 @@ export function ManagerVehicleTypesPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Truck size={18} className="text-primary" />
-          <h2 className="text-base font-semibold text-foreground">Loại xe</h2>
+          <h2 className="text-base font-semibold text-foreground">Vehicle type</h2>
         </div>
         <Button size="sm" className="gap-2" onClick={() => { setShowCreate(true); setFeedback(null); }}>
-          <Plus size={14} /> Thêm loại xe
-        </Button>
+          <Plus size={14} />Add vehicle type</Button>
       </div>
 
       {feedback && (
@@ -128,11 +127,11 @@ export function ManagerVehicleTypesPage() {
         </div>
       )}
 
-      {/* Form tạo mới */}
+      {/* Create form */}
       {showCreate && (
         <Card className="border-primary/25">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm">Thêm loại xe mới</CardTitle>
+            <CardTitle className="text-sm">Add new vehicle type</CardTitle>
             <button type="button" onClick={() => setShowCreate(false)} className="text-muted-foreground hover:text-foreground">
               <X size={16} />
             </button>
@@ -140,49 +139,49 @@ export function ManagerVehicleTypesPage() {
           <CardContent className="grid gap-3">
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="grid gap-1.5">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Mã loại xe <span className="text-rose-400">*</span></label>
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Vehicle type code<span className="text-rose-400">*</span></label>
                 <Input
                   value={newCode}
                   onChange={(e) => setNewCode(e.target.value.toUpperCase())}
-                  placeholder="Ví dụ: CAR, MOTO, TRUCK"
+                  placeholder="e.g. CAR, MOTO, TRUCK"
                 />
               </div>
               <div className="grid gap-1.5">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Tên loại xe <span className="text-rose-400">*</span></label>
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Vehicle type name<span className="text-rose-400">*</span></label>
                 <Input
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
-                  placeholder="Ví dụ: Ô tô, Xe máy"
+                  placeholder="e.g. Car, Motorcycle"
                 />
               </div>
             </div>
             <div className="grid gap-1.5">
-              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Mô tả</label>
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Description</label>
               <Input
                 value={newDesc}
                 onChange={(e) => setNewDesc(e.target.value)}
-                placeholder="Mô tả ngắn (tuỳ chọn)"
+                placeholder="Short description (optional)"
               />
             </div>
             <div className="flex gap-2">
               <Button size="sm" onClick={handleCreate} disabled={isCreating || !newCode.trim() || !newName.trim()}>
-                {isCreating ? 'Đang tạo...' : 'Tạo loại xe'}
+                {isCreating ? 'Creating...' : 'Create vehicle type'}
               </Button>
-              <Button size="sm" variant="outline" onClick={() => setShowCreate(false)}>Hủy</Button>
+              <Button size="sm" variant="outline" onClick={() => setShowCreate(false)}>Cancel</Button>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Danh sách */}
+      {/* List */}
       <Card>
         <CardContent className="p-0">
           {loading ? (
-            <p className="p-5 text-sm text-muted-foreground">Đang tải...</p>
+            <p className="p-5 text-sm text-muted-foreground">Loading...</p>
           ) : error ? (
             <p className="p-5 text-sm text-rose-500">{error}</p>
           ) : items.length === 0 ? (
-            <p className="p-5 text-sm text-muted-foreground">Chưa có loại xe nào. Nhấn "Thêm loại xe" để bắt đầu.</p>
+            <p className="p-5 text-sm text-muted-foreground">No vehicle types yet. Click "Add vehicle type" to start.</p>
           ) : (
             <div className="divide-y divide-border">
               {items.map((item) => (
@@ -192,23 +191,23 @@ export function ManagerVehicleTypesPage() {
                     <div className="grid gap-3">
                       <div className="grid gap-3 sm:grid-cols-2">
                         <div className="grid gap-1.5">
-                          <label className="text-xs font-medium text-muted-foreground">Mã loại xe</label>
+                          <label className="text-xs font-medium text-muted-foreground">Vehicle type code</label>
                           <Input value={editCode} onChange={(e) => setEditCode(e.target.value.toUpperCase())} />
                         </div>
                         <div className="grid gap-1.5">
-                          <label className="text-xs font-medium text-muted-foreground">Tên loại xe</label>
+                          <label className="text-xs font-medium text-muted-foreground">Vehicle type name</label>
                           <Input value={editName} onChange={(e) => setEditName(e.target.value)} />
                         </div>
                       </div>
                       <div className="grid gap-1.5">
-                        <label className="text-xs font-medium text-muted-foreground">Mô tả</label>
+                        <label className="text-xs font-medium text-muted-foreground">Description</label>
                         <Input value={editDesc} onChange={(e) => setEditDesc(e.target.value)} />
                       </div>
                       <div className="flex gap-2">
                         <Button size="sm" onClick={handleUpdate} disabled={isSaving || !editName.trim()}>
-                          {isSaving ? 'Đang lưu...' : 'Lưu'}
+                          {isSaving ? 'Saving...' : 'Save'}
                         </Button>
-                        <Button size="sm" variant="outline" onClick={() => setEditId(null)}>Hủy</Button>
+                        <Button size="sm" variant="outline" onClick={() => setEditId(null)}>Cancel</Button>
                       </div>
                     </div>
                   ) : (
@@ -221,9 +220,7 @@ export function ManagerVehicleTypesPage() {
                           </span>
                           <span className="font-semibold text-foreground">{item.name}</span>
                           {!item.isActive && (
-                            <span className="rounded border border-rose-500/25 bg-rose-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-rose-500">
-                              Vô hiệu
-                            </span>
+                            <span className="rounded border border-rose-500/25 bg-rose-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-rose-500">Disabled</span>
                           )}
                         </div>
                         {item.description && (

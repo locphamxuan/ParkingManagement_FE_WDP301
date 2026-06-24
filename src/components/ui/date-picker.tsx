@@ -12,18 +12,18 @@ interface DatePickerProps {
 }
 
 const MONTH_NAMES = [
-  'Tháng Một',
-  'Tháng Hai',
-  'Tháng Ba',
-  'Tháng Tư',
-  'Tháng Năm',
-  'Tháng Sáu',
-  'Tháng Bảy',
-  'Tháng Tám',
-  'Tháng Chín',
-  'Tháng Mười',
-  'Tháng Mười Một',
-  'Tháng Mười Hai',
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
 ];
 
 const WEEK_DAYS = ['H', 'B', 'T', 'N', 'S', 'B', 'C'];
@@ -238,16 +238,12 @@ export function DatePicker({ value, onChange, placeholder = 'dd/mm/yyyy', classN
                 type="button"
                 onClick={handleClear}
                 className="text-[10px] font-black uppercase tracking-wider text-rose-400 hover:text-rose-300 transition-colors"
-              >
-                Xóa
-              </button>
+              >Delete</button>
               <button
                 type="button"
                 onClick={handleToday}
                 className="text-[10px] font-black uppercase tracking-wider text-orange-400 hover:text-orange-300 transition-colors"
-              >
-                Hôm nay
-              </button>
+              >Today</button>
             </div>
           </motion.div>
         )}

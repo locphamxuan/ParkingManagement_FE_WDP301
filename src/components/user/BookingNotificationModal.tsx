@@ -52,7 +52,7 @@ export function BookingNotificationModal({
                 >
                   <CheckCircle2 size={32} className="text-emerald-400" />
                 </motion.div>
-                <h3 className="text-lg font-black uppercase tracking-wider text-emerald-400">Thành công!</h3>
+                <h3 className="text-lg font-black uppercase tracking-wider text-emerald-400">Success!</h3>
                 <p className="mt-3 text-sm font-medium text-slate-300 leading-relaxed break-words">
                   {bookingSuccess}
                 </p>
@@ -60,9 +60,7 @@ export function BookingNotificationModal({
                   type="button"
                   onClick={onCloseSuccess}
                   className="mt-6 w-full rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 px-4 py-3 text-xs font-black uppercase tracking-wider text-slate-950 transition hover:brightness-110 active:scale-95 shadow-[0_4px_15px_rgba(16,185,129,0.2)]"
-                >
-                  Đồng ý
-                </button>
+                >OK</button>
               </div>
             ) : (
               <div className="flex flex-col items-center text-center">
@@ -74,7 +72,7 @@ export function BookingNotificationModal({
                 >
                   <XCircle size={32} className="text-rose-400" />
                 </motion.div>
-                <h3 className="text-lg font-black uppercase tracking-wider text-rose-400">Đã xảy ra lỗi</h3>
+                <h3 className="text-lg font-black uppercase tracking-wider text-rose-400">An error occurred</h3>
                 <p className="mt-3 text-sm font-medium text-slate-300 leading-relaxed break-words">
                   {bookingError}
                 </p>
@@ -82,9 +80,7 @@ export function BookingNotificationModal({
                   type="button"
                   onClick={onCloseError}
                   className="mt-6 w-full rounded-2xl bg-gradient-to-r from-rose-500 to-pink-500 px-4 py-3 text-xs font-black uppercase tracking-wider text-slate-950 transition hover:brightness-110 active:scale-95 shadow-[0_4px_15px_rgba(244,63,94,0.2)]"
-                >
-                  Đóng
-                </button>
+                >Close</button>
               </div>
             )}
           </motion.div>

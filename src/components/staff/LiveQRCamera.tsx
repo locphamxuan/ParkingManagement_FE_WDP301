@@ -9,7 +9,7 @@ interface LiveQRCameraProps {
   onResult: (code: string) => void;
   /** Pause detection (e.g. while a result modal is open). */
   paused?: boolean;
-  /** Thiết bị camera vật lý gán cho vai trò QR. */
+  /** Physical camera device assigned to the QR role. */
   deviceId?: string;
 }
 
@@ -46,8 +46,12 @@ export const LiveQRCamera = forwardRef<LiveCameraHandle, LiveQRCameraProps>(func
       if (!video || !canvas || video.videoWidth === 0) return null;
       const ctx = canvas.getContext('2d');
       if (!ctx) return null;
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
+      // Downscale to max 1280px wide (same as the plate camera) so the saved frame
+      // — used as the plate image in the QR→plate flow — stays a light payload.
+      const MAX_W = 1280;
+      const scale = Math.min(1, MAX_W / video.videoWidth);
+      canvas.width = Math.round(video.videoWidth * scale);
+      canvas.height = Math.round(video.videoHeight * scale);
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       return canvas.toDataURL('image/jpeg', 0.8);
     },
@@ -103,7 +107,7 @@ export const LiveQRCamera = forwardRef<LiveCameraHandle, LiveQRCameraProps>(func
         }
         setError(null);
       } catch {
-        if (!cancelled) setError('Không thể truy cập camera QR. Vui lòng cấp quyền.');
+        if (!cancelled) setError('Cannot access the QR camera. Please grant permission.');
       }
     })();
 
@@ -120,7 +124,7 @@ export const LiveQRCamera = forwardRef<LiveCameraHandle, LiveQRCameraProps>(func
     <div className="rounded-xl border border-border bg-card/40 p-3 space-y-2.5">
       <div className="flex items-center gap-2">
         <QrCode size={15} className="text-sky-400" />
-        <p className="text-sm font-semibold text-foreground">Camera 2 · Quét QR (tài khoản / phương tiện)</p>
+        <p className="text-sm font-semibold text-foreground">Camera 3 · QR scan (account / vehicle)</p>
       </div>
 
       <div className="relative aspect-[4/3] overflow-hidden rounded-lg border border-white/10 bg-black/60">
@@ -179,7 +183,7 @@ export const LiveQRCamera = forwardRef<LiveCameraHandle, LiveQRCameraProps>(func
       </div>
 
       <p className="text-center text-[11px] text-muted-foreground">
-        {paused ? 'Đang tạm dừng quét…' : 'Hướng mã QR vào khung — hệ thống tự nhận diện'}
+        {paused ? 'Scanning paused…' : 'Point the QR into the frame — the system recognizes it automatically'}
       </p>
 
       <canvas ref={canvasRef} className="hidden" />

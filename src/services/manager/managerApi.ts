@@ -96,12 +96,8 @@ export interface Subscription {
   startDate: string;
   endDate: string;
   status: 'pending' | 'active' | 'expired' | 'cancelled';
-  slot?: {
-    _id: string;
-    code: string;
-    floor?: string | { _id: string; code?: string; name?: string } | null;
-  } | string | null;
-  slotReleased?: boolean;
+  // NOTE: long-term packages are FLOATING — no fixed slot is held on the subscription.
+  // The slot is assigned by staff at each check-in, so there is no slot field here.
 }
 
 export interface ReservationPolicy {
@@ -285,6 +281,8 @@ export const managerApi = {
     remove: (b: string, id: string) => api.delete(path(b, `/packages/${id}`)),
     subscriptions: (b: string, q?: Record<string, string | undefined>) =>
       api.get<Wrap<{ items: Subscription[]; pagination: unknown }>>(path(b, '/subscriptions'), { query: q }),
+    cancelSubscription: (b: string, subscriptionId: string, reason?: string) =>
+      api.delete<Wrap<{ message: string }>>(path(b, `/subscriptions/${subscriptionId}`), { body: { reason } }),
   },
 
   reservationPolicy: {
@@ -322,6 +320,8 @@ export const managerApi = {
       api.get<
         Wrap<{ items: ShiftRevenue[]; totals: { sessionCount: number; totalRevenue: number; cashAmount: number; walletAmount: number; qrAmount: number } }>
       >(path(b, '/shift-revenues'), { query: q }),
+    listReports: (b: string, q?: Record<string, string | undefined>) =>
+      api.get<Wrap<{ items: ShiftReportSubmission[] }>>(path(b, '/shift-report-submissions'), { query: q }),
   },
 
   wallet: {
@@ -343,6 +343,22 @@ export const managerApi = {
       api.get<Wrap<{ status: string; credited: boolean }>>(path(b, `/wallet/topup/${orderCode}/verify`)),
   },
 };
+
+export interface ShiftReportSubmission {
+  _id: string;
+  workDate: string;
+  status: string;
+  staff: { _id: string; fullName: string; email: string } | null;
+  shift: { code: string; name: string; startTime: string; endTime: string } | null;
+  gate: { code: string; name: string; direction: string } | null;
+  revenueReport: {
+    submittedAt: string;
+    total: number;
+    count: number;
+    byMethod: { cash: number; wallet: number; online: number };
+  };
+  createdAt: string;
+}
 
 export const unwrapItems = <T,>(payload: Wrap<{ items: T[] }> | Wrap<T[]> | undefined): T[] => {
   if (!payload?.data) return [];

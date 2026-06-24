@@ -243,7 +243,7 @@ export function ManagerPricingPage() {
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Từ</label>
+            <label className="text-xs uppercase text-muted-foreground">From</label>
             <TimePicker
               value={form.fromTime}
               onChange={(val) => setForm((f) => ({ ...f, fromTime: val }))}

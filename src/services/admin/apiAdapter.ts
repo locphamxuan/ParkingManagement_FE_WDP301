@@ -61,6 +61,7 @@ interface ApiUser {
   isActive?: boolean;
   licensePlates?: Array<{ plateNumber?: string }>;
   phone?: string;
+  walletBalance?: number;
 }
 
 interface ApiAudit {
@@ -174,7 +175,7 @@ const toUser = (item: ApiUser): UserRecord => {
       email: item.email,
       role: item.role,
       status: item.isActive === false ? 'blocked' : 'active',
-      walletBalance: 0,
+      walletBalance: item.walletBalance ?? 0,
       linkedPlates: mergedPlates,
       phone: localUser.phone || item.phone || '',
     };
@@ -186,7 +187,7 @@ const toUser = (item: ApiUser): UserRecord => {
     email: item.email,
     role: item.role,
     status: item.isActive === false ? 'blocked' : 'active',
-    walletBalance: 0,
+    walletBalance: item.walletBalance ?? 0,
     linkedPlates: backendPlates,
     phone: item.phone || '',
   };

@@ -218,20 +218,20 @@ export default function ParkingHistoryPage() {
                       <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">In</p>
                       <p className="mt-1 text-xs text-slate-300">{fmtTime(session.checkIn)}</p>
                       {session.entryGate?.name && (
-                        <p className="mt-0.5 text-[10px] text-slate-500">Cổng: {session.entryGate.name}</p>
+                        <p className="mt-0.5 text-[10px] text-slate-500">Gate: {session.entryGate.name}</p>
                       )}
                     </div>
                     <div>
-                      <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Ra</p>
+                      <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Out</p>
                       <p className="mt-1 text-xs text-slate-300">{fmtTime(session.checkOut)}</p>
                       {session.exitGate?.name && (
-                        <p className="mt-0.5 text-[10px] text-slate-500">Cổng: {session.exitGate.name}</p>
+                        <p className="mt-0.5 text-[10px] text-slate-500">Gate: {session.exitGate.name}</p>
                       )}
                     </div>
 
                     {/* Fee */}
                     <div>
-                      <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Phí</p>
+                      <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Fee</p>
                       <p className={`mt-1 text-xs font-bold ${session.fee ? 'text-emerald-400' : 'text-slate-500'}`}>
                         {session.fee != null ? fmtVnd.format(session.fee) : '—'}
                       </p>

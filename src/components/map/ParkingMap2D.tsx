@@ -292,7 +292,7 @@ function EntryExitMarkers() {
         <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400/70">Entrance</span>
       </div>
       <div className="flex items-center gap-2">
-        <span className="text-[10px] font-black uppercase tracking-wider text-rose-400/70">Lối ra</span>
+        <span className="text-[10px] font-black uppercase tracking-wider text-rose-400/70">Exit</span>
         <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-rose-500/15 text-rose-400">
           <svg viewBox="0 0 16 16" fill="currentColor" className="h-3.5 w-3.5">
             <path d="M1 8h12M9 4l4 4-4 4" stroke="currentColor" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />

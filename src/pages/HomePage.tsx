@@ -205,7 +205,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
 
           <div className="flex items-center gap-5">
             <div className="text-right hidden sm:block">
-              <span className="text-[10px] uppercase font-mono tracking-wider text-slate-500 font-bold block">Hỗ trợ 24/7</span>
+              <span className="text-[10px] uppercase font-mono tracking-wider text-slate-500 font-bold block">24/7 Support</span>
               <strong className="text-xs font-black text-slate-300">1900 636 447</strong>
             </div>
 
@@ -268,7 +268,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
                       className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white"
                       onClick={() => { setMenuOpen(false); onViewWallet(); }}
                     >
-                      <Wallet size={12} className="inline-block mr-2" /> Ví tiền
+                      <Wallet size={12} className="inline-block mr-2" /> Wallet
                     </button>
                     <button
                       className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white"

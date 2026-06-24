@@ -1,16 +1,17 @@
 /**
  * Vietnamese license-plate normalization & validation (mirrors the backend
- * `plate.util.js`). Canonical form: `59G2-038.80`.
+ * `plate.util.js`). Canonical form: `59G2-038.80` or `51F-970.22`.
  *
  *   - province: 2 digits
- *   - series:   1 letter + 1 digit (G2, A1, F1) OR 2 letters (LD, MD). A bare
- *               single letter (e.g. `59G`) is NOT valid.
+ *   - series:   1 letter (F, A, G — car/motorcycle 5-digit plates),
+ *               1 letter + 1 digit (F1, A2, H7 — 4-digit plates),
+ *               or 2 letters (AB, LD — motorcycle 5-digit plates).
  *   - number:   4 or 5 digits. 5-digit groups render as `NNN.NN`; 4-digit plain.
  *
  * `normalizePlate` is idempotent on canonical input.
  */
 
-export const CANONICAL_PLATE_REGEX = /^\d{2}(?:[A-Z]\d|[A-Z]{2})-(?:\d{3}\.\d{2}|\d{4})$/;
+export const CANONICAL_PLATE_REGEX = /^\d{2}(?:[A-Z]{1,2}|[A-Z]\d)-(?:\d{3}\.\d{2}|\d{4})$/;
 
 /** Popular car makes on Vietnamese roads. */
 export const CAR_BRANDS = [

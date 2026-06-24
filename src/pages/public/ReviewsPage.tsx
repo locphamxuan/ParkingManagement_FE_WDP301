@@ -242,7 +242,7 @@ export default function ReviewsPage() {
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-slate-400 uppercase">Số sao</label>
+                <label className="text-[11px] font-bold text-slate-400 uppercase">Rating</label>
                 <select
                   value={selectedRating}
                   onChange={(e) => setSelectedRating(e.target.value)}
@@ -510,7 +510,7 @@ export default function ReviewsPage() {
                   className="w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs text-stone-850 placeholder:text-stone-400 focus:border-orange-500 focus:outline-none transition-all resize-none"
                 />
                 <div className="text-right text-[10px] text-stone-400">
-                  {commentInput.length} / 1000 ký tự
+                  {commentInput.length} / 1000 characters
                 </div>
               </div>
 

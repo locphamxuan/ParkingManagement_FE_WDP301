@@ -44,8 +44,8 @@ function plateMatchesVehicleTypes(plate: LicensePlate, vtypes: VehicleType[]): b
   const t = plate.vehicleType?.toLowerCase() ?? '';
   return vtypes.some((vt) => {
     const c = (vt.code || vt.name || '').toLowerCase();
-    if (t === 'motorcycle' || t === 'bike') return /motor|xe|máy|bike|moto/i.test(c);
-    return /car|oto|ô t|auto/i.test(c); // car, suv, truck all map to car
+    if (t === 'motorcycle' || t === 'bike') return /motor|bike|moto/i.test(c);
+    return /car|oto|auto/i.test(c); // car, suv, truck all map to car
   });
 }
 
@@ -357,7 +357,7 @@ export default function BuildingsPage() {
             <ArrowLeft size={14} />Home</button>
           <div className="hidden items-center gap-2 text-xs font-bold text-slate-500 sm:flex">
             <PhoneCall size={14} className="text-emerald-400/60" />
-            Hỗ trợ 1900 636 447
+            Support 1900 636 447
           </div>
         </div>
       </div>
@@ -445,7 +445,7 @@ export default function BuildingsPage() {
                   </div>
                   <div className="rounded-2xl border border-emerald-500/10 bg-gradient-to-br from-emerald-500/5 to-transparent p-4 transition-all duration-300 hover:border-emerald-500/20 hover:bg-emerald-500/[0.02]">
                     <SquareParking size={18} className="text-emerald-400/80" />
-                    <p className="mt-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">Chỗ trống</p>
+                    <p className="mt-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">Available</p>
                     <p className="mt-1 text-xl font-black text-emerald-400 shadow-emerald-400/10">
                       {detailLoading ? '…' : availableSlots}
                     </p>
@@ -467,7 +467,7 @@ export default function BuildingsPage() {
                   ) : (detail?.vehicleTypes.length ?? 0) > 0 ? (
                     <div className="mt-2.5 flex flex-wrap gap-2">
                       {detail!.vehicleTypes.map((vt) => {
-                        const isBike = /motor|xe|máy|bike|moto/i.test((vt.code || vt.name || ''));
+                        const isBike = /motor|bike|moto/i.test((vt.code || vt.name || ''));
                         return (
                           <span
                             key={vt._id}

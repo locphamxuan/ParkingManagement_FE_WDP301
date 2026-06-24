@@ -89,7 +89,7 @@ export function PlateQRModal({ isOpen, onClose, qrToken, plateNumber, brand }: P
 
                 <div className="space-y-3 rounded-2xl bg-slate-950/60 border border-white/5 p-4">
                   <div>
-                    <p className="text-[9px] font-black uppercase tracking-wider text-slate-500 font-mono mb-1">Biển số {brand ? `· ${brand}` : ''}</p>
+                    <p className="text-[9px] font-black uppercase tracking-wider text-slate-500 font-mono mb-1">Plate {brand ? `· ${brand}` : ''}</p>
                     <p className="text-sm font-semibold text-white font-mono">{plateNumber}</p>
                   </div>
                   <div>

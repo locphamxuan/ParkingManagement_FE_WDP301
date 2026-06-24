@@ -486,7 +486,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
           className="inline-flex items-center gap-2 rounded-xl border border-white/5 bg-slate-900/60 backdrop-blur-md px-4 py-2.5 text-xs font-black uppercase tracking-widest text-orange-400 shadow-xl hover:border-orange-500/30 hover:shadow-[0_0_15px_rgba(249,115,22,0.25)] hover:scale-105 transition-all duration-300"
         >
           <Home size={14} className="stroke-[3]" />
-          Về trang chủ
+          Go to home
         </a>
       </div>
 

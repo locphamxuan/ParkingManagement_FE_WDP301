@@ -75,7 +75,7 @@ export default function UserNotificationsPage() {
           <Bell size={20} className="text-orange-300" />
           <h1 className="text-2xl font-black text-white">Notifications</h1>
           {unread > 0 && (
-            <span className="rounded-full bg-rose-500 px-2 py-0.5 text-[11px] font-bold text-white">{unread} mới</span>
+            <span className="rounded-full bg-rose-500 px-2 py-0.5 text-[11px] font-bold text-white">{unread} new</span>
           )}
         </div>
 
@@ -108,7 +108,7 @@ export default function UserNotificationsPage() {
                 <p className="mt-1.5 text-sm font-semibold text-slate-100">{n.title}</p>
                 <p className="mt-1 text-xs leading-relaxed text-slate-400">{n.message}</p>
                 {n.plateNumber ? (
-                  <p className="mt-1 font-mono text-[11px] text-slate-500">Biển số: {n.plateNumber}</p>
+                  <p className="mt-1 font-mono text-[11px] text-slate-500">Plate: {n.plateNumber}</p>
                 ) : null}
               </button>
             ))}

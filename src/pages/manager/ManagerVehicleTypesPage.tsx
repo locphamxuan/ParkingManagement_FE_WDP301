@@ -21,7 +21,7 @@ export function ManagerVehicleTypesPage() {
   const [newDesc, setNewDesc] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
-  // Form chỉnh sửa
+  // Edit form
   const [editId, setEditId] = useState<string | null>(null);
   const [editCode, setEditCode] = useState('');
   const [editName, setEditName] = useState('');

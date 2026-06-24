@@ -21,7 +21,9 @@ import { staffApi, type PlateInfo } from '@/services/staff/staffApi';
 import { LivePlateCamera, type PlateScanResult, type LiveCameraHandle } from '@/components/staff/LivePlateCamera';
 import { LiveQRCamera } from '@/components/staff/LiveQRCamera';
 import { LivePortraitCamera } from '@/components/staff/LivePortraitCamera';
+import { UserAccountInfoModal } from '@/components/staff/UserAccountInfoModal';
 import { useCameraDevices, type CameraRole } from '@/hooks/useCameraDevices';
+import { useAssignedGates } from '@/hooks/staff/useAssignedGates';
 import { normalizePlate } from '@/utils/plate';
 
 type VehicleKind = 'car' | 'motorcycle';
@@ -34,6 +36,9 @@ const ALLOWED_TYPES = ['CAR', 'MOTORCYCLE'];
 
 export function StaffOperationsPage() {
   const { buildingId, building } = useBuildingContext();
+  const { gates } = useAssignedGates();
+  // The entry gate assigned to this staff for today's shift.
+  const entryGate = gates.find((g) => g.direction === 'in' || g.direction === 'both');
 
   const [loading, setLoading] = useState(false);
 
@@ -69,13 +74,26 @@ export function StaffOperationsPage() {
 
   // Plate → account info (display only; guest when no account)
   const [plateAccountInfo, setPlateAccountInfo] = useState<PlateInfo | null>(null);
+  // True while a lookupPlate request is in-flight — hides account banners to prevent stale data flash.
+  const [plateInfoLoading, setPlateInfoLoading] = useState(false);
+  // AbortController for the in-flight lookupPlate request. Aborted synchronously in
+  // handlePlateScanStart so the fetch is cancelled at the network level before React re-renders.
+  const lookupAbortRef = useRef<AbortController | null>(null);
   // Floating package: when plate has an active package, staff must choose an empty slot.
-  const [freeSlots, setFreeSlots] = useState<{ _id: string; code: string; floor?: { name?: string; code?: string } | null }[]>([]);
+  const [freeSlots, setFreeSlots] = useState<{ _id: string; code: string; floor?: { _id: string; name?: string; code?: string } | null }[]>([]);
   const [selectedSlotId, setSelectedSlotId] = useState('');
+  const [selectedFloorId, setSelectedFloorId] = useState('');
 
   // Reject check-in flow
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
+
+  // User QR popup
+  const [scannedUser, setScannedUser] = useState<{
+    id: string; fullName: string; email: string; phone?: string | null;
+    walletBalance?: number;
+    activeSessions?: Array<{ id: string; plateNumber: string; entryTime: string; fee?: number }>;
+  } | null>(null);
 
   // Both vehicle types supported by default (staff can always override)
   const allowedTypes = ALLOWED_TYPES;
@@ -122,24 +140,52 @@ export function StaffOperationsPage() {
     return null;
   }, [allowedTypes, vehicleType]);
 
-  // Auto-look up the plate owner
+  // Auto-look up the plate owner whenever plateNumber changes.
+  // Uses AbortController so the in-flight fetch is cancelled at the network level when
+  // the plate changes or the component unmounts — no stale response can ever reach setState.
   useEffect(() => {
     const clean = plateNumber.trim().toUpperCase();
-    if (clean.length >= 7) {
-      staffApi
-        .lookupPlate(clean)
-        .then((res) => {
-          setPlateAccountInfo((res as { data?: PlateInfo })?.data ?? null);
-        })
-        .catch(() => undefined);
-    } else {
+    if (clean.length < 7) {
       setPlateAccountInfo(null);
+      setPlateInfoLoading(false);
+      return;
     }
+
+    const controller = new AbortController();
+    lookupAbortRef.current = controller;
+    setPlateAccountInfo(null);
+    setPlateInfoLoading(true);
+
+    staffApi
+      .lookupPlate(clean, controller.signal)
+      .then((res) => {
+        setPlateAccountInfo((res as { data?: PlateInfo })?.data ?? null);
+        setPlateInfoLoading(false);
+      })
+      .catch((err: unknown) => {
+        // AbortError = this request was cancelled intentionally — ignore silently.
+        if ((err as { name?: string })?.name === 'AbortError') return;
+        setPlateInfoLoading(false);
+      });
+
+    return () => {
+      controller.abort();
+      lookupAbortRef.current = null;
+    };
   }, [plateNumber]);
 
+  // Display-level guard: only render account info when the lookup result is for the
+  // CURRENT plate. This catches any stale data that slips past the lookupReqId counter
+  // (e.g. React 18 batching causes two plateNumber changes to merge into one render).
+  // normalizePlate is idempotent on canonical form, so both sides produce identical strings.
+  const accountMatchesCurrentPlate =
+    plateAccountInfo !== null &&
+    normalizePlate(plateAccountInfo.plateNumber) === normalizePlate(plateNumber);
+
   // Plate has active package → load empty slots for the building so staff can assign a spot.
-  const hasActivePackage = Boolean(plateAccountInfo?.hasActivePackage);
-  const hasActiveReservation = Boolean(plateAccountInfo?.hasActiveReservation);
+  // Gated on accountMatchesCurrentPlate so stale plateAccountInfo never activates package flow.
+  const hasActivePackage = accountMatchesCurrentPlate && Boolean(plateAccountInfo?.hasActivePackage);
+  const hasActiveReservation = accountMatchesCurrentPlate && Boolean(plateAccountInfo?.hasActiveReservation);
   // Check-in kind determines photo rules:
   //  - 'package'/'reservation': scan only (plate/QR) for identification — no photo required.
   //  - 'standard' (guest / regular user): plate photo + portrait both required.
@@ -149,22 +195,28 @@ export function StaffOperationsPage() {
       ? 'reservation'
       : 'standard';
   useEffect(() => {
-    if (!hasActivePackage || !buildingId) {
+    // Fetch free slots for package (floating assignment) and standard/walk-in (BE requires slot when available)
+    if (checkInKind === 'reservation' || !buildingId) {
       setFreeSlots([]);
       setSelectedSlotId('');
+      setSelectedFloorId('');
       return;
     }
     let cancelled = false;
     staffApi
       .freeSlots(buildingId)
       .then((res) => {
-        if (!cancelled) setFreeSlots((res as { data?: { items?: typeof freeSlots } })?.data?.items ?? []);
+        if (!cancelled) {
+          setFreeSlots((res as { data?: { items?: typeof freeSlots } })?.data?.items ?? []);
+          setSelectedSlotId('');
+          setSelectedFloorId('');
+        }
       })
       .catch(() => undefined);
     return () => {
       cancelled = true;
     };
-  }, [hasActivePackage, buildingId]);
+  }, [checkInKind, buildingId]);
 
   // Apply recognized plate (AI/QR) → lookup runs automatically via effect on plateNumber.
   const applyPlate = (plate: string, brand: string | null = null) => {
@@ -173,11 +225,24 @@ export function StaffOperationsPage() {
     if (brand) setVehicleBrand(brand);
   };
 
+  // Called right before each camera scan — aborts any in-flight lookupPlate fetch at the
+  // network level (synchronously, before React re-renders), then clears all plate/account state.
+  const handlePlateScanStart = () => {
+    lookupAbortRef.current?.abort();
+    lookupAbortRef.current = null;
+    setPlateNumber('');
+    setVehicleBrand(null);
+    setPlateImage(null);
+    setPlateAccountInfo(null);
+    setPlateInfoLoading(false);
+  };
+
   // Plate camera: always save the captured image; only apply plate number if AI read it.
   // Do NOT auto-advance step — wait for lookup to determine kind (package/reservation/standard).
   const handlePlateDetected = ({ plateNumber: plate, brand, plateImage: img }: PlateScanResult) => {
     setPlateImage(img);
     if (plate) applyPlate(plate, brand);
+    // If scan returns empty, plate/account were already cleared by handlePlateScanStart.
   };
 
   // Leave step 1 → Portrait capture step. ALL check-in kinds require a portrait photo
@@ -216,13 +281,24 @@ export function StaffOperationsPage() {
         return;
       }
       if (data.kind === 'plate' && data.plate?.plateNumber) {
+        handlePlateScanStart(); // clear stale plate/account state before applying new QR result
         if (data.plate.vehicleType === 'motorcycle') setVehicleType('motorcycle');
         else if (data.plate.vehicleType) setVehicleType('car');
         applyPlate(data.plate.plateNumber, data.plate.brand ?? null);
-        // Do not auto-advance step — wait for lookup to determine kind; staff presses "Continue".
-        setOpMessage({ type: 'ok', text: `Plate ${data.plate.plateNumber} identified. Press "Continue".` });
-      } else if (data.user) {
-        setOpMessage({ type: 'ok', text: `Account identified: ${data.user.fullName} (${data.user.email}). Please scan or enter the vehicle plate.` });
+        // Capture the QR camera's current frame as the plate image — the camera is already
+        // pointed at the vehicle, so this frame serves as the plate photo for standard check-in.
+        const qrFrame = qrCamRef.current?.capture() ?? null;
+        if (qrFrame) setPlateImage(qrFrame);
+        // Switch to plate camera for visual confirmation and re-capture if staff wants.
+        setIdentifyMode('plate');
+        setOpMessage({
+          type: 'ok',
+          text: `Biển số ${data.plate.plateNumber} đã được nhận từ QR.${qrFrame ? ' Có thể chụp lại bằng camera biển số nếu muốn.' : ' Vui lòng chụp ảnh biển số để tiếp tục.'}`,
+        });
+      } else if (data.kind === 'user' && data.user) {
+        // Open full user info popup + pre-switch to plate camera so it's ready when popup closes.
+        setScannedUser({ ...data.user });
+        setIdentifyMode('plate');
       } else {
         setOpMessage({ type: 'err', text: 'QR code does not match any account or vehicle.' });
       }
@@ -237,17 +313,25 @@ export function StaffOperationsPage() {
     setPlateImage(null);
     setPortraitImage(null);
     setPlateAccountInfo(null);
+    setPlateInfoLoading(false);
     setFreeSlots([]);
     setSelectedSlotId('');
+    setSelectedFloorId('');
+    setScannedUser(null);
     setStep(1);
     setIdentifyMode('plate');
   };
 
   const onCheckIn = async () => {
     setOpMessage(null);
-    // Floating package: must select an empty slot before check-in.
+    // Package: must select a slot (floating model — slot not fixed at purchase).
     if (hasActivePackage && !selectedSlotId) {
-      setOpMessage({ type: 'err', text: 'This vehicle has a long-term package — please select an empty slot before check-in.' });
+      setOpMessage({ type: 'err', text: 'Xe có gói dài hạn — vui lòng chọn ô đỗ trước khi check-in.' });
+      return;
+    }
+    // Walk-in: slot required when building has available slots (BE enforces this).
+    if (checkInKind === 'standard' && freeSlots.length > 0 && !selectedSlotId) {
+      setOpMessage({ type: 'err', text: 'Vui lòng chọn ô đỗ cho khách vãng lai.' });
       return;
     }
     setLoading(true);
@@ -263,10 +347,11 @@ export function StaffOperationsPage() {
         plateNumber: currentPlate,
         vehicleType: vehicleType === 'motorcycle' ? 'motorcycle' : 'car',
         building: buildingId || undefined,
+        gate: entryGate?._id || undefined,
         vehicleBrand: vehicleBrand || undefined,
         plateImage: plateImg,
         portraitImage: portraitImg,
-        slot: hasActivePackage && selectedSlotId ? selectedSlotId : undefined,
+        slot: selectedSlotId || undefined,
       });
       setOpMessage({ type: 'ok', text: `Parking session created for plate ${currentPlate}.` });
       resetForm();
@@ -304,6 +389,28 @@ export function StaffOperationsPage() {
   // Does the detected/selected vehicle type differ from the registered one?
   const vehicleTypeMismatch = Boolean(
     plateAccountInfo?.registeredVehicleType && plateAccountInfo.registeredVehicleType !== vehicleType
+  );
+
+  // Unique floors from free slots (to drive the floor picker)
+  const uniqueFloors = useMemo(() => {
+    const seen = new Set<string>();
+    const floors: Array<{ _id: string; name?: string; code?: string }> = [];
+    for (const s of freeSlots) {
+      if (s.floor && !seen.has(s.floor._id)) {
+        seen.add(s.floor._id);
+        floors.push(s.floor);
+      }
+    }
+    return floors;
+  }, [freeSlots]);
+
+  // Slots filtered by selected floor (all slots when only 1 floor or no floor selected)
+  const slotsForFloor = useMemo(
+    () =>
+      uniqueFloors.length >= 2 && selectedFloorId
+        ? freeSlots.filter((s) => s.floor?._id === selectedFloorId)
+        : freeSlots,
+    [freeSlots, selectedFloorId, uniqueFloors]
   );
 
   return (
@@ -384,9 +491,9 @@ export function StaffOperationsPage() {
             {multiCamMode && (
               <div className="space-y-5">
                 <div className="grid gap-3 lg:grid-cols-3">
-                  <LivePlateCamera ref={plateCamRef} onDetected={handlePlateDetected} busy={loading} deviceId={assignment.plate} />
+                  <LivePlateCamera ref={plateCamRef} onDetected={handlePlateDetected} onScanStart={handlePlateScanStart} busy={loading} deviceId={assignment.plate} />
                   <LivePortraitCamera ref={portraitCamRef} deviceId={assignment.portrait} />
-                  <LiveQRCamera ref={qrCamRef} onResult={handleResolveIdQr} deviceId={assignment.qr} />
+                  <LiveQRCamera ref={qrCamRef} onResult={handleResolveIdQr} deviceId={assignment.qr} paused={plateNumber.trim().length >= 7 || !!scannedUser} />
                 </div>
 
                 {distinctDeviceCount < 2 && (
@@ -410,22 +517,22 @@ export function StaffOperationsPage() {
                       <Car size={11} /> Brand: {vehicleBrand}
                     </span>
                   )}
-                  {plateNumber.trim().length >= 7 && plateAccountInfo?.hasAccount && (
+                  {plateNumber.trim().length >= 7 && !plateInfoLoading && accountMatchesCurrentPlate && plateAccountInfo?.hasAccount && (
                     <div className="mt-1 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-2.5 text-xs text-emerald-400">
                       Member: <strong className="text-foreground">{plateAccountInfo.user?.fullName}</strong> ({plateAccountInfo.user?.email})
                     </div>
                   )}
-                  {plateNumber.trim().length >= 7 && plateAccountInfo && !plateAccountInfo.hasAccount && (
+                  {plateNumber.trim().length >= 7 && !plateInfoLoading && accountMatchesCurrentPlate && !plateAccountInfo?.hasAccount && (
                     <div className="mt-1 rounded-lg border border-amber-500/20 bg-amber-500/10 p-2.5 text-xs text-amber-300">
                       <strong className="text-foreground">Guest</strong> (no account).
                     </div>
                   )}
-                  {plateNumber.trim().length >= 7 && checkInKind === 'package' && (
+                  {plateNumber.trim().length >= 7 && !plateInfoLoading && checkInKind === 'package' && (
                     <div className="mt-1 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-300">
                       🅿️ Vehicle has a long-term package{plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''} — select an empty slot below.
                     </div>
                   )}
-                  {plateNumber.trim().length >= 7 && checkInKind === 'reservation' && (
+                  {plateNumber.trim().length >= 7 && !plateInfoLoading && checkInKind === 'reservation' && (
                     <div className="mt-1 rounded-lg border border-sky-500/30 bg-sky-500/10 p-2.5 text-xs text-sky-300">
                       📅 Vehicle has a reservation{plateAccountInfo?.activeReservation?.code ? ` (code ${plateAccountInfo.activeReservation.code})` : ''}.
                     </div>
@@ -454,27 +561,61 @@ export function StaffOperationsPage() {
                   )}
                 </div>
 
-                {/* Package: select empty slot */}
-                {hasActivePackage && (
+                {/* Slot + floor selection: required for package (floating) and walk-in */}
+                {!plateInfoLoading && (hasActivePackage || (checkInKind === 'standard' && freeSlots.length > 0)) && (
                   <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 space-y-2">
-                    <p className="text-[11px] font-bold text-amber-300 flex items-center gap-1"><AlertCircle size={12} /> Select an empty slot:</p>
-                    <select value={selectedSlotId} onChange={(e) => setSelectedSlotId(e.target.value)}
-                      className="h-10 w-full rounded-lg border border-white/10 bg-slate-950 px-3 text-sm font-semibold text-white outline-none focus:border-amber-400/60">
-                      <option value="">-- Select an empty slot --</option>
-                      {freeSlots.map((s) => (
-                        <option key={s._id} value={s._id}>{s.code}{s.floor?.name || s.floor?.code ? ` · ${s.floor?.name || s.floor?.code}` : ''}</option>
+                    <p className="text-[11px] font-bold text-amber-300 flex items-center gap-1">
+                      <AlertCircle size={12} />
+                      {hasActivePackage
+                        ? `Gói dài hạn${plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''} — chọn tầng và ô đỗ:`
+                        : 'Chọn tầng và ô đỗ cho khách vãng lai:'}
+                    </p>
+                    {uniqueFloors.length >= 2 && (
+                      <div>
+                        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-amber-200/60">Tầng:</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {uniqueFloors.map((f) => (
+                            <button
+                              key={f._id}
+                              type="button"
+                              onClick={() => { setSelectedFloorId(f._id); setSelectedSlotId(''); }}
+                              className={`rounded-lg px-3 py-1 text-xs font-bold transition-all ${
+                                selectedFloorId === f._id
+                                  ? 'bg-amber-500 text-slate-950 shadow-[0_0_8px_rgba(245,158,11,0.3)]'
+                                  : 'bg-amber-500/20 text-amber-300 hover:bg-amber-500/30'
+                              }`}
+                            >
+                              {f.name || f.code}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <select
+                      value={selectedSlotId}
+                      onChange={(e) => setSelectedSlotId(e.target.value)}
+                      disabled={uniqueFloors.length >= 2 && !selectedFloorId}
+                      className="h-10 w-full rounded-lg border border-white/10 bg-slate-950 px-3 text-sm font-semibold text-white outline-none focus:border-amber-400/60 disabled:opacity-40"
+                    >
+                      <option value="">
+                        {uniqueFloors.length >= 2 && !selectedFloorId ? '-- Chọn tầng trước --' : '-- Chọn ô đỗ --'}
+                      </option>
+                      {slotsForFloor.map((s) => (
+                        <option key={s._id} value={s._id}>
+                          {s.code}{uniqueFloors.length < 2 && (s.floor?.name || s.floor?.code) ? ` · ${s.floor?.name || s.floor?.code}` : ''}
+                        </option>
                       ))}
                     </select>
-                    {freeSlots.length === 0 && <p className="text-[11px] text-rose-300">No empty slots available.</p>}
+                    {freeSlots.length === 0 && <p className="text-[11px] text-rose-300">Không có ô trống.</p>}
                   </div>
                 )}
 
-                <p className="text-[11px] text-muted-foreground">Plate and portrait photos are captured simultaneously from all cameras when you press Check-in.</p>
+                <p className="text-[11px] text-muted-foreground">Ảnh biển số và chân dung được chụp đồng thời từ tất cả camera khi nhấn Check-in.</p>
 
                 <div className="flex gap-2">
                   <Button
                     onClick={onCheckIn}
-                    disabled={!plateNumber.trim() || loading || !!buildingSupportWarning || (hasActivePackage && !selectedSlotId)}
+                    disabled={!plateNumber.trim() || loading || !!buildingSupportWarning || (hasActivePackage && !selectedSlotId) || (checkInKind === 'standard' && freeSlots.length > 0 && !selectedSlotId)}
                     className="flex-1 h-11 gap-2 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60"
                   >
                     <ScanLine size={16} /> Check-in (entry)
@@ -507,11 +648,15 @@ export function StaffOperationsPage() {
                   </button>
                 </div>
 
-                {identifyMode === 'plate' ? (
-                  <LivePlateCamera ref={plateCamRef} onDetected={handlePlateDetected} busy={loading} deviceId={assignment.plate} />
-                ) : (
-                  <LiveQRCamera ref={qrCamRef} onResult={handleResolveIdQr} deviceId={assignment.qr} />
-                )}
+                {/* Always mount both cameras — switching via CSS avoids the camera restart
+                    race-condition where the browser hasn't released one device before
+                    the other component calls getUserMedia for the same device. */}
+                <div className={identifyMode !== 'plate' ? 'hidden' : ''}>
+                  <LivePlateCamera ref={plateCamRef} onDetected={handlePlateDetected} onScanStart={handlePlateScanStart} busy={loading} deviceId={assignment.plate} />
+                </div>
+                <div className={identifyMode !== 'qr' ? 'hidden' : ''}>
+                  <LiveQRCamera ref={qrCamRef} onResult={handleResolveIdQr} deviceId={assignment.qr} paused={identifyMode !== 'qr'} />
+                </div>
 
                 <div className="grid gap-1.5">
                   <label className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Plate number (or enter manually)</label>
@@ -530,7 +675,7 @@ export function StaffOperationsPage() {
                       <Car size={11} /> Brand: {vehicleBrand}
                     </span>
                   )}
-                  {plateNumber.trim().length >= 7 && plateAccountInfo?.hasAccount && (
+                  {plateNumber.trim().length >= 7 && !plateInfoLoading && accountMatchesCurrentPlate && plateAccountInfo?.hasAccount && (
                     <div className="mt-1 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-2.5 flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full bg-emerald-500" />
                       <p className="text-xs text-emerald-400">
@@ -538,7 +683,7 @@ export function StaffOperationsPage() {
                       </p>
                     </div>
                   )}
-                  {plateNumber.trim().length >= 7 && plateAccountInfo && !plateAccountInfo.hasAccount && (
+                  {plateNumber.trim().length >= 7 && !plateInfoLoading && accountMatchesCurrentPlate && !plateAccountInfo?.hasAccount && (
                     <div className="mt-1 rounded-lg border border-amber-500/20 bg-amber-500/10 p-2.5 flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full bg-amber-500" />
                       <p className="text-xs text-amber-300">
@@ -547,19 +692,20 @@ export function StaffOperationsPage() {
                     </div>
                   )}
                   {/* Check-in kind badge */}
-                  {plateNumber.trim().length >= 7 && checkInKind === 'package' && (
+                  {plateNumber.trim().length >= 7 && !plateInfoLoading && checkInKind === 'package' && (
                     <div className="mt-1 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-300">
                       🅿️ Vehicle has a <strong>long-term package</strong>{plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''} — next step: capture portrait &amp; select empty slot.
                     </div>
                   )}
-                  {plateNumber.trim().length >= 7 && checkInKind === 'reservation' && (
+                  {plateNumber.trim().length >= 7 && !plateInfoLoading && checkInKind === 'reservation' && (
                     <div className="mt-1 rounded-lg border border-sky-500/30 bg-sky-500/10 p-2.5 text-xs text-sky-300">
                       📅 Vehicle has a <strong>reservation</strong>{plateAccountInfo?.activeReservation?.code ? ` (code ${plateAccountInfo.activeReservation.code})` : ''} — next step: capture portrait to confirm.
                     </div>
                   )}
-                  {plateNumber.trim().length >= 7 && checkInKind === 'standard' && !plateImage && (
-                    <div className="mt-1 rounded-lg border border-rose-500/20 bg-rose-500/10 p-2.5 text-[11px] text-rose-300">
-                      <strong>Plate photo required</strong>: press "Capture &amp; scan" on the plate camera (mandatory for guests / standard users).
+                  {/* Only show the plate-photo instruction when in plate mode — never as a red blocker */}
+                  {plateNumber.trim().length >= 7 && identifyMode === 'plate' && checkInKind === 'standard' && !plateImage && (
+                    <div className="mt-1 rounded-lg border border-amber-500/20 bg-amber-500/10 p-2.5 text-[11px] text-amber-300">
+                      Nhấn <strong>"Chụp &amp; nhận dạng"</strong> ở camera biển số để chụp ảnh (bắt buộc cho khách vãng lai).
                     </div>
                   )}
                 </div>
@@ -598,12 +744,12 @@ export function StaffOperationsPage() {
             {!multiCamMode && step === 3 && (
               <div className="space-y-5">
                 {/* Check-in kind banner */}
-                {checkInKind === 'package' && (
+                {!plateInfoLoading && checkInKind === 'package' && (
                   <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-300">
                     🅿️ Vehicle has a long-term package{plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''} — select an empty slot below then check-in.
                   </div>
                 )}
-                {checkInKind === 'reservation' && (
+                {!plateInfoLoading && checkInKind === 'reservation' && (
                   <div className="rounded-lg border border-sky-500/30 bg-sky-500/10 p-2.5 text-xs text-sky-300">
                     📅 Vehicle has a reservation{plateAccountInfo?.activeReservation?.code ? ` (code ${plateAccountInfo.activeReservation.code})` : ''} — confirm to allow entry.
                   </div>
@@ -652,7 +798,7 @@ export function StaffOperationsPage() {
                       <Car size={11} /> Brand: {vehicleBrand}
                     </span>
                   )}
-                  {plateNumber.trim().length >= 7 && plateAccountInfo?.hasAccount && (
+                  {plateNumber.trim().length >= 7 && !plateInfoLoading && accountMatchesCurrentPlate && plateAccountInfo?.hasAccount && (
                     <div className="mt-1 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-2.5 flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full bg-emerald-500" />
                       <p className="text-xs text-emerald-400">
@@ -660,7 +806,7 @@ export function StaffOperationsPage() {
                       </p>
                     </div>
                   )}
-                  {plateNumber.trim().length >= 7 && plateAccountInfo && !plateAccountInfo.hasAccount && (
+                  {plateNumber.trim().length >= 7 && !plateInfoLoading && accountMatchesCurrentPlate && !plateAccountInfo?.hasAccount && (
                     <div className="mt-1 rounded-lg border border-amber-500/20 bg-amber-500/10 p-2.5 flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full bg-amber-500" />
                       <p className="text-xs text-amber-300">
@@ -705,30 +851,53 @@ export function StaffOperationsPage() {
                   )}
                 </div>
 
-                {/* Long-term package: must select an empty slot */}
-                {hasActivePackage && (
+                {/* Slot + floor selection: required for package and walk-in */}
+                {!plateInfoLoading && (hasActivePackage || (checkInKind === 'standard' && freeSlots.length > 0)) && (
                   <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 space-y-2">
                     <p className="text-[11px] font-bold text-amber-300 flex items-center gap-1">
-                      <AlertCircle size={12} /> Vehicle has a long-term package
-                      {plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''}
-                      {plateAccountInfo?.activePackage?.maxHoursPerDay
-                        ? ` · free ${plateAccountInfo.activePackage.maxHoursPerDay}h/day`
-                        : ''} — select an empty slot:
+                      <AlertCircle size={12} />
+                      {hasActivePackage
+                        ? `Gói dài hạn${plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''}${plateAccountInfo?.activePackage?.maxHoursPerDay ? ` · ${plateAccountInfo.activePackage.maxHoursPerDay}h/ngày` : ''} — chọn tầng và ô đỗ:`
+                        : 'Chọn tầng và ô đỗ cho khách vãng lai:'}
                     </p>
+                    {uniqueFloors.length >= 2 && (
+                      <div>
+                        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-amber-200/60">Tầng:</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {uniqueFloors.map((f) => (
+                            <button
+                              key={f._id}
+                              type="button"
+                              onClick={() => { setSelectedFloorId(f._id); setSelectedSlotId(''); }}
+                              className={`rounded-lg px-3 py-1 text-xs font-bold transition-all ${
+                                selectedFloorId === f._id
+                                  ? 'bg-amber-500 text-slate-950 shadow-[0_0_8px_rgba(245,158,11,0.3)]'
+                                  : 'bg-amber-500/20 text-amber-300 hover:bg-amber-500/30'
+                              }`}
+                            >
+                              {f.name || f.code}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     <select
                       value={selectedSlotId}
                       onChange={(e) => setSelectedSlotId(e.target.value)}
-                      className="h-10 w-full rounded-lg border border-white/10 bg-slate-950 px-3 text-sm font-semibold text-white outline-none focus:border-amber-400/60"
+                      disabled={uniqueFloors.length >= 2 && !selectedFloorId}
+                      className="h-10 w-full rounded-lg border border-white/10 bg-slate-950 px-3 text-sm font-semibold text-white outline-none focus:border-amber-400/60 disabled:opacity-40"
                     >
-                      <option value="">-- Select an empty slot --</option>
-                      {freeSlots.map((s) => (
+                      <option value="">
+                        {uniqueFloors.length >= 2 && !selectedFloorId ? '-- Chọn tầng trước --' : '-- Chọn ô đỗ --'}
+                      </option>
+                      {slotsForFloor.map((s) => (
                         <option key={s._id} value={s._id}>
-                          {s.code}{s.floor?.name || s.floor?.code ? ` · ${s.floor?.name || s.floor?.code}` : ''}
+                          {s.code}{uniqueFloors.length < 2 && (s.floor?.name || s.floor?.code) ? ` · ${s.floor?.name || s.floor?.code}` : ''}
                         </option>
                       ))}
                     </select>
                     {freeSlots.length === 0 && (
-                      <p className="text-[11px] text-rose-300">No empty slots available in this building.</p>
+                      <p className="text-[11px] text-rose-300">Không có ô trống trong tòa nhà này.</p>
                     )}
                   </div>
                 )}
@@ -748,10 +917,15 @@ export function StaffOperationsPage() {
                   </Button>
                   <Button
                     onClick={onCheckIn}
-                    disabled={!plateNumber.trim() || loading || !!buildingSupportWarning || !portraitImage || (hasActivePackage && !selectedSlotId) || (checkInKind === 'standard' && !plateImage)}
+                    disabled={
+                      !plateNumber.trim() || loading || !!buildingSupportWarning || !portraitImage ||
+                      (hasActivePackage && !selectedSlotId) ||
+                      (checkInKind === 'standard' && !plateImage) ||
+                      (checkInKind === 'standard' && freeSlots.length > 0 && !selectedSlotId)
+                    }
                     className="flex-1 h-11 gap-2 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60"
                   >
-                    <ScanLine size={16} /> Check-in (entry)
+                    <ScanLine size={16} /> Check-in (vào)
                   </Button>
                   <Button
                     type="button"
@@ -845,6 +1019,11 @@ export function StaffOperationsPage() {
             </div>
           </motion.div>
         </div>
+      )}
+
+      {/* User QR info popup */}
+      {scannedUser && (
+        <UserAccountInfoModal user={scannedUser} onClose={() => setScannedUser(null)} />
       )}
 
       {/* Reject check-in */}

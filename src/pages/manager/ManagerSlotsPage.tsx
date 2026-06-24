@@ -563,7 +563,7 @@ export function ManagerSlotsPage() {
 
                     <div className="space-y-2">
                       <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400 font-mono">
-                        <span>Góc Xoay Z</span>
+                        <span>Z Rotation</span>
                         <span className="text-orange-400 font-mono">{rz}°</span>
                       </div>
                       <input 

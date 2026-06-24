@@ -74,7 +74,7 @@ export function ManagerOperatingHoursPage() {
               {openNow ? 'Currently open' : 'Currently closed'}
             </p>
             <p className="text-xs text-muted-foreground">
-              {building ? `${building.code} · ${building.name}` : ''} · Khung giờ: {open} – {close}
+              {building ? `${building.code} · ${building.name}` : ''} · Time slots: {open} – {close}
             </p>
           </div>
         </CardContent>
@@ -87,7 +87,7 @@ export function ManagerOperatingHoursPage() {
         <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-1.5">
-              <label className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Giờ mở cửa</label>
+              <label className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Opening hours</label>
               <TimePicker value={open} onChange={setOpen} />
             </div>
             <div className="grid gap-1.5">

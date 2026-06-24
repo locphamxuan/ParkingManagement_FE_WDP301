@@ -6,7 +6,7 @@ import { videoConstraintFor } from '@/hooks/useCameraDevices';
 interface LivePortraitCameraProps {
   /** Pause stream rendering (kept for API parity; portrait cam always on). */
   paused?: boolean;
-  /** Thiết bị camera vật lý gán cho vai trò chân dung. */
+  /** Physical camera device assigned to the portrait role. */
   deviceId?: string;
 }
 
@@ -29,8 +29,12 @@ export const LivePortraitCamera = forwardRef<LiveCameraHandle, LivePortraitCamer
         if (!video || !canvas || video.videoWidth === 0) return null;
         const ctx = canvas.getContext('2d');
         if (!ctx) return null;
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
+        // Downscale to max 1280px wide (same as the plate camera) to keep the
+        // portrait snapshot a light payload when stored at check-in/check-out.
+        const MAX_W = 1280;
+        const scale = Math.min(1, MAX_W / video.videoWidth);
+        canvas.width = Math.round(video.videoWidth * scale);
+        canvas.height = Math.round(video.videoHeight * scale);
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         return canvas.toDataURL('image/jpeg', 0.8);
       },

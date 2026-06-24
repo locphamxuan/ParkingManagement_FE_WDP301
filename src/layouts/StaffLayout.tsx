@@ -6,12 +6,12 @@ import {
   Car,
   ChevronLeft,
   ChevronDown,
+  CircleDollarSign,
   LayoutDashboard,
   LogOut,
   ScanLine,
   ShieldAlert,
   User,
-  Wallet,
 } from 'lucide-react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { Button } from '@/components/ui/button';
@@ -23,13 +23,13 @@ import { cn } from '@/utils/cn';
 const pageTitle: Record<string, string> = {
   '': 'Overview',
   dashboard: 'Overview',
-  operations: 'Check in vehicle',
-  checkout: 'Check-out xe ra',
+  operations: 'Check-in',
+  checkout: 'Check-out',
   parked: 'Parked vehicles',
-  reservations: 'Reservation',
+  reservations: 'Reservations',
+  sessions: 'Revenue',
   'my-shifts': 'My shifts',
-  sessions: 'Payment tracking',
-  incidents: 'Incident management',
+  incidents: 'Incidents',
 };
 
 export function StaffLayout() {
@@ -47,13 +47,13 @@ export function StaffLayout() {
   const navItems = useMemo(
     () => [
       { to: '', label: 'Overview', icon: LayoutDashboard, end: true },
-      ...(showCheckIn ? [{ to: 'operations', label: 'Check in vehicle', icon: ScanLine }] : []),
-      ...(showCheckOut ? [{ to: 'checkout', label: 'Check-out xe ra', icon: LogOut }] : []),
+      ...(showCheckIn ? [{ to: 'operations', label: 'Check-in', icon: ScanLine }] : []),
+      ...(showCheckOut ? [{ to: 'checkout', label: 'Check-out', icon: LogOut }] : []),
       { to: 'parked', label: 'Parked vehicles', icon: Car },
-      { to: 'reservations', label: 'Reservation', icon: CalendarCheck2 },
-      { to: 'my-shifts', label: 'Shift', icon: CalendarClock },
-      { to: 'sessions', label: 'Payment', icon: Wallet },
-      { to: 'incidents', label: 'Incident', icon: ShieldAlert },
+      { to: 'reservations', label: 'Reservations', icon: CalendarCheck2 },
+      { to: 'sessions', label: 'Revenue', icon: CircleDollarSign },
+      { to: 'my-shifts', label: 'My shifts', icon: CalendarClock },
+      { to: 'incidents', label: 'Incidents', icon: ShieldAlert },
     ],
     [showCheckIn, showCheckOut],
   );

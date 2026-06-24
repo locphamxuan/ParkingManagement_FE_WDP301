@@ -203,7 +203,7 @@ function PackageSelectModal({
 
           <div>
             <label className="block text-xs font-bold uppercase text-slate-400 mb-1">
-              Biển số xe
+              License plate
             </label>
             <CustomSelect
               value={selectedPlate}
@@ -586,7 +586,7 @@ export default function LongTermSubscriptionsPage() {
           </div>
         ) : packagesError ? (
           <div className="rounded-2xl border border-rose-400/30 bg-rose-500/10 p-6 text-center">
-            <p className="text-rose-300 font-semibold">Lỗi: {packagesError.message}</p>
+            <p className="text-rose-300 font-semibold">Error: {packagesError.message}</p>
           </div>
         ) : displayPackages.length === 0 ? (
           <div className="rounded-2xl border border-white/10 bg-slate-900/50 p-12 text-center">
@@ -655,15 +655,13 @@ export default function LongTermSubscriptionsPage() {
                         <div className="flex items-center justify-between gap-2">
                           <p className="text-xs font-black text-orange-300">{item.package.name}</p>
                           <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider shrink-0 ${
-                            item.status === 'active'
+                            item.status === 'active' || item.status === 'pending'
                               ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                              : item.status === 'pending'
-                              ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                               : item.status === 'cancelled'
                               ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
                               : 'bg-slate-500/10 text-slate-400 border border-slate-500/20'
                           }`}>
-                            {item.status === 'active' ? 'Active' : item.status === 'pending' ? 'Pending activation' : item.status === 'cancelled' ? 'Cancelled' : 'Expired'}
+                            {item.status === 'active' || item.status === 'pending' ? 'Active' : item.status === 'cancelled' ? 'Cancelled' : 'Expired'}
                           </span>
                         </div>
                         <p className="mt-1 text-xs font-semibold text-slate-300">
@@ -712,7 +710,7 @@ export default function LongTermSubscriptionsPage() {
                             onClick={() => setCancellingSub(item)}
                             className="mt-2 w-full rounded-xl border border-rose-500/20 bg-rose-500/10 hover:bg-rose-500/20 px-3 py-1.5 text-xs font-black uppercase tracking-wider text-rose-400 transition-all active:scale-95"
                           >
-                            Hủy gói
+                            Cancel package
                           </button>
                         )}
 

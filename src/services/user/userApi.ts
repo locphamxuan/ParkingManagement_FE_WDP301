@@ -212,9 +212,9 @@ export interface UserWalletTransaction {
 
 export interface Feedback {
   _id: string;
-  user: { _id: string; fullName: string; email: string; avatar?: string | null };
-  building: { _id: string; name: string; code: string };
-  parkingSession: { _id: string; plateNumber: string; entryTime: string; exitTime: string; fee: number; status: string };
+  user: { _id: string; fullName: string; email: string; avatar?: string | null } | null;
+  building: { _id: string; name: string; code: string } | null;
+  parkingSession: { _id: string; plateNumber: string; entryTime: string; exitTime: string; fee: number; status: string } | null;
   rating: number;
   comment: string;
   portraitImageUrl?: string | null;

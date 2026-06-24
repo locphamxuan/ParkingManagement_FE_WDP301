@@ -93,10 +93,10 @@ export function ManagerReviewsPage() {
     if (!searchTerm.trim()) return true;
     const searchLower = searchTerm.toLowerCase();
     return (
-      review.user.fullName.toLowerCase().includes(searchLower) ||
-      review.user.email.toLowerCase().includes(searchLower) ||
-      review.parkingSession.plateNumber.toLowerCase().includes(searchLower) ||
-      review.comment.toLowerCase().includes(searchLower)
+      (review.user?.fullName ?? '').toLowerCase().includes(searchLower) ||
+      (review.user?.email ?? '').toLowerCase().includes(searchLower) ||
+      (review.parkingSession?.plateNumber ?? '').toLowerCase().includes(searchLower) ||
+      (review.comment ?? '').toLowerCase().includes(searchLower)
     );
   });
 
@@ -106,8 +106,8 @@ export function ManagerReviewsPage() {
       title: 'Users',
       render: (item) => (
         <div>
-          <p className="font-medium text-slate-100">{item.user.fullName}</p>
-          <p className="text-xs text-slate-400">{item.user.email}</p>
+          <p className="font-medium text-slate-100">{item.user?.fullName ?? '—'}</p>
+          <p className="text-xs text-slate-400">{item.user?.email ?? ''}</p>
         </div>
       ),
     },
@@ -116,7 +116,7 @@ export function ManagerReviewsPage() {
       title: 'Plate number',
       render: (item) => (
         <span className="inline-block rounded bg-slate-800/50 px-2.5 py-1 font-mono text-sm text-amber-300">
-          {item.parkingSession.plateNumber}
+          {item.parkingSession?.plateNumber ?? '—'}
         </span>
       ),
     },
@@ -266,7 +266,7 @@ export function ManagerReviewsPage() {
               <div className="mt-4 space-y-3 rounded-lg bg-slate-800/40 p-4">
                 <div>
                   <p className="text-xs font-semibold text-slate-400">USER</p>
-                  <p className="mt-1 font-medium text-slate-100">{selectedReview.user.fullName}</p>
+                  <p className="mt-1 font-medium text-slate-100">{selectedReview.user?.fullName ?? '—'}</p>
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-slate-400">RATING</p>

@@ -191,9 +191,13 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
     if (!target) return;
     setOpMessage(null);
     const dueFee = target.currentFee ?? target.fee ?? 0;
+    // Khách vãng lai (không có tài khoản) KHÔNG thể trả bằng ví — BE sẽ từ chối.
+    // Ép về tiền mặt để UI và BE luôn nhất quán.
+    const targetIsMember = Boolean(target.isMember ?? target.user ?? target.isLongTerm);
+    const effectiveMethod: PaymentKind = paymentMethod === 'wallet' && !targetIsMember ? 'cash' : paymentMethod;
     try {
       // Only create a bank-transfer QR when there is actually a fee due (subscription within limit = 0₫).
-      if (paymentMethod === 'bank_transfer' && dueFee > 0) {
+      if (effectiveMethod === 'bank_transfer' && dueFee > 0) {
         const res = await staffApi.initiateSessionPayment(target._id);
         const d = (res as unknown as { data?: { orderCode: number; checkoutUrl: string; amount: number; plateNumber?: string } })?.data;
         if (d) {
@@ -210,7 +214,7 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
       // Exit portrait: prefer the captured photo, otherwise grab a frame from the portrait camera.
       const exitPortrait = capturedPortraitImage ?? portraitCamRef.current?.capture() ?? null;
       await staffApi.checkOut(target._id, {
-        paymentMethod: dueFee > 0 ? paymentMethod : 'cash',
+        paymentMethod: dueFee > 0 ? effectiveMethod : 'cash',
         exitPlateImage: capturedPlateImage,
         exitPortraitImage: exitPortrait,
       });
@@ -308,25 +312,25 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
         </div>
       </div>
 
-      {/* ══ VIEW “scanner” — Check-out tab: camera scan only ══ */}
+      {/* ══ VIEW "scanner" — Check-out tab: camera scan only ══ */}
       {view === 'scanner' && (
-        <div className=”mx-auto w-full max-w-xl space-y-4”>
+        <div className="mx-auto w-full max-w-xl space-y-4">
           {!canCheckout ? (
-            <div className=”rounded-xl border border-amber-500/25 bg-amber-500/5 px-4 py-3 text-sm text-amber-300”>
+            <div className="rounded-xl border border-amber-500/25 bg-amber-500/5 px-4 py-3 text-sm text-amber-300">
               This account is not assigned to an exit gate — cannot release vehicles.
             </div>
           ) : !checkoutTarget && !bankTransfer && !rejectOpen ? (
-            <section className=”space-y-3 rounded-2xl border border-border bg-card p-5”>
-              <div className=”flex gap-2 p-1 rounded-lg bg-muted border border-border”>
+            <section className="space-y-3 rounded-2xl border border-border bg-card p-5">
+              <div className="flex gap-2 p-1 rounded-lg bg-muted border border-border">
                 <button
-                  type=”button”
+                  type="button"
                   onClick={() => setIdentifyMode('plate')}
                   className={`flex-1 flex items-center justify-center gap-1.5 h-9 rounded-md text-xs font-bold transition-all ${identifyMode === 'plate' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground'}`}
                 >
                   <ScanLine size={13} /> Scan plate (AI)
                 </button>
                 <button
-                  type=”button”
+                  type="button"
                   onClick={() => setIdentifyMode('qr')}
                   className={`flex-1 flex items-center justify-center gap-1.5 h-9 rounded-md text-xs font-bold transition-all ${identifyMode === 'qr' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground'}`}
                 >
@@ -338,8 +342,8 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
               ) : (
                 <LiveQRCamera onResult={handleResolveIdQr} />
               )}
-              <p className=”text-center text-[11px] text-muted-foreground”>
-                Scan plate / vehicle QR to locate a vehicle and open the payment modal. View all vehicles in the “Parked vehicles” tab.
+              <p className="text-center text-[11px] text-muted-foreground">
+                Scan plate / vehicle QR to locate a vehicle and open the payment modal. View all vehicles in the "Parked vehicles" tab.
               </p>
             </section>
           ) : null}
@@ -351,11 +355,11 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
         </div>
       )}
 
-      {/* ══ VIEW “list” — Parked vehicles tab: list (click to check out) ══ */}
+      {/* ══ VIEW "list" — Parked vehicles tab: list (click to check out) ══ */}
       {view === 'list' && (
-        <div className=”space-y-4”>
+        <div className="space-y-4">
           {!canCheckout && (
-            <div className=”rounded-xl border border-sky-500/25 bg-sky-500/5 px-4 py-3 text-sm text-sky-300”>
+            <div className="rounded-xl border border-sky-500/25 bg-sky-500/5 px-4 py-3 text-sm text-sky-300">
               <strong>Read-only</strong> mode. Releasing vehicles &amp; charging is handled by exit-gate staff.
             </div>
           )}
@@ -372,20 +376,20 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
             </CardHeader>
             <CardContent>
               {loading ? (
-                <p className=”text-sm text-muted-foreground”>Loading...</p>
+                <p className="text-sm text-muted-foreground">Loading...</p>
               ) : error ? (
-                <p className=”text-sm text-rose-400”>{error}</p>
+                <p className="text-sm text-rose-400">{error}</p>
               ) : sessions.length === 0 ? (
-                <div className=”py-10 text-center”>
-                  <Car size={28} className=”mx-auto mb-2 text-muted-foreground/40” />
-                  <p className=”text-sm text-muted-foreground”>No parked vehicles.</p>
+                <div className="py-10 text-center">
+                  <Car size={28} className="mx-auto mb-2 text-muted-foreground/40" />
+                  <p className="text-sm text-muted-foreground">No parked vehicles.</p>
                 </div>
               ) : (
-                <div className=”grid gap-3 sm:grid-cols-2 2xl:grid-cols-3”>
+                <div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
               {sessions.map((s) => {
                 const floor = s.slot?.floor?.name || s.slot?.floor?.code || '—';
                 const slotCode = s.slot?.code || '—';
-                const isMember = Boolean(s.isMember ?? s.user);
+                const isMember = Boolean(s.isMember ?? s.user ?? s.isLongTerm);
                 return (
                   <button
                     key={s._id}
@@ -426,7 +430,7 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
                     {/* Which staff checked in, via which gate (entry) */}
                     <p className="mt-0.5 text-[11px] text-muted-foreground truncate">
                       Check-in: {s.staff?.fullName ?? '—'}
-                      {s.entryGate?.code ? ` · gate ${s.entryGate.code}` : ''}
+                      {s.entryGate ? ` · ${s.entryGate.name ?? s.entryGate.code}` : ''}
                     </p>
 
                     {/* Camera snapshots */}
@@ -448,7 +452,7 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
                       </div>
                       <div>
                         <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Entry gate</span>
-                        <p className="font-medium text-foreground">{s.entryGate?.code ?? '—'}</p>
+                        <p className="font-medium text-foreground">{s.entryGate?.name ?? s.entryGate?.code ?? '—'}</p>
                       </div>
                       <div>
                         <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Floor</span>
@@ -549,83 +553,114 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
             <>
             {/* Photo comparison: at entry (saved) vs at exit (just scanned) */}
             <div className="mb-4 rounded-xl border border-amber-500/25 bg-amber-500/5 p-3">
-              <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-amber-400">Verify plate &amp; portrait photos</p>
+              <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-amber-400">Xác minh ảnh biển số &amp; chân dung</p>
               <div className="grid grid-cols-2 gap-3">
-                {/* Column: at entry */}
                 <div className="space-y-1.5">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">At entry (saved)</p>
-                  <CompareImg src={checkoutTarget.plateImage} label="Plate number" />
-                  <CompareImg src={checkoutTarget.portraitImage} label="Portrait" />
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Lúc vào (đã lưu)</p>
+                  <CompareImg src={checkoutTarget.plateImage} label="Biển số" />
+                  <CompareImg src={checkoutTarget.portraitImage} label="Chân dung" />
                 </div>
-                {/* Column: at exit */}
                 <div className="space-y-1.5">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">At exit (just scanned)</p>
-                  <CompareImg src={capturedPlateImage} label="Plate number" />
-                  <CompareImg src={capturedPortraitImage} label="Portrait" />
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Lúc ra (vừa chụp)</p>
+                  <CompareImg src={capturedPlateImage} label="Biển số" />
+                  <CompareImg src={capturedPortraitImage} label="Chân dung" />
                 </div>
               </div>
-              <p className="mt-2 text-[11px] text-muted-foreground">Staff verify whether they match. If they do not, click <strong className="text-rose-400">Reject</strong>.
-              </p>
+              <p className="mt-2 text-[11px] text-muted-foreground">Xác minh ảnh có khớp không. Nếu không, nhấn <strong className="text-rose-400">Từ chối</strong>.</p>
             </div>
 
             <div className="rounded-xl border border-border bg-card/50 p-4 space-y-1.5 text-sm">
-              <div className="flex justify-between"><span className="text-muted-foreground">Customer</span><span className="font-medium text-foreground">{(checkoutTarget.isMember ?? checkoutTarget.user) ? (checkoutTarget.user?.fullName || 'Member') : 'Guest'}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Vehicle type</span><span className="font-medium text-foreground">{checkoutTarget.vehicleType?.name ?? '—'}{checkoutTarget.vehicleBrand ? ` · ${checkoutTarget.vehicleBrand}` : ''}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Entry time</span><span className="font-medium text-foreground">{fmtTime(checkoutTarget.entryTime)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Parking duration</span><span className="font-medium text-foreground">{fmtDuration(checkoutTarget.entryTime)}</span></div>
-              <div className="flex justify-between border-t border-border/60 pt-1.5"><span className="text-muted-foreground">Check-in staff</span><span className="font-medium text-foreground">{checkoutTarget.staff?.fullName ?? '—'}{checkoutTarget.entryGate?.code ? ` · gate ${checkoutTarget.entryGate.code}` : ''}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Check-out staff</span><span className="font-medium text-emerald-400">{user?.fullName || user?.email || 'You'}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Khách hàng</span><span className="font-medium text-foreground">{(checkoutTarget.isMember ?? checkoutTarget.user ?? checkoutTarget.isLongTerm) ? (checkoutTarget.user?.fullName || 'Thành viên') : 'Khách vãng lai'}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Loại xe</span><span className="font-medium text-foreground">{checkoutTarget.vehicleType?.name ?? '—'}{checkoutTarget.vehicleBrand ? ` · ${checkoutTarget.vehicleBrand}` : ''}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Giờ vào</span><span className="font-medium text-foreground">{fmtTime(checkoutTarget.entryTime)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Thời gian đỗ</span><span className="font-medium text-foreground">{fmtDuration(checkoutTarget.entryTime)}</span></div>
+              <div className="flex justify-between border-t border-border/60 pt-1.5"><span className="text-muted-foreground">NV check-in</span><span className="font-medium text-foreground">{checkoutTarget.staff?.fullName ?? '—'}{checkoutTarget.entryGate ? ` · ${checkoutTarget.entryGate.name ?? checkoutTarget.entryGate.code}` : ''}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">NV check-out</span><span className="font-medium text-emerald-400">{user?.fullName || user?.email || 'Bạn'}</span></div>
             </div>
 
             {checkoutTarget.isLongTerm && (
               <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
-                Long-term subscription vehicle{checkoutTarget.maxHoursPerDay ? ` · free up to ${checkoutTarget.maxHoursPerDay}h/day` : ''}.{' '}
+                Xe gói dài hạn{checkoutTarget.maxHoursPerDay ? ` · miễn phí tới ${checkoutTarget.maxHoursPerDay}h/ngày` : ''}.{' '}
                 {(checkoutTarget.overageHours ?? 0) > 0
-                  ? `Parked ${checkoutTarget.overageHours?.toFixed(1)}h over the limit → overage charged at standard rate.`
-                  : 'Within limit → no charge.'}
+                  ? `Đỗ quá ${checkoutTarget.overageHours?.toFixed(1)}h → tính phí theo giá thường.`
+                  : 'Trong giới hạn → miễn phí.'}
               </div>
             )}
 
-            <div className="mt-4 rounded-xl border border-primary/30 bg-primary/10 p-4 flex items-center justify-between">
-              <span className="text-sm font-semibold text-foreground">Amount due</span>
-              <span className="font-mono text-2xl font-black text-primary">
-                {(checkoutTarget.currentFee ?? checkoutTarget.fee ?? 0) > 0
-                  ? fmtMoney(checkoutTarget.currentFee ?? checkoutTarget.fee)
-                  : 'Free'}
-              </span>
-            </div>
-
-            {(checkoutTarget.currentFee ?? checkoutTarget.fee ?? 0) > 0 && (
+            {/* Reservation checkout: auto wallet deduction — no manual payment selection */}
+            {Boolean(checkoutTarget.note?.startsWith('reservation')) ? (
               <>
-                <p className="mt-4 mb-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">Payment method</p>
-                <div className="grid gap-2 sm:grid-cols-3">
-                  {[{ value: 'cash', label: 'Cash' }, { value: 'bank_transfer', label: 'Bank transfer' }, { value: 'wallet', label: 'Deduct wallet' }].map((m) => (
-                    <button
-                      key={m.value}
-                      type="button"
-                      onClick={() => setPaymentMethod(m.value as PaymentKind)}
-                      className={`rounded-xl border px-3 py-2.5 text-center text-sm font-medium transition ${paymentMethod === m.value ? 'border-primary/40 bg-primary/10 text-foreground' : 'border-border bg-card text-muted-foreground hover:border-primary/20'}`}
-                    >
-                      {m.label}
-                    </button>
-                  ))}
+                <div className="mt-4 rounded-xl border border-sky-500/30 bg-sky-500/10 p-4 space-y-1">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-sky-400">Đặt chỗ trước</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-foreground">Còn lại phải trả</span>
+                    <span className="font-mono text-2xl font-black text-sky-400">
+                      {(checkoutTarget.currentFee ?? checkoutTarget.fee ?? 0) > 0
+                        ? fmtMoney(checkoutTarget.currentFee ?? checkoutTarget.fee)
+                        : 'Miễn phí'}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-sky-300/80">Số tiền sẽ tự động trừ vào ví tài khoản.</p>
+                </div>
+                <div className="mt-5 flex gap-2">
+                  <Button type="button" variant="outline" onClick={() => setCoStep(1)} className="h-11 gap-1">
+                    <ArrowLeft size={16} /> Quay lại
+                  </Button>
+                  <Button onClick={onCheckOut} disabled={loading} className="flex-1 h-11 gap-2 bg-gradient-to-r from-sky-500 to-blue-400 text-white hover:brightness-110 disabled:opacity-60">
+                    <CheckCircle2 size={16} /> Xác nhận &amp; cho ra
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => setRejectOpen(true)} className="h-11 border-rose-500/40 text-rose-400 hover:bg-rose-500/10">
+                    Từ chối
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="mt-4 rounded-xl border border-primary/30 bg-primary/10 p-4 flex items-center justify-between">
+                  <span className="text-sm font-semibold text-foreground">Số tiền cần thu</span>
+                  <span className="font-mono text-2xl font-black text-primary">
+                    {(checkoutTarget.currentFee ?? checkoutTarget.fee ?? 0) > 0
+                      ? fmtMoney(checkoutTarget.currentFee ?? checkoutTarget.fee)
+                      : 'Miễn phí'}
+                  </span>
+                </div>
+
+                {(checkoutTarget.currentFee ?? checkoutTarget.fee ?? 0) > 0 && (
+                  <>
+                    <p className="mt-4 mb-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">Phương thức thanh toán</p>
+                    <div className="grid gap-2 sm:grid-cols-3">
+                      {/* Khách vãng lai (không có tài khoản) không thể trừ ví — chỉ hiện ví cho thành viên. */}
+                      {([{ value: 'cash', label: 'Tiền mặt' }, { value: 'bank_transfer', label: 'Chuyển khoản' },
+                        ...((checkoutTarget.isMember ?? checkoutTarget.user ?? checkoutTarget.isLongTerm) ? [{ value: 'wallet', label: 'Trừ ví' }] : []),
+                      ] as { value: PaymentKind; label: string }[]).map((m) => (
+                        <button
+                          key={m.value}
+                          type="button"
+                          onClick={() => setPaymentMethod(m.value as PaymentKind)}
+                          className={`rounded-xl border px-3 py-2.5 text-center text-sm font-medium transition ${paymentMethod === m.value ? 'border-primary/40 bg-primary/10 text-foreground' : 'border-border bg-card text-muted-foreground hover:border-primary/20'}`}
+                        >
+                          {m.label}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                <div className="mt-5 flex gap-2">
+                  <Button type="button" variant="outline" onClick={() => setCoStep(1)} className="h-11 gap-1">
+                    <ArrowLeft size={16} /> Quay lại
+                  </Button>
+                  <Button onClick={onCheckOut} disabled={loading} className="flex-1 h-11 gap-2 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60">
+                    <CheckCircle2 size={16} /> {(checkoutTarget.currentFee ?? checkoutTarget.fee ?? 0) <= 0
+                      ? 'Cho ra (miễn phí)'
+                      : paymentMethod === 'bank_transfer' ? 'Tạo mã QR thanh toán' : `Thu ${fmtMoney(checkoutTarget.currentFee ?? checkoutTarget.fee)} &amp; cho ra`}
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => setRejectOpen(true)} className="h-11 border-rose-500/40 text-rose-400 hover:bg-rose-500/10">
+                    Từ chối
+                  </Button>
                 </div>
               </>
             )}
-
-            <div className="mt-5 flex gap-2">
-              <Button type="button" variant="outline" onClick={() => setCoStep(1)} className="h-11 gap-1">
-                <ArrowLeft size={16} /> Back
-              </Button>
-              <Button onClick={onCheckOut} disabled={loading} className="flex-1 h-11 gap-2 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60">
-                <CheckCircle2 size={16} /> {(checkoutTarget.currentFee ?? checkoutTarget.fee ?? 0) <= 0
-                  ? 'Release (free)'
-                  : paymentMethod === 'bank_transfer' ? 'Create payment QR' : `Charge ${fmtMoney(checkoutTarget.currentFee ?? checkoutTarget.fee)} & release`}
-              </Button>
-              <Button type="button" variant="outline" onClick={() => setRejectOpen(true)} className="h-11 border-rose-500/40 text-rose-400 hover:bg-rose-500/10">
-                Reject
-              </Button>
-            </div>
             </>
             )}
           </motion.div>

@@ -307,7 +307,7 @@ export function BuildingsPage() {
             className="gap-1"
             onClick={() => openViewDetail(row)}
           >
-            <Eye size={12} /> Chi tiết
+            <Eye size={12} /> Details
           </Button>
           <Button
             variant="secondary"
@@ -317,7 +317,7 @@ export function BuildingsPage() {
           >
             <Users size={12} />Members</Button>
           <Button variant="ghost" size="sm" onClick={() => openEditModal(row)}>
-            Sửa
+            Edit
           </Button>
           <Button variant="secondary" size="sm" onClick={() => toggleBuildingStatus(row)}>
             {row.status === 'active' ? 'Suspend' : 'Activate'}
@@ -452,7 +452,7 @@ export function BuildingsPage() {
               <p className="text-sm text-red-600">{detailError}</p>
             ) : (
               <div className="grid max-h-[70vh] gap-5 overflow-y-auto">
-                {/* Chính sách giá */}
+                {/* Price policies */}
                 <section>
                   <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     Price policies ({detailState.pricePolicies.length})

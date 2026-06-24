@@ -6,7 +6,7 @@ import { ArrowLeft, LogOut, User, Edit, Save, X, ShieldAlert, Plus, AlertCircle,
 import { syncPlates, listPlates, type PlateRecord } from '@/services/licensePlateService';
 import { UserQRModal } from '@/components/modals/UserQRModal';
 import { PlateQRModal } from '@/components/modals/PlateQRModal';
-import { userApi, type LongTermSubscription } from '@/services/user/userApi';
+import { userApi } from '@/services/user/userApi';
 import { normalizePlate, isValidVietnamPlate, brandsForVehicleType } from '@/utils/plate';
 import { showToast } from '@/components/common/ToastNotification';
 
@@ -71,7 +71,6 @@ export default function ProfilePage() {
   // Server plates carry the per-plate QR token (PLT-...) used by the plate-QR modal.
   const [serverPlates, setServerPlates] = useState<PlateRecord[]>([]);
   const [plateQrTarget, setPlateQrTarget] = useState<{ qrToken: string; plateNumber: string; brand?: string | null } | null>(null);
-  const [subscriptions, setSubscriptions] = useState<LongTermSubscription[]>([]);
   const [pwForm, setPwForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [pwError, setPwError] = useState<string | null>(null);
   const [pwSuccess, setPwSuccess] = useState<string | null>(null);
@@ -98,14 +97,6 @@ export default function ProfilePage() {
   // Fetch plates (with their PLT- QR tokens) so each plate can show its scannable QR.
   useEffect(() => {
     listPlates().then(setServerPlates).catch(() => undefined);
-  }, []);
-
-  // Fetch the user's purchased long-term subscriptions to show in the profile.
-  useEffect(() => {
-    userApi.longTermSubscriptions
-      .list()
-      .then((res) => setSubscriptions(res.data?.items ?? []))
-      .catch(() => undefined);
   }, []);
 
   const plateQrToken = (plateNumber: string): string | null =>
@@ -372,7 +363,7 @@ export default function ProfilePage() {
             onClick={() => navigate('/', { replace: true })}
           >
             <ArrowLeft size={14} className="stroke-[3]" />
-            Về trang chủ
+            Go to home
           </button>
 
           <button
@@ -427,55 +418,6 @@ export default function ProfilePage() {
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Purchased long-term packages */}
-        {subscriptions.length > 0 && (
-          <section className="mb-6 rounded-3xl border border-white/10 bg-slate-900/40 p-5">
-            <div className="mb-3 flex items-center gap-2">
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-orange-400 font-mono">My long-term packages</p>
-              <span className="rounded-full bg-orange-500/15 px-2 py-0.5 text-[10px] font-bold text-orange-300">{subscriptions.length}</span>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {subscriptions.map((s) => {
-                const statusMap: Record<string, { label: string; cls: string }> = {
-                  active: { label: 'Active', cls: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
-                  pending: { label: 'Pending activation', cls: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
-                  expired: { label: 'Expired', cls: 'bg-slate-500/10 text-slate-400 border-slate-500/20' },
-                  cancelled: { label: 'Cancelled', cls: 'bg-rose-500/10 text-rose-400 border-rose-500/20' },
-                };
-                const st = statusMap[s.status] ?? statusMap.expired;
-                return (
-                  <div key={s._id} className="rounded-2xl border border-white/10 bg-slate-950/50 p-4">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-black text-orange-300">{s.package?.name ?? 'Long-term package'}</p>
-                      <span className={`rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase ${st.cls}`}>{st.label}</span>
-                    </div>
-                    <p className="mt-1 font-mono text-xs font-semibold text-slate-200">{s.plateNumber ?? '—'}</p>
-                    <p className="mt-1 text-[11px] text-slate-400">
-                      {new Date(s.startDate).toLocaleDateString('vi-VN')} → {new Date(s.endDate).toLocaleDateString('vi-VN')}
-                    </p>
-                    {s.slot?.code && (
-                      <p className="mt-1 text-[11px] text-slate-400">Slot:<span className="font-bold text-slate-200">{s.slot.code}</span>
-                        {s.slot.floor && typeof s.slot.floor === 'object' && (s.slot.floor.name || s.slot.floor.code) ? (
-                          <span> · {s.slot.floor.name || s.slot.floor.code}</span>
-                        ) : null}
-                        {s.slotReleased ? <span className="text-rose-300">(released)</span> : null}
-                      </p>
-                    )}
-                    {typeof s.package?.maxHoursPerDay === 'number' && s.package.maxHoursPerDay > 0 && (
-                      <p className="mt-1 text-[11px] text-slate-400">Free hours: {s.package.maxHoursPerDay}h/day</p>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-            <button
-              type="button"
-              onClick={() => navigate('/long-term-subscriptions')}
-              className="mt-3 text-[11px] font-semibold text-orange-400 hover:text-orange-300"
-            >Manage / renew package →</button>
-          </section>
-        )}
 
         {/* Content Section layout */}
         <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
@@ -583,7 +525,7 @@ export default function ProfilePage() {
                         ? 'bg-rose-500/15 text-rose-400'
                         : 'bg-slate-800 text-slate-500'
                         }`}>
-                        {editPlates.length}/{MAX_PLATES} biển số
+                        {editPlates.length}/{MAX_PLATES} plates
                       </span>
                     </div>
 
@@ -651,7 +593,7 @@ export default function ProfilePage() {
                                     ? 'text-blue-400/60 hover:text-rose-400 hover:bg-rose-500/10'
                                     : 'text-purple-400/60 hover:text-rose-400 hover:bg-rose-500/10'
                               }`}
-                              title={`Xóa biển số ${item.plateNumber}`}
+                              title={`Delete plate ${item.plateNumber}`}
                             >
                               <X size={11} className="stroke-[3]" />
                             </motion.button>
@@ -955,7 +897,7 @@ export default function ProfilePage() {
                     <div className="rounded-2xl border border-white/5 bg-slate-950/70 p-4">
                       <p className="text-[10px] font-black uppercase text-slate-500 font-mono">Linked plates</p>
                       <p className={`mt-1 font-mono font-black text-sm ${user.licensePlates.length > 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
-                        {user.licensePlates.length > 0 ? `${user.licensePlates.length}/${MAX_PLATES} biển số` : 'None'}
+                        {user.licensePlates.length > 0 ? `${user.licensePlates.length}/${MAX_PLATES} plates` : 'None'}
                       </p>
                     </div>
                   )}
@@ -984,7 +926,7 @@ export default function ProfilePage() {
                     {user.licensePlates.length === 0
                       ? 'No plates linked yet.'
                       : user.licensePlates.length < MAX_PLATES
-                        ? `Còn ${MAX_PLATES - user.licensePlates.length} slot trống.`
+                        ? `${MAX_PLATES - user.licensePlates.length} slot(s) remaining.`
                         : 'Maximum limit reached.'}
                   </p>
                 </div>
@@ -1020,7 +962,7 @@ export default function ProfilePage() {
                 type="password"
                 value={pwForm.newPassword}
                 onChange={(e) => setPwForm((p) => ({ ...p, newPassword: e.target.value }))}
-                placeholder="Tối thiểu 6 ký tự"
+                placeholder="At least 6 characters"
                 className="h-10 w-full rounded-xl border border-white/10 bg-slate-950/50 px-3 text-sm text-white outline-none placeholder:text-slate-600 focus:border-orange-500/40 focus:ring-1 focus:ring-orange-500/20"
               />
             </div>

@@ -404,8 +404,8 @@ export default function ReservationsPage() {
         // Find vehicleTypeId from building's vehicle types
         const vt = vehicleTypesForBuilding.find((v) => {
           const c = (v.code || v.name || '').toLowerCase();
-          if (selectedVehicleType === 'motorcycle') return /motor|xe|máy|bike|moto/i.test(c);
-          return /car|oto|ô t|auto/i.test(c);
+          if (selectedVehicleType === 'motorcycle') return /motor|bike|moto/i.test(c);
+          return /car|oto|auto/i.test(c);
         });
 
         // Find the slot's _id
@@ -544,7 +544,7 @@ export default function ReservationsPage() {
               <div className="mt-4">
                 <div className="flex items-center gap-2 mb-2">
                   <Zap size={14} className="text-amber-300/70" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Biển số xe</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">License plate</span>
                 </div>
                 <CustomSelect
                   value={selectedPlate}

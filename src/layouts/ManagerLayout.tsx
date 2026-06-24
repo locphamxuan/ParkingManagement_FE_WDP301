@@ -19,6 +19,7 @@ const titles: Record<string, string> = {
   '/manager/reservation-policy': 'Reservation Policy',
   '/manager/packages': 'Subscription Packages',
   '/manager/shifts': 'Shifts & Assignments',
+  '/manager/shift-reports': 'Shift Revenue Reports',
   '/manager/reviews': 'Reviews',
   '/manager/wallet': 'Building Wallet',
   '/manager/profile': 'Profile',

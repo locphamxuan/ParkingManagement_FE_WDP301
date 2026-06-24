@@ -202,7 +202,7 @@ export function MultiSlotForm({ isOpen, onClose, onSubmit, floors }: MultiSlotFo
                   </div>
                 </div>
 
-                {/* Ghi Chú */}
+                {/* Note */}
                 <div className="space-y-1.5">
                   <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wide">Note</label>
                   <Input

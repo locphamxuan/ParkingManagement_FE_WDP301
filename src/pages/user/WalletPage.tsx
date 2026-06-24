@@ -413,7 +413,7 @@ export default function WalletPage() {
                     <ArrowUpRight size={16} />
                   </div>
                   <div>
-                    <p className="text-[9px] font-black uppercase tracking-wider text-slate-500">Tổng tiền ra</p>
+                    <p className="text-[9px] font-black uppercase tracking-wider text-slate-500">Total outflow</p>
                     <p className="mt-0.5 text-base font-bold text-orange-400">{fmtMoney(totalDebit)}</p>
                   </div>
                 </div>
@@ -752,7 +752,7 @@ export default function WalletPage() {
                 <div className="rounded-2xl border border-amber-500/10 bg-amber-500/[0.02] p-4 text-slate-400 flex items-start gap-3 shadow-inner">
                   <AlertCircle size={16} className="text-amber-400 shrink-0 mt-0.5 animate-pulse" />
                   <p className="text-[10px] leading-relaxed font-medium">
-                    <strong className="text-amber-300">Chú ý:</strong>Please scan the QR or enter the transfer details accurately (including<strong className="text-white">Amount</strong>and<strong className="text-white">Nội dung</strong>) so the system automatically detects and credits your balance immediately.</p>
+                    <strong className="text-amber-300">Note:</strong> Please scan the QR or enter the transfer details accurately (including <strong className="text-white">Amount</strong> and <strong className="text-white">Transfer note</strong>) so the system automatically detects and credits your balance immediately.</p>
                 </div>
               </div>
 

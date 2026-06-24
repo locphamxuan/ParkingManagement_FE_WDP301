@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 
 /**
- * Quản lý việc gán THIẾT BỊ CAMERA VẬT LÝ cho từng vai trò ở màn staff:
- *  - 'plate'    → camera quét biển số
- *  - 'portrait' → camera chân dung tài xế
- *  - 'qr'       → camera quét QR
+ * Manages physical camera device assignment for each role on the staff screen:
+ *  - 'plate'    → license-plate scanner camera
+ *  - 'portrait' → driver portrait camera
+ *  - 'qr'       → QR code scanner camera
  *
- * Ở thực tế có 2–3 camera USB → mỗi vai trò gán 1 deviceId riêng để mở đồng thời,
- * mỗi camera ra hình riêng. Trên laptop 1 webcam thì các vai trò trỏ cùng 1 thiết bị.
- * Lựa chọn được lưu localStorage để giữ giữa các phiên.
+ * In production with 2–3 USB cameras, each role gets a unique deviceId so all
+ * cameras can stream simultaneously. On a laptop with one webcam all roles share
+ * the same device. The assignment is persisted in localStorage across sessions.
  */
 export type CameraRole = 'plate' | 'portrait' | 'qr';
 
@@ -25,15 +25,14 @@ const readAssignment = (): CameraAssignment => {
 };
 
 /**
- * Tạo `video` constraint cho getUserMedia: ưu tiên deviceId đã gán, nếu chưa gán
- * thì fallback theo facingMode (mặc định camera sau cho biển số/QR, camera trước
- * cho chân dung).
+ * Builds a `video` constraint for getUserMedia: prefers the assigned deviceId;
+ * falls back to facingMode (rear camera for plate/QR, front camera for portrait).
  */
 export const videoConstraintFor = (
   deviceId: string | undefined,
   fallbackFacing: 'user' | 'environment' = 'environment',
 ): MediaTrackConstraints =>
-  deviceId ? { deviceId: { exact: deviceId } } : { facingMode: fallbackFacing };
+  deviceId ? { deviceId: { ideal: deviceId } } : { facingMode: fallbackFacing };
 
 export function useCameraDevices() {
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
@@ -49,13 +48,13 @@ export function useCameraDevices() {
     }
   }, []);
 
-  // Tên thiết bị (label) chỉ hiện sau khi đã cấp quyền camera — xin quyền 1 lần rồi liệt kê.
+  // Device labels are only available after camera permission is granted — request once then enumerate.
   const requestAndRefresh = useCallback(async () => {
     try {
       const s = await navigator.mediaDevices.getUserMedia({ video: true });
       s.getTracks().forEach((t) => t.stop());
     } catch {
-      /* quyền bị từ chối — vẫn thử liệt kê (label có thể trống) */
+      /* permission denied — still try to enumerate (labels may be empty) */
     }
     await refresh();
   }, [refresh]);

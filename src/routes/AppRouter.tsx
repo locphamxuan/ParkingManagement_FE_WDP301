@@ -42,6 +42,7 @@ const ManagerReservationPolicyPage = lazy(() => import('@/pages/manager/ManagerR
 const ManagerPackagesPage = lazy(() => import('@/pages/manager/ManagerPackagesPage').then((m) => ({ default: m.ManagerPackagesPage })));
 const ManagerSubscriptionsPage = lazy(() => import('@/pages/manager/ManagerSubscriptionsPage').then((m) => ({ default: m.ManagerSubscriptionsPage })));
 const ManagerShiftManagementPage = lazy(() => import('@/pages/manager/ManagerShiftManagementPage').then((m) => ({ default: m.ManagerShiftManagementPage })));
+const ManagerShiftReportsPage = lazy(() => import('@/pages/manager/ManagerShiftReportsPage').then((m) => ({ default: m.ManagerShiftReportsPage })));
 const ManagerOperatingHoursPage = lazy(() => import('@/pages/manager/ManagerOperatingHoursPage').then((m) => ({ default: m.ManagerOperatingHoursPage })));
 const ManagerStaffPage = lazy(() => import('@/pages/manager/ManagerStaffPage').then((m) => ({ default: m.ManagerStaffPage })));
 const ManagerWalletPage = lazy(() => import('@/pages/manager/ManagerWalletPage').then((m) => ({ default: m.ManagerWalletPage })));
@@ -116,6 +117,7 @@ export function AppRouter() {
           <Route path="packages" element={<ManagerPackagesPage />} />
           <Route path="subscriptions" element={<ManagerSubscriptionsPage />} />
           <Route path="shifts" element={<ManagerShiftManagementPage />} />
+          <Route path="shift-reports" element={<ManagerShiftReportsPage />} />
           <Route path="staff-shifts" element={<Navigate to="/manager/shifts" replace />} />
           <Route path="operating-hours" element={<ManagerOperatingHoursPage />} />
           <Route path="staff" element={<ManagerStaffPage />} />

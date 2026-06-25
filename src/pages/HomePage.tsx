@@ -857,16 +857,16 @@ interface TiltCardProps {
   glowColor?: string;
 }
 
-function TiltCard({ children, className = '', glowColor = 'rgba(249,115,22,0.15)' }: TiltCardProps) {
+function TiltCard({ children, className = '', glowColor = 'rgba(249,115,22,0.12)' }: TiltCardProps) {
   const x = useMotionValue(0.5);
   const y = useMotionValue(0.5);
 
-  const rotateX = useSpring(useTransform(y, [0, 1], [10, -10]), { stiffness: 300, damping: 30 });
-  const rotateY = useSpring(useTransform(x, [0, 1], [-10, 10]), { stiffness: 300, damping: 30 });
+  const rotateX = useSpring(useTransform(y, [0, 1], [8, -8]), { stiffness: 200, damping: 25 });
+  const rotateY = useSpring(useTransform(x, [0, 1], [-8, 8]), { stiffness: 200, damping: 25 });
 
   // Shine reflection position
-  const shineX = useTransform(x, [0, 1], ['-50%', '150%']);
-  const shineY = useTransform(y, [0, 1], ['-50%', '150%']);
+  const shineX = useTransform(x, [0, 1], ['-30%', '130%']);
+  const shineY = useTransform(y, [0, 1], ['-30%', '130%']);
 
   // Cursor glow background
   const glowX = useMotionValue(0);
@@ -891,6 +891,11 @@ function TiltCard({ children, className = '', glowColor = 'rgba(249,115,22,0.15)
     y.set(0.5);
   }
 
+  const borderBg = useTransform(
+    [glowX, glowY],
+    ([gx, gy]) => `radial-gradient(280px circle at ${gx}px ${gy}px, rgba(249,115,22,0.35), transparent 70%)`
+  );
+
   return (
     <motion.div
       onMouseMove={handleMouseMove}
@@ -900,30 +905,44 @@ function TiltCard({ children, className = '', glowColor = 'rgba(249,115,22,0.15)
         rotateY,
         transformStyle: 'preserve-3d',
       }}
-      className={`relative rounded-3xl overflow-hidden border border-white/10 bg-slate-900/60 backdrop-blur-xl transition-all duration-300 ${className}`}
+      className={`relative p-[1px] rounded-3xl overflow-hidden transition-all duration-300 ${className}`}
     >
-      {/* Interactive cursor glow */}
+      {/* Cursor-following border glow background */}
       <motion.div
-        className="pointer-events-none absolute -inset-px rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
         style={{
-          background: useTransform(
-            [glowX, glowY],
-            ([gx, gy]) => `radial-gradient(400px circle at ${gx}px ${gy}px, ${glowColor}, transparent 80%)`
-          ),
+          background: borderBg,
         }}
       />
+      
+      {/* Card Content body */}
+      <div 
+        className="h-full w-full rounded-[23px] bg-slate-950/85 backdrop-blur-xl p-8 md:p-12 relative overflow-hidden"
+        style={{ transformStyle: 'preserve-3d' }}
+      >
+        {/* Interactive cursor center glow */}
+        <motion.div
+          className="pointer-events-none absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-[23px]"
+          style={{
+            background: useTransform(
+              [glowX, glowY],
+              ([gx, gy]) => `radial-gradient(350px circle at ${gx}px ${gy}px, ${glowColor}, transparent 80%)`
+            ),
+          }}
+        />
 
-      {/* Shine overlay */}
-      <motion.div
-        className="pointer-events-none absolute w-[200%] h-[200%] -left-1/2 -top-1/2 opacity-20 mix-blend-overlay bg-[radial-gradient(circle,rgba(255,255,255,0.4)_0%,transparent_50%)]"
-        style={{
-          x: shineX,
-          y: shineY,
-        }}
-      />
+        {/* Shine overlay */}
+        <motion.div
+          className="pointer-events-none absolute w-[150%] h-[150%] -left-1/4 -top-1/4 opacity-0 group-hover:opacity-20 transition-opacity duration-300 mix-blend-overlay bg-[radial-gradient(circle,rgba(255,255,255,0.45)_0%,transparent_60%)]"
+          style={{
+            x: shineX,
+            y: shineY,
+          }}
+        />
 
-      <div style={{ transform: 'translateZ(20px)' }} className="relative z-10">
-        {children}
+        <div style={{ transform: 'translateZ(20px)', transformStyle: 'preserve-3d' }} className="relative z-10 h-full w-full">
+          {children}
+        </div>
       </div>
     </motion.div>
   );
@@ -1018,166 +1037,170 @@ function PremiumFooter({ user, onViewProfile, navigationLinks }: PremiumFooterPr
   }
 
   return (
-    <footer id="lien-he" className="bg-slate-950 border-t border-white/5 text-slate-400 pt-20 pb-10 relative z-10 overflow-hidden">
-      {/* Decorative gradients */}
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.03),transparent_65%)] blur-3xl pointer-events-none" />
-      <div className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.01),transparent_60%)] blur-3xl pointer-events-none" />
-
-      <div className="max-w-6xl mx-auto px-4 relative z-20">
-        <div className="grid md:grid-cols-3 gap-10 lg:gap-16 pb-16">
-          {/* Col 1: Platform Info */}
-          <div className="space-y-6">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-[0_0_15px_rgba(249,115,22,0.3)]">
-                <span className="text-slate-950 font-black text-base font-mono">P</span>
+    <footer id="lien-he" className="bg-slate-950 py-20 relative z-10 overflow-hidden">
+      {/* Ambient background glows */}
+      <div className="absolute bottom-0 left-1/4 w-[600px] h-[400px] bg-orange-500/5 rounded-full blur-[140px] pointer-events-none" />
+      
+      <div className="max-w-6xl mx-auto px-4">
+        <TiltCard className="group border border-white/5 shadow-2xl relative">
+          {/* Subtle tech grid background inside */}
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none rounded-[23px]" />
+          
+          <div className="relative z-20 grid md:grid-cols-3 gap-10 lg:gap-16 pb-12" style={{ transformStyle: 'preserve-3d' }}>
+            {/* Col 1: Platform Info */}
+            <div className="space-y-6" style={{ transform: 'translateZ(30px)' }}>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-[0_0_15px_rgba(249,115,22,0.3)]">
+                  <span className="text-slate-950 font-black text-base font-mono">P</span>
+                </div>
+                <div>
+                  <p className="text-sm font-black text-white tracking-wider font-mono leading-none">PBMS PLATFORM</p>
+                  <span className="text-[9px] text-slate-500 font-mono tracking-widest uppercase">Cloud Management</span>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-black text-white tracking-wider font-mono leading-none">PBMS PLATFORM</p>
-                <span className="text-[9px] text-slate-500 font-mono tracking-widest uppercase">Cloud Management</span>
+
+              <p className="text-xs leading-relaxed text-slate-400 font-medium">
+                Hệ thống quản lý bãi đỗ xe thông minh hàng đầu dành cho các tòa nhà và tổ chức doanh nghiệp lớn tại Việt Nam.
+              </p>
+
+              {/* Realtime Status Monitor */}
+              <div className="inline-flex items-center gap-2.5 px-3 py-2 rounded-xl bg-emerald-500/5 border border-emerald-500/10 backdrop-blur-sm shadow-[0_0_15px_rgba(16,185,129,0.05)]">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="text-[10px] font-bold text-emerald-400 font-mono uppercase tracking-wider">
+                  Mọi hệ thống đang hoạt động ổn định
+                </span>
+              </div>
+
+              <div className="text-[10px] text-slate-500 font-mono space-y-1">
+                <p>Phiên bản UI V2.5.0 - Cyberpunk Glassmorphism</p>
+                <p>Hệ thống tự động đồng bộ thời gian thực</p>
               </div>
             </div>
 
-            <p className="text-xs leading-relaxed text-slate-400 font-medium">
-              Hệ thống quản lý bãi đỗ xe thông minh hàng đầu dành cho các tòa nhà và tổ chức doanh nghiệp lớn tại Việt Nam.
-            </p>
-
-            {/* Realtime Status Monitor */}
-            <div className="inline-flex items-center gap-2.5 px-3 py-2 rounded-xl bg-emerald-500/5 border border-emerald-500/10 backdrop-blur-sm">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
-              <span className="text-[10px] font-bold text-emerald-400 font-mono uppercase tracking-wider">
-                Mọi hệ thống đang hoạt động ổn định
-              </span>
+            {/* Col 2: Navigation Links */}
+            <div className="space-y-6" style={{ transform: 'translateZ(30px)', transformStyle: 'preserve-3d' }}>
+              <h4 className="font-black text-white text-xs uppercase tracking-wider font-mono border-l-2 border-orange-500 pl-3">
+                Liên kết nhanh
+              </h4>
+              <nav className="flex flex-col gap-3">
+                {navigationLinks.map((link) => (
+                  <motion.a
+                    key={link.href}
+                    href={link.href}
+                    whileHover={{ x: 6, color: '#f97316' }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                    className="text-xs font-semibold text-slate-400 flex items-center gap-1.5 transition-colors"
+                  >
+                    <span className="w-1 h-1 rounded-full bg-white/20 group-hover:bg-orange-500 transition-colors" />
+                    {link.label}
+                  </motion.a>
+                ))}
+              </nav>
             </div>
 
-            <div className="text-[10px] text-slate-500 font-mono space-y-1">
-              <p>Phiên bản UI V2.5.0 - Cyberpunk Glassmorphism</p>
-              <p>Hệ thống tự động đồng bộ thời gian thực</p>
-            </div>
-          </div>
-
-          {/* Col 2: Navigation Links */}
-          <div className="space-y-6">
-            <h4 className="font-black text-white text-xs uppercase tracking-wider font-mono border-l-2 border-orange-500 pl-3">
-              Liên kết nhanh
-            </h4>
-            <nav className="flex flex-col gap-3">
-              {navigationLinks.map((link) => (
-                <motion.a
-                  key={link.href}
-                  href={link.href}
-                  whileHover={{ x: 6, color: '#f97316' }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                  className="text-xs font-semibold text-slate-400 flex items-center gap-1.5 transition-colors"
-                >
-                  <span className="w-1 h-1 rounded-full bg-white/20 group-hover:bg-orange-500 transition-colors" />
-                  {link.label}
-                </motion.a>
-              ))}
-            </nav>
-          </div>
-
-          {/* Col 3: Portal & Newsletter */}
-          <div className="space-y-6">
-            <h4 className="font-black text-white text-xs uppercase tracking-wider font-mono border-l-2 border-orange-500 pl-3">
-              Truy cập hệ thống
-            </h4>
-            
-            <div className="flex flex-wrap gap-2.5">
-              <motion.a
-                whileHover={{ scale: 1.03, backgroundColor: '#f97316', color: '#020617' }}
-                whileTap={{ scale: 0.98 }}
-                href="/auth/login"
-                className="px-4 py-2.5 bg-orange-500/10 border border-orange-500/20 text-orange-400 rounded-xl text-xs font-black uppercase transition-all"
-              >
-                Đăng nhập
-              </motion.a>
+            {/* Col 3: Portal & Newsletter */}
+            <div className="space-y-6" style={{ transform: 'translateZ(35px)', transformStyle: 'preserve-3d' }}>
+              <h4 className="font-black text-white text-xs uppercase tracking-wider font-mono border-l-2 border-orange-500 pl-3">
+                Truy cập hệ thống
+              </h4>
               
-              <motion.a
-                whileHover={{ scale: 1.03, borderColor: 'rgba(255,255,255,0.25)' }}
-                whileTap={{ scale: 0.98 }}
-                href="/auth/register"
-                className="px-4 py-2.5 bg-slate-900 border border-white/5 text-slate-300 rounded-xl text-xs font-bold uppercase transition-all"
-              >
-                Đăng ký thành viên
-              </motion.a>
-
-              {user ? (
-                <motion.button
-                  whileHover={{ scale: 1.03, borderColor: 'rgba(255,255,255,0.25)' }}
+              <div className="flex flex-wrap gap-2.5">
+                <motion.a
+                  whileHover={{ scale: 1.03, backgroundColor: '#f97316', color: '#020617', boxShadow: '0 0 15px rgba(249,115,22,0.3)' }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={onViewProfile}
+                  href="/auth/login"
+                  className="px-4 py-2.5 bg-orange-500/10 border border-orange-500/20 text-orange-400 rounded-xl text-xs font-black uppercase transition-all"
+                >
+                  Đăng nhập
+                </motion.a>
+                
+                <motion.a
+                  whileHover={{ scale: 1.03, borderColor: 'rgba(255,255,255,0.25)', backgroundColor: 'rgba(255,255,255,0.02)' }}
+                  whileTap={{ scale: 0.98 }}
+                  href="/auth/register"
                   className="px-4 py-2.5 bg-slate-900 border border-white/5 text-slate-300 rounded-xl text-xs font-bold uppercase transition-all"
                 >
-                  Hồ sơ
-                </motion.button>
-              ) : null}
-            </div>
-
-            <div className="pt-2">
-              <p className="text-[10px] font-black text-white uppercase tracking-wider font-mono mb-2">Đăng ký nhận tin tức</p>
-              <form onSubmit={handleSubscribe} className="relative flex items-center">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email của bạn..."
-                  className="w-full px-4 py-3 bg-slate-900/60 border border-white/5 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-orange-500/35 transition-all"
-                  required
-                />
-                <button
-                  type="submit"
-                  className="absolute right-1.5 p-2 bg-orange-500 text-slate-950 hover:bg-orange-400 rounded-lg transition-colors flex items-center justify-center"
-                >
-                  <ArrowRight size={14} strokeWidth={2.5} />
-                </button>
-              </form>
-              <AnimatePresence>
-                {subscribed && (
-                  <motion.p
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    className="text-[10px] text-emerald-400 font-bold mt-1.5 font-mono"
-                  >
-                    ✓ Đã đăng ký bản tin thành công!
-                  </motion.p>
-                )}
-              </AnimatePresence>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom footer bar */}
-        <div className="mt-6 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
-          <small className="text-[10px] font-bold text-slate-500 font-mono tracking-tight">
-            © {new Date().getFullYear()} PBMS PARKING. THIẾT KẾ GIAO DIỆN PREMIUM DƯỚI GIAO THỨC TẬP TRUNG.
-          </small>
-
-          {/* Social Links */}
-          <div className="flex items-center gap-3">
-            {[
-              { icon: Building2, label: 'Website', href: '#' },
-              { icon: Mail, label: 'Contact', href: 'mailto:support@pbms.com' },
-              { icon: PhoneCall, label: 'Hotline', href: 'tel:1900636447' }
-            ].map((social, index) => {
-              const Icon = social.icon;
-              return (
-                <motion.a
-                  key={index}
-                  href={social.href}
-                  whileHover={{ scale: 1.1, y: -2, backgroundColor: 'rgba(249,115,22,0.1)' }}
-                  className="w-8 h-8 rounded-xl bg-slate-900 border border-white/5 flex items-center justify-center text-slate-500 hover:text-orange-400 hover:border-orange-500/20 transition-colors"
-                  title={social.label}
-                >
-                  <Icon size={14} />
+                  Đăng ký thành viên
                 </motion.a>
-              );
-            })}
+
+                {user ? (
+                  <motion.button
+                    whileHover={{ scale: 1.03, borderColor: 'rgba(255,255,255,0.25)', backgroundColor: 'rgba(255,255,255,0.02)' }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={onViewProfile}
+                    className="px-4 py-2.5 bg-slate-900 border border-white/5 text-slate-300 rounded-xl text-xs font-bold uppercase transition-all"
+                  >
+                    Hồ sơ
+                  </motion.button>
+                ) : null}
+              </div>
+
+              <div className="pt-2">
+                <p className="text-[10px] font-black text-white uppercase tracking-wider font-mono mb-2">Đăng ký nhận tin tức</p>
+                <form onSubmit={handleSubscribe} className="relative flex items-center">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Email của bạn..."
+                    className="w-full px-4 py-3 bg-slate-900/60 border border-white/5 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-orange-500/35 transition-all"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    className="absolute right-1.5 p-2 bg-orange-500 text-slate-950 hover:bg-orange-400 rounded-lg transition-colors flex items-center justify-center"
+                  >
+                    <ArrowRight size={14} strokeWidth={2.5} />
+                  </button>
+                </form>
+                <AnimatePresence>
+                  {subscribed && (
+                    <motion.p
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="text-[10px] text-emerald-400 font-bold mt-1.5 font-mono"
+                    >
+                      ✓ Đã đăng ký bản tin thành công!
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
           </div>
-        </div>
+
+          {/* Bottom footer bar */}
+          <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6" style={{ transform: 'translateZ(25px)' }}>
+            <small className="text-[10px] font-bold text-slate-500 font-mono tracking-tight">
+              © {new Date().getFullYear()} PBMS PARKING. THIẾT KẾ GIAO DIỆN PREMIUM DƯỚI GIAO THỨC TẬP TRUNG.
+            </small>
+
+            {/* Social Links */}
+            <div className="flex items-center gap-3">
+              {[
+                { icon: Building2, label: 'Website', href: '#' },
+                { icon: Mail, label: 'Contact', href: 'mailto:support@pbms.com' },
+                { icon: PhoneCall, label: 'Hotline', href: 'tel:1900636447' }
+              ].map((social, index) => {
+                const Icon = social.icon;
+                return (
+                  <motion.a
+                    key={index}
+                    href={social.href}
+                    whileHover={{ scale: 1.1, y: -2, backgroundColor: 'rgba(249,115,22,0.1)', color: '#f97316', borderColor: 'rgba(249,115,22,0.2)' }}
+                    className="w-8 h-8 rounded-xl bg-slate-900/60 border border-white/5 flex items-center justify-center text-slate-500 hover:text-orange-400 transition-colors"
+                    title={social.label}
+                  >
+                    <Icon size={14} />
+                  </motion.a>
+                );
+              })}
+            </div>
+          </div>
+        </TiltCard>
       </div>
     </footer>
   );

@@ -796,55 +796,347 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
         </div>
       </section>
 
-      {/* CTA Footer banner */}
-      <section className="py-16 relative z-10 border-t border-white/5 bg-gradient-to-b from-slate-950 to-slate-900">
-        <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-orange-400 font-mono">Bắt Đầu Trải Nghiệm</span>
-            <h2 className="text-2xl font-black mt-1 text-white">Triển khai bãi đỗ xe thông minh toàn diện</h2>
-          </div>
-          <div className="flex gap-4">
-            <a href="/auth/register" className="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider hover:shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all duration-200">Tạo tài khoản</a>
-            {user ? (
-              <button className="px-6 py-3 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-xs uppercase tracking-wider hover:border-orange-500/25 transition-all duration-200" onClick={onViewProfile}>Xem hồ sơ</button>
-            ) : (
-              <a href="/auth/login" className="px-6 py-3 rounded-xl bg-slate-900 border border-white/10 text-white font-bold text-xs uppercase tracking-wider hover:border-orange-500/25 transition-all duration-200 inline-flex items-center">Đăng nhập</a>
-            )}
-          </div>
-        </div>
-      </section>
+      {/* Premium CTA Banner */}
+      <PremiumCTABanner user={user} onViewProfile={onViewProfile} />
 
-      {/* Cyber Footer */}
-      <footer id="lien-he" className="bg-slate-950 border-t border-white/5 text-slate-400 py-12 relative z-10">
-        <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-3 gap-10">
-          <div>
-            <p className="text-sm font-black text-white tracking-wider font-mono">PBMS PLATFORM</p>
-            <h3 className="mt-3 text-xs leading-relaxed font-semibold">Hệ thống quản lý bãi đỗ xe chuyên nghiệp dành cho tòa nhà và tổ chức doanh nghiệp lớn.</h3>
-            <p className="mt-2 text-[10px] text-slate-500 font-mono">Phiên bản UI V2.5.0 - Cyberpunk Glassmorphism</p>
+      {/* Premium Cyber Footer */}
+      <PremiumFooter user={user} onViewProfile={onViewProfile} navigationLinks={navigationLinks} />
+    </main>
+  );
+}
+
+// ==========================================
+// PREMIUM FOOTER & CTA BANNER COMPONENTS WITH 3D TILT
+// ==========================================
+
+interface TiltCardProps {
+  children: React.ReactNode;
+  className?: string;
+  glowColor?: string;
+}
+
+function TiltCard({ children, className = '', glowColor = 'rgba(249,115,22,0.15)' }: TiltCardProps) {
+  const x = useMotionValue(0.5);
+  const y = useMotionValue(0.5);
+
+  const rotateX = useSpring(useTransform(y, [0, 1], [10, -10]), { stiffness: 300, damping: 30 });
+  const rotateY = useSpring(useTransform(x, [0, 1], [-10, 10]), { stiffness: 300, damping: 30 });
+
+  // Shine reflection position
+  const shineX = useTransform(x, [0, 1], ['-50%', '150%']);
+  const shineY = useTransform(y, [0, 1], ['-50%', '150%']);
+
+  // Cursor glow background
+  const glowX = useMotionValue(0);
+  const glowY = useMotionValue(0);
+  
+  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    
+    x.set(mouseX / width);
+    y.set(mouseY / height);
+
+    glowX.set(mouseX);
+    glowY.set(mouseY);
+  }
+
+  function handleMouseLeave() {
+    x.set(0.5);
+    y.set(0.5);
+  }
+
+  return (
+    <motion.div
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        rotateX,
+        rotateY,
+        transformStyle: 'preserve-3d',
+      }}
+      className={`relative rounded-3xl overflow-hidden border border-white/10 bg-slate-900/60 backdrop-blur-xl transition-all duration-300 ${className}`}
+    >
+      {/* Interactive cursor glow */}
+      <motion.div
+        className="pointer-events-none absolute -inset-px rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        style={{
+          background: useTransform(
+            [glowX, glowY],
+            ([gx, gy]) => `radial-gradient(400px circle at ${gx}px ${gy}px, ${glowColor}, transparent 80%)`
+          ),
+        }}
+      />
+
+      {/* Shine overlay */}
+      <motion.div
+        className="pointer-events-none absolute w-[200%] h-[200%] -left-1/2 -top-1/2 opacity-20 mix-blend-overlay bg-[radial-gradient(circle,rgba(255,255,255,0.4)_0%,transparent_50%)]"
+        style={{
+          x: shineX,
+          y: shineY,
+        }}
+      />
+
+      <div style={{ transform: 'translateZ(20px)' }} className="relative z-10">
+        {children}
+      </div>
+    </motion.div>
+  );
+}
+
+interface PremiumCTABannerProps {
+  user: any;
+  onViewProfile: () => void;
+}
+
+function PremiumCTABanner({ user, onViewProfile }: PremiumCTABannerProps) {
+  return (
+    <section className="py-20 relative z-10 overflow-hidden bg-slate-950">
+      {/* Background glow effects */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-orange-500/10 rounded-full blur-[120px] pointer-events-none" />
+      
+      <div className="max-w-6xl mx-auto px-4">
+        <TiltCard className="group p-8 md:p-12 border border-white/10 hover:border-orange-500/30 shadow-2xl shadow-orange-950/10 bg-slate-900/40 relative">
+          {/* Subtle tech grid background inside */}
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none rounded-3xl" />
+          
+          <div className="relative flex flex-col md:flex-row items-center justify-between gap-8 z-20">
+            <div className="text-center md:text-left">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-[10px] font-black uppercase tracking-wider font-mono">
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
+                Bắt Đầu Trải Nghiệm Mới
+              </div>
+              <h2 className="text-2xl md:text-3xl font-black mt-4 text-white tracking-tight leading-tight">
+                Triển khai bãi đỗ xe <br className="hidden md:inline" />
+                <span className="bg-gradient-to-r from-orange-400 via-amber-400 to-orange-500 bg-clip-text text-transparent">thông minh toàn diện</span>
+              </h2>
+              <p className="text-xs text-slate-400 mt-2 max-w-md leading-relaxed font-semibold">
+                Quản lý tối ưu, đặt chỗ tức thì và giám sát thời gian thực. Nâng tầm giá trị cho bãi đỗ xe của tòa nhà bạn.
+              </p>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto shrink-0 justify-center">
+              <motion.a
+                whileHover={{ scale: 1.03, boxShadow: '0 0 25px rgba(249,115,22,0.4)' }}
+                whileTap={{ scale: 0.98 }}
+                href="/auth/register"
+                className="px-8 py-4 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider text-center transition-all duration-200"
+              >
+                Tạo tài khoản
+              </motion.a>
+              
+              {user ? (
+                <motion.button
+                  whileHover={{ scale: 1.03, borderColor: 'rgba(249,115,22,0.4)' }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={onViewProfile}
+                  className="px-8 py-4 rounded-xl bg-slate-950/80 border border-white/10 text-white font-bold text-xs uppercase tracking-wider transition-all duration-200 text-center backdrop-blur-sm"
+                >
+                  Xem hồ sơ của bạn
+                </motion.button>
+              ) : (
+                <motion.a
+                  whileHover={{ scale: 1.03, borderColor: 'rgba(249,115,22,0.4)' }}
+                  whileTap={{ scale: 0.98 }}
+                  href="/auth/login"
+                  className="px-8 py-4 rounded-xl bg-slate-950/80 border border-white/10 text-white font-bold text-xs uppercase tracking-wider transition-all duration-200 inline-flex items-center justify-center backdrop-blur-sm"
+                >
+                  Đăng nhập cổng
+                </motion.a>
+              )}
+            </div>
+          </div>
+        </TiltCard>
+      </div>
+    </section>
+  );
+}
+
+interface PremiumFooterProps {
+  user: any;
+  onViewProfile: () => void;
+  navigationLinks: Array<{ href: string; label: string }>;
+}
+
+function PremiumFooter({ user, onViewProfile, navigationLinks }: PremiumFooterProps) {
+  const [email, setEmail] = useState('');
+  const [subscribed, setSubscribed] = useState(false);
+
+  function handleSubscribe(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email) return;
+    setSubscribed(true);
+    setTimeout(() => {
+      setSubscribed(false);
+      setEmail('');
+    }, 3000);
+  }
+
+  return (
+    <footer id="lien-he" className="bg-slate-950 border-t border-white/5 text-slate-400 pt-20 pb-10 relative z-10 overflow-hidden">
+      {/* Decorative gradients */}
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.03),transparent_65%)] blur-3xl pointer-events-none" />
+      <div className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.01),transparent_60%)] blur-3xl pointer-events-none" />
+
+      <div className="max-w-6xl mx-auto px-4 relative z-20">
+        <div className="grid md:grid-cols-3 gap-10 lg:gap-16 pb-16">
+          {/* Col 1: Platform Info */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-[0_0_15px_rgba(249,115,22,0.3)]">
+                <span className="text-slate-950 font-black text-base font-mono">P</span>
+              </div>
+              <div>
+                <p className="text-sm font-black text-white tracking-wider font-mono leading-none">PBMS PLATFORM</p>
+                <span className="text-[9px] text-slate-500 font-mono tracking-widest uppercase">Cloud Management</span>
+              </div>
+            </div>
+
+            <p className="text-xs leading-relaxed text-slate-400 font-medium">
+              Hệ thống quản lý bãi đỗ xe thông minh hàng đầu dành cho các tòa nhà và tổ chức doanh nghiệp lớn tại Việt Nam.
+            </p>
+
+            {/* Realtime Status Monitor */}
+            <div className="inline-flex items-center gap-2.5 px-3 py-2 rounded-xl bg-emerald-500/5 border border-emerald-500/10 backdrop-blur-sm">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span className="text-[10px] font-bold text-emerald-400 font-mono uppercase tracking-wider">
+                Mọi hệ thống đang hoạt động ổn định
+              </span>
+            </div>
+
+            <div className="text-[10px] text-slate-500 font-mono space-y-1">
+              <p>Phiên bản UI V2.5.0 - Cyberpunk Glassmorphism</p>
+              <p>Hệ thống tự động đồng bộ thời gian thực</p>
+            </div>
           </div>
 
-          <div>
-            <h4 className="font-black text-white text-xs uppercase tracking-wider">Liên kết nhanh</h4>
-            <nav className="mt-3 flex flex-col gap-2">
+          {/* Col 2: Navigation Links */}
+          <div className="space-y-6">
+            <h4 className="font-black text-white text-xs uppercase tracking-wider font-mono border-l-2 border-orange-500 pl-3">
+              Liên kết nhanh
+            </h4>
+            <nav className="flex flex-col gap-3">
               {navigationLinks.map((link) => (
-                <a key={link.href} href={link.href} className="text-xs hover:text-orange-400 transition-colors">{link.label}</a>
+                <motion.a
+                  key={link.href}
+                  href={link.href}
+                  whileHover={{ x: 6, color: '#f97316' }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                  className="text-xs font-semibold text-slate-400 flex items-center gap-1.5 transition-colors"
+                >
+                  <span className="w-1 h-1 rounded-full bg-white/20 group-hover:bg-orange-500 transition-colors" />
+                  {link.label}
+                </motion.a>
               ))}
             </nav>
           </div>
 
-          <div>
-            <h4 className="font-black text-white text-xs uppercase tracking-wider">Truy cập cổng</h4>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <a href="/auth/login" className="px-3.5 py-2 bg-orange-500/10 border border-orange-500/20 text-orange-400 hover:bg-orange-500 hover:text-slate-950 rounded-xl text-xs font-black uppercase transition-all">Đăng nhập</a>
-              <a href="/auth/register" className="px-3.5 py-2 bg-slate-900 border border-white/5 text-slate-300 hover:border-white/20 rounded-xl text-xs font-bold uppercase transition-all">Đăng ký</a>
-              {user ? <button onClick={onViewProfile} className="px-3.5 py-2 bg-slate-900 border border-white/5 text-slate-300 hover:border-white/20 rounded-xl text-xs font-bold uppercase transition-all">Hồ sơ</button> : null}
+          {/* Col 3: Portal & Newsletter */}
+          <div className="space-y-6">
+            <h4 className="font-black text-white text-xs uppercase tracking-wider font-mono border-l-2 border-orange-500 pl-3">
+              Truy cập hệ thống
+            </h4>
+            
+            <div className="flex flex-wrap gap-2.5">
+              <motion.a
+                whileHover={{ scale: 1.03, backgroundColor: '#f97316', color: '#020617' }}
+                whileTap={{ scale: 0.98 }}
+                href="/auth/login"
+                className="px-4 py-2.5 bg-orange-500/10 border border-orange-500/20 text-orange-400 rounded-xl text-xs font-black uppercase transition-all"
+              >
+                Đăng nhập
+              </motion.a>
+              
+              <motion.a
+                whileHover={{ scale: 1.03, borderColor: 'rgba(255,255,255,0.25)' }}
+                whileTap={{ scale: 0.98 }}
+                href="/auth/register"
+                className="px-4 py-2.5 bg-slate-900 border border-white/5 text-slate-300 rounded-xl text-xs font-bold uppercase transition-all"
+              >
+                Đăng ký thành viên
+              </motion.a>
+
+              {user ? (
+                <motion.button
+                  whileHover={{ scale: 1.03, borderColor: 'rgba(255,255,255,0.25)' }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={onViewProfile}
+                  className="px-4 py-2.5 bg-slate-900 border border-white/5 text-slate-300 rounded-xl text-xs font-bold uppercase transition-all"
+                >
+                  Hồ sơ
+                </motion.button>
+              ) : null}
+            </div>
+
+            <div className="pt-2">
+              <p className="text-[10px] font-black text-white uppercase tracking-wider font-mono mb-2">Đăng ký nhận tin tức</p>
+              <form onSubmit={handleSubscribe} className="relative flex items-center">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Email của bạn..."
+                  className="w-full px-4 py-3 bg-slate-900/60 border border-white/5 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-orange-500/35 transition-all"
+                  required
+                />
+                <button
+                  type="submit"
+                  className="absolute right-1.5 p-2 bg-orange-500 text-slate-950 hover:bg-orange-400 rounded-lg transition-colors flex items-center justify-center"
+                >
+                  <ArrowRight size={14} strokeWidth={2.5} />
+                </button>
+              </form>
+              <AnimatePresence>
+                {subscribed && (
+                  <motion.p
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="text-[10px] text-emerald-400 font-bold mt-1.5 font-mono"
+                  >
+                    ✓ Đã đăng ký bản tin thành công!
+                  </motion.p>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </div>
-        <div className="mt-10 border-t border-white/5 pt-6 text-center">
-          <small className="text-[10px] font-bold text-slate-500 font-mono">© {new Date().getFullYear()} PBMS PARKING. THIẾT KẾ GIAO DIỆN PREMIUM DƯỚI GIAO THỨC TẬP TRUNG.</small>
+
+        {/* Bottom footer bar */}
+        <div className="mt-6 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
+          <small className="text-[10px] font-bold text-slate-500 font-mono tracking-tight">
+            © {new Date().getFullYear()} PBMS PARKING. THIẾT KẾ GIAO DIỆN PREMIUM DƯỚI GIAO THỨC TẬP TRUNG.
+          </small>
+
+          {/* Social Links */}
+          <div className="flex items-center gap-3">
+            {[
+              { icon: Building2, label: 'Website', href: '#' },
+              { icon: Mail, label: 'Contact', href: 'mailto:support@pbms.com' },
+              { icon: PhoneCall, label: 'Hotline', href: 'tel:1900636447' }
+            ].map((social, index) => {
+              const Icon = social.icon;
+              return (
+                <motion.a
+                  key={index}
+                  href={social.href}
+                  whileHover={{ scale: 1.1, y: -2, backgroundColor: 'rgba(249,115,22,0.1)' }}
+                  className="w-8 h-8 rounded-xl bg-slate-900 border border-white/5 flex items-center justify-center text-slate-500 hover:text-orange-400 hover:border-orange-500/20 transition-colors"
+                  title={social.label}
+                >
+                  <Icon size={14} />
+                </motion.a>
+              );
+            })}
+          </div>
         </div>
-      </footer>
-    </main>
+      </div>
+    </footer>
   );
 }

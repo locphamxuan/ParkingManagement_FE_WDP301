@@ -332,7 +332,16 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
   const serviceModules = useMemo(() => modules.filter((m) => !m.available), [modules]);
   const [showPlateBanner, setShowPlateBanner] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Số thông báo chưa đọc — hiện badge trên nút tài khoản (chỉ khi đã đăng nhập là user).
   const [unreadNotif, setUnreadNotif] = useState(0);
@@ -414,34 +423,42 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
 
 
       {/* Cyber Header Navigation */}
-      <header className="border-b border-white/5 bg-slate-950/60 sticky top-0 z-40 backdrop-blur-md">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <header className={`sticky top-0 z-40 transition-all duration-500 border-b ${
+        scrolled 
+          ? 'bg-slate-950/85 backdrop-blur-xl border-orange-500/10 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.8),0_1px_0_0_rgba(249,115,22,0.15)] py-2.5' 
+          : 'bg-transparent border-transparent py-4'
+      }`}>
+        {/* Top edge glowing gradient border */}
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-orange-500 via-amber-400 to-purple-600 opacity-60 pointer-events-none" />
+
+        <div className="max-w-6xl mx-auto px-4 flex items-center justify-between">
           <a href="#top" aria-label="PBMS Trang chủ" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 grid place-items-center shadow-[0_0_15px_rgba(249,115,22,0.3)] transition-all group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(249,115,22,0.5)]">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 grid place-items-center shadow-[0_0_15px_rgba(249,115,22,0.3)] transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(249,115,22,0.5)] group-hover:rotate-6">
               <span className="w-2.5 h-2.5 bg-slate-950 rounded-full" />
             </div>
             <div>
-              <strong className="block text-lg font-black tracking-tight bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">PBMS Parking</strong>
-              <span className="text-[10px] uppercase font-mono tracking-widest text-slate-500 font-extrabold">Cloud Management</span>
+              <strong className="block text-lg font-black tracking-tight bg-gradient-to-r from-orange-400 via-amber-400 to-orange-500 bg-clip-text text-transparent group-hover:brightness-110 transition-all duration-300">PBMS Parking</strong>
+              <span className="text-[10px] uppercase font-mono tracking-widest text-slate-500 font-extrabold block">Cloud Management</span>
             </div>
           </a>
 
-          <nav className="hidden md:flex gap-6">
+          <nav className="hidden md:flex gap-8">
             {navigationLinks.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
-                className="text-sm font-semibold text-slate-400 hover:text-orange-400 transition-colors duration-200"
+                className="text-sm font-bold text-slate-400 hover:text-white relative py-1.5 transition-colors duration-300 group"
               >
                 {link.label}
+                <span className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-orange-500 to-amber-400 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
               </a>
             ))}
           </nav>
 
           <div className="flex items-center gap-5">
-            <div className="text-right hidden sm:block">
-              <span className="text-[10px] uppercase font-mono tracking-wider text-slate-500 font-bold block">Hỗ trợ 24/7</span>
-              <strong className="text-xs font-black text-slate-300">1900 636 447</strong>
+            <div className="text-right hidden sm:block group cursor-pointer">
+              <span className="text-[9px] uppercase font-mono tracking-widest text-slate-500 font-black block">Hỗ trợ 24/7</span>
+              <strong className="text-xs font-black text-slate-300 group-hover:text-orange-400 transition-colors duration-300">1900 636 447</strong>
             </div>
 
             {user ? (
@@ -450,11 +467,13 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
                   type="button"
                   aria-expanded={menuOpen}
                   onClick={() => setMenuOpen((v) => !v)}
-                  className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl bg-slate-900 border border-white/10 hover:border-orange-500/30 text-white transition-all shadow-md"
+                  className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl bg-slate-900/80 backdrop-blur-sm border border-white/5 hover:border-orange-500/30 text-white transition-all duration-300 shadow-lg hover:shadow-orange-500/5"
                 >
-                  <User size={14} className="text-orange-400" />
-                  <span className="text-xs font-bold">{user.fullName ?? user.email}</span>
-                  <ChevronDown size={12} className="text-slate-400" />
+                  <div className="w-5 h-5 rounded-full bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
+                    <User size={10} className="text-orange-400" />
+                  </div>
+                  <span className="text-xs font-extrabold tracking-tight">{user.fullName ?? user.email}</span>
+                  <ChevronDown size={12} className="text-slate-400 transition-transform duration-300" style={{ transform: menuOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
                 </button>
 
                 {unreadNotif > 0 && (
@@ -472,57 +491,61 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
                   </span>
                 )}
 
-                {menuOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="absolute right-0 mt-2 w-48 bg-slate-900/95 border border-white/10 rounded-xl shadow-2xl py-2 backdrop-blur-md z-50"
-                  >
-                    <button
-                      className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-between"
-                      onClick={() => { setMenuOpen(false); onViewProfile(); }}
+                <AnimatePresence>
+                  {menuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      transition={{ duration: 0.15, ease: "easeOut" }}
+                      className="absolute right-0 mt-2 w-52 bg-slate-950/95 border border-white/10 rounded-2xl shadow-2xl py-2 backdrop-blur-xl z-50 overflow-hidden"
                     >
-                      <span>Hồ sơ của tôi</span>
-                      {hasMissingInfo && (
-                        <span className="flex h-2 w-2 rounded-full bg-rose-500 animate-pulse shadow-[0_0_6px_#f43f5e]" />
-                      )}
-                    </button>
-                    <a
-                      href="/notifications"
-                      onClick={() => setMenuOpen(false)}
-                      className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-between"
-                    >
-                      <span className="flex items-center"><BellRing size={12} className="mr-2" /> Thông báo</span>
-                      {unreadNotif > 0 && (
-                        <span className="rounded-full bg-rose-500 px-1.5 text-[9px] font-bold text-white">
-                          {unreadNotif > 9 ? '9+' : unreadNotif}
-                        </span>
-                      )}
-                    </a>
-                    <button
-                      className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white"
-                      onClick={() => { setMenuOpen(false); onViewWallet(); }}
-                    >
-                      <Wallet size={12} className="inline-block mr-2" /> Ví tiền
-                    </button>
-                    <button
-                      className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white"
-                      onClick={() => { setMenuOpen(false); onViewReservationHistory(); }}
-                    >
-                      <History size={12} className="inline-block mr-2" /> Lịch sử đặt chỗ
-                    </button>
-                    <a
-                      href="/parking-history"
-                      className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white flex items-center"
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      <MapPinned size={12} className="inline-block mr-2" /> Lịch sử gửi xe
-                    </a>
-                    <button className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-rose-400 hover:text-rose-300 border-t border-white/5 mt-1" onClick={onLogout}>
-                      <LogOut size={12} className="inline-block mr-2" /> Đăng xuất
-                    </button>
-                  </motion.div>
-                )}
+                      <button
+                        className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-between"
+                        onClick={() => { setMenuOpen(false); onViewProfile(); }}
+                      >
+                        <span>Hồ sơ của tôi</span>
+                        {hasMissingInfo && (
+                          <span className="flex h-2 w-2 rounded-full bg-rose-500 animate-pulse shadow-[0_0_6px_#f43f5e]" />
+                        )}
+                      </button>
+                      <a
+                        href="/notifications"
+                        onClick={() => setMenuOpen(false)}
+                        className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-between"
+                      >
+                        <span className="flex items-center"><BellRing size={12} className="mr-2" /> Thông báo</span>
+                        {unreadNotif > 0 && (
+                          <span className="rounded-full bg-rose-500 px-1.5 text-[9px] font-bold text-white">
+                            {unreadNotif > 9 ? '9+' : unreadNotif}
+                          </span>
+                        )}
+                      </a>
+                      <button
+                        className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white"
+                        onClick={() => { setMenuOpen(false); onViewWallet(); }}
+                      >
+                        <Wallet size={12} className="inline-block mr-2" /> Ví tiền
+                      </button>
+                      <button
+                        className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white"
+                        onClick={() => { setMenuOpen(false); onViewReservationHistory(); }}
+                      >
+                        <History size={12} className="inline-block mr-2" /> Lịch sử đặt chỗ
+                      </button>
+                      <a
+                        href="/parking-history"
+                        className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white flex items-center"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        <MapPinned size={12} className="inline-block mr-2" /> Lịch sử gửi xe
+                      </a>
+                      <button className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-rose-400 hover:text-rose-300 border-t border-white/5 mt-1" onClick={onLogout}>
+                        <LogOut size={12} className="inline-block mr-2" /> Đăng xuất
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             ) : (
               <motion.button

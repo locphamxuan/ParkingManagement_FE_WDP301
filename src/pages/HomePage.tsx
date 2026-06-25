@@ -29,6 +29,7 @@ import {
 import type { LegacyModule } from '../data/mainFlow';
 import { AnimatedParkingMap3D } from '@/components/map/AnimatedParkingMap3D';
 import { notificationApi } from '@/services/notificationApi';
+import back1 from '@/assets/back1.webp';
 
 interface HomePageProps {
   modules: LegacyModule[];
@@ -415,10 +416,17 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
   };
 
   return (
-    <main id="top" className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-orange-500 selection:text-white relative">
+    <main id="top" className="min-h-screen text-slate-100 font-sans selection:bg-orange-500 selection:text-white relative isolate">
 
       {/* Background Neon Glow Spheres — fixed so they never cause scroll issues */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10" aria-hidden="true">
+      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10 bg-slate-950" aria-hidden="true">
+        {/* Subtle Blurred Background Image */}
+        <div 
+          className="absolute inset-0 opacity-[0.38] filter blur-[4px] bg-cover bg-bottom pointer-events-none"
+          style={{ backgroundImage: `url(${back1})` }}
+        />
+        {/* Radial dark gradient overlay to ensure text readability in the center */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(2,6,23,0.3)_0%,rgba(2,6,23,0.85)_100%)] pointer-events-none" />
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[55%] rounded-full bg-[radial-gradient(circle_at_center,hsla(24,95%,53%,0.08),transparent_55%)] blur-3xl" />
         <div className="absolute top-[35%] right-[-15%] w-[60%] h-[60%] rounded-full bg-[radial-gradient(circle_at_center,hsla(263,90%,51%,0.07),transparent_55%)] blur-3xl" />
         <div className="absolute bottom-[-10%] left-[20%] w-[50%] h-[50%] rounded-full bg-[radial-gradient(circle_at_center,hsla(142,76%,45%,0.04),transparent_50%)] blur-3xl" />

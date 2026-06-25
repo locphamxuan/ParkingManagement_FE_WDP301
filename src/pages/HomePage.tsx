@@ -772,23 +772,12 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
             {productModules.map((module, index) => (
               <ModuleCard
-                key={`${module.id}-cyan`}
+                key={module.id}
                 module={module}
                 index={index}
                 onViewProfile={onViewProfile}
                 onAction={onAction}
-                colorTheme="cyan"
-              />
-            ))}
-
-            {productModules.map((module, index) => (
-              <ModuleCard
-                key={`${module.id}-orange`}
-                module={module}
-                index={index}
-                onViewProfile={onViewProfile}
-                onAction={onAction}
-                colorTheme="orange"
+                colorTheme={module.id === 'profile' ? 'cyan' : 'orange'}
               />
             ))}
           </div>

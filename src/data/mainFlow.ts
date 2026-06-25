@@ -43,6 +43,20 @@ export const mainFlowModules: LegacyModule[] = [
     available: true,
   },
   {
+    id: 'packages',
+    title: 'Pricing & Packages',
+    description: 'Explore flexible hourly or monthly parking package prices.',
+    actionLabel: 'Buy Package',
+    available: true,
+  },
+  {
+    id: 'feedback',
+    title: 'Customer Feedback',
+    description: 'View verified feedback and rate your parking experiences.',
+    actionLabel: 'View Feedback',
+    available: true,
+  },
+  {
     id: 'sessions',
     title: 'Parking Sessions',
     description: 'Track real-time vehicle entries, exits, and parking history.',

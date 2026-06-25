@@ -86,22 +86,54 @@ const benefits = [
 // Interactive 3D Parking Building Component with Parallax Tilt Effect
 
 
+const CARD_THEMES = {
+  cyan: {
+    borderGradient: 'linear-gradient(270deg, #06b6d4, #10b981, #3b82f6, #06b6d4)', // Cyan, Emerald, Blue, Cyan
+    glow: 'rgba(6,182,212,0.18), rgba(16,185,129,0.08)',
+    glowColor: 'rgba(6,182,212,0.12)',
+    boxShadowHover: '0 15px 35px rgba(6, 182, 212, 0.25), 0 0 25px rgba(59, 130, 246, 0.15), inset 0 0 15px rgba(6, 182, 212, 0.15)',
+    boxShadowActive: '0 0 25px rgba(6, 182, 212, 0.15)',
+    iconBg: 'bg-cyan-500/10 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.1)]',
+    iconBgHover: 'bg-cyan-500/20 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.3)] scale-110',
+    buttonBg: 'bg-gradient-to-r from-cyan-500 to-emerald-500 text-slate-950 hover:shadow-[0_0_15px_rgba(6,182,212,0.2)] border-0',
+    buttonHoverGlow: '0 0 15px rgba(6,182,212,0.3)',
+    sheenGradient: 'linear-gradient(115deg, transparent 35%, rgba(6, 182, 212, 0.08) 45%, rgba(255, 255, 255, 0.25) 50%, rgba(16, 185, 129, 0.1) 55%, transparent 65%)',
+    particleColors: ['#06b6d4', '#10b981', '#3b82f6', '#ffffff', '#67e8f9', '#34d399']
+  },
+  orange: {
+    borderGradient: 'linear-gradient(270deg, #f97316, #fbbf24, #a78bfa, #ec4899, #f43f5e, #f97316)',
+    glow: 'rgba(249,115,22,0.18), rgba(168,85,247,0.08)',
+    glowColor: 'rgba(249,115,22,0.12)',
+    boxShadowHover: '0 15px 35px rgba(249, 115, 22, 0.25), 0 0 25px rgba(168, 85, 247, 0.15), inset 0 0 15px rgba(249, 115, 22, 0.15)',
+    boxShadowActive: '0 0 25px rgba(249,115,22,0.15)',
+    iconBg: 'bg-orange-500/10 text-orange-400 shadow-[0_0_10px_rgba(249,115,22,0.1)]',
+    iconBgHover: 'bg-orange-500/20 text-orange-300 shadow-[0_0_15px_rgba(249,115,22,0.3)] scale-110',
+    buttonBg: 'bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 hover:shadow-[0_0_15px_rgba(249,115,22,0.2)] border-0',
+    buttonHoverGlow: '0 0 15px rgba(249,115,22,0.3)',
+    sheenGradient: 'linear-gradient(115deg, transparent 35%, rgba(255, 215, 0, 0.08) 45%, rgba(255, 255, 255, 0.25) 50%, rgba(249, 115, 22, 0.1) 55%, transparent 65%)',
+    particleColors: ['#ffd700', '#f97316', '#fbbf24', '#ffffff', '#ffb700', '#f43f5e']
+  }
+};
+
 function ModuleCard({ 
   module, 
   index, 
   onViewProfile, 
-  onAction 
+  onAction,
+  colorTheme = 'orange'
 }: { 
   module: any; 
   index: number; 
   onViewProfile: () => void; 
   onAction: (module: any) => void; 
+  colorTheme?: 'orange' | 'cyan';
 }) {
   const [isHovered, setIsHovered] = useState(false);
   const Icon = moduleIcons[module.id] || CarFront;
 
   // Generate unique particles for each card instance on hover
   const particles = useMemo(() => {
+    const themeColors = CARD_THEMES[colorTheme].particleColors;
     return Array.from({ length: 22 }).map((_, i) => {
       const type = ['star', 'diamond', 'circle'][Math.floor(Math.random() * 3)];
       return {
@@ -112,17 +144,10 @@ function ModuleCard({
         duration: Math.random() * 1.6 + 1.4, // 1.4s to 3.0s
         startX: Math.random() * 90 + 5, // 5% to 95%
         drift: Math.random() * 40 - 20, // -20% to 20% drift
-        color: [
-          '#ffd700', // Gold
-          '#f97316', // Orange
-          '#fbbf24', // Amber
-          '#ffffff', // Diamond White
-          '#ffb700', // Metallic Gold
-          '#f43f5e', // Rose Gold/Rose Red
-        ][Math.floor(Math.random() * 6)],
+        color: themeColors[Math.floor(Math.random() * themeColors.length)],
       };
     });
-  }, []);
+  }, [colorTheme]);
 
   return (
     <motion.article
@@ -136,12 +161,12 @@ function ModuleCard({
       whileHover={module.available ? { 
         scale: 1.03, 
         y: -4, 
-        boxShadow: '0 15px 35px rgba(249, 115, 22, 0.25), 0 0 25px rgba(168, 85, 247, 0.15), inset 0 0 15px rgba(249, 115, 22, 0.15)',
+        boxShadow: CARD_THEMES[colorTheme].boxShadowHover,
       } : { scale: 1.01 }}
       className={`rounded-2xl p-[1px] relative overflow-hidden transition-all duration-300 ${
         module.available
           ? isHovered 
-            ? 'shadow-[0_0_25px_rgba(249,115,22,0.15)]'
+            ? colorTheme === 'cyan' ? 'shadow-[0_0_25px_rgba(6,182,212,0.2)]' : 'shadow-[0_0_25px_rgba(249,115,22,0.2)]'
             : 'bg-white/10'
           : 'bg-white/5 opacity-75'
       }`}
@@ -160,7 +185,7 @@ function ModuleCard({
           style={{
             position: 'absolute',
             inset: 0,
-            background: 'linear-gradient(270deg, #f97316, #fbbf24, #a78bfa, #ec4899, #f43f5e, #f97316)',
+            background: CARD_THEMES[colorTheme].borderGradient,
             backgroundSize: '400% 400%',
             opacity: 1, // Always fully visible
             borderRadius: '16px',
@@ -177,9 +202,11 @@ function ModuleCard({
       }`}>
         {/* Luxurious Ambient Background Glow */}
         <div
-          className={`absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(249,115,22,0.18),rgba(168,85,247,0.08),transparent_65%)] pointer-events-none transition-opacity duration-500 ${
-            isHovered && module.available ? 'opacity-100' : 'opacity-0'
-          }`}
+          className="absolute inset-0 pointer-events-none transition-opacity duration-500"
+          style={{
+            background: `radial-gradient(circle at 50% 0%, ${CARD_THEMES[colorTheme].glow}, transparent 65%)`,
+            opacity: isHovered && module.available ? 1 : 0
+          }}
         />
 
         {/* Premium Diagonal Sheen sweep reflection */}
@@ -198,7 +225,7 @@ function ModuleCard({
             left: 0,
             width: '100%',
             height: '250%',
-            background: 'linear-gradient(115deg, transparent 35%, rgba(255, 215, 0, 0.08) 45%, rgba(255, 255, 255, 0.25) 50%, rgba(249, 115, 22, 0.1) 55%, transparent 65%)',
+            background: CARD_THEMES[colorTheme].sheenGradient,
             pointerEvents: 'none',
             zIndex: 5,
           }}
@@ -257,8 +284,8 @@ function ModuleCard({
             <div className={`p-2.5 rounded-lg transition-all duration-300 ${
               module.available 
                 ? isHovered
-                  ? 'bg-orange-500/20 text-orange-300 shadow-[0_0_15px_rgba(249,115,22,0.3)] scale-110'
-                  : 'bg-orange-500/10 text-orange-400 shadow-[0_0_10px_rgba(249,115,22,0.1)]' 
+                  ? CARD_THEMES[colorTheme].iconBgHover
+                  : CARD_THEMES[colorTheme].iconBg
                 : 'bg-slate-800 text-slate-500'
             }`}>
               <Icon size={20} className="transition-transform duration-300" />
@@ -276,10 +303,10 @@ function ModuleCard({
 
         <div className="mt-4 relative z-20">
           <motion.button
-            whileHover={module.available ? { scale: 1.02, boxShadow: '0 0 15px rgba(249,115,22,0.3)' } : {}}
+            whileHover={module.available ? { scale: 1.02, boxShadow: CARD_THEMES[colorTheme].buttonHoverGlow } : {}}
             whileTap={module.available ? { scale: 0.98 } : {}}
             className={`w-full py-2.5 px-4 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors duration-200 ${module.available
-                ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 hover:shadow-[0_0_15px_rgba(249,115,22,0.2)] border-0'
+                ? CARD_THEMES[colorTheme].buttonBg
                 : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-white/5'
               }`}
             onClick={() => { if (module.id === 'profile') return onViewProfile(); onAction(module); }}
@@ -787,11 +814,23 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
 
             {productModules.map((module, index) => (
               <ModuleCard
-                key={module.id}
+                key={`${module.id}-cyan`}
                 module={module}
                 index={index}
                 onViewProfile={onViewProfile}
                 onAction={onAction}
+                colorTheme="cyan"
+              />
+            ))}
+
+            {productModules.map((module, index) => (
+              <ModuleCard
+                key={`${module.id}-orange`}
+                module={module}
+                index={index}
+                onViewProfile={onViewProfile}
+                onAction={onAction}
+                colorTheme="orange"
               />
             ))}
           </div>

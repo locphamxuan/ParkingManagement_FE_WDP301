@@ -19,6 +19,7 @@ import {
   ScanLine,
   ShieldCheck,
   Ticket,
+  Star,
   Wallet,
   User,
   ChevronDown,
@@ -299,6 +300,33 @@ function ModuleCard({
             </div>
           </div>
           <p className="mt-3 text-xs text-slate-400 leading-relaxed font-semibold">{module.description}</p>
+
+          {/* Rating / Feedback & Reference Price */}
+          {module.available && (
+            <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between gap-2 text-[10px]">
+              {/* Rating stars & Link */}
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAction({ id: 'feedback' });
+                }}
+                className="flex items-center gap-1 text-amber-400 hover:text-amber-300 transition-colors font-mono font-black group/rating"
+                title="Xem đánh giá của khách hàng"
+              >
+                <Star size={11} fill="currentColor" className="group-hover/rating:scale-110 transition-transform" />
+                <span className="underline decoration-amber-400/30 group-hover/rating:decoration-amber-400">{module.id === 'profile' ? '4.9 (1.2k+ đánh giá)' : '4.8 (850+ đánh giá)'}</span>
+              </button>
+              
+              {/* Reference Price */}
+              <div className="text-slate-400 font-extrabold">
+                {module.id === 'profile' ? (
+                  <span className="text-[10px] bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-2 py-0.5 rounded-md font-mono">Free</span>
+                ) : (
+                  <span>Giá: <strong className="text-orange-400 font-mono">15kđ/h</strong></span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="mt-4 relative z-20">

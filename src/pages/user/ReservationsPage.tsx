@@ -214,7 +214,7 @@ export default function ReservationsPage() {
         if (!ignore) {
           const errorMsg = err instanceof Error ? err.message : String(err);
           console.error('Error loading floors:', errorMsg, err);
-          setFloorsError(`Error loading floors: ${errorMsg}`);
+          setFloorsError(`Lỗi tải tầng: ${errorMsg}`);
           setFloorsData([]);
         }
       }
@@ -393,7 +393,7 @@ export default function ReservationsPage() {
 
     if (mode === 'hourly') {
       if (startDateTime.getTime() < Date.now() - 5 * 60 * 1000) {
-        setBookingError('The check-in time cannot be in the past. Please choose another time.');
+        setBookingError('Thời gian nhận bãi không được ở trong quá khứ. Vui lòng chọn thời gian khác.');
         return;
       }
     }
@@ -404,8 +404,8 @@ export default function ReservationsPage() {
         // Find vehicleTypeId from building's vehicle types
         const vt = vehicleTypesForBuilding.find((v) => {
           const c = (v.code || v.name || '').toLowerCase();
-          if (selectedVehicleType === 'motorcycle') return /motor|bike|moto/i.test(c);
-          return /car|oto|auto/i.test(c);
+          if (selectedVehicleType === 'motorcycle') return /motor|xe|máy|bike|moto/i.test(c);
+          return /car|oto|ô t|auto/i.test(c);
         });
 
         // Find the slot's _id
@@ -420,7 +420,7 @@ export default function ReservationsPage() {
           endTime: endDateTime.toISOString(),
           slotId: slotRecord?._id,
         });
-        setBookingSuccess(`Booking successful! Slot ${selectedSlot} from ${fmtShort(startDateTime)} to ${fmtShort(endDateTime)}`);
+        setBookingSuccess(`Đặt chỗ thành công! Ô ${selectedSlot} từ ${fmtShort(startDateTime)} đến ${fmtShort(endDateTime)}`);
       } else if (selectedPkg) {
         const res = await userApi.longTermSubscriptions.create({
           packageId: selectedPkg._id,
@@ -430,22 +430,29 @@ export default function ReservationsPage() {
         });
         const data = (res as any)?.data;
         if (data?.checkoutUrl) {
-          setBookingSuccess('Redirecting to the PayOS payment gateway...');
+          setBookingSuccess('Chuyển hướng đến cổng thanh toán PayOS...');
           window.location.href = data.checkoutUrl;
         } else {
-          setBookingSuccess(`Subscribed to "${selectedPkg.name}" successfully!`);
+          setBookingSuccess(`Đăng ký gói "${selectedPkg.name}" thành công!`);
         }
       }
       setSelectedSlot(null);
       setShowSlotModal(false);
     } catch (err) {
-      setBookingError(err instanceof Error ? err.message : 'Unable to complete the booking');
+      setBookingError(err instanceof Error ? err.message : 'Không thể hoàn tất đặt chỗ');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   if (!session || !user) return <Navigate to="/auth/login" replace />;
+
+  const isStep1Complete = !!selectedBuildingId && !!selectedVehicleType && !!selectedPlate;
+  const isStep2Complete = mode === 'hourly'
+    ? !!selectedDate
+    : !!selectedPkg && !!pkgStartDate;
+  const isStep3Complete = !!selectedSlot;
+  const activeStep = !isStep1Complete ? 1 : !isStep2Complete ? 2 : 3;
 
   /* ── Render ── */
   return (
@@ -454,245 +461,325 @@ export default function ReservationsPage() {
 
         {/* ── Header ── */}
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
-          className="mb-6 flex flex-col gap-3 border-b border-white/[0.06] pb-5 sm:flex-row sm:items-center sm:justify-between"
+          className="mb-8 flex flex-col gap-4 border-b border-white/5 pb-6 sm:flex-row sm:items-center sm:justify-between"
         >
-          <button type="button" onClick={() => navigate('/')}
-            className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-xs font-black uppercase tracking-wider text-slate-300 transition hover:border-orange-300/30 hover:text-orange-200"
-          >
-            <ArrowLeft size={14} />Home</button>
-          <div className="flex gap-2">
-            <button type="button" onClick={() => setShowHistory(true)}
-              className="inline-flex items-center gap-2 rounded-xl border border-yellow-500/20 bg-yellow-500/5 px-4 py-2 text-xs font-black uppercase tracking-wider text-yellow-400 transition hover:border-yellow-400/40 hover:bg-yellow-500/10 hover:text-yellow-300"
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] font-black uppercase tracking-widest text-orange-400 font-mono bg-orange-500/10 px-2.5 py-0.5 rounded border border-orange-500/20">Hệ thống Đặt chỗ</span>
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[9px] font-bold text-slate-500 font-mono">LIVE SLOTS AVAILABLE</span>
+            </div>
+            <h1 className="text-2xl font-black text-white tracking-tight mt-1">Đăng Ký Đỗ Xe Thông Minh</h1>
+            <p className="text-xs text-slate-400 font-semibold">Đặt chỗ nhanh chóng theo giờ hoặc đăng ký gói dài hạn ưu đãi.</p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={() => navigate('/')}
+              className="inline-flex items-center gap-2 rounded-xl border border-white/5 bg-white/[0.02] px-4 py-2.5 text-xs font-black uppercase tracking-widest text-slate-300 shadow-md hover:border-orange-500/30 hover:shadow-[0_0_15px_rgba(249,115,22,0.15)] hover:scale-105 transition-all duration-300"
             >
-              <CalendarClock size={14} />History</button>
+              <ArrowLeft size={14} className="stroke-[3]" /> Trang chủ
+            </button>
+            <button type="button" onClick={() => setShowHistory(true)}
+              className="inline-flex items-center gap-2 rounded-xl border border-yellow-500/20 bg-yellow-500/5 px-4 py-2.5 text-xs font-black uppercase tracking-widest text-yellow-400 shadow-md hover:border-yellow-400/40 hover:bg-yellow-500/10 hover:text-yellow-300 hover:scale-105 transition-all duration-300"
+            >
+              <CalendarClock size={14} className="stroke-[2.5]" /> Lịch sử đặt chỗ
+            </button>
           </div>
         </motion.div>
 
         {/* ── Tab Bar ── */}
-        <div className="mb-6 flex items-center gap-1 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-1.5">
+        <div className="mb-8 flex max-w-[480px] mx-auto items-center gap-2 rounded-2xl border border-white/5 bg-slate-950/40 backdrop-blur-md p-1.5">
           {[
-            { key: 'hourly' as BookingMode, label: 'Hourly booking', icon: <Timer size={14} /> },
-            { key: 'package' as BookingMode, label: 'Subscribe to long-term package', icon: <Package size={14} /> },
-          ].map((tab) => (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => {
-                setMode(tab.key);
-                setSelectedSlot(null);
-                setBookingError(null);
-                setBookingSuccess(null);
-              }}
-              className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-xs font-black uppercase tracking-wider transition-all duration-200 ${mode === tab.key
-                ? 'bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 shadow-[0_0_16px_rgba(249,115,22,0.2)]'
-                : 'text-slate-400 hover:text-white'
+            { key: 'hourly' as BookingMode, label: 'Đặt theo giờ', icon: <Timer size={14} /> },
+            { key: 'package' as BookingMode, label: 'Đăng ký gói dài hạn', icon: <Package size={14} /> },
+          ].map((tab) => {
+            const isActive = mode === tab.key;
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => {
+                  setMode(tab.key);
+                  setSelectedSlot(null);
+                  setBookingError(null);
+                  setBookingSuccess(null);
+                }}
+                className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-xs font-black uppercase tracking-widest transition-all duration-300 relative ${
+                  isActive
+                    ? 'text-slate-950 bg-gradient-to-r from-orange-500 via-amber-400 to-amber-500 shadow-[0_0_20px_rgba(249,115,22,0.35)]'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.02]'
                 }`}
-            >
-              {tab.icon} {tab.label}
-            </button>
-          ))}
+              >
+                {tab.icon} {tab.label}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Alerts are now displayed as floating notification toasts */}
-
-
         {/* ── Main Wizard ── */}
-        <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
-          {/* Left: Booking Form */}
-          <div className="space-y-5">
-            {/* Building + Vehicle + Plate */}
-            <div className="rounded-3xl border border-white/[0.06] bg-white/[0.02] p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <Building2 size={16} className="text-cyan-300/70" />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300/70">Basic information</span>
+        <div className="grid gap-8 lg:grid-cols-[1fr_340px]">
+          {/* Left: Stepper Booking Form */}
+          <div className="relative pl-8 md:pl-10 space-y-6">
+            {/* Stepper Vertical Progress Line */}
+            <div className="absolute left-[15px] md:left-[19px] top-6 bottom-6 w-[2px] bg-slate-800 pointer-events-none">
+              <div 
+                className="w-full bg-gradient-to-b from-cyan-500 via-orange-500 to-emerald-500 transition-all duration-500" 
+                style={{ 
+                  height: isStep1Complete && isStep2Complete ? '100%' : isStep1Complete ? '50%' : '0%' 
+                }} 
+              />
+            </div>
+
+            {/* STEP 1: THÔNG TIN PHƯƠNG TIỆN */}
+            <div className="relative group">
+              {/* Step indicator circle */}
+              <div className={`absolute -left-[31px] md:-left-[35px] top-2 w-8 h-8 rounded-full border flex items-center justify-center font-mono font-black text-xs transition-all duration-300 z-10 ${
+                isStep1Complete
+                  ? 'border-emerald-500 bg-emerald-950/80 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.2)]'
+                  : activeStep === 1
+                    ? 'border-cyan-500 bg-cyan-950/80 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.3)] scale-110'
+                    : 'border-slate-800 bg-slate-950 text-slate-500'
+              }`}>
+                {isStep1Complete ? '✓' : '01'}
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Building</span>
-                  <CustomSelect
-                    value={selectedBuildingId}
-                    onChange={handleBuildingChange}
-                    options={[
-                      { value: '', label: '-- Select building --' },
-                      ...rows.map((r) => ({ value: r.building._id, label: r.building.name })),
-                    ]}
-                    placeholder="-- Select building --"
-                  />
+              {/* Step Card */}
+              <div className={`rounded-3xl border p-6 transition-all duration-300 ${
+                activeStep === 1 
+                  ? 'border-cyan-500/20 bg-slate-900/40 shadow-[0_10px_30px_rgba(6,182,212,0.05)]' 
+                  : isStep1Complete 
+                    ? 'border-emerald-500/10 bg-slate-950/20 opacity-90'
+                    : 'border-white/[0.04] bg-white/[0.01] opacity-60'
+              }`}>
+                <div className="flex items-center gap-2.5 mb-5">
+                  <Building2 size={16} className={isStep1Complete ? 'text-emerald-400' : 'text-cyan-400'} />
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-200">Thông tin cơ bản & xe gửi</h3>
                 </div>
-                <div>
-                  <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Vehicle type</span>
-                  <CustomSelect
-                    value={selectedVehicleType}
-                    onChange={(val) => {
-                      setSelectedVehicleType(val as VehicleKind | '');
-                      setSelectedSlot(null);
-                      setSelectedPlate('');
-                      setSelectedPkg(null);
-                    }}
-                    options={[
-                      { value: '', label: '-- Select vehicle type --' },
-                      { value: 'car', label: '🚗 Car' },
-                      { value: 'motorcycle', label: '🏍️ Motorcycle' },
-                    ]}
-                    placeholder="-- Select vehicle type --"
-                  />
-                </div>
-              </div>
 
-              {/* Plate selection right below vehicle type */}
-              <div className="mt-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Zap size={14} className="text-amber-300/70" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">License plate</span>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-2 block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Tòa nhà</label>
+                    <CustomSelect
+                      value={selectedBuildingId}
+                      onChange={handleBuildingChange}
+                      options={[
+                        { value: '', label: '-- Chọn tòa nhà --' },
+                        ...rows.map((r) => ({ value: r.building._id, label: r.building.name })),
+                      ]}
+                      placeholder="-- Chọn tòa nhà --"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Loại xe</label>
+                    <CustomSelect
+                      value={selectedVehicleType}
+                      onChange={(val) => {
+                        setSelectedVehicleType(val as VehicleKind | '');
+                        setSelectedSlot(null);
+                        setSelectedPlate('');
+                        setSelectedPkg(null);
+                      }}
+                      options={[
+                        { value: '', label: '-- Chọn loại xe --' },
+                        { value: 'car', label: '🚗 Ô tô' },
+                        { value: 'motorcycle', label: '🏍️ Xe máy' },
+                      ]}
+                      placeholder="-- Chọn loại xe --"
+                    />
+                  </div>
                 </div>
-                <CustomSelect
-                  value={selectedPlate}
-                  onChange={setSelectedPlate}
-                  disabled={plateOptions.length === 0}
-                  options={[
-                    { value: '', label: plateOptions.length === 0 ? '-- All suitable plates already have reservations --' : '-- Select plate --' },
-                    ...plateOptions.map((p) => ({
-                      value: p.plateNumber,
-                      label: `${p.plateNumber} — ${p.vehicleType === 'motorcycle' ? '🏍️ Motorcycle' : '🚗 Car'}`,
-                    })),
-                  ]}
-                  placeholder="-- Select plate --"
-                />
+
+                {/* Plate selection */}
+                <div className="mt-5">
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <Zap size={14} className="text-amber-400" />
+                    <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Biển số xe đăng ký</label>
+                  </div>
+                  <CustomSelect
+                    value={selectedPlate}
+                    onChange={setSelectedPlate}
+                    disabled={plateOptions.length === 0}
+                    options={[
+                      { value: '', label: plateOptions.length === 0 ? '-- Tất cả biển số xe phù hợp đều đã đặt chỗ --' : '-- Chọn biển số --' },
+                      ...plateOptions.map((p) => ({
+                        value: p.plateNumber,
+                        label: `${p.plateNumber} — ${p.vehicleType === 'motorcycle' ? '🏍️ Xe máy' : '🚗 Ô tô'}`,
+                      })),
+                    ]}
+                    placeholder="-- Chọn biển số --"
+                  />
+                </div>
               </div>
             </div>
 
-            {/* ── Hourly Mode ── */}
-            <AnimatePresence mode="wait">
-              {mode === 'hourly' && (
-                <motion.div key="hourly" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-                  className="space-y-5"
-                >
-                  {/* Date */}
-                  <div className="rounded-3xl border border-white/[0.06] bg-white/[0.02] p-5">
-                    <div className="flex items-center gap-2 mb-4">
-                      <CalendarClock size={16} className="text-orange-300/70" />
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-300/70">Select check-in date</span>
-                    </div>
-                    <MiniCalendar selectedDate={selectedDate} onSelect={setSelectedDate} maxDate={maxCalDate} />
-                    <p className="mt-2 text-[10px] font-semibold text-slate-500">Can book up to 7 days in advance</p>
-                  </div>
+            {/* STEP 2: THỜI GIAN ĐẶT CHỖ / GÓI DÀI HẠN */}
+            <div className="relative group">
+              {/* Step indicator circle */}
+              <div className={`absolute -left-[31px] md:-left-[35px] top-2 w-8 h-8 rounded-full border flex items-center justify-center font-mono font-black text-xs transition-all duration-300 z-10 ${
+                isStep2Complete
+                  ? 'border-emerald-500 bg-emerald-950/80 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.2)]'
+                  : activeStep === 2
+                    ? 'border-orange-500 bg-orange-950/80 text-orange-400 shadow-[0_0_10px_rgba(249,115,22,0.3)] scale-110'
+                    : 'border-slate-800 bg-slate-950 text-slate-500'
+              }`}>
+                {isStep2Complete ? '✓' : '02'}
+              </div>
 
-                  {/* Time */}
-                  <div className="rounded-3xl border border-white/[0.06] bg-white/[0.02] p-5">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Clock size={16} className="text-orange-300/70" />
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-300/70">Check-in time</span>
-                    </div>
-                    <TimeScroller selected={selectedTime} onSelect={setSelectedTime} />
-                  </div>
+              {/* Step Card */}
+              <div className={`rounded-3xl border p-6 transition-all duration-300 ${
+                activeStep === 2 
+                  ? 'border-orange-500/20 bg-slate-900/40 shadow-[0_10px_30px_rgba(249,115,22,0.05)]' 
+                  : isStep2Complete 
+                    ? 'border-emerald-500/10 bg-slate-950/20 opacity-90'
+                    : 'border-white/[0.04] bg-white/[0.01] opacity-60'
+              }`}>
+                <div className="flex items-center gap-2.5 mb-5">
+                  <CalendarClock size={16} className={isStep2Complete ? 'text-emerald-400' : 'text-orange-400'} />
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-200">
+                    {mode === 'hourly' ? 'Thời gian đỗ xe' : 'Chọn gói gửi dài hạn'}
+                  </h3>
+                </div>
 
-                  {/* Duration */}
-                  <div className="rounded-3xl border border-white/[0.06] bg-white/[0.02] p-5">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Timer size={16} className="text-orange-300/70" />
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-300/70">Hours of use</span>
-                    </div>
-                    <DurationSelector hours={durationHours} onSelect={setDurationHours} />
-                  </div>
-                </motion.div>
-              )}
-
-              {/* ── Package Mode ── */}
-              {mode === 'package' && (
-                <motion.div key="package" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-                  className="space-y-5"
-                >
-                  {/* Package Cards */}
-                  <div className="rounded-3xl border border-white/[0.06] bg-white/[0.02] p-5">
-                    <div className="flex items-center gap-2 mb-4">
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-300/70">Select long-term package</span>
-                    </div>
-
-                    {packages.length === 0 ? (
-                      <p className="text-sm text-slate-500 font-semibold py-4 text-center">
-                        {isLoadingBuildings ? 'Loading...' : 'No packages for this building.'}
-                      </p>
-                    ) : (
-                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                        {packages.map((pkg) => {
-                          const cat = packageCategory(pkg);
-                          const colors = categoryColors[cat];
-                          const isSelected = selectedPkg?._id === pkg._id;
-                          const isCar = isCarPackage(pkg);
-                          // isLocked: only when a vehicle type IS selected and this package doesn't match
-                          const isLocked = !!selectedVehicleType && (selectedVehicleType === 'car' ? !isCar : isCar);
-                          return (
-                            <PackageCard
-                              key={pkg._id}
-                              pkg={pkg}
-                              isSelected={isSelected}
-                              isLocked={isLocked}
-                              cat={cat}
-                              colors={colors}
-                              onClick={() => {
-                                if (isLocked) return;
-                                setSelectedPkg(pkg);
-                                setPkgStartDate(null);
-                                const nextType = isCar ? 'car' : 'motorcycle';
-                                if (selectedVehicleType !== nextType) {
-                                  setSelectedVehicleType(nextType);
-                                  setSelectedSlot(null);
-                                  setSelectedPlate('');
-                                }
-                              }}
-                            />
-                          );
-                        })}
+                {/* ── Hourly Mode ── */}
+                <AnimatePresence mode="wait">
+                  {mode === 'hourly' && (
+                    <motion.div key="hourly" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                      className="space-y-6"
+                    >
+                      {/* Date */}
+                      <div>
+                        <span className="mb-3 block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Chọn ngày nhận xe</span>
+                        <MiniCalendar selectedDate={selectedDate} onSelect={setSelectedDate} maxDate={maxCalDate} />
+                        <p className="mt-2.5 text-[10px] font-bold text-slate-500">
+                          * Chỉ hỗ trợ đặt trước tối đa 7 ngày
+                        </p>
                       </div>
-                    )}
-                  </div>
 
-                  {/* Package Date */}
-                  {selectedPkg && (
-                    <div className="rounded-3xl border border-white/[0.06] bg-white/[0.02] p-5">
-                      <div className="flex items-center gap-2 mb-4">
-                        <CalendarClock size={16} className="text-purple-300/70" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-300/70">Package start date</span>
+                      {/* Time */}
+                      <div className="border-t border-white/5 pt-5">
+                        <span className="mb-3 block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Giờ nhận xe</span>
+                        <TimeScroller selected={selectedTime} onSelect={setSelectedTime} />
                       </div>
-                      <MiniCalendar selectedDate={pkgStartDate} onSelect={setPkgStartDate} maxDate={maxCalDate} />
-                      <p className="mt-2 text-[10px] font-semibold text-slate-500">
-                        {selectedPkg.durationDays <= 7
-                          ? 'Weekly package: choose within the next 7 days'
-                          : selectedPkg.durationDays <= 30
-                            ? 'Monthly package: choose this month or next month'
-                            : 'Yearly package: choose this year or next year'}
-                      </p>
-                    </div>
+
+                      {/* Duration */}
+                      <div className="border-t border-white/5 pt-5">
+                        <span className="mb-3 block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Số giờ sử dụng</span>
+                        <DurationSelector hours={durationHours} onSelect={setDurationHours} />
+                      </div>
+                    </motion.div>
                   )}
-                </motion.div>
-              )}
-            </AnimatePresence>
 
-            {/* ── Slot Selection Button ── */}
-            <div className="rounded-3xl border border-white/[0.06] bg-white/[0.02] p-5">
-              <div className="flex items-center gap-2 mb-3">
-                <MapPin size={16} className="text-cyan-300/70" />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300/70">Select slot</span>
-              </div>
+                  {/* ── Package Mode ── */}
+                  {mode === 'package' && (
+                    <motion.div key="package" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                      className="space-y-6"
+                    >
+                      {/* Package Cards */}
+                      <div>
+                        <span className="mb-3 block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Chọn loại gói</span>
 
-              <div className="flex items-center gap-3">
-                <motion.button
-                  type="button"
-                  onClick={() => setShowSlotModal(true)}
-                  disabled={!selectedBuildingId}
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-cyan-300/20 bg-cyan-300/5 px-4 py-4 text-sm font-black uppercase tracking-wider text-cyan-200 transition-all hover:bg-cyan-300/10 disabled:cursor-not-allowed disabled:border-slate-700 disabled:text-slate-500 disabled:bg-transparent"
-                >
-                  <MapPin size={16} />Select slot</motion.button>
-                <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-center min-w-[100px]">
-                  <p className="text-[9px] font-bold uppercase text-slate-500">Slot</p>
-                  <p className="mt-1 font-mono text-xl font-black text-orange-300">{selectedSlot || '—'}</p>
-                </div>
+                        {packages.length === 0 ? (
+                          <p className="text-xs text-slate-500 font-black py-4 text-center">
+                            {isLoadingBuildings ? 'Đang tải gói xe...' : 'Không có gói nào khả dụng cho tòa nhà này.'}
+                          </p>
+                        ) : (
+                          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                            {packages.map((pkg) => {
+                              const cat = packageCategory(pkg);
+                              const colors = categoryColors[cat];
+                              const isSelected = selectedPkg?._id === pkg._id;
+                              const isCar = isCarPackage(pkg);
+                              const isLocked = !!selectedVehicleType && (selectedVehicleType === 'car' ? !isCar : isCar);
+                              return (
+                                <PackageCard
+                                  key={pkg._id}
+                                  pkg={pkg}
+                                  isSelected={isSelected}
+                                  isLocked={isLocked}
+                                  cat={cat}
+                                  colors={colors}
+                                  onClick={() => {
+                                    if (isLocked) return;
+                                    setSelectedPkg(pkg);
+                                    setPkgStartDate(null);
+                                    const nextType = isCar ? 'car' : 'motorcycle';
+                                    if (selectedVehicleType !== nextType) {
+                                      setSelectedVehicleType(nextType);
+                                      setSelectedSlot(null);
+                                      setSelectedPlate('');
+                                    }
+                                  }}
+                                />
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Package Date */}
+                      {selectedPkg && (
+                        <div className="border-t border-white/5 pt-5">
+                          <span className="mb-3 block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Ngày bắt đầu gói gửi xe</span>
+                          <MiniCalendar selectedDate={pkgStartDate} onSelect={setPkgStartDate} maxDate={maxCalDate} />
+                          <p className="mt-2.5 text-[10px] font-bold text-slate-500">
+                            * {selectedPkg.durationDays <= 7
+                              ? 'Gói tuần: chọn trong vòng 7 ngày tới'
+                              : selectedPkg.durationDays <= 30
+                                ? 'Gói tháng: chọn trong tháng này hoặc tháng sau'
+                                : 'Gói năm: chọn trong năm nay hoặc năm sau'}
+                          </p>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
 
+            {/* STEP 3: VỊ TRÍ ĐỖ XE */}
+            <div className="relative group">
+              {/* Step indicator circle */}
+              <div className={`absolute -left-[31px] md:-left-[35px] top-2 w-8 h-8 rounded-full border flex items-center justify-center font-mono font-black text-xs transition-all duration-300 z-10 ${
+                isStep3Complete
+                  ? 'border-emerald-500 bg-emerald-950/80 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.2)]'
+                  : activeStep === 3
+                    ? 'border-cyan-500 bg-cyan-950/80 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.3)] scale-110'
+                    : 'border-slate-800 bg-slate-950 text-slate-500'
+              }`}>
+                {isStep3Complete ? '✓' : '03'}
+              </div>
+
+              {/* Step Card */}
+              <div className={`rounded-3xl border p-6 transition-all duration-300 ${
+                activeStep === 3 
+                  ? 'border-cyan-500/20 bg-slate-900/40 shadow-[0_10px_30px_rgba(6,182,212,0.05)]' 
+                  : isStep3Complete 
+                    ? 'border-emerald-500/10 bg-slate-950/20 opacity-90'
+                    : 'border-white/[0.04] bg-white/[0.01] opacity-60'
+              }`}>
+                <div className="flex items-center gap-2.5 mb-5">
+                  <MapPin size={16} className={isStep3Complete ? 'text-emerald-400' : 'text-cyan-400'} />
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-200">Chọn vị trí ô đỗ</h3>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+                  <motion.button
+                    type="button"
+                    onClick={() => setShowSlotModal(true)}
+                    disabled={!selectedBuildingId}
+                    whileHover={{ scale: 1.015 }}
+                    whileTap={{ scale: 0.985 }}
+                    className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-cyan-500/20 bg-gradient-to-r from-cyan-500/10 to-teal-500/5 px-5 py-4 text-xs font-black uppercase tracking-widest text-cyan-300 transition-all hover:from-cyan-500/25 hover:to-teal-500/15 hover:shadow-[0_0_20px_rgba(6,182,212,0.2)] disabled:cursor-not-allowed disabled:border-slate-800 disabled:text-slate-500 disabled:bg-none"
+                  >
+                    <MapPin size={14} className="stroke-[2.5]" /> Chọn ô đỗ trên bản đồ
+                  </motion.button>
+                  <div className="rounded-2xl border border-white/5 bg-slate-950/50 px-5 py-3.5 text-center min-w-[120px] flex flex-col justify-center shadow-inner">
+                    <p className="text-[9px] font-black uppercase tracking-wider text-slate-500 font-mono">Ô đỗ đã chọn</p>
+                    <p className="mt-1 font-mono text-2xl font-black text-orange-400 drop-shadow-[0_0_6px_rgba(249,115,22,0.3)]">{selectedSlot || '—'}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
 
@@ -716,14 +803,14 @@ export default function ReservationsPage() {
             <div className="hidden text-xs font-semibold text-slate-400 sm:block">
               {startDateTime && endDateTime ? (
                 <>
-                  <span className="text-white">Check-in:</span> {fmtShort(startDateTime)}
+                  <span className="text-white">Nhận bãi:</span> {fmtShort(startDateTime)}
                   <span className="mx-2 text-slate-600">—</span>
-                  <span className="text-white">Check-out:</span> {fmtShort(endDateTime)}
+                  <span className="text-white">Trả bãi:</span> {fmtShort(endDateTime)}
                   <span className="mx-2 text-slate-600">|</span>
                   <span className="text-emerald-300 font-black">{fmtMoney(estimatedAmount)}</span>
                 </>
               ) : (
-                'Select a time and slot to book'
+                'Chọn thời gian và chỗ đỗ để đặt chỗ'
               )}
             </div>
             <motion.button
@@ -735,7 +822,7 @@ export default function ReservationsPage() {
               className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-400 px-6 py-3 text-sm font-black uppercase tracking-wider text-slate-950 shadow-[0_0_24px_rgba(249,115,22,0.3)] transition-all disabled:cursor-not-allowed disabled:from-slate-700 disabled:to-slate-700 disabled:text-slate-400 disabled:shadow-none"
             >
               <ShieldCheck size={16} />
-              {isSubmitting ? 'Processing...' : mode === 'hourly' ? 'Confirm booking' : 'Buy package'}
+              {isSubmitting ? 'Đang xử lý...' : mode === 'hourly' ? 'Xác nhận đặt chỗ' : 'Mua gói'}
             </motion.button>
           </div>
         </div>
@@ -790,8 +877,8 @@ export default function ReservationsPage() {
                     <CalendarClock size={20} className="text-orange-400" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-black text-white tracking-wide">Reservation history</h2>
-                    <p className="text-[10px] text-slate-500 font-semibold tracking-wider uppercase mt-0.5">Track & manage your parking sessions</p>
+                    <h2 className="text-lg font-black text-white tracking-wide">Lịch sử đặt chỗ</h2>
+                    <p className="text-[10px] text-slate-500 font-semibold tracking-wider uppercase mt-0.5">Theo dõi & Quản lý các lượt đỗ xe</p>
                   </div>
                 </div>
                 <button

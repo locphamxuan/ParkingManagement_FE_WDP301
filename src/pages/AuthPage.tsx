@@ -510,7 +510,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
             transformStyle: "preserve-3d",
             backgroundImage: `url(${back1})`,
             backgroundSize: 'cover',
-            backgroundPosition: 'center',
+            backgroundPosition: 'bottom',
           }}
         >
           {/* Dark Glassmorphic Overlay for Readability */}
@@ -575,7 +575,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
               <img 
                 src={back1} 
                 alt="PBMS System Illustration" 
-                className="w-full h-full object-cover rounded-xl"
+                className="w-full h-full object-cover object-bottom rounded-xl"
               />
               {/* Scanline sweep effect for high tech vibe */}
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-orange-500/10 to-transparent pointer-events-none animate-[scan_3s_linear_infinite]" />
@@ -605,7 +605,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
         </div>
 
         {/* Right Input Form Column */}
-        <div className="p-8 flex flex-col justify-center bg-slate-900/10 backdrop-blur-md">
+        <div className="p-8 flex flex-col justify-center bg-white/[0.08] backdrop-blur-2xl border-l border-white/5 shadow-[inset_1px_0_0_rgba(255,255,255,0.05)]">
           {lockTimeLeft > 0 ? (
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}

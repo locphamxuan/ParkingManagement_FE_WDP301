@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
-import { motion, AnimatePresence, useMotionValue, useSpring, useTransform, useScroll } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform, useScroll, animate } from 'framer-motion';
 import type { LucideIcon } from 'lucide-react';
 import {
   AlertTriangle,
@@ -816,6 +816,7 @@ interface TiltCardProps {
 }
 
 function TiltCard({ children, className = '', glowColor = 'rgba(249,115,22,0.12)' }: TiltCardProps) {
+  const [isHovered, setIsHovered] = useState(false);
   const x = useMotionValue(0.5);
   const y = useMotionValue(0.5);
 
@@ -829,8 +830,34 @@ function TiltCard({ children, className = '', glowColor = 'rgba(249,115,22,0.12)
   // Cursor glow background
   const glowX = useMotionValue(0);
   const glowY = useMotionValue(0);
+
+  // Auto floating 3D animation when not hovered
+  useEffect(() => {
+    if (isHovered) return;
+
+    // We animate x and y around the center (0.5, 0.5) in a smooth oscillation loop
+    const controlsX = animate(x, [0.35, 0.65, 0.35], {
+      duration: 6,
+      repeat: Infinity,
+      repeatType: "reverse",
+      ease: "easeInOut"
+    });
+
+    const controlsY = animate(y, [0.65, 0.35, 0.65], {
+      duration: 7,
+      repeat: Infinity,
+      repeatType: "reverse",
+      ease: "easeInOut"
+    });
+
+    return () => {
+      controlsX.stop();
+      controlsY.stop();
+    };
+  }, [isHovered, x, y]);
   
   function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    setIsHovered(true);
     const rect = e.currentTarget.getBoundingClientRect();
     const width = rect.width;
     const height = rect.height;
@@ -845,6 +872,7 @@ function TiltCard({ children, className = '', glowColor = 'rgba(249,115,22,0.12)
   }
 
   function handleMouseLeave() {
+    setIsHovered(false);
     x.set(0.5);
     y.set(0.5);
   }
@@ -856,6 +884,7 @@ function TiltCard({ children, className = '', glowColor = 'rgba(249,115,22,0.12)
 
   return (
     <motion.div
+      onMouseEnter={() => setIsHovered(true)}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={{

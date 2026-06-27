@@ -422,8 +422,8 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10 bg-slate-950" aria-hidden="true">
         {/* Subtle Blurred Background Image */}
         <div 
-          className="absolute inset-0 opacity-[0.38] filter blur-[4px] bg-cover bg-bottom pointer-events-none"
-          style={{ backgroundImage: `url(${back1})` }}
+          className="absolute inset-0 opacity-[0.38] filter blur-[4px] bg-cover pointer-events-none"
+          style={{ backgroundImage: `url(${back1})`, backgroundPosition: 'center 85%' }}
         />
         {/* Radial dark gradient overlay to ensure text readability in the center */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(2,6,23,0.3)_0%,rgba(2,6,23,0.85)_100%)] pointer-events-none" />

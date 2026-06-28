@@ -91,7 +91,7 @@ export function ManagerSubscriptionsPage() {
         </CardHeader>
         <CardContent>
           {successMsg && (
-            <div className="mb-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-400">
+            <div className="mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-700">
               {successMsg}
             </div>
           )}
@@ -115,14 +115,14 @@ export function ManagerSubscriptionsPage() {
                 </thead>
                 <tbody>
                   {items.map((s) => (
-                    <tr key={s._id} className="border-b last:border-0">
+                    <tr key={s._id} className="border-b last:border-0 hover:bg-sky-50/10">
                       <td className="py-2 pr-3">
-                        <div className="font-medium">{s.user?.fullName ?? '—'}</div>
+                        <div className="font-semibold text-slate-800">{s.user?.fullName ?? '—'}</div>
                         <div className="text-xs text-muted-foreground">{s.user?.email}</div>
                       </td>
-                      <td className="py-2 pr-3 font-mono">{s.plateNumber}</td>
-                      <td className="py-2 pr-3">{s.package?.name}</td>
-                      <td className="py-2 pr-3 whitespace-nowrap">{fmtDate(s.startDate)} → {fmtDate(s.endDate)}</td>
+                      <td className="py-2 pr-3 font-mono font-bold">{s.plateNumber}</td>
+                      <td className="py-2 pr-3 font-medium">{s.package?.name}</td>
+                      <td className="py-2 pr-3 whitespace-nowrap text-xs text-slate-600">{fmtDate(s.startDate)} → {fmtDate(s.endDate)}</td>
                       <td className="py-2 pr-3"><StatusBadge status={s.status} /></td>
                       <td className="py-2">
                         {s.status === 'active' && (
@@ -130,7 +130,7 @@ export function ManagerSubscriptionsPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => openCancel(s)}
-                            className="h-7 border-rose-500/40 px-2 text-[11px] text-rose-400 hover:bg-rose-500/10"
+                            className="h-7 border-rose-200 px-2 text-[11px] text-rose-600 hover:bg-rose-50 hover:text-rose-700"
                           >
                             Hủy gói
                           </Button>
@@ -147,56 +147,56 @@ export function ManagerSubscriptionsPage() {
 
       {/* Cancel confirmation modal */}
       {cancelTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl border border-rose-500/30 bg-card p-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-sky-100 bg-card p-6 shadow-2xl">
             <div className="mb-4 flex items-start justify-between">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-rose-400">Hủy gói dài hạn</p>
-                <h3 className="mt-1 text-xl font-semibold text-foreground">{cancelTarget.package?.name}</h3>
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-rose-600">Hủy gói dài hạn</p>
+                <h3 className="mt-1 text-xl font-bold text-slate-800">{cancelTarget.package?.name}</h3>
               </div>
               <button onClick={closeCancel} className="text-muted-foreground transition hover:text-foreground">
                 <X size={18} />
               </button>
             </div>
 
-            <div className="mb-4 space-y-1.5 rounded-xl border border-border bg-muted/30 p-4 text-sm">
+            <div className="mb-4 space-y-1.5 rounded-xl border border-border bg-slate-50 p-4 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Khách hàng</span>
-                <span className="font-medium">{cancelTarget.user?.fullName ?? '—'}</span>
+                <span className="font-semibold text-slate-800">{cancelTarget.user?.fullName ?? '—'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Biển số</span>
-                <span className="font-mono font-semibold">{cancelTarget.plateNumber}</span>
+                <span className="font-mono font-bold text-slate-800">{cancelTarget.plateNumber}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Giá gói</span>
-                <span className="font-semibold text-amber-400">{fmtMoney(cancelTarget.package?.price)}</span>
+                <span className="font-semibold text-sky-600">{fmtMoney(cancelTarget.package?.price)}</span>
               </div>
-              <div className="flex justify-between border-t border-border/60 pt-1.5">
+              <div className="flex justify-between border-t border-border pt-1.5">
                 <span className="text-muted-foreground">Hoàn tiền (95%)</span>
-                <span className="font-semibold text-emerald-400">
+                <span className="font-semibold text-emerald-600">
                   {fmtMoney(cancelTarget.package?.price ? Math.round(cancelTarget.package.price * 0.95) : undefined)}
                 </span>
               </div>
             </div>
 
-            <div className="mb-1 flex items-center gap-1.5 text-xs text-amber-400">
+            <div className="mb-1 flex items-center gap-1.5 text-xs text-amber-600 font-medium">
               <AlertTriangle size={12} /> Hệ thống sẽ tự động hoàn 95% vào ví người dùng.
             </div>
 
             <div className="mb-4">
-              <label className="mb-1 block text-xs font-semibold text-foreground">Lý do hủy (tùy chọn)</label>
+              <label className="mb-1 block text-xs font-semibold text-slate-700">Lý do hủy (tùy chọn)</label>
               <textarea
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
                 rows={3}
                 placeholder="Nhập lý do hủy gói..."
-                className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-rose-500/50"
+                className="w-full rounded-xl border border-sky-100 bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-rose-500/50"
               />
             </div>
 
             {cancelError && (
-              <p className="mb-3 text-xs text-rose-400">{cancelError}</p>
+              <p className="mb-3 text-xs text-rose-600">{cancelError}</p>
             )}
 
             <div className="grid grid-cols-2 gap-3">
@@ -206,7 +206,7 @@ export function ManagerSubscriptionsPage() {
               <Button
                 onClick={confirmCancel}
                 disabled={cancelling}
-                className="bg-rose-500 text-white hover:bg-rose-400 text-xs disabled:opacity-60"
+                className="bg-rose-600 text-white hover:bg-rose-700 text-xs disabled:opacity-60"
               >
                 {cancelling ? 'Đang hủy...' : 'Xác nhận hủy gói'}
               </Button>

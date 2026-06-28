@@ -143,145 +143,130 @@ export function AssignStaffModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose}>
-      <div className="w-full max-w-md rounded-lg bg-card p-6 shadow-lg">
-        {/* Header */}
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-foreground">
-            {editingData ? 'Edit shift assignment' : 'Assign staff to shift'}
-          </h2>
-          <button
-            onClick={handleClose}
-            disabled={isSubmitting}
-            className="text-muted-foreground hover:text-foreground disabled:opacity-50"
-          >
-            <X size={20} />
-          </button>
+    <Modal 
+      isOpen={isOpen} 
+      onClose={handleClose}
+      title={editingData ? 'Edit shift assignment' : 'Assign staff to shift'}
+    >
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader className="animate-spin mr-2" size={20} />
+          <span className="text-sm text-muted-foreground">Loading data...</span>
         </div>
-
-        {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader className="animate-spin mr-2" size={20} />
-            <span className="text-sm text-muted-foreground">Loading data...</span>
+      ) : (
+        <form onSubmit={handleSubmit} className="grid gap-4 max-h-[68vh] overflow-y-auto pr-1 pb-2 custom-scrollbar">
+          {/* Staff Selection */}
+          <div className="grid gap-2">
+            <label className="text-xs uppercase text-slate-500 font-bold tracking-wider font-mono">Staff<span className="text-red-500">*</span></label>
+            <CustomSelect
+              value={selectedStaff}
+              onChange={setSelectedStaff}
+              disabled={isSubmitting}
+              options={[
+                { value: '', label: '-- Select staff --' },
+                ...staffList.map((staff) => ({
+                  value: staff._id,
+                  label: `${staff.fullName} (${staff.email})`,
+                })),
+              ]}
+              placeholder="-- Select staff --"
+              className="h-10 text-sm font-semibold"
+            />
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="grid gap-4">
-            {/* Staff Selection */}
-            <div className="grid gap-2">
-              <label className="text-sm font-medium text-foreground">Staff<span className="text-red-500">*</span>
-              </label>
-              <CustomSelect
-                value={selectedStaff}
-                onChange={setSelectedStaff}
-                disabled={isSubmitting}
-                options={[
-                  { value: '', label: '-- Select staff --' },
-                  ...staffList.map((staff) => ({
-                    value: staff._id,
-                    label: `${staff.fullName} (${staff.email})`,
-                  })),
-                ]}
-                placeholder="-- Select staff --"
-                className="h-10 text-sm font-semibold"
-              />
-            </div>
 
-            {/* Shift Selection */}
-            <div className="grid gap-2">
-              <label className="text-sm font-medium text-foreground">Shift<span className="text-red-500">*</span>
-              </label>
-              <CustomSelect
-                value={selectedShift}
-                onChange={setSelectedShift}
-                disabled={isSubmitting}
-                options={[
-                  { value: '', label: '-- Select shift --' },
-                  ...shiftList.map((shift) => ({
-                    value: shift._id,
-                    label: `${shift.code} — ${shift.name} (${shift.startTime}–${shift.endTime})`,
-                  })),
-                ]}
-                placeholder="-- Select shift --"
-                className="h-10 text-sm font-semibold"
-              />
-            </div>
+          {/* Shift Selection */}
+          <div className="grid gap-2">
+            <label className="text-xs uppercase text-slate-500 font-bold tracking-wider font-mono">Shift<span className="text-red-500">*</span></label>
+            <CustomSelect
+              value={selectedShift}
+              onChange={setSelectedShift}
+              disabled={isSubmitting}
+              options={[
+                { value: '', label: '-- Select shift --' },
+                ...shiftList.map((shift) => ({
+                  value: shift._id,
+                  label: `${shift.code} — ${shift.name} (${shift.startTime}–${shift.endTime})`,
+                })),
+              ]}
+              placeholder="-- Select shift --"
+              className="h-10 text-sm font-semibold"
+            />
+          </div>
 
-            {/* Gate Selection */}
-            <div className="grid gap-2">
-              <label className="text-sm font-medium text-foreground">Assigned gate</label>
-              <CustomSelect
-                value={selectedGate || ''}
-                onChange={setSelectedGate}
-                disabled={isSubmitting}
-                options={[
-                  { value: '', label: '-- No gate assigned --' },
-                  ...gateList.map((gate) => ({
-                    value: gate._id,
-                    label: `${gate.code}${gate.name ? ` — ${gate.name}` : ''} (${directionLabel[gate.direction]})`,
-                  })),
-                ]}
-                placeholder="-- No gate assigned --"
-                className="h-10 text-sm font-semibold"
-              />
-            </div>
+          {/* Gate Selection */}
+          <div className="grid gap-2">
+            <label className="text-xs uppercase text-slate-500 font-bold tracking-wider font-mono">Assigned gate</label>
+            <CustomSelect
+              value={selectedGate || ''}
+              onChange={setSelectedGate}
+              disabled={isSubmitting}
+              options={[
+                { value: '', label: '-- No gate assigned --' },
+                ...gateList.map((gate) => ({
+                  value: gate._id,
+                  label: `${gate.code}${gate.name ? ` — ${gate.name}` : ''} (${directionLabel[gate.direction]})`,
+                })),
+              ]}
+              placeholder="-- No gate assigned --"
+              className="h-10 text-sm font-semibold"
+            />
+          </div>
 
-            {/* Work Date */}
-            <div className="grid gap-2">
-              <label className="text-sm font-medium text-foreground">Work date<span className="text-red-500">*</span>
-              </label>
-              <DatePicker
-                value={workDate}
-                onChange={setWorkDate}
-                disabled={isSubmitting}
-                className="h-10 text-sm font-semibold"
-              />
-            </div>
+          {/* Work Date */}
+          <div className="grid gap-2">
+            <label className="text-xs uppercase text-slate-500 font-bold tracking-wider font-mono">Work date<span className="text-red-500">*</span></label>
+            <DatePicker
+              value={workDate}
+              onChange={setWorkDate}
+              disabled={isSubmitting}
+              className="h-10 text-sm font-semibold"
+            />
+          </div>
 
-            {/* Note */}
-            <div className="grid gap-2">
-              <label className="text-sm font-medium text-foreground">Note (optional)</label>
-              <textarea
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                disabled={isSubmitting}
-                placeholder="VD: On duty, special notes..."
-                className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground text-sm resize-none"
-                rows={3}
-              />
-            </div>
+          {/* Note */}
+          <div className="grid gap-2">
+            <label className="text-xs uppercase text-slate-500 font-bold tracking-wider font-mono">Note (optional)</label>
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              disabled={isSubmitting}
+              placeholder="e.g. On duty, special notes..."
+              className="w-full px-3 py-2 border border-sky-100 rounded-xl bg-white text-foreground text-sm resize-none outline-none focus:border-sky-300"
+              rows={3}
+            />
+          </div>
 
-            {/* Error */}
-            {error && (
-              <div className="rounded-md bg-red-50 p-3 text-sm text-red-600 border border-red-200">
-                {error}
-              </div>
-            )}
-
-            {/* Actions */}
-            <div className="flex gap-3 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleClose}
-                disabled={isSubmitting}
-                className="flex-1"
-              >Cancel</Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="flex-1 gap-2"
-              >
-                {isSubmitting && <Loader size={16} className="animate-spin" />}
-                {isSubmitting
-                  ? 'Saving...'
-                  : editingData
-                    ? 'Update'
-                    : 'Assign staff'}
-              </Button>
+          {/* Error */}
+          {error && (
+            <div className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700 border border-rose-200">
+              {error}
             </div>
-          </form>
-        )}
-      </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex gap-3 pt-4 border-t border-sky-100/50 mt-2">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleClose}
+              disabled={isSubmitting}
+              className="flex-1 rounded-xl text-xs font-bold"
+            >Cancel</Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1 gap-2 rounded-xl text-xs font-bold"
+            >
+              {isSubmitting && <Loader size={14} className="animate-spin" />}
+              {isSubmitting
+                ? 'Saving...'
+                : editingData
+                  ? 'Update'
+                  : 'Assign staff'}
+            </Button>
+          </div>
+        </form>
+      )}
     </Modal>
   );
 }

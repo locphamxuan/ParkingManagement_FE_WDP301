@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate, useMatch } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
 import { ManagerSidebar } from '@/components/layout/ManagerSidebar';
@@ -36,12 +36,20 @@ export function ManagerLayout() {
   const title = useMemo(() => titles[location.pathname] ?? 'Manager Dashboard', [location.pathname]);
   const isProfileRoute = Boolean(useMatch('/manager/profile'));
 
+  useEffect(() => {
+    document.body.classList.add('manager-theme');
+    document.body.classList.remove('admin-theme');
+    return () => {
+      document.body.classList.remove('manager-theme');
+    };
+  }, []);
+
   return (
-    <div className="admin-theme relative min-h-screen bg-slate-950 text-foreground">
-      {/* Subtle teal/orange ambient glow for manager theme */}
+    <div className="relative min-h-screen bg-background text-foreground transition-colors duration-200">
+      {/* Subtle blue/cyan ambient glow for manager theme */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle_at_center,rgba(14,116,144,0.06),transparent_65%)] blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.04),transparent_60%)] blur-3xl" />
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.04),transparent_65%)] blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-[radial-gradient(circle_at_center,rgba(56,189,248,0.03),transparent_60%)] blur-3xl" />
       </div>
       <div className="relative z-10 flex min-h-screen">
         <ManagerSidebar collapsed={collapsed} onToggle={() => setCollapsed((prev) => !prev)} />

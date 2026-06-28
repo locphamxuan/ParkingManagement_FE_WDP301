@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pencil, Plus, Trash2, Layers, RotateCcw } from 'lucide-react';
+import { Pencil, Plus, Trash2, Layers, RotateCcw, CheckCircle2, Wrench, Activity, Sparkles, Tag } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/utils/cn';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DataTable, type DataColumn } from '@/components/common/DataTable';
@@ -35,41 +36,42 @@ const empty: FormState = {
 
 const SLOT_STATUSES: ParkingSlot['status'][] = ['available', 'occupied', 'reserved', 'maintenance'];
 
-// Interactive 3D Extruded Slot Block Component
 function Slot3DBox({ 
   slot, 
   onClick, 
   statusFilter,
-  vehicleTypes 
+  vehicleTypes,
+  isSelected
 }: { 
   slot: ParkingSlot; 
   onClick: () => void; 
   statusFilter: string;
   vehicleTypes: VehicleType[];
+  isSelected: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
 
   // Status-based coloring and lighting profiles — enhanced neon glow
   const config = {
     available: {
-      faceColor: 'bg-emerald-500/25 border-emerald-500/40 text-emerald-300',
+      faceColor: 'bg-emerald-50 border-emerald-300 text-emerald-700',
       label: 'Available',
-      glow: 'shadow-[0_0_14px_rgba(16,185,129,0.25),0_0_4px_rgba(16,185,129,0.1)] hover:shadow-[0_0_28px_rgba(16,185,129,0.6),0_0_8px_rgba(16,185,129,0.3)]'
+      glow: 'shadow-[0_0_8px_rgba(16,185,129,0.12)] hover:shadow-[0_0_16px_rgba(16,185,129,0.3)]'
     },
     occupied: {
-      faceColor: 'bg-red-500/25 border-red-500/45 text-red-300',
+      faceColor: 'bg-rose-50 border-rose-300 text-rose-700',
       label: 'Occupied',
-      glow: 'shadow-[0_0_14px_rgba(239,68,68,0.35),0_0_4px_rgba(239,68,68,0.15)] hover:shadow-[0_0_28px_rgba(239,68,68,0.65),0_0_8px_rgba(239,68,68,0.3)]'
+      glow: 'shadow-[0_0_8px_rgba(244,63,94,0.12)] hover:shadow-[0_0_16px_rgba(244,63,94,0.3)]'
     },
     reserved: {
-      faceColor: 'bg-purple-500/25 border-purple-500/45 text-purple-300',
+      faceColor: 'bg-sky-50 border-sky-300 text-sky-700',
       label: 'Reserved',
-      glow: 'shadow-[0_0_14px_rgba(168,85,247,0.35),0_0_4px_rgba(168,85,247,0.15)] hover:shadow-[0_0_28px_rgba(168,85,247,0.65),0_0_8px_rgba(168,85,247,0.3)]'
+      glow: 'shadow-[0_0_8px_rgba(14,165,233,0.12)] hover:shadow-[0_0_16px_rgba(14,165,233,0.3)]'
     },
     maintenance: {
-      faceColor: 'bg-amber-500/20 border-amber-500/35 text-amber-300 bg-[repeating-linear-gradient(45deg,rgba(245,158,11,0.12),rgba(245,158,11,0.12)_6px,rgba(0,0,0,0.4)_6px,rgba(0,0,0,0.4)_12px)]',
+      faceColor: 'bg-amber-50 border-amber-300 text-amber-700 bg-[repeating-linear-gradient(45deg,rgba(245,158,11,0.06),rgba(245,158,11,0.06)_6px,rgba(255,255,255,0.7)_6px,rgba(255,255,255,0.7)_12px)]',
       label: 'Maintenance',
-      glow: 'shadow-[0_0_14px_rgba(245,158,11,0.2),0_0_4px_rgba(245,158,11,0.1)] hover:shadow-[0_0_28px_rgba(245,158,11,0.55),0_0_8px_rgba(245,158,11,0.25)]'
+      glow: 'shadow-[0_0_8px_rgba(245,158,11,0.12)] hover:shadow-[0_0_16px_rgba(245,158,11,0.3)]'
     }
   }[slot.status];
 
@@ -98,21 +100,22 @@ function Slot3DBox({
     >
       {/* Extruded CSS 3D Box Container */}
       <div 
-        className={`box-3d w-full h-full rounded transition-all duration-300 ${config.glow}`}
+        className={cn(
+          "box-3d w-full h-full rounded transition-all duration-300", 
+          config.glow,
+          isSelected && "ring-2 ring-sky-400 ring-offset-1 shadow-[0_0_15px_rgba(56,189,248,0.7)]"
+        )}
         style={{
           '--box-w': '60px',
           '--box-d': '40px',
-          '--box-h': hovered ? '20px' : '10px',
-          transform: hovered ? 'translateZ(10px)' : 'translateZ(0px)',
+          '--box-h': isSelected ? '24px' : hovered ? '20px' : '10px',
+          transform: isSelected ? 'translateZ(14px)' : hovered ? 'translateZ(10px)' : 'translateZ(0px)',
           transformStyle: 'preserve-3d'
         } as React.CSSProperties}
       >
         {/* Top Face */}
         <div className={`box-3d-face box-3d-top rounded border-t border-x ${config.faceColor} flex items-center justify-center font-mono text-[9px] font-black uppercase tracking-wider`}>
           {slot.code}
-          {slot.status === 'occupied' && (
-            <div className="absolute w-5 h-2.5 rounded bg-orange-400/30 border border-orange-400/50 -bottom-0.5 preserve-3d" style={{ transform: 'translateZ(4px)' }} />
-          )}
         </div>
         
         {/* Front Face */}
@@ -135,7 +138,7 @@ function Slot3DBox({
             initial={{ opacity: 0, scale: 0.9, z: 20 }}
             animate={{ opacity: 1, scale: 1, z: 35 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="absolute z-50 pointer-events-none w-44 glass-panel-dark border border-white/10 rounded-2xl p-3 shadow-2xl"
+            className="absolute z-50 pointer-events-none w-44 bg-white border border-sky-100 rounded-2xl p-3 shadow-lg text-slate-800"
             style={{
               bottom: '120%',
               left: '50%',
@@ -144,19 +147,19 @@ function Slot3DBox({
             }}
           >
             <div className="flex justify-between items-center mb-1">
-              <span className="text-[11px] font-black text-white font-mono">{slot.code}</span>
+              <span className="text-[11px] font-black text-slate-800 font-mono">{slot.code}</span>
               <span className={`text-[8px] font-black uppercase font-mono px-1.5 py-0.5 rounded ${
-                slot.status === 'available' ? 'bg-emerald-500/10 text-emerald-400' :
-                slot.status === 'occupied' ? 'bg-orange-500/10 text-orange-400' :
-                slot.status === 'reserved' ? 'bg-blue-500/10 text-blue-400' : 'bg-amber-500/10 text-amber-400'
+                slot.status === 'available' ? 'bg-emerald-50 text-emerald-700' :
+                slot.status === 'occupied' ? 'bg-red-50 text-red-750' :
+                slot.status === 'reserved' ? 'bg-sky-50 text-sky-700' : 'bg-amber-50 text-amber-700'
               }`}>
                 {config.label}
               </span>
             </div>
-            <div className="space-y-1 text-[9px] text-slate-400 font-semibold leading-relaxed">
-              <p>Type:<span className="text-white font-black">{vtName}</span></p>
-              <p>Reservation:<span className="text-white font-black">{slot.reservable ? 'Yes' : 'Lock'}</span></p>
-              {slot.note && <p className="border-t border-white/5 pt-1 mt-1 text-slate-500 italic">Note: {slot.note}</p>}
+            <div className="space-y-1 text-[9px] text-slate-500 font-semibold leading-relaxed">
+              <p>Type: <span className="text-slate-800 font-black">{vtName}</span></p>
+              <p>Reservation: <span className="text-slate-800 font-black">{slot.reservable ? 'Yes' : 'Lock'}</span></p>
+              {slot.note && <p className="border-t border-sky-100 pt-1 mt-1 text-slate-400 italic">Note: {slot.note}</p>}
             </div>
           </motion.div>
         )}
@@ -181,10 +184,23 @@ export function ManagerSlotsPage() {
 
   // High-fidelity View mode toggle
   const [viewMode, setViewMode] = useState<'list' | '3d'>('3d');
+  const [selectedSlot, setSelectedSlot] = useState<ParkingSlot | null>(null);
+
+  // Compute live slots stats for the dashboard header
+  const stats = useMemo(() => {
+    const total = items.length;
+    const available = items.filter((s) => s.status === 'available').length;
+    const occupied = items.filter((s) => s.status === 'occupied').length;
+    const reserved = items.filter((s) => s.status === 'reserved').length;
+    const maintenance = items.filter((s) => s.status === 'maintenance').length;
+    const occupancyRate = total > 0 ? Math.round((occupied / total) * 100) : 0;
+    return { total, available, occupied, reserved, maintenance, occupancyRate };
+  }, [items]);
 
   // Interactive cockpit rotation state values for 3D stacks
-  const [rx, setRx] = useState(60);
-  const [rz, setRz] = useState(-45);
+  const [rx, setRx] = useState(30);
+  const [rz, setRz] = useState(0);
+  const [zoom, setZoom] = useState(1.2);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -363,10 +379,10 @@ export function ManagerSlotsPage() {
       title: '',
       render: (row) => (
         <div className="flex gap-1">
-          <Button size="sm" variant="ghost" onClick={() => openEdit(row)} className="hover:bg-orange-500/10 hover:text-orange-400">
+          <Button size="sm" variant="ghost" onClick={() => openEdit(row)} className="hover:bg-primary/10 hover:text-primary">
             <Pencil size={14} />
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => onDelete(row)} className="hover:bg-rose-500/10 hover:text-rose-400">
+          <Button size="sm" variant="ghost" onClick={() => onDelete(row)} className="hover:bg-rose-500/10 hover:text-rose-600">
             <Trash2 size={14} />
           </Button>
         </div>
@@ -375,10 +391,68 @@ export function ManagerSlotsPage() {
   ];
 
   return (
-    <div className="grid gap-6 animate-fadeIn">
+    <div className="grid gap-6 animate-fadeIn text-foreground">
       
+      {/* Dynamic Summary Stats cards */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        {/* Total Slots */}
+        <div className="bg-white border border-sky-100 border-l-4 border-l-slate-400 rounded-3xl p-4 shadow-sm flex items-center gap-3 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
+          <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100/50 text-slate-550 shrink-0">
+            <Layers size={18} />
+          </div>
+          <div>
+            <div className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Total slots</div>
+            <div className="text-2xl font-black text-slate-800 font-mono mt-0.5">{stats.total}</div>
+          </div>
+        </div>
+
+        {/* Available */}
+        <div className="bg-white border border-sky-100 border-l-4 border-l-emerald-500 rounded-3xl p-4 shadow-sm flex items-center gap-3 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
+          <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-100/50 text-emerald-500 shrink-0">
+            <CheckCircle2 size={18} />
+          </div>
+          <div>
+            <div className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Available</div>
+            <div className="text-2xl font-black text-emerald-600 font-mono mt-0.5">{stats.available}</div>
+          </div>
+        </div>
+
+        {/* Occupied */}
+        <div className="bg-white border border-sky-100 border-l-4 border-l-rose-500 rounded-3xl p-4 shadow-sm flex items-center gap-3 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
+          <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-100/50 text-rose-500 shrink-0">
+            <Activity size={18} />
+          </div>
+          <div>
+            <div className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Occupied</div>
+            <div className="text-2xl font-black text-rose-600 font-mono mt-0.5">{stats.occupied}</div>
+          </div>
+        </div>
+
+        {/* Reserved */}
+        <div className="bg-white border border-sky-100 border-l-4 border-l-sky-500 rounded-3xl p-4 shadow-sm flex items-center gap-3 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
+          <div className="p-2.5 rounded-xl bg-sky-50 border border-sky-100/50 text-sky-500 shrink-0">
+            <Sparkles size={18} />
+          </div>
+          <div>
+            <div className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Reserved</div>
+            <div className="text-2xl font-black text-sky-600 font-mono mt-0.5">{stats.reserved}</div>
+          </div>
+        </div>
+
+        {/* Maintenance */}
+        <div className="bg-white border border-sky-100 border-l-4 border-l-amber-500 rounded-3xl p-4 shadow-sm flex items-center gap-3 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
+          <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-100/50 text-amber-550 shrink-0">
+            <Wrench size={18} />
+          </div>
+          <div>
+            <div className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Maintenance</div>
+            <div className="text-2xl font-black text-amber-600 font-mono mt-0.5">{stats.maintenance}</div>
+          </div>
+        </div>
+      </div>
+
       {/* Sci-fi Controller & Toggle Row */}
-      <div className="relative z-30 flex flex-wrap items-center justify-between gap-4 glass-panel-dark p-4 rounded-3xl border border-white/5">
+      <div className="relative z-30 flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-3xl border border-sky-100 shadow-sm">
         <div className="flex flex-wrap items-center gap-3">
           <CustomSelect
             value={floorFilter}
@@ -408,40 +482,40 @@ export function ManagerSlotsPage() {
         </div>
 
         {/* View Toggle */}
-        <div className="inline-flex rounded-xl bg-slate-950/80 border border-white/5 p-1 backdrop-blur-md">
+        <div className="inline-flex rounded-xl bg-slate-100 border border-sky-100/50 p-1">
           <button
             onClick={() => setViewMode('list')}
             className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
               viewMode === 'list' 
-                ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 shadow-[0_0_10px_rgba(249,115,22,0.25)]' 
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-sky-500 text-white shadow-sm' 
+                : 'text-slate-500 hover:text-slate-800'
             }`}
           >Table view</button>
           <button
             onClick={() => setViewMode('3d')}
             className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
               viewMode === '3d' 
-                ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 shadow-[0_0_10px_rgba(249,115,22,0.25)]' 
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-sky-500 text-white shadow-sm' 
+                : 'text-slate-500 hover:text-slate-800'
             }`}
           >3D Hologram map</button>
         </div>
 
         <div className="flex items-center gap-3">
-          <Button onClick={openCreate} className="rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider hover:shadow-[0_0_15px_rgba(249,115,22,0.3)] gap-2">
+          <Button onClick={openCreate} className="rounded-xl bg-primary text-primary-foreground font-black text-xs uppercase tracking-wider shadow-md hover:brightness-110 gap-2">
             <Plus size={14} className="stroke-[3]" />Add slot</Button>
         </div>
       </div>
 
       {loading ? (
-        <div className="text-sm text-slate-400 flex items-center justify-center p-24 glass-panel-dark rounded-3xl border border-white/5">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-orange-500 border-t-transparent mr-2" />Loading slot data...</div>
+        <div className="text-sm text-slate-500 flex items-center justify-center p-24 bg-white rounded-3xl border border-sky-100 shadow-sm">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent mr-2" />Loading slot data...</div>
       ) : error ? (
-        <div className="text-sm text-rose-400 glass-panel-dark p-6 rounded-3xl border border-rose-500/10 bg-rose-950/15">{error}</div>
+        <div className="text-sm text-rose-700 bg-rose-50 border border-rose-100 p-6 rounded-3xl shadow-sm">{error}</div>
       ) : (
         <div>
           {viewMode === 'list' ? (
-            <div className="glass-panel-dark rounded-3xl border border-white/5 p-6 backdrop-blur-md shadow-2xl">
+            <div className="bg-white rounded-3xl border border-sky-100 p-6 shadow-sm">
               <DataTable title={`Slots (${items.length})`} rows={items} columns={columns} />
             </div>
           ) : (
@@ -449,14 +523,14 @@ export function ManagerSlotsPage() {
             <div className="grid gap-6 xl:grid-cols-[1fr,300px]">
               
               {/* 3D Map Viewport */}
-              <div className="h-[620px] relative rounded-3xl border border-orange-500/15 bg-slate-950 shadow-[0_0_60px_rgba(0,0,0,0.9),inset_0_0_30px_rgba(0,0,0,0.6)] overflow-hidden flex items-center justify-center glass-premium cyber-scanline">
+              <div className="h-[620px] relative rounded-3xl border border-sky-100 bg-slate-50/50 shadow-sm overflow-hidden flex items-center justify-center">
                 
                 {/* Multi-layer space backing grid */}
-                <div className="absolute inset-0 bg-[linear-gradient(rgba(6,182,212,0.018)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,0.018)_1px,transparent_1px)] bg-[size:28px_28px] pointer-events-none" />
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(14,165,233,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.03)_1px,transparent_1px)] bg-[size:28px_28px] pointer-events-none" />
                 {/* Radial dot texture */}
-                <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:14px_14px] pointer-events-none" />
-                {/* Central orange halo */}
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(249,115,22,0.07),rgba(168,85,247,0.035)_50%,transparent_75%)] pointer-events-none" />
+                <div className="absolute inset-0 bg-[radial-gradient(rgba(0,0,0,0.015)_1px,transparent_1px)] bg-[size:14px_14px] pointer-events-none" />
+                {/* Central halo */}
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(14,165,233,0.03),transparent_75%)] pointer-events-none" />
                 
                 {/* 3D Render Stack Container */}
                 <div className="perspective-1000 w-full h-full flex items-center justify-center preserve-3d">
@@ -464,6 +538,7 @@ export function ManagerSlotsPage() {
                     style={{
                       rotateX: rx,
                       rotateZ: rz,
+                      scale: zoom,
                       transformStyle: 'preserve-3d',
                     }}
                     className="isometric-mesh relative w-[500px] h-[400px] preserve-3d transition-transform duration-200"
@@ -487,18 +562,31 @@ export function ManagerSlotsPage() {
                             transform: `translateZ(${zOffset}px)`,
                             transformStyle: 'preserve-3d',
                           }}
-                          className="absolute inset-0 rounded-3xl border border-cyan-500/25 bg-slate-900/55 shadow-[0_0_30px_rgba(6,182,212,0.08),0_8px_32px_rgba(0,0,0,0.6)] preserve-3d p-6 flex flex-col justify-between overflow-hidden"
+                          className="absolute inset-0 rounded-3xl border border-sky-100 bg-gradient-to-b from-white/90 to-white/70 backdrop-blur-sm shadow-[0_20px_40px_rgba(14,165,233,0.08)] preserve-3d p-6 flex flex-col justify-between overflow-hidden"
                         >
-                          {/* Floor plate cyan scan stripe — stays behind content */}
-                          <div className="absolute inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent pointer-events-none"
-                            style={{ top: `${((fIdx % 3) + 1) * 25}%` }}
-                          />
+                          {/* Animated laser scan line sweeping vertically */}
+                          <div className="animate-scan-sweep" />
+
+                          {/* Corner L-Markers */}
+                          <div className="absolute top-3 left-3 w-2 h-2 border-t border-l border-sky-250 pointer-events-none" />
+                          <div className="absolute top-3 right-3 w-2 h-2 border-t border-r border-sky-250 pointer-events-none" />
+                          <div className="absolute bottom-3 left-3 w-2 h-2 border-b border-l border-sky-250 pointer-events-none" />
+                          <div className="absolute bottom-3 right-3 w-2 h-2 border-b border-r border-sky-250 pointer-events-none" />
+
+                          {/* Subtle Lane Guide Lines */}
+                          <div className="absolute top-1/2 left-4 right-4 h-[1px] border-t border-dashed border-sky-100/50 -translate-y-1/2 pointer-events-none" />
+
+                          {/* Subtle Floor helper labels */}
+                          <div className="absolute bottom-3 left-6 text-[7px] font-black tracking-widest text-slate-300/80 uppercase font-mono pointer-events-none">ENTRY POINT</div>
+                          <div className="absolute bottom-3 right-6 text-[7px] font-black tracking-widest text-slate-300/80 uppercase font-mono pointer-events-none">EXIT POINT</div>
+                          <div className="absolute top-3 left-6 text-[7px] font-black tracking-widest text-slate-350/80 uppercase font-mono pointer-events-none">PRIMARY ZONE</div>
+
                           {/* Floor label badge */}
                           <div className="flex justify-between items-center mb-4 z-10 preserve-3d" style={{ transform: 'translateZ(15px)' }}>
-                            <span className="text-[10px] font-black tracking-widest text-orange-400 uppercase font-mono bg-slate-950/80 px-2.5 py-1 rounded-lg border border-white/5">
-                              TẦNG {floor.code}
+                            <span className="text-[10px] font-black tracking-widest text-sky-600 uppercase font-mono bg-sky-50 px-2.5 py-1 rounded-lg border border-sky-100">
+                              FLOOR {floor.code}
                             </span>
-                            <span className="text-[9px] font-bold text-slate-500 font-mono">
+                            <span className="text-[9px] font-bold text-slate-400 font-mono">
                               CAPACITY: {floorSlots.filter(s => s.status === 'occupied').length}/{floorSlots.length} SLOT
                             </span>
                           </div>
@@ -506,21 +594,22 @@ export function ManagerSlotsPage() {
                           {/* Grid Layout of Slot blocks */}
                           <div className="grid grid-cols-4 sm:grid-cols-5 gap-6 my-auto items-center justify-items-center preserve-3d" style={{ transform: 'translateZ(10px)' }}>
                             {floorSlots.length === 0 ? (
-                              <div className="col-span-full text-center text-slate-600 text-xs py-10 uppercase tracking-widest font-mono">No slots configured</div>
+                              <div className="col-span-full text-center text-slate-400 text-xs py-10 uppercase tracking-widest font-mono">No slots configured</div>
                             ) : (
                               floorSlots.map((slot) => (
                                 <Slot3DBox 
                                   key={slot._id} 
                                   slot={slot} 
-                                  onClick={() => openEdit(slot)} 
+                                  onClick={() => setSelectedSlot(slot)} 
                                   statusFilter={statusFilter}
                                   vehicleTypes={vehicleTypes}
+                                  isSelected={selectedSlot?._id === slot._id}
                                 />
                               ))
                             )}
                           </div>
 
-                          <div className="text-[8px] text-slate-600 font-black tracking-widest uppercase font-mono text-right preserve-3d mt-4" style={{ transform: 'translateZ(5px)' }}>
+                          <div className="text-[8px] text-slate-455 font-black tracking-widest uppercase font-mono text-right preserve-3d mt-4" style={{ transform: 'translateZ(5px)' }}>
                             {floor.code} ARCHITECTURE
                           </div>
                         </motion.div>
@@ -529,90 +618,232 @@ export function ManagerSlotsPage() {
                   </motion.div>
                 </div>
 
-                {/* Ambient occlusion glow labels */}
-                <div className="absolute left-6 top-6 flex flex-col gap-1.5 z-20 pointer-events-none">
-                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-slate-400">
-                    <Layers size={12} className="text-orange-400" />
-                    <span>3D Zone Map ({items.length} slots)</span>
+                {/* Stronger Map Header */}
+                <div className="absolute left-6 top-6 right-6 flex flex-wrap justify-between items-start z-20 pointer-events-none gap-2">
+                  <div className="flex flex-col gap-0.5">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      3D Parking Layout
+                    </h4>
+                    <p className="text-[9px] text-slate-400 font-medium">
+                      Live spatial overview of parking slots on the selected floor
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="bg-sky-50 text-sky-600 border border-sky-100 px-2 py-0.5 rounded-lg text-[9px] font-black uppercase font-mono tracking-wider">
+                      {items.length} slots
+                    </span>
+                    {floorFilter && (
+                      <span className="bg-slate-50 text-slate-600 border border-slate-200 px-2 py-0.5 rounded-lg text-[9px] font-black uppercase font-mono tracking-wider">
+                        Floor: {floors.find(f => f._id === floorFilter)?.code || 'Selected'}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
 
               {/* Sci-Fi Right Cockpit Control Panel */}
-              <div className="glass-premium glow-border-pulse rounded-3xl p-6 shadow-2xl flex flex-col justify-between">
-                <div>
-                  <h3 className="text-xs font-black uppercase tracking-widest text-white font-mono mb-4 flex items-center gap-1.5 pb-2.5 border-b border-white/5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-ping" />Spatial view</h3>
-                  
-                  {/* Cockpit Angle Tilt Controls */}
-                  <div className="space-y-6">
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400 font-mono">
-                        <span>X Tilt</span>
-                        <span className="text-orange-400 font-mono">{rx}°</span>
-                      </div>
-                      <input 
-                        type="range" 
-                        min="20" 
-                        max="85" 
-                        value={rx} 
-                        onChange={(e) => setRx(Number(e.target.value))}
-                        className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-orange-500 border border-white/5"
-                      />
+              <div className="bg-white border border-sky-100 rounded-3xl p-6 shadow-sm flex flex-col justify-between min-h-[500px]">
+                {selectedSlot ? (
+                  /* SELECTED SLOT DETAILS PROPERTIES PANEL */
+                  <div className="space-y-6 animate-fadeIn">
+                    <div className="flex items-center justify-between pb-2.5 border-b border-sky-100">
+                      <h3 className="text-xs font-black uppercase tracking-widest text-slate-800 font-mono flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" />Slot Details
+                      </h3>
+                      <button 
+                        onClick={() => setSelectedSlot(null)}
+                        className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors font-mono"
+                      >Deselect</button>
                     </div>
 
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400 font-mono">
-                        <span>Z Rotation</span>
-                        <span className="text-orange-400 font-mono">{rz}°</span>
+                    <div className="space-y-4">
+                      {/* Slot code */}
+                      <div className="bg-sky-50/30 border border-sky-100/50 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-mono font-bold">Selected slot</span>
+                        <span className="text-2xl font-black text-sky-950 font-mono mt-1">{selectedSlot.code}</span>
                       </div>
-                      <input 
-                        type="range" 
-                        min="-180" 
-                        max="180" 
-                        value={rz} 
-                        onChange={(e) => setRz(Number(e.target.value))}
-                        className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-orange-500 border border-white/5"
-                      />
+
+                      {/* Info grid */}
+                      <div className="grid gap-3 text-xs">
+                        <div className="flex justify-between items-center py-2 border-b border-slate-50">
+                          <span className="text-slate-400 font-medium">Floor</span>
+                          <span className="font-semibold text-slate-800 font-mono uppercase">
+                            {typeof selectedSlot.floor === 'object' ? selectedSlot.floor.code : floors.find(f => f._id === selectedSlot.floor)?.code || '—'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 border-b border-slate-50">
+                          <span className="text-slate-400 font-medium">Vehicle type</span>
+                          <span className="font-semibold text-slate-800">
+                            {(() => {
+                              const vt = selectedSlot.vehicleType;
+                              if (!vt) return '— Not fixed —';
+                              if (typeof vt === 'object') return vt.name;
+                              return vehicleTypes.find(v => v._id === vt)?.name || 'Vehicle Type';
+                            })()}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 border-b border-slate-50">
+                          <span className="text-slate-400 font-medium">Status</span>
+                          <span className={cn(
+                            "px-2 py-0.5 rounded-lg text-[9px] font-black uppercase font-mono border",
+                            selectedSlot.status === 'available' && "bg-emerald-50 border-emerald-200 text-emerald-600",
+                            selectedSlot.status === 'occupied' && "bg-rose-50 border-rose-200 text-rose-600",
+                            selectedSlot.status === 'reserved' && "bg-sky-50 border-sky-200 text-sky-600",
+                            selectedSlot.status === 'maintenance' && "bg-amber-50 border-amber-200 text-amber-600"
+                          )}>
+                            {selectedSlot.status}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 border-b border-slate-50">
+                          <span className="text-slate-400 font-medium">Reservation</span>
+                          <span className="font-semibold text-slate-800">
+                            {selectedSlot.reservable ? 'Enabled' : 'Disabled'}
+                          </span>
+                        </div>
+                        {selectedSlot.note && (
+                          <div className="flex flex-col gap-1 py-1">
+                            <span className="text-slate-400 font-medium">Note</span>
+                            <span className="text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-100/50 italic text-[11px]">
+                              {selectedSlot.note}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
-                    <button 
-                      onClick={() => { setRx(60); setRz(-45); }}
-                      className="w-full py-2.5 rounded-xl border border-white/10 hover:border-orange-500/30 text-white font-mono text-[9px] font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 hover:bg-slate-950/50"
-                    >
-                      <RotateCcw size={12} /> Reset View
-                    </button>
+                    <div className="grid grid-cols-2 gap-2.5 pt-4 border-t border-sky-100">
+                      <Button 
+                        size="sm" 
+                        variant="secondary"
+                        onClick={() => openEdit(selectedSlot)}
+                        className="rounded-xl font-bold text-xs gap-1.5"
+                      >
+                        <Pencil size={12} />Edit
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        onClick={() => {
+                          onDelete(selectedSlot);
+                          setSelectedSlot(null);
+                        }}
+                        className="rounded-xl font-bold text-xs gap-1.5 text-rose-600 hover:bg-rose-50 hover:text-rose-700 border border-rose-100 hover:border-rose-200"
+                      >
+                        <Trash2 size={12} />Delete
+                      </Button>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  /* STANDARD COCKPIT PANEL AND STATUS LEGEND */
+                  <>
+                    <div>
+                      <h3 className="text-xs font-black uppercase tracking-widest text-slate-800 font-mono mb-4 flex items-center gap-1.5 pb-2.5 border-b border-sky-100">
+                        <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-ping" />Spatial view</h3>
+                      
+                      {/* Cockpit Angle Tilt Controls */}
+                      <div className="space-y-6">
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-500 font-mono">
+                            <span>X Tilt</span>
+                            <span className="text-sky-600 font-mono">{rx}°</span>
+                          </div>
+                          <input 
+                            type="range" 
+                            min="20" 
+                            max="85" 
+                            value={rx} 
+                            onChange={(e) => setRx(Number(e.target.value))}
+                            className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-sky-500 border border-sky-100"
+                          />
+                        </div>
 
-                <div className="mt-8 pt-4 border-t border-white/5 space-y-3">
-                  <div className="text-[9px] font-black uppercase tracking-widest text-slate-500 font-mono mb-2">Status legend</div>
-                  <div className="flex items-center justify-between text-[10px] font-bold text-slate-300 bg-slate-950/40 p-2.5 rounded-xl border border-white/5">
-                    <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-emerald-500/20 border border-emerald-500/40" />Available</span>
-                    <span className="font-mono text-emerald-400 font-black">
-                      {items.filter(s => s.status === 'available').length}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-[10px] font-bold text-slate-300 bg-slate-950/40 p-2.5 rounded-xl border border-white/5">
-                    <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-red-500/20 border border-red-500/40" />Occupied</span>
-                    <span className="font-mono text-red-400 font-black">
-                      {items.filter(s => s.status === 'occupied').length}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-[10px] font-bold text-slate-300 bg-slate-950/40 p-2.5 rounded-xl border border-white/5">
-                    <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-purple-500/20 border border-purple-500/40" />Reserved</span>
-                    <span className="font-mono text-purple-400 font-black">
-                      {items.filter(s => s.status === 'reserved').length}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-[10px] font-bold text-slate-300 bg-slate-950/40 p-2.5 rounded-xl border border-white/5">
-                    <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-amber-500/20 border border-amber-500/30" />Maintenance</span>
-                    <span className="font-mono text-amber-400 font-black">
-                      {items.filter(s => s.status === 'maintenance').length}
-                    </span>
-                  </div>
-                </div>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-500 font-mono">
+                            <span>Z Rotation</span>
+                            <span className="text-sky-600 font-mono">{rz}°</span>
+                          </div>
+                          <input 
+                            type="range" 
+                            min="-180" 
+                            max="180" 
+                            value={rz} 
+                            onChange={(e) => setRz(Number(e.target.value))}
+                            className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-sky-500 border border-sky-100"
+                          />
+                        </div>
 
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-500 font-mono">
+                            <span>Zoom</span>
+                            <span className="text-sky-600 font-mono">{Math.round(zoom * 100)}%</span>
+                          </div>
+                          <input 
+                            type="range" 
+                            min="0.5" 
+                            max="2" 
+                            step="0.05"
+                            value={zoom} 
+                            onChange={(e) => setZoom(Number(e.target.value))}
+                            className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-sky-500 border border-sky-100"
+                          />
+                        </div>
+
+                        <button 
+                          onClick={() => { setRx(30); setRz(0); setZoom(1.2); }}
+                          className="w-full py-2.5 rounded-xl border border-sky-200 hover:border-sky-300 text-sky-700 bg-sky-50/50 hover:bg-sky-100/50 font-mono text-[9px] font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2"
+                        >
+                          <RotateCcw size={12} /> Reset View
+                        </button>
+                      </div>
+
+                      {/* Live occupancy progress */}
+                      <div className="mt-6 pt-4 border-t border-sky-100 space-y-4">
+                        <div>
+                          <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-500 font-mono mb-1.5">
+                            <span>Occupancy rate</span>
+                            <span className="text-sky-600 font-mono">{stats.occupancyRate}%</span>
+                          </div>
+                          <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/40">
+                            <div 
+                              className="h-full bg-gradient-to-r from-sky-400 to-sky-500 rounded-full transition-all duration-500" 
+                              style={{ width: `${stats.occupancyRate}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    <div className="mt-8 pt-4 border-t border-sky-100 space-y-3">
+                      <div className="text-[9px] font-black uppercase tracking-widest text-slate-400 font-mono mb-2">Status legend</div>
+                      <div className="flex items-center justify-between text-[10px] font-bold text-slate-700 bg-sky-50/30 p-2.5 rounded-xl border border-sky-100">
+                        <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-emerald-50 border border-emerald-300" />Available</span>
+                        <span className="font-mono text-emerald-600 font-black">
+                          {stats.available}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-[10px] font-bold text-slate-700 bg-sky-50/30 p-2.5 rounded-xl border border-sky-100">
+                        <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-red-50 border border-red-300" />Occupied</span>
+                        <span className="font-mono text-red-650 font-black">
+                          {stats.occupied}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-[10px] font-bold text-slate-700 bg-sky-50/30 p-2.5 rounded-xl border border-sky-100">
+                        <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-sky-50 border border-sky-300" />Reserved</span>
+                        <span className="font-mono text-sky-600 font-black">
+                          {stats.reserved}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-[10px] font-bold text-slate-700 bg-sky-50/30 p-2.5 rounded-xl border border-sky-100">
+                        <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded bg-amber-50 border border-amber-300" />Maintenance</span>
+                        <span className="font-mono text-amber-600 font-black">
+                          {stats.maintenance}
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
             </div>
@@ -627,17 +858,17 @@ export function ManagerSlotsPage() {
         title={editing ? 'Edit slot' : 'Add slot'}
         onSubmit={onSubmit}
       >
-        <div className="grid gap-4 md:grid-cols-2 text-slate-100">
+        <div className="grid gap-4 md:grid-cols-2 text-foreground">
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Slot code</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground font-mono">Slot code</label>
             <Input
               value={form.code}
               onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
-              className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-orange-500/40"
+              className="bg-card border-border text-foreground rounded-xl focus:border-primary/45"
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Floor</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground font-mono">Floor</label>
             <CustomSelect
               value={form.floor}
               onChange={(val) => setForm((f) => ({ ...f, floor: val }))}
@@ -652,10 +883,10 @@ export function ManagerSlotsPage() {
             />
           </div>
           <div className="grid gap-1.5 sm:col-span-2">
-            <p className="rounded-xl border border-sky-500/20 bg-sky-500/5 px-3 py-2 text-[11px] text-sky-300">Slot vehicle type<strong>automatically taken from the floor's allowed vehicle types</strong>(configured in the Floors tab), no need to set here.</p>
+            <p className="rounded-xl border border-sky-500/20 bg-sky-500/5 px-3 py-2 text-[11px] text-sky-700">Slot vehicle type <strong>automatically taken from the floor's allowed vehicle types</strong> (configured in the Floors tab), no need to set here.</p>
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Status</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground font-mono">Status</label>
             <CustomSelect
               value={form.status}
               onChange={(val) => setForm((f) => ({ ...f, status: val as ParkingSlot['status'] }))}
@@ -665,21 +896,21 @@ export function ManagerSlotsPage() {
               }))}
             />
           </div>
-          <label className="flex items-center gap-3 text-xs font-bold text-slate-300 md:col-span-2 select-none">
+          <label className="flex items-center gap-3 text-xs font-bold text-slate-705 md:col-span-2 select-none">
             <input
               type="checkbox"
               checked={form.reservable}
               onChange={(e) => setForm((f) => ({ ...f, reservable: e.target.checked }))}
-              className="w-4 h-4 rounded border-white/10 bg-slate-950 text-orange-500 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+              className="w-4 h-4 rounded border-border bg-card text-primary focus:ring-0 focus:ring-offset-0 cursor-pointer"
             />
             <span>Allow advance booking</span>
           </label>
           <div className="grid gap-1.5 md:col-span-2">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Note</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground font-mono">Note</label>
             <Input
               value={form.note}
               onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
-              className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-orange-500/40"
+              className="bg-card border-border text-foreground rounded-xl focus:border-primary/45"
             />
           </div>
         </div>

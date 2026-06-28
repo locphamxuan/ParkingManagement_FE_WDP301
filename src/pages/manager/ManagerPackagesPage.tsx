@@ -202,25 +202,25 @@ export function ManagerPackagesPage() {
         title={editing ? 'Edit long-term package' : 'Add long-term package'}
         onSubmit={onSubmit}
       >
-        <div className="grid gap-3 md:grid-cols-2 text-slate-100">
+        <div className="grid gap-3 md:grid-cols-2 text-foreground">
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Code</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground font-mono">Code</label>
             <Input
               value={form.code}
               onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
-              className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-orange-500/40"
+              className="bg-card border-border text-foreground rounded-xl focus:border-primary/45"
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Name</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground font-mono">Name</label>
             <Input
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-orange-500/40"
+              className="bg-card border-border text-foreground rounded-xl focus:border-primary/45"
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Vehicle type</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground font-mono">Vehicle type</label>
             <CustomSelect
               value={form.vehicleType}
               onChange={(val) => setForm((f) => ({ ...f, vehicleType: val }))}
@@ -235,64 +235,64 @@ export function ManagerPackagesPage() {
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Duration (days)</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground font-mono">Duration (days)</label>
             <Input
               type="number"
               min={1}
               value={form.durationDays}
               onChange={(e) => setForm((f) => ({ ...f, durationDays: e.target.value }))}
-              className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-orange-500/40"
+              className="bg-card border-border text-foreground rounded-xl focus:border-primary/45"
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Price (VND)</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground font-mono">Price (VND)</label>
             <Input
               type="number"
               min={0}
               value={form.price}
               onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
-              className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-orange-500/40"
+              className="bg-card border-border text-foreground rounded-xl focus:border-primary/45"
             />
           </div>
           <div className="grid gap-1.5 md:col-span-2">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Max hours / day</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground font-mono">Max hours / day</label>
             <Input
               type="number"
               min={0}
               placeholder="Leave empty = follow the duration"
               value={form.maxHoursPerDay}
               onChange={(e) => setForm((f) => ({ ...f, maxHoursPerDay: e.target.value }))}
-              className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-orange-500/40 placeholder-slate-600"
+              className="bg-card border-border text-foreground rounded-xl focus:border-primary/45 placeholder-muted-foreground/50"
             />
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-muted-foreground">
               Free parking hours/day. Excess is charged at the normal rate. Leave empty → default week 5h / month 7h / year 10h. 0 = unlimited.
             </p>
           </div>
           <div className="grid gap-1.5 md:col-span-2">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Description</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground font-mono">Description</label>
             <Input
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-              className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-orange-500/40"
+              className="bg-card border-border text-foreground rounded-xl focus:border-primary/45"
             />
           </div>
           <div className="grid gap-1.5 md:col-span-2">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Package benefits (one per line)</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground font-mono">Package benefits (one per line)</label>
             <textarea
               value={form.benefits}
               onChange={(e) => setForm((f) => ({ ...f, benefits: e.target.value }))}
               rows={4}
               placeholder={'Unlimited free parking sessions\nPriority slots near the elevator\nFree car wash once a month'}
-              className="rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-orange-500/40 placeholder-slate-600"
+              className="rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary/45 placeholder-muted-foreground/50"
             />
-            <p className="text-[11px] text-slate-400">These benefits will be shown to customers when choosing a package.</p>
+            <p className="text-[11px] text-muted-foreground">These benefits will be shown to customers when choosing a package.</p>
           </div>
-          <label className="flex items-center gap-3 text-xs font-bold text-slate-300 md:col-span-2 select-none">
+          <label className="flex items-center gap-3 text-xs font-bold text-slate-700 md:col-span-2 select-none">
             <input
               type="checkbox"
               checked={form.isActive}
               onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))}
-              className="w-4 h-4 rounded border-white/10 bg-slate-950 text-orange-500 focus:ring-0 cursor-pointer"
+              className="w-4 h-4 rounded border-border bg-card text-primary focus:ring-0 cursor-pointer"
             />
             <span>On sale</span>
           </label>

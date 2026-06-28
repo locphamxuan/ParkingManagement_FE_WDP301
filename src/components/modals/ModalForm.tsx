@@ -14,10 +14,10 @@ export function ModalForm({ open, onOpenChange, title, children, onSubmit }: Mod
   return (
     <Modal open={open} onOpenChange={onOpenChange} title={title}>
       <div className="flex flex-col gap-4 max-h-[75vh]">
-        <div className="flex-1 overflow-y-auto text-slate-200 text-sm leading-relaxed pr-1.5">
+        <div className="flex-1 overflow-y-auto text-foreground text-sm leading-relaxed pr-1.5 pb-2 custom-scrollbar">
           {children}
         </div>
-        <div className="flex justify-end gap-2.5 border-t border-white/10 pt-4 mt-1 shrink-0">
+        <div className="flex justify-end gap-2.5 border-t border-border pt-4 mt-1 shrink-0">
           <Button 
             variant="secondary" 
             onClick={() => onOpenChange(false)}
@@ -25,7 +25,7 @@ export function ModalForm({ open, onOpenChange, title, children, onSubmit }: Mod
           >Cancel</Button>
           <Button 
             onClick={onSubmit}
-            className="rounded-xl px-5 py-2 font-bold text-xs bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-md shadow-orange-500/10 transition-all duration-200 hover:scale-[1.01]"
+            className="rounded-xl px-5 py-2 font-bold text-xs bg-primary text-primary-foreground hover:brightness-110 shadow-md shadow-primary/10 transition-all duration-200 hover:scale-[1.01]"
           >Save</Button>
         </div>
       </div>

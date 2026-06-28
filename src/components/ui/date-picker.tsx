@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { cn } from '@/utils/cn';
 
 interface DatePickerProps {
@@ -30,7 +30,6 @@ const WEEK_DAYS = ['H', 'B', 'T', 'N', 'S', 'B', 'C'];
 
 export function DatePicker({ value, onChange, placeholder = 'dd/mm/yyyy', className, disabled = false }: DatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   // Parse value to Date object or null
   const parsedDate = value ? new Date(value) : null;
@@ -45,25 +44,18 @@ export function DatePicker({ value, onChange, placeholder = 'dd/mm/yyyy', classN
     }
   }, [value]);
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const handlePrevMonth = () => {
+  const handlePrevMonth = (e: React.MouseEvent) => {
+    e.preventDefault();
     setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1));
   };
 
-  const handleNextMonth = () => {
+  const handleNextMonth = (e: React.MouseEvent) => {
+    e.preventDefault();
     setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1));
   };
 
-  const handleSelectDay = (day: number, isCurrentMonth: boolean) => {
+  const handleSelectDay = (e: React.MouseEvent, day: number, isCurrentMonth: boolean) => {
+    e.preventDefault();
     let targetMonth = viewDate.getMonth();
     let targetYear = viewDate.getFullYear();
 
@@ -85,12 +77,14 @@ export function DatePicker({ value, onChange, placeholder = 'dd/mm/yyyy', classN
     setIsOpen(false);
   };
 
-  const handleClear = () => {
+  const handleClear = (e: React.MouseEvent) => {
+    e.preventDefault();
     onChange('');
     setIsOpen(false);
   };
 
-  const handleToday = () => {
+  const handleToday = (e: React.MouseEvent) => {
+    e.preventDefault();
     const d = new Date();
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -134,7 +128,7 @@ export function DatePicker({ value, onChange, placeholder = 'dd/mm/yyyy', classN
   };
 
   const formattedDisplay = () => {
-    if (!isValidDate) return <span className="text-slate-500">{placeholder}</span>;
+    if (!isValidDate) return <span className="text-slate-400 font-medium">{placeholder}</span>;
     const dd = String(parsedDate.getDate()).padStart(2, '0');
     const mm = String(parsedDate.getMonth() + 1).padStart(2, '0');
     const yyyy = parsedDate.getFullYear();
@@ -145,45 +139,43 @@ export function DatePicker({ value, onChange, placeholder = 'dd/mm/yyyy', classN
   const days = getCalendarDays();
 
   return (
-    <div ref={containerRef} className={cn('relative w-full', className)}>
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => setIsOpen(!isOpen)}
-        className={cn(
-          "flex h-10 w-full items-center justify-between rounded-xl border border-slate-700/80 bg-[#070b12] px-3 text-sm font-semibold text-white outline-none transition-all duration-300 hover:border-slate-500",
-          isOpen && "border-orange-500/50 ring-2 ring-orange-500/10",
-          disabled && "cursor-not-allowed opacity-50"
-        )}
-      >
-        <span className="text-left font-medium">{formattedDisplay()}</span>
-        <Calendar size={16} className="text-slate-400 shrink-0 ml-2" />
-      </button>
+    <div className={cn('relative w-full', className)}>
+      <DropdownMenu.Root open={isOpen} onOpenChange={setIsOpen}>
+        <DropdownMenu.Trigger asChild>
+          <button
+            type="button"
+            disabled={disabled}
+            className={cn(
+              "flex h-10 w-full items-center justify-between rounded-xl border border-border bg-card px-3 text-sm font-semibold text-foreground outline-none transition-all duration-300 hover:border-muted-foreground/30",
+              isOpen && "border-primary/50 ring-2 ring-primary/10",
+              disabled && "cursor-not-allowed opacity-50"
+            )}
+          >
+            <span className="text-left font-semibold text-slate-800">{formattedDisplay()}</span>
+            <Calendar size={16} className="text-slate-500 shrink-0 ml-2" />
+          </button>
+        </DropdownMenu.Trigger>
 
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.98 }}
-            animate={{ opacity: 1, y: 4, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.98 }}
-            transition={{ duration: 0.15, ease: 'easeOut' }}
-            className="absolute left-0 z-50 flex flex-col w-64 rounded-2xl border border-slate-700/80 bg-[#070b12]/98 p-3 shadow-[0_20px_50px_rgba(0,0,0,0.65)] backdrop-blur-xl"
-            style={{ top: '100%' }}
+        <DropdownMenu.Portal>
+          <DropdownMenu.Content
+            align="start"
+            sideOffset={6}
+            className="z-[9999] flex flex-col w-64 rounded-2xl border border-sky-100 bg-card p-3 shadow-lg animate-in fade-in-50 zoom-in-95 duration-100 focus:outline-none"
           >
             {/* Header: Month & Year Selector */}
             <div className="flex items-center justify-between mb-3.5">
               <button
                 type="button"
                 onClick={handlePrevMonth}
-                className="p-1 rounded-lg hover:bg-white/[0.06] text-slate-400 hover:text-white transition-all"
+                className="p-1 rounded-lg hover:bg-sky-50 text-slate-500 hover:text-sky-600 transition-all"
               >
                 <ChevronLeft size={16} />
               </button>
-              <span className="text-xs font-black uppercase text-white tracking-wide">{displayMonthName}</span>
+              <span className="text-xs font-black uppercase text-slate-800 tracking-wider font-mono">{displayMonthName}</span>
               <button
                 type="button"
                 onClick={handleNextMonth}
-                className="p-1 rounded-lg hover:bg-white/[0.06] text-slate-400 hover:text-white transition-all"
+                className="p-1 rounded-lg hover:bg-sky-50 text-slate-500 hover:text-sky-600 transition-all"
               >
                 <ChevronRight size={16} />
               </button>
@@ -192,8 +184,8 @@ export function DatePicker({ value, onChange, placeholder = 'dd/mm/yyyy', classN
             {/* Week days Header */}
             <div className="grid grid-cols-7 gap-1 text-center mb-1">
               {WEEK_DAYS.map((day, idx) => (
-                <span key={idx} className="text-[10px] font-black uppercase text-slate-500">
-                  {day}
+                <span key={idx} className="text-[10px] font-black uppercase text-slate-400 font-mono">
+                   {day}
                 </span>
               ))}
             </div>
@@ -218,12 +210,12 @@ export function DatePicker({ value, onChange, placeholder = 'dd/mm/yyyy', classN
                   <button
                     key={idx}
                     type="button"
-                    onClick={() => handleSelectDay(item.day, item.currentMonth)}
+                    onClick={(e) => handleSelectDay(e, item.day, item.currentMonth)}
                     className={cn(
-                      "h-7 w-7 text-xs font-semibold rounded-lg flex items-center justify-center transition-all duration-150",
-                      item.currentMonth ? "text-slate-200 hover:bg-white/[0.06] hover:text-white" : "text-slate-600 hover:bg-white/[0.03] hover:text-slate-400",
-                      isToday && !isSelected && "border border-orange-500/40 text-orange-400 font-bold",
-                      isSelected && "bg-orange-500 text-slate-950 hover:bg-orange-400 hover:text-slate-950 font-black shadow-sm"
+                      "h-7 w-7 text-xs font-bold rounded-lg flex items-center justify-center transition-all duration-150",
+                      item.currentMonth ? "text-slate-800 hover:bg-sky-50" : "text-slate-350 hover:bg-sky-50/50",
+                      isToday && !isSelected && "border border-sky-400/60 text-sky-600 font-black",
+                      isSelected && "bg-sky-500 text-white hover:bg-sky-600 hover:text-white font-black shadow-md shadow-sky-500/10"
                     )}
                   >
                     {item.day}
@@ -233,21 +225,21 @@ export function DatePicker({ value, onChange, placeholder = 'dd/mm/yyyy', classN
             </div>
 
             {/* Footer buttons: Clear & Today */}
-            <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-slate-800">
+            <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-sky-100">
               <button
                 type="button"
                 onClick={handleClear}
-                className="text-[10px] font-black uppercase tracking-wider text-rose-400 hover:text-rose-300 transition-colors"
+                className="text-[10px] font-black uppercase tracking-wider text-rose-600 hover:text-rose-700 transition-colors"
               >Delete</button>
               <button
                 type="button"
                 onClick={handleToday}
-                className="text-[10px] font-black uppercase tracking-wider text-orange-400 hover:text-orange-300 transition-colors"
+                className="text-[10px] font-black uppercase tracking-wider text-sky-600 hover:text-sky-700 transition-colors"
               >Today</button>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </DropdownMenu.Content>
+        </DropdownMenu.Portal>
+      </DropdownMenu.Root>
     </div>
   );
 }

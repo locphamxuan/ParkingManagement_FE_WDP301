@@ -17,7 +17,7 @@ export function Spinner({ size = 'md', className, label }: SpinnerProps) {
     <div className={cn('flex flex-col items-center justify-center gap-2.5', className)}>
       <div
         className={cn(
-          'animate-spin rounded-full border-t-transparent border-orange-500 border-r-orange-400/40 border-b-orange-400/10 border-l-orange-400/70',
+          'animate-spin rounded-full border-t-transparent border-primary border-r-primary/40 border-b-primary/10 border-l-primary/70',
           sizeClasses[size]
         )}
       />

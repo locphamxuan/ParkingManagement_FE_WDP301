@@ -61,7 +61,7 @@ export function ManagerStaffPage() {
       {loading ? (
         <div className="text-sm text-muted-foreground">Loading staff...</div>
       ) : error ? (
-        <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-400">
+        <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-755 font-medium">
           {error}
         </div>
       ) : items.length === 0 ? (

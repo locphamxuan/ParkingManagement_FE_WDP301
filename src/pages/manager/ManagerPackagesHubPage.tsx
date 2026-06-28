@@ -20,7 +20,7 @@ export function ManagerPackagesHubPage() {
 
   return (
     <div className="grid gap-4">
-      <div className="flex flex-wrap gap-2">
+      <div className="flex w-fit gap-1.5 rounded-lg border border-border bg-card p-1">
         {TABS.map(({ key, label, icon: Icon }) => {
           const isActive = key === tab;
           return (
@@ -28,10 +28,10 @@ export function ManagerPackagesHubPage() {
               key={key}
               type="button"
               onClick={() => setTab(key)}
-              className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
+              className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
                 isActive
-                  ? 'border-primary bg-primary/10 text-primary'
-                  : 'border-border bg-card text-muted-foreground hover:text-foreground'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               <Icon size={14} />

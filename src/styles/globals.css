@@ -52,6 +52,25 @@
   --shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
 }
 
+.manager-theme {
+  color-scheme: light;
+  --app-background: 210 40% 98%; /* #f8fafc */
+  --app-foreground: 222 47% 11%; /* #0f172a */
+  --app-primary: 199 89% 48%; /* #0ea5e9 */
+  --app-primary-foreground: 210 40% 98%; /* #f8fafc */
+  --app-secondary: 200 30% 96%; /* #f0f4f8 */
+  --app-secondary-foreground: 222 47% 11%;
+  --app-muted: 210 40% 96.1%;
+  --app-muted-foreground: 215.4 16.3% 46.9%;
+  --app-card: 0 0% 100%; /* #ffffff */
+  --app-card-foreground: 222 47% 11%;
+  --app-border: 199 89% 90%; /* sky-100 */
+  --app-input: 199 89% 90%;
+  --app-ring: 199 89% 48%;
+  --text: #0f172a;
+  --shadow: 0 10px 30px rgba(14, 165, 233, 0.04);
+}
+
 
 * {
   box-sizing: border-box;
@@ -232,7 +251,7 @@ button[aria-expanded="true"] .chev {
     box-shadow: 0 20px 40px rgba(0,0,0,0.35), 0 0 20px rgba(168, 85, 247, 0.15);
   }
   
-  /* 3D Extruded Box Styling */
+  /* 3D Extruded Box Styling with directional ambient lighting */
   .box-3d {
     position: relative;
     transform-style: preserve-3d;
@@ -246,30 +265,52 @@ button[aria-expanded="true"] .chev {
   }
   .box-3d-top {
     transform: rotateX(0deg) translateZ(var(--box-h, 16px));
+    filter: brightness(1.05); /* Highlight top face */
   }
   .box-3d-front {
     height: var(--box-h, 16px);
     transform: rotateX(-90deg) translateZ(var(--box-d, 32px));
     transform-origin: bottom center;
     bottom: 0;
+    filter: brightness(0.86); /* Subtle shadow on front face */
   }
   .box-3d-right {
     width: var(--box-h, 16px);
     transform: rotateY(90deg) translateZ(var(--box-w, 48px));
     transform-origin: center right;
     right: 0;
+    filter: brightness(0.72); /* Deep shadow on right face */
   }
   .box-3d-back {
     height: var(--box-h, 16px);
     transform: rotateX(90deg) translateZ(0px);
     transform-origin: top center;
     top: 0;
+    filter: brightness(0.78);
   }
   .box-3d-left {
     width: var(--box-h, 16px);
     transform: rotateY(-90deg) translateZ(0px);
     transform-origin: center left;
     left: 0;
+    filter: brightness(0.92); /* Bright bounce light on left face */
+  }
+
+  /* Sweep laser radar scan effect */
+  @keyframes scan-line-sweep {
+    0% { top: -10%; opacity: 0; }
+    10% { opacity: 0.7; }
+    90% { opacity: 0.7; }
+    100% { top: 110%; opacity: 0; }
+  }
+  .animate-scan-sweep {
+    position: absolute;
+    inset-x: 0;
+    height: 3px;
+    background: linear-gradient(to right, transparent, rgba(56, 189, 248, 0.4), rgba(56, 189, 248, 0.6), rgba(56, 189, 248, 0.4), transparent);
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+    pointer-events: none;
+    animation: scan-line-sweep 5s ease-in-out infinite;
   }
 
   /* ============================================================ */
@@ -442,5 +483,101 @@ button[aria-expanded="true"] .chev {
   background-color: rgba(255, 255, 255, 0.08) !important;
   color: #cbd5e1 !important;
   border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Manager Theme Overrides */
+.manager-theme .status-badge-success {
+  background-color: #f0fdf4 !important;
+  color: #15803d !important;
+  border-color: #bbf7d0 !important;
+}
+
+.manager-theme .status-badge-warning {
+  background-color: #fffbeb !important;
+  color: #a16207 !important;
+  border-color: #fef3c7 !important;
+}
+
+.manager-theme .status-badge-info {
+  background-color: #f0f9ff !important;
+  color: #0369a1 !important;
+  border-color: #e0f2fe !important;
+}
+
+.manager-theme .status-badge-reserved {
+  background-color: #faf5ff !important;
+  color: #7e22ce !important;
+  border-color: #f3e8ff !important;
+}
+
+.manager-theme .status-badge-danger {
+  background-color: #fef2f2 !important;
+  color: #b91c1c !important;
+  border-color: #fee2e2 !important;
+}
+
+.manager-theme .status-badge-default {
+  background-color: #f8fafc !important;
+  color: #475569 !important;
+  border-color: #cbd5e1 !important;
+}
+
+.manager-theme .premium-row:hover {
+  background-color: rgba(14, 165, 233, 0.04) !important;
+}
+
+.manager-theme .glass-premium {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-color: rgba(14, 165, 233, 0.15) !important;
+  box-shadow: 0 10px 30px rgba(14, 165, 233, 0.04) !important;
+}
+
+.manager-theme .glow-border-pulse::before {
+  background: linear-gradient(
+    135deg,
+    rgba(14, 165, 233, 0.25),
+    rgba(56, 189, 248, 0.15),
+    rgba(14, 165, 233, 0.25)
+  ) !important;
+}
+
+.manager-theme .cyber-scanline::after {
+  background: linear-gradient(90deg, transparent, rgba(14, 165, 233, 0.15), rgba(14, 165, 233, 0.3), rgba(14, 165, 233, 0.15), transparent) !important;
+  box-shadow: 0 0 8px 1px rgba(14, 165, 233, 0.15) !important;
+}
+
+/* UI Finish Polish Rules */
+.manager-theme .card,
+.manager-theme [class*="Card"] {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.manager-theme .card:hover,
+.manager-theme [class*="Card"]:hover {
+  box-shadow: 0 8px 24px rgba(14, 165, 233, 0.05) !important;
+  border-color: rgba(14, 165, 233, 0.22) !important;
+}
+
+.manager-theme .text-slate-500,
+.manager-theme .text-muted-foreground {
+  color: #576b85 !important; /* Rich contrast label */
+}
+
+.manager-theme .text-slate-400 {
+  color: #475569 !important; /* Riper label contrast */
+}
+
+.manager-theme h1,
+.manager-theme h2,
+.manager-theme h3,
+.manager-theme h4 {
+  color: #0f172a !important; /* Proper text-slate-900 contrast */
+}
+
+/* Active inputs background color fix */
+.manager-theme input:not([type="range"]):not(:disabled),
+.manager-theme select:not(:disabled),
+.manager-theme textarea:not(:disabled) {
+  background-color: #ffffff !important;
 }
 

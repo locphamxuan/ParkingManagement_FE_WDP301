@@ -178,7 +178,7 @@ export function ManagerStaffShiftsPage() {
           <span className="text-muted-foreground">Loading...</span>
         </div>
       ) : error ? (
-        <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-400">
+        <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
           {error}
         </div>
       ) : items.length === 0 ? (

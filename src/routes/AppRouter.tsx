@@ -5,7 +5,6 @@ import { ScrollToTop } from '@/components/common/ScrollToTop';
 import { ProtectedRoute } from '@/routes/ProtectedRoute';
 import { ManagerProtectedRoute } from '@/routes/ManagerProtectedRoute';
 import { StaffProtectedRoute } from '@/routes/StaffProtectedRoute';
-import { UserProtectedRoute } from '@/routes/UserProtectedRoute';
 import { AdminLayout } from '@/layouts/AdminLayout';
 import { ManagerLayout } from '@/layouts/ManagerLayout';
 import { StaffLayout } from '@/layouts/StaffLayout';
@@ -17,16 +16,6 @@ const KioskCheckInPage = lazy(() => import('@/pages/public/KioskCheckInPage'));
 const PublicLoginRoute = lazy(() => import('@/pages/public/AuthRoutes').then((m) => ({ default: m.PublicLoginRoute })));
 const PublicRegisterRoute = lazy(() => import('@/pages/public/AuthRoutes').then((m) => ({ default: m.PublicRegisterRoute })));
 const PublicResetPasswordRoute = lazy(() => import('@/pages/public/AuthRoutes').then((m) => ({ default: m.PublicResetPasswordRoute })));
-
-// ── User ────────────────────────────────────────────────────────────────────
-const BuildingsUserPage = lazy(() => import('@/pages/user/BuildingsPage'));
-const ProfilePage = lazy(() => import('@/pages/user/ProfilePage'));
-const ReservationsPage = lazy(() => import('@/pages/user/ReservationsPage'));
-const LongTermSubscriptionsPage = lazy(() => import('@/pages/user/LongTermSubscriptionsPage'));
-const UserNotificationsPage = lazy(() => import('@/pages/user/UserNotificationsPage'));
-const WalletPage = lazy(() => import('@/pages/user/WalletPage'));
-const ParkingHistoryPage = lazy(() => import('@/pages/user/ParkingHistoryPage'));
-const UserDashboardPage = lazy(() => import('@/pages/user/UserDashboardPage'));
 
 // ── Manager ─────────────────────────────────────────────────────────────────
 const ManagerBuildingsPage = lazy(() => import('@/pages/manager/ManagerBuildingsPage').then((m) => ({ default: m.ManagerBuildingsPage })));
@@ -87,19 +76,8 @@ export function AppRouter() {
       <Route path="/auth/register" element={<PublicRegisterRoute />} />
       <Route path="/auth/reset-password" element={<PublicResetPasswordRoute />} />
       <Route path="/auth/reset_password" element={<PublicResetPasswordRoute />} />
-      <Route path="/buildings" element={<BuildingsUserPage />} />
       <Route path="/reviews" element={<ReviewsPage />} />
       <Route path="/kiosk" element={<KioskCheckInPage />} />
-
-      <Route element={<UserProtectedRoute />}>
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/wallet" element={<WalletPage />} />
-        <Route path="/reservations" element={<ReservationsPage />} />
-        <Route path="/long-term-subscriptions" element={<LongTermSubscriptionsPage />} />
-        <Route path="/notifications" element={<UserNotificationsPage />} />
-        <Route path="/parking-history" element={<ParkingHistoryPage />} />
-        <Route path="/user-dashboard" element={<UserDashboardPage />} />
-      </Route>
 
       <Route path="/manager/login" element={<Navigate to="/auth/login" replace />} />
       <Route path="/manager" element={<Navigate to="/manager/dashboard" replace />} />

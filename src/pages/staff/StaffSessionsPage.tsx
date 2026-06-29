@@ -68,22 +68,22 @@ const SESSION_TYPE_CONFIG = {
     label: 'Reservation',
     icon: CalendarCheck2,
     border: 'border-sky-500/20 bg-sky-500/5',
-    color: 'text-sky-400',
-    badge: 'bg-sky-500/15 text-sky-400 border-sky-500/25',
+    color: 'text-sky-600',
+    badge: 'bg-sky-500/15 text-sky-600 border-sky-500/25',
   },
   account: {
     label: 'Registered user',
     icon: UserCheck,
     border: 'border-emerald-500/20 bg-emerald-500/5',
-    color: 'text-emerald-400',
-    badge: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25',
+    color: 'text-emerald-600',
+    badge: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/25',
   },
   walkin: {
     label: 'Walk-in guest',
     icon: Users,
     border: 'border-amber-500/20 bg-amber-500/5',
-    color: 'text-amber-400',
-    badge: 'bg-amber-500/15 text-amber-400 border-amber-500/25',
+    color: 'text-amber-600',
+    badge: 'bg-amber-500/15 text-amber-600 border-amber-500/25',
   },
 } as const;
 
@@ -191,7 +191,7 @@ export function StaffSessionsPage() {
       value: revenueData?.byMethod.cash ?? 0,
       icon: Banknote,
       border: 'border-emerald-500/20 bg-emerald-500/5',
-      color: 'text-emerald-400',
+      color: 'text-emerald-600',
     },
     {
       label: 'Wallet',
@@ -205,7 +205,7 @@ export function StaffSessionsPage() {
       value: revenueData?.byMethod.online ?? 0,
       icon: QrCode,
       border: 'border-sky-500/20 bg-sky-500/5',
-      color: 'text-sky-400',
+      color: 'text-sky-600',
     },
   ];
 
@@ -229,7 +229,7 @@ export function StaffSessionsPage() {
           {/* Only exit-gate (or both-direction) staff can submit a revenue report */}
           {canSubmitReport && (
             reportSubmitted ? (
-              <span className="flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-400">
+              <span className="flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-600">
                 <CheckCircle2 size={13} /> Report submitted
               </span>
             ) : todayShift?._id ? (
@@ -261,9 +261,9 @@ export function StaffSessionsPage() {
       {!loading && todayShift === null && (
         <div className="rounded-xl border border-amber-500/25 bg-amber-500/8 px-5 py-8 text-center">
           <CircleDollarSign size={32} className="mx-auto mb-3 text-amber-500/50" />
-          <p className="text-sm font-semibold text-amber-300">Bạn chưa có ca làm việc hôm nay</p>
+          <p className="text-sm font-semibold text-amber-700">You have no shift assigned today</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Doanh thu chỉ khả dụng khi được manager gán ca. Dashboard và các trang khác vẫn truy cập bình thường.
+            Revenue is only available when a manager assigns you a shift. The dashboard and other pages remain accessible.
           </p>
         </div>
       )}
@@ -303,7 +303,7 @@ export function StaffSessionsPage() {
                     {checkIns.map((it) => (
                       <tr key={it._id} className="hover:bg-muted/30">
                         <td className="py-2 pr-4">
-                          <span className="rounded border border-amber-500/25 bg-amber-500/10 px-2 py-0.5 font-mono text-xs font-bold text-amber-300">
+                          <span className="rounded border border-amber-500/25 bg-amber-500/10 px-2 py-0.5 font-mono text-xs font-bold text-amber-700">
                             {it.plateNumber}
                           </span>
                         </td>
@@ -455,7 +455,7 @@ export function StaffSessionsPage() {
                         className="flex items-center justify-between rounded-lg border border-border bg-card/50 px-4 py-2.5"
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          <span className="shrink-0 rounded border border-amber-500/25 bg-amber-500/10 px-2 py-0.5 font-mono text-xs font-bold text-amber-300">
+                          <span className="shrink-0 rounded border border-amber-500/25 bg-amber-500/10 px-2 py-0.5 font-mono text-xs font-bold text-amber-700">
                             {it.plateNumber ?? '—'}
                           </span>
                           <span
@@ -469,7 +469,7 @@ export function StaffSessionsPage() {
                           </span>
                         </div>
                         <div className="shrink-0 text-right">
-                          <p className="font-mono font-bold text-emerald-400">+{fmtMoney(it.amount)}</p>
+                          <p className="font-mono font-bold text-emerald-600">+{fmtMoney(it.amount)}</p>
                           <p className="text-[11px] text-muted-foreground">{fmtTime(it.createdAt)}</p>
                         </div>
                       </div>

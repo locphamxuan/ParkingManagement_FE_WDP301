@@ -42,12 +42,38 @@ export interface Gate {
   floors?: (Floor | string)[];
 }
 
+/** Usage class of a zone — the "who is allowed to park" dimension. */
+export type ZoneUsageType = 'walk_in' | 'registered' | 'subscriber' | 'reserved';
+
+export const ZONE_USAGE_LABELS: Record<ZoneUsageType, string> = {
+  walk_in: 'Walk-in guest',
+  registered: 'Registered user',
+  subscriber: 'Long-term package',
+  reserved: 'Reservation',
+};
+
+export interface Zone {
+  _id: string;
+  building: string;
+  floor: { _id: string; code: string } | string;
+  code: string;
+  name?: string;
+  vehicleType: VehicleType | string;
+  usageType: ZoneUsageType;
+  capacity?: number;
+  /** Number of slots currently in this zone (server-computed). */
+  slotCount?: number;
+  status: 'active' | 'inactive' | 'maintenance';
+}
+
 export interface ParkingSlot {
   _id: string;
   building: string;
   floor: { _id: string; code: string; name: string; levelNumber: number } | string;
+  zone?: { _id: string; code: string; usageType: ZoneUsageType; vehicleType?: string } | string | null;
   code: string;
   vehicleType?: VehicleType | string | null;
+  usageType?: ZoneUsageType | null;
   status: 'available' | 'occupied' | 'reserved' | 'maintenance';
   reservable: boolean;
   note?: string;
@@ -250,10 +276,22 @@ export const managerApi = {
       api.patch<Wrap<{ item: Gate }>>(path(b, `/gates/${id}/status`), { status }),
   },
 
+  zones: {
+    list: (b: string, q?: Record<string, string | undefined>) =>
+      api.get<Wrap<{ items: Zone[] }>>(path(b, '/zones'), { query: q }),
+    create: (
+      b: string,
+      body: { floor: string; code: string; name?: string; vehicleType: string; usageType: ZoneUsageType; capacity?: number; status?: Zone['status'] }
+    ) => api.post<Wrap<{ item: Zone }>>(path(b, '/zones'), body),
+    update: (b: string, id: string, body: Partial<Omit<Zone, '_id' | 'building'>> & { vehicleType?: string }) =>
+      api.put<Wrap<{ item: Zone }>>(path(b, `/zones/${id}`), body),
+    remove: (b: string, id: string) => api.delete(path(b, `/zones/${id}`)),
+  },
+
   slots: {
     list: (b: string, q?: Record<string, string | undefined>) =>
       api.get<Wrap<{ items: ParkingSlot[] }>>(path(b, '/slots'), { query: q }),
-    create: (b: string, body: Partial<ParkingSlot> & { floor: string }) =>
+    create: (b: string, body: Partial<ParkingSlot> & { floor: string; zone: string }) =>
       api.post<Wrap<{ item: ParkingSlot }>>(path(b, '/slots'), body),
     update: (b: string, id: string, body: Partial<ParkingSlot>) =>
       api.put<Wrap<{ item: ParkingSlot }>>(path(b, `/slots/${id}`), body),

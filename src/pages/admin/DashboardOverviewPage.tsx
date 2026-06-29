@@ -28,14 +28,14 @@ export function DashboardOverviewPage() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center p-24 text-sm text-slate-400 font-semibold bg-slate-950/40 rounded-3xl border border-white/5 backdrop-blur-md">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-orange-500 border-t-transparent mb-3" />Loading parking overview...</div>
+      <div className="flex flex-col items-center justify-center p-24 text-sm text-slate-400 font-semibold bg-sky-50/40 rounded-3xl border border-sky-100 backdrop-blur-md">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-sky-500 border-t-transparent mb-3" />Loading parking overview...</div>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="rounded-2xl border border-rose-500/20 bg-rose-950/20 p-5 text-sm font-semibold text-rose-400 backdrop-blur-md">
+      <div className="rounded-2xl border border-rose-500/20 bg-rose-50 p-5 text-sm font-semibold text-rose-600 backdrop-blur-md">
         {error || 'Failed to load data.'}
       </div>
     );
@@ -50,26 +50,26 @@ export function DashboardOverviewPage() {
         initial="hidden"
         animate="visible"
         variants={sectionVariants}
-        className="relative overflow-hidden rounded-3xl glow-border-pulse glass-premium p-8 shadow-2xl"
+        className="relative overflow-hidden rounded-3xl border border-sky-100 bg-white p-8 shadow-sm"
       >
         {/* Radial glows inside the hero */}
         <div className="absolute -right-12 -top-12 h-48 w-48 rounded-full bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.12),transparent_70%)] pointer-events-none blur-2xl" />
         <div className="absolute -left-12 -bottom-12 h-36 w-36 rounded-full bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.09),transparent_70%)] pointer-events-none blur-2xl" />
         {/* Horizontal scan line on hero */}
         <div className="absolute inset-0 overflow-hidden rounded-3xl pointer-events-none">
-          <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-orange-500/30 to-transparent absolute top-1/2 cyber-shimmer" />
+          <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-sky-400/30 to-transparent absolute top-1/2 cyber-shimmer" />
         </div>
 
         <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-orange-500/10 border border-orange-500/20 text-[9px] font-black uppercase tracking-widest text-orange-400 font-mono">Central Admin Portal</div>
-            <h1 className="mt-2.5 text-3xl font-black tracking-tight text-white sm:text-4xl">Overview<span className="bg-gradient-to-r from-orange-400 via-amber-400 to-purple-400 bg-clip-text text-transparent">PBMS System</span>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-sky-50 border border-sky-200 text-[9px] font-black uppercase tracking-widest text-sky-600 font-mono">Central Admin Portal</div>
+            <h1 className="mt-2.5 text-3xl font-black tracking-tight text-slate-800 sm:text-4xl">Overview<span className="bg-gradient-to-r from-sky-400 via-amber-400 to-purple-400 bg-clip-text text-transparent">PBMS System</span>
             </h1>
-            <p className="mt-3.5 max-w-2xl text-xs font-semibold text-slate-300 leading-relaxed">
+            <p className="mt-3.5 max-w-2xl text-xs font-semibold text-slate-700 leading-relaxed">
               A comprehensive monitoring center for multi-floor parking. Track revenue in real time, manage payment-method distribution, review recent transactions and monitor live parking activity.
             </p>
           </div>
-          <div className="inline-flex items-center gap-2.5 rounded-full bg-slate-950/80 border border-emerald-500/20 px-4 py-2.5 text-xs font-black text-emerald-400 uppercase font-mono shadow-xl self-start sm:self-auto backdrop-blur-md neon-glow-emerald">
+          <div className="inline-flex items-center gap-2.5 rounded-full bg-white border border-emerald-500/20 px-4 py-2.5 text-xs font-black text-emerald-600 uppercase font-mono shadow-xl self-start sm:self-auto backdrop-blur-md neon-glow-emerald">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]" />
             <span>Live system</span>
           </div>
@@ -108,12 +108,12 @@ export function DashboardOverviewPage() {
         <RevenueChart data={data.revenueTrend} />
 
         {/* Pie Distribution Card */}
-        <div className="relative overflow-hidden rounded-3xl glass-premium glow-border-pulse p-6 shadow-2xl">
+        <div className="relative overflow-hidden rounded-3xl border border-sky-100 bg-white p-6 shadow-sm">
           <div className="absolute -right-16 -top-16 h-32 w-32 rounded-full bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.07),transparent_65%)] pointer-events-none blur-2xl" />
           
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-sm font-black uppercase tracking-wider text-slate-300 font-mono">Payment method breakdown</h3>
-            <span className="px-2 py-0.5 rounded-md bg-blue-500/10 border border-blue-500/20 text-[9px] font-black text-blue-400 font-mono uppercase tracking-wider">Live</span>
+            <h3 className="text-sm font-black uppercase tracking-wider text-slate-700 font-mono">Payment method breakdown</h3>
+            <span className="px-2 py-0.5 rounded-md bg-blue-500/10 border border-blue-500/20 text-[9px] font-black text-blue-600 font-mono uppercase tracking-wider">Live</span>
           </div>
 
           <div className="h-[240px] w-full flex items-center justify-center cyber-scanline rounded-xl relative">
@@ -131,7 +131,7 @@ export function DashboardOverviewPage() {
                     outerRadius={90}
                     innerRadius={52}
                     paddingAngle={4}
-                    stroke="rgba(15,23,42,0.8)"
+                    stroke="rgba(255,255,255,0.9)"
                     strokeWidth={2}
                   >
                     {data.paymentMethodDistribution.map((entry, index) => (
@@ -146,7 +146,7 @@ export function DashboardOverviewPage() {
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         return (
-                          <div className="glass-premium border border-white/10 px-3 py-2 rounded-xl shadow-2xl text-[10px] text-white">
+                          <div className="bg-white border border-sky-100 border border-sky-100 px-3 py-2 rounded-xl shadow-sm text-[10px] text-slate-800">
                             <p className="font-mono font-black uppercase tracking-wider text-slate-400">{payload[0].name}</p>
                             <p className="font-black mt-1 font-mono text-xs" style={{ color: payload[0].payload.fill }}>
                               {payload[0].value}%
@@ -189,31 +189,31 @@ export function DashboardOverviewPage() {
         className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3"
       >
         {/* Activity logs */}
-        <div className="relative overflow-hidden rounded-3xl glass-premium glow-border-pulse p-6 shadow-2xl">
+        <div className="relative overflow-hidden rounded-3xl border border-sky-100 bg-white p-6 shadow-sm">
           <ActivityTimeline title="Live parking activity" items={data.liveActivities} />
         </div>
 
         {/* Transactions list */}
-        <div className="relative overflow-hidden rounded-3xl glass-premium glow-border-pulse p-6 shadow-2xl">
+        <div className="relative overflow-hidden rounded-3xl border border-sky-100 bg-white p-6 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-sm font-black uppercase tracking-wider text-slate-300 font-mono">Recent transactions</h3>
-            <span className="px-2 py-0.5 rounded-md bg-orange-500/10 border border-orange-500/20 text-[9px] font-black text-orange-400 font-mono uppercase tracking-wider">{data.transactions.length} tx</span>
+            <h3 className="text-sm font-black uppercase tracking-wider text-slate-700 font-mono">Recent transactions</h3>
+            <span className="px-2 py-0.5 rounded-md bg-sky-50 border border-sky-200 text-[9px] font-black text-sky-600 font-mono uppercase tracking-wider">{data.transactions.length} tx</span>
           </div>
           <div className="max-h-[360px] overflow-y-auto pr-1 space-y-3">
             {data.transactions.map((tx) => (
               <motion.div
                 key={tx.id}
                 whileHover={{ scale: 1.01, x: 2 }}
-                className="rounded-2xl border border-white/5 bg-slate-900/50 p-4 transition-all duration-300 hover:border-orange-500/25 hover:shadow-[0_0_12px_rgba(249,115,22,0.08)]"
+                className="rounded-2xl border border-sky-100 bg-white p-4 transition-all duration-300 hover:border-sky-200 hover:shadow-[0_0_12px_rgba(249,115,22,0.08)]"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="font-mono font-black text-xs text-white">
+                    <p className="font-mono font-black text-xs text-slate-800">
                       {tx.id} - <span className="text-slate-400 text-[10px]">{tx.method}</span>
                     </p>
                     <p className="mt-1.5 text-[10px] text-slate-500 font-bold uppercase tracking-wider">{tx.building}</p>
                   </div>
-                  <p className="shrink-0 text-xs font-black text-orange-400 font-mono">+{tx.amount.toLocaleString()} VND</p>
+                  <p className="shrink-0 text-xs font-black text-sky-600 font-mono">+{tx.amount.toLocaleString()} VND</p>
                 </div>
               </motion.div>
             ))}
@@ -221,16 +221,16 @@ export function DashboardOverviewPage() {
         </div>
 
         {/* Operational guardrails */}
-        <div className="relative overflow-hidden rounded-3xl glass-premium glow-border-pulse p-6 shadow-2xl">
+        <div className="relative overflow-hidden rounded-3xl border border-sky-100 bg-white p-6 shadow-sm">
           <div className="mb-4">
-            <h3 className="text-sm font-black uppercase tracking-wider text-slate-300 font-mono">Operational barriers</h3>
+            <h3 className="text-sm font-black uppercase tracking-wider text-slate-700 font-mono">Operational barriers</h3>
           </div>
           <div className="space-y-3">
             {data.operationalGuardrails.map((rule) => (
               <motion.div
                 key={rule}
                 whileHover={{ x: 3 }}
-                className="rounded-2xl border border-white/5 bg-slate-900/40 p-4 text-[11px] text-slate-300 font-semibold leading-relaxed transition-all hover:border-purple-500/30 hover:shadow-[0_0_10px_rgba(168,85,247,0.07)]"
+                className="rounded-2xl border border-sky-100 bg-white p-4 text-[11px] text-slate-700 font-semibold leading-relaxed transition-all hover:border-purple-500/30 hover:shadow-[0_0_10px_rgba(168,85,247,0.07)]"
               >
                 <div className="flex gap-2.5 items-start">
                   <span className="w-1.5 h-1.5 rounded-full bg-purple-500 mt-1.5 shrink-0 shadow-[0_0_6px_rgba(168,85,247,0.5)]" />

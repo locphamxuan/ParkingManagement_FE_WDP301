@@ -8,18 +8,21 @@ import { DataTable, type DataColumn } from '@/components/common/DataTable';
 import { ModalForm } from '@/components/modals/ModalForm';
 import { CustomSelect } from '@/components/ui/select';
 import { MultiSlotForm, type SlotFormRow } from '@/components/manager/MultiSlotForm';
+import { Slot3DBox } from '@/components/manager/Slot3DBox';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import {
   managerApi,
+  ZONE_USAGE_LABELS,
   type Floor,
   type ParkingSlot,
   type VehicleType,
+  type Zone,
 } from '@/services/manager/managerApi';
 
 interface FormState {
   code: string;
   floor: string;
-  vehicleType: string;
+  zone: string;
   status: ParkingSlot['status'];
   reservable: boolean;
   note: string;
@@ -28,150 +31,21 @@ interface FormState {
 const empty: FormState = {
   code: '',
   floor: '',
-  vehicleType: '',
+  zone: '',
   status: 'available',
   reservable: true,
   note: '',
 };
 
+const zoneFloorId = (z: Zone) => (typeof z.floor === 'string' ? z.floor : z.floor._id);
+
 const SLOT_STATUSES: ParkingSlot['status'][] = ['available', 'occupied', 'reserved', 'maintenance'];
-
-function Slot3DBox({ 
-  slot, 
-  onClick, 
-  statusFilter,
-  vehicleTypes,
-  isSelected
-}: { 
-  slot: ParkingSlot; 
-  onClick: () => void; 
-  statusFilter: string;
-  vehicleTypes: VehicleType[];
-  isSelected: boolean;
-}) {
-  const [hovered, setHovered] = useState(false);
-
-  // Status-based coloring and lighting profiles — enhanced neon glow
-  const config = {
-    available: {
-      faceColor: 'bg-emerald-50 border-emerald-300 text-emerald-700',
-      label: 'Available',
-      glow: 'shadow-[0_0_8px_rgba(16,185,129,0.12)] hover:shadow-[0_0_16px_rgba(16,185,129,0.3)]'
-    },
-    occupied: {
-      faceColor: 'bg-rose-50 border-rose-300 text-rose-700',
-      label: 'Occupied',
-      glow: 'shadow-[0_0_8px_rgba(244,63,94,0.12)] hover:shadow-[0_0_16px_rgba(244,63,94,0.3)]'
-    },
-    reserved: {
-      faceColor: 'bg-sky-50 border-sky-300 text-sky-700',
-      label: 'Reserved',
-      glow: 'shadow-[0_0_8px_rgba(14,165,233,0.12)] hover:shadow-[0_0_16px_rgba(14,165,233,0.3)]'
-    },
-    maintenance: {
-      faceColor: 'bg-amber-50 border-amber-300 text-amber-700 bg-[repeating-linear-gradient(45deg,rgba(245,158,11,0.06),rgba(245,158,11,0.06)_6px,rgba(255,255,255,0.7)_6px,rgba(255,255,255,0.7)_12px)]',
-      label: 'Maintenance',
-      glow: 'shadow-[0_0_8px_rgba(245,158,11,0.12)] hover:shadow-[0_0_16px_rgba(245,158,11,0.3)]'
-    }
-  }[slot.status];
-
-  // Respect status filters by dimming slots that do not match the filter
-  const isFilteredOut = statusFilter && slot.status !== statusFilter;
-
-  // Resolve vehicle type name
-  const vtName = useMemo(() => {
-    if (!slot.vehicleType) return '— Not fixed —';
-    if (typeof slot.vehicleType === 'object') return slot.vehicleType.name;
-    const found = vehicleTypes.find(v => v._id === slot.vehicleType);
-    return found ? found.name : 'Vehicle type';
-  }, [slot.vehicleType, vehicleTypes]);
-
-  return (
-    <div 
-      className={`relative cursor-pointer transition-all duration-300 ${isFilteredOut ? 'opacity-25 scale-95 blur-[0.5px]' : 'opacity-100'}`}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onClick={onClick}
-      style={{
-        width: '60px',
-        height: '40px',
-        transformStyle: 'preserve-3d',
-      }}
-    >
-      {/* Extruded CSS 3D Box Container */}
-      <div 
-        className={cn(
-          "box-3d w-full h-full rounded transition-all duration-300", 
-          config.glow,
-          isSelected && "ring-2 ring-sky-400 ring-offset-1 shadow-[0_0_15px_rgba(56,189,248,0.7)]"
-        )}
-        style={{
-          '--box-w': '60px',
-          '--box-d': '40px',
-          '--box-h': isSelected ? '24px' : hovered ? '20px' : '10px',
-          transform: isSelected ? 'translateZ(14px)' : hovered ? 'translateZ(10px)' : 'translateZ(0px)',
-          transformStyle: 'preserve-3d'
-        } as React.CSSProperties}
-      >
-        {/* Top Face */}
-        <div className={`box-3d-face box-3d-top rounded border-t border-x ${config.faceColor} flex items-center justify-center font-mono text-[9px] font-black uppercase tracking-wider`}>
-          {slot.code}
-        </div>
-        
-        {/* Front Face */}
-        <div className={`box-3d-face box-3d-front border-b border-x ${config.faceColor}`} />
-        
-        {/* Right Face */}
-        <div className={`box-3d-face box-3d-right border-y border-r ${config.faceColor}`} />
-        
-        {/* Back Face */}
-        <div className={`box-3d-face box-3d-back ${config.faceColor}`} />
-        
-        {/* Left Face */}
-        <div className={`box-3d-face box-3d-left ${config.faceColor}`} />
-      </div>
-
-      {/* Floating Glassmorphic Tooltip (Counter-Rotated dynamically) */}
-      <AnimatePresence>
-        {hovered && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9, z: 20 }}
-            animate={{ opacity: 1, scale: 1, z: 35 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="absolute z-50 pointer-events-none w-44 bg-white border border-sky-100 rounded-2xl p-3 shadow-lg text-slate-800"
-            style={{
-              bottom: '120%',
-              left: '50%',
-              transform: 'translateX(-50%) translateZ(35px) rotateZ(45deg) rotateX(-60deg)',
-              transformOrigin: 'bottom center'
-            }}
-          >
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-[11px] font-black text-slate-800 font-mono">{slot.code}</span>
-              <span className={`text-[8px] font-black uppercase font-mono px-1.5 py-0.5 rounded ${
-                slot.status === 'available' ? 'bg-emerald-50 text-emerald-700' :
-                slot.status === 'occupied' ? 'bg-red-50 text-red-750' :
-                slot.status === 'reserved' ? 'bg-sky-50 text-sky-700' : 'bg-amber-50 text-amber-700'
-              }`}>
-                {config.label}
-              </span>
-            </div>
-            <div className="space-y-1 text-[9px] text-slate-500 font-semibold leading-relaxed">
-              <p>Type: <span className="text-slate-800 font-black">{vtName}</span></p>
-              <p>Reservation: <span className="text-slate-800 font-black">{slot.reservable ? 'Yes' : 'Lock'}</span></p>
-              {slot.note && <p className="border-t border-sky-100 pt-1 mt-1 text-slate-400 italic">Note: {slot.note}</p>}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
 
 export function ManagerSlotsPage() {
   const { buildingId } = useBuildingContext();
   const [items, setItems] = useState<ParkingSlot[]>([]);
   const [floors, setFloors] = useState<Floor[]>([]);
+  const [zones, setZones] = useState<Zone[]>([]);
   const [vehicleTypes, setVehicleTypes] = useState<VehicleType[]>([]);
   const [floorFilter, setFloorFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -205,16 +79,18 @@ export function ManagerSlotsPage() {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const [slotsRes, floorsRes, vtRes] = await Promise.all([
+      const [slotsRes, floorsRes, zonesRes, vtRes] = await Promise.all([
         managerApi.slots.list(buildingId, {
           floor: floorFilter || undefined,
           status: statusFilter || undefined,
         }),
         managerApi.floors.list(buildingId),
+        managerApi.zones.list(buildingId),
         managerApi.vehicleTypes.list(buildingId),
       ]);
       setItems(slotsRes.data.items);
       setFloors(floorsRes.data.items);
+      setZones(zonesRes.data.items);
       setVehicleTypes(vtRes.data.items);
       setError(null);
     } catch (err) {
@@ -257,16 +133,12 @@ export function ManagerSlotsPage() {
 
   const openEdit = (row: ParkingSlot) => {
     const floorId = typeof row.floor === 'string' ? row.floor : row.floor._id;
-    const vtId = !row.vehicleType
-      ? ''
-      : typeof row.vehicleType === 'string'
-        ? row.vehicleType
-        : row.vehicleType._id;
+    const zoneId = !row.zone ? '' : typeof row.zone === 'string' ? row.zone : row.zone._id;
     setEditing(row);
     setForm({
       code: row.code,
       floor: floorId,
-      vehicleType: vtId,
+      zone: zoneId,
       status: row.status,
       reservable: row.reservable,
       note: row.note ?? '',
@@ -279,9 +151,14 @@ export function ManagerSlotsPage() {
       alert('Select a floor first');
       return;
     }
+    if (!form.zone) {
+      alert('Please select a zone');
+      return;
+    }
     const payload = {
       code: form.code.trim().toUpperCase(),
       floor: form.floor,
+      zone: form.zone,
       status: form.status,
       reservable: form.reservable,
       note: form.note.trim(),
@@ -290,7 +167,7 @@ export function ManagerSlotsPage() {
       if (editing) {
         await managerApi.slots.update(buildingId, editing._id, payload as Partial<ParkingSlot>);
       } else {
-        await managerApi.slots.create(buildingId, payload as Partial<ParkingSlot> & { floor: string });
+        await managerApi.slots.create(buildingId, payload as Partial<ParkingSlot> & { floor: string; zone: string });
       }
       setModalOpen(false);
       refresh();
@@ -314,11 +191,12 @@ export function ManagerSlotsPage() {
       const payload = {
         code: row.code.trim().toUpperCase(),
         floor: row.floor,
+        zone: row.zone,
         status: row.status,
         reservable: row.reservable,
         note: row.note.trim(),
       };
-      await managerApi.slots.create(buildingId, payload as Partial<ParkingSlot> & { floor: string });
+      await managerApi.slots.create(buildingId, payload as Partial<ParkingSlot> & { floor: string; zone: string });
     }
     refresh();
   };
@@ -344,15 +222,29 @@ export function ManagerSlotsPage() {
       },
     },
     {
-      key: 'vehicleType',
-      title: 'Vehicle type (by floor)',
+      key: 'zone',
+      title: 'Zone',
       render: (row) => {
-        const id = typeof row.floor === 'string' ? row.floor : row.floor._id;
-        const fl = floorMap.get(id);
-        const types = (fl?.allowedVehicleTypes ?? []) as Array<{ code?: string } | string>;
-        if (!types.length) return 'All types';
-        return types.map((t) => (typeof t === 'object' ? t.code : t)).filter(Boolean).join(', ');
+        if (!row.zone) return '—';
+        if (typeof row.zone === 'object') return row.zone.code;
+        const z = zones.find((zz) => zz._id === row.zone);
+        return z ? z.code : '?';
       },
+    },
+    {
+      key: 'vehicleType',
+      title: 'Vehicle type',
+      render: (row) => {
+        if (!row.vehicleType) return '—';
+        if (typeof row.vehicleType === 'object') return row.vehicleType.name;
+        const vt = vehicleTypes.find((v) => v._id === row.vehicleType);
+        return vt ? vt.name : '?';
+      },
+    },
+    {
+      key: 'usageType',
+      title: 'Usage',
+      render: (row) => (row.usageType ? ZONE_USAGE_LABELS[row.usageType] : '—'),
     },
     {
       key: 'status',
@@ -871,7 +763,7 @@ export function ManagerSlotsPage() {
             <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground font-mono">Floor</label>
             <CustomSelect
               value={form.floor}
-              onChange={(val) => setForm((f) => ({ ...f, floor: val }))}
+              onChange={(val) => setForm((f) => ({ ...f, floor: val, zone: '' }))}
               options={[
                 { value: '', label: 'Select floor' },
                 ...floors.map((fl) => ({
@@ -882,8 +774,25 @@ export function ManagerSlotsPage() {
               placeholder="Select floor..."
             />
           </div>
+          <div className="grid gap-1.5">
+            <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground font-mono">Zone</label>
+            <CustomSelect
+              value={form.zone}
+              onChange={(val) => setForm((f) => ({ ...f, zone: val }))}
+              options={[
+                { value: '', label: 'Select zone' },
+                ...zones
+                  .filter((z) => zoneFloorId(z) === form.floor)
+                  .map((z) => {
+                    const full = (z.capacity ?? 0) > 0 && (z.slotCount ?? 0) >= (z.capacity ?? 0);
+                    return { value: z._id, label: `${z.code} · ${ZONE_USAGE_LABELS[z.usageType]} · ${z.slotCount ?? 0}/${z.capacity ?? 0}${full ? ' (full)' : ''}` };
+                  }),
+              ]}
+              placeholder="Select zone..."
+            />
+          </div>
           <div className="grid gap-1.5 sm:col-span-2">
-            <p className="rounded-xl border border-sky-500/20 bg-sky-500/5 px-3 py-2 text-[11px] text-sky-700">Slot vehicle type <strong>automatically taken from the floor's allowed vehicle types</strong> (configured in the Floors tab), no need to set here.</p>
+            <p className="rounded-xl border border-sky-500/20 bg-sky-500/5 px-3 py-2 text-[11px] text-sky-700">The slot's vehicle type &amp; usage are <strong>taken from the selected Zone</strong> — configure them in the "Zones" tab.</p>
           </div>
           <div className="grid gap-1.5">
             <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground font-mono">Status</label>
@@ -922,6 +831,7 @@ export function ManagerSlotsPage() {
         onClose={() => setMultiSlotModalOpen(false)}
         onSubmit={onMultiSlotSubmit}
         floors={floors}
+        zones={zones}
       />
     </div>
   );

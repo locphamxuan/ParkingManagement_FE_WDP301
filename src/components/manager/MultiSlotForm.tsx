@@ -4,12 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
 import { CustomSelect } from '@/components/ui/select';
-import type { Floor } from '@/services/manager/managerApi';
+import { ZONE_USAGE_LABELS, type Floor, type Zone } from '@/services/manager/managerApi';
 
 export interface SlotFormRow {
   id: string;
   code: string;
   floor: string;
+  zone: string;
   status: 'available' | 'occupied' | 'reserved' | 'maintenance';
   reservable: boolean;
   note: string;
@@ -20,6 +21,7 @@ interface MultiSlotFormProps {
   onClose: () => void;
   onSubmit: (rows: SlotFormRow[]) => Promise<void>;
   floors: Floor[];
+  zones: Zone[];
   loading?: boolean;
 }
 
@@ -27,12 +29,15 @@ const emptyRow = (): SlotFormRow => ({
   id: Math.random().toString(36),
   code: '',
   floor: '',
+  zone: '',
   status: 'available',
   reservable: true,
   note: '',
 });
 
-export function MultiSlotForm({ isOpen, onClose, onSubmit, floors }: MultiSlotFormProps) {
+const zoneFloorId = (z: Zone) => (typeof z.floor === 'string' ? z.floor : z.floor._id);
+
+export function MultiSlotForm({ isOpen, onClose, onSubmit, floors, zones }: MultiSlotFormProps) {
   const [rows, setRows] = useState<SlotFormRow[]>([emptyRow()]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -64,6 +69,10 @@ export function MultiSlotForm({ isOpen, onClose, onSubmit, floors }: MultiSlotFo
       }
       if (!row.floor) {
         setError('A floor must be selected for each slot');
+        return;
+      }
+      if (!row.zone) {
+        setError('Please select a zone for each slot');
         return;
       }
     }
@@ -158,7 +167,10 @@ export function MultiSlotForm({ isOpen, onClose, onSubmit, floors }: MultiSlotFo
                     <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide">Floor *</label>
                     <CustomSelect
                       value={row.floor}
-                      onChange={(val) => handleRowChange(row.id, 'floor', val)}
+                      onChange={(val) => {
+                        // Changing floor resets the zone (zones belong to a floor).
+                        setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, floor: val, zone: '' } : r)));
+                      }}
                       options={[
                         { value: '', label: '-- Select floor --' },
                         ...floors.map((f) => ({
@@ -168,6 +180,31 @@ export function MultiSlotForm({ isOpen, onClose, onSubmit, floors }: MultiSlotFo
                       ]}
                       disabled={submitting || floors.length === 0}
                       placeholder="-- Select floor --"
+                    />
+                  </div>
+
+                  {/* Zone (dãy) — lọc theo tầng đã chọn */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide">Zone *</label>
+                    <CustomSelect
+                      value={row.zone}
+                      onChange={(val) => handleRowChange(row.id, 'zone', val)}
+                      options={[
+                        { value: '', label: '-- Select zone --' },
+                        ...zones
+                          .filter((z) => zoneFloorId(z) === row.floor)
+                          .map((z) => {
+                            const used = z.slotCount ?? 0;
+                            const cap = z.capacity ?? 0;
+                            const full = cap > 0 && used >= cap;
+                            return {
+                              value: z._id,
+                              label: `${z.code} · ${ZONE_USAGE_LABELS[z.usageType]} · ${used}/${cap}${full ? ' (full)' : ''}`,
+                            };
+                          }),
+                      ]}
+                      disabled={submitting || !row.floor}
+                      placeholder="-- Select zone --"
                     />
                   </div>
 

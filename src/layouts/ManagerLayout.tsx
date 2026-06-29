@@ -13,6 +13,7 @@ const titles: Record<string, string> = {
   '/manager/vehicle-types': 'Vehicle Types',
   '/manager/floors': 'Floors',
   '/manager/gates': 'Gates',
+  '/manager/zones': 'Zones',
   '/manager/slots': 'Parking Slots',
   '/manager/operating-hours': 'Operating Hours',
   '/manager/price-policies': 'Pricing Policies',

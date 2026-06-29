@@ -132,6 +132,8 @@ export interface PlateInfo {
   /** Active reservation → scan-only flow, no photo capture required. */
   hasActiveReservation?: boolean;
   activeReservation?: { id: string; code: string } | null;
+  /** Đối tượng suy ra (walk_in|registered|subscriber|reserved) — để gọi free-slots đúng pool. */
+  usageType?: 'walk_in' | 'registered' | 'subscriber' | 'reserved';
 }
 
 export interface ShiftRevenueItem {
@@ -174,6 +176,9 @@ export interface FreeSlot {
   _id: string;
   code: string;
   floor?: { _id: string; name?: string; code?: string } | null;
+  zone?: { _id: string; code: string; usageType: string } | string | null;
+  usageType?: 'walk_in' | 'registered' | 'subscriber' | 'reserved' | null;
+  vehicleType?: { _id: string; code: string; name: string } | string | null;
 }
 
 export interface PaymentData {
@@ -231,9 +236,13 @@ export const staffApi = {
   checkIn: (payload: { plateNumber: string; vehicleType?: string; gate?: string; building?: string; vehicleBrand?: string; plateImage?: string | null; portraitImage?: string | null; slot?: string }) =>
     api.post<Wrap<{ item: ParkingSession }>>('/staff/parking-sessions/check-in', payload),
 
-  // Available slots in a building — used to assign to long-term package vehicles on check-in.
-  freeSlots: (buildingId: string) =>
-    api.get<Wrap<{ items: FreeSlot[] }>>('/staff/parking-sessions/free-slots', { query: { building: buildingId } }),
+  // Slot trống của tòa nhà — có thể lọc theo loại xe + đối tượng để chỉ hiện slot
+  // tương thích lúc check-in; trả kèm suggestedSlotId (slot gợi ý) để FE highlight.
+  freeSlots: (buildingId: string, opts?: { vehicleType?: string; usageType?: string }) =>
+    api.get<Wrap<{ items: FreeSlot[]; suggestedSlotId: string | null }>>(
+      '/staff/parking-sessions/free-slots',
+      { query: { building: buildingId, vehicleType: opts?.vehicleType, usageType: opts?.usageType } }
+    ),
 
   checkOut: (
     sessionId: string,

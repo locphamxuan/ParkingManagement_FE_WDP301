@@ -316,7 +316,7 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
       {view === 'scanner' && (
         <div className="mx-auto w-full max-w-xl space-y-4">
           {!canCheckout ? (
-            <div className="rounded-xl border border-amber-500/25 bg-amber-500/5 px-4 py-3 text-sm text-amber-300">
+            <div className="rounded-xl border border-amber-500/25 bg-amber-500/5 px-4 py-3 text-sm text-amber-700">
               This account is not assigned to an exit gate — cannot release vehicles.
             </div>
           ) : !checkoutTarget && !bankTransfer && !rejectOpen ? (
@@ -348,7 +348,7 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
             </section>
           ) : null}
           {opMessage && (
-            <div className={`rounded-xl border p-4 text-sm ${opMessage.type === 'ok' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' : 'border-rose-500/30 bg-rose-500/10 text-rose-400'}`}>
+            <div className={`rounded-xl border p-4 text-sm ${opMessage.type === 'ok' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600' : 'border-rose-500/30 bg-rose-500/10 text-rose-600'}`}>
               {opMessage.text}
             </div>
           )}
@@ -359,13 +359,13 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
       {view === 'list' && (
         <div className="space-y-4">
           {!canCheckout && (
-            <div className="rounded-xl border border-sky-500/25 bg-sky-500/5 px-4 py-3 text-sm text-sky-300">
+            <div className="rounded-xl border border-sky-500/25 bg-sky-500/5 px-4 py-3 text-sm text-sky-700">
               <strong>Read-only</strong> mode. Releasing vehicles &amp; charging is handled by exit-gate staff.
             </div>
           )}
 
           {opMessage && (
-            <div className={`rounded-xl border p-4 text-sm ${opMessage.type === 'ok' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' : 'border-rose-500/30 bg-rose-500/10 text-rose-400'}`}>
+            <div className={`rounded-xl border p-4 text-sm ${opMessage.type === 'ok' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600' : 'border-rose-500/30 bg-rose-500/10 text-rose-600'}`}>
               {opMessage.text}
             </div>
           )}
@@ -378,7 +378,7 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
               {loading ? (
                 <p className="text-sm text-muted-foreground">Loading...</p>
               ) : error ? (
-                <p className="text-sm text-rose-400">{error}</p>
+                <p className="text-sm text-rose-600">{error}</p>
               ) : sessions.length === 0 ? (
                 <div className="py-10 text-center">
                   <Car size={28} className="mx-auto mb-2 text-muted-foreground/40" />
@@ -402,23 +402,23 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
                       <div className="flex items-center gap-2 min-w-0">
                         <p className="font-mono font-bold text-foreground truncate">{s.plateNumber}</p>
                         {s.vehicleBrand && (
-                          <span className="shrink-0 rounded-full bg-sky-500/15 px-2 py-0.5 text-[10px] font-semibold text-sky-400">
+                          <span className="shrink-0 rounded-full bg-sky-500/15 px-2 py-0.5 text-[10px] font-semibold text-sky-600">
                             {s.vehicleBrand}
                           </span>
                         )}
                       </div>
                       <div className="flex shrink-0 items-center gap-1">
                         {s.isLongTerm && (
-                          <span className="rounded-full bg-orange-500/15 px-2 py-0.5 text-[9px] font-black uppercase text-orange-400">
+                          <span className="rounded-full bg-sky-500/15 px-2 py-0.5 text-[9px] font-black uppercase text-sky-600">
                             Subscription
                           </span>
                         )}
                         {isMember ? (
-                          <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[9px] font-black uppercase text-emerald-400">
+                          <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[9px] font-black uppercase text-emerald-600">
                             Member
                           </span>
                         ) : (
-                          <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[9px] font-black uppercase text-amber-400">
+                          <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[9px] font-black uppercase text-amber-600">
                             Guest
                           </span>
                         )}
@@ -524,7 +524,7 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
               <div className="space-y-4">
                 <LivePortraitCamera ref={portraitCamRef} />
                 {capturedPortraitImage && (
-                  <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2 text-xs text-emerald-400">
+                  <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2 text-xs text-emerald-600">
                     <UserSquare size={14} /> Exit portrait captured — you may retake it.
                   </div>
                 )}
@@ -540,7 +540,7 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
                       setOpMessage(null);
                       setCoStep(2);
                     }}
-                    className="flex-1 h-11 gap-2 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110"
+                    className="flex-1 h-11 gap-2 bg-gradient-to-r from-sky-500 to-amber-400 text-slate-950 hover:brightness-110"
                   >
                     <UserSquare size={16} /> {capturedPortraitImage ? 'Retake & continue' : 'Capture portrait & continue'} <ArrowRight size={16} />
                   </Button>
@@ -553,7 +553,7 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
             <>
             {/* Photo comparison: at entry (saved) vs at exit (just scanned) */}
             <div className="mb-4 rounded-xl border border-amber-500/25 bg-amber-500/5 p-3">
-              <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-amber-400">Xác minh ảnh biển số &amp; chân dung</p>
+              <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-amber-600">Xác minh ảnh biển số &amp; chân dung</p>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Lúc vào (đã lưu)</p>
@@ -566,7 +566,7 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
                   <CompareImg src={capturedPortraitImage} label="Chân dung" />
                 </div>
               </div>
-              <p className="mt-2 text-[11px] text-muted-foreground">Xác minh ảnh có khớp không. Nếu không, nhấn <strong className="text-rose-400">Từ chối</strong>.</p>
+              <p className="mt-2 text-[11px] text-muted-foreground">Xác minh ảnh có khớp không. Nếu không, nhấn <strong className="text-rose-600">Từ chối</strong>.</p>
             </div>
 
             <div className="rounded-xl border border-border bg-card/50 p-4 space-y-1.5 text-sm">
@@ -575,7 +575,7 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
               <div className="flex justify-between"><span className="text-muted-foreground">Giờ vào</span><span className="font-medium text-foreground">{fmtTime(checkoutTarget.entryTime)}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Thời gian đỗ</span><span className="font-medium text-foreground">{fmtDuration(checkoutTarget.entryTime)}</span></div>
               <div className="flex justify-between border-t border-border/60 pt-1.5"><span className="text-muted-foreground">NV check-in</span><span className="font-medium text-foreground">{checkoutTarget.staff?.fullName ?? '—'}{checkoutTarget.entryGate ? ` · ${checkoutTarget.entryGate.name ?? checkoutTarget.entryGate.code}` : ''}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">NV check-out</span><span className="font-medium text-emerald-400">{user?.fullName || user?.email || 'Bạn'}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">NV check-out</span><span className="font-medium text-emerald-600">{user?.fullName || user?.email || 'Bạn'}</span></div>
             </div>
 
             {checkoutTarget.isLongTerm && (
@@ -591,16 +591,16 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
             {Boolean(checkoutTarget.note?.startsWith('reservation')) ? (
               <>
                 <div className="mt-4 rounded-xl border border-sky-500/30 bg-sky-500/10 p-4 space-y-1">
-                  <p className="text-[10px] font-black uppercase tracking-wider text-sky-400">Đặt chỗ trước</p>
+                  <p className="text-[10px] font-black uppercase tracking-wider text-sky-600">Đặt chỗ trước</p>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-foreground">Còn lại phải trả</span>
-                    <span className="font-mono text-2xl font-black text-sky-400">
+                    <span className="font-mono text-2xl font-black text-sky-600">
                       {(checkoutTarget.currentFee ?? checkoutTarget.fee ?? 0) > 0
                         ? fmtMoney(checkoutTarget.currentFee ?? checkoutTarget.fee)
                         : 'Miễn phí'}
                     </span>
                   </div>
-                  <p className="text-[11px] text-sky-300/80">Số tiền sẽ tự động trừ vào ví tài khoản.</p>
+                  <p className="text-[11px] text-sky-700/80">Số tiền sẽ tự động trừ vào ví tài khoản.</p>
                 </div>
                 <div className="mt-5 flex gap-2">
                   <Button type="button" variant="outline" onClick={() => setCoStep(1)} className="h-11 gap-1">
@@ -609,7 +609,7 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
                   <Button onClick={onCheckOut} disabled={loading} className="flex-1 h-11 gap-2 bg-gradient-to-r from-sky-500 to-blue-400 text-white hover:brightness-110 disabled:opacity-60">
                     <CheckCircle2 size={16} /> Xác nhận &amp; cho ra
                   </Button>
-                  <Button type="button" variant="outline" onClick={() => setRejectOpen(true)} className="h-11 border-rose-500/40 text-rose-400 hover:bg-rose-500/10">
+                  <Button type="button" variant="outline" onClick={() => setRejectOpen(true)} className="h-11 border-rose-500/40 text-rose-600 hover:bg-rose-500/10">
                     Từ chối
                   </Button>
                 </div>
@@ -650,12 +650,12 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
                   <Button type="button" variant="outline" onClick={() => setCoStep(1)} className="h-11 gap-1">
                     <ArrowLeft size={16} /> Quay lại
                   </Button>
-                  <Button onClick={onCheckOut} disabled={loading} className="flex-1 h-11 gap-2 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60">
+                  <Button onClick={onCheckOut} disabled={loading} className="flex-1 h-11 gap-2 bg-gradient-to-r from-sky-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60">
                     <CheckCircle2 size={16} /> {(checkoutTarget.currentFee ?? checkoutTarget.fee ?? 0) <= 0
                       ? 'Cho ra (miễn phí)'
                       : paymentMethod === 'bank_transfer' ? 'Tạo mã QR thanh toán' : `Thu ${fmtMoney(checkoutTarget.currentFee ?? checkoutTarget.fee)} &amp; cho ra`}
                   </Button>
-                  <Button type="button" variant="outline" onClick={() => setRejectOpen(true)} className="h-11 border-rose-500/40 text-rose-400 hover:bg-rose-500/10">
+                  <Button type="button" variant="outline" onClick={() => setRejectOpen(true)} className="h-11 border-rose-500/40 text-rose-600 hover:bg-rose-500/10">
                     Từ chối
                   </Button>
                 </div>
@@ -675,7 +675,7 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
           >
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-rose-400">Reject vehicle exit</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-rose-600">Reject vehicle exit</p>
                 <h3 className="text-xl font-semibold text-foreground">Rejection reason</h3>
               </div>
               <button onClick={() => { setRejectOpen(false); setRejectReason(''); }} className="text-muted-foreground hover:text-foreground transition">✕</button>
@@ -689,7 +689,7 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
             />
             <div className="mt-4 grid grid-cols-2 gap-3">
               <Button variant="secondary" onClick={() => { setRejectOpen(false); setRejectReason(''); }} className="text-xs">Cancel</Button>
-              <Button onClick={onReject} disabled={!rejectReason.trim()} className="bg-rose-500 text-white hover:bg-rose-400 text-xs disabled:opacity-60">Confirm rejection</Button>
+              <Button onClick={onReject} disabled={!rejectReason.trim()} className="bg-rose-500 text-slate-800 hover:bg-rose-400 text-xs disabled:opacity-60">Confirm rejection</Button>
             </div>
           </motion.div>
         </div>
@@ -703,12 +703,12 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
             <h3 className="mt-1 text-xl font-semibold text-foreground">Parking fee payment</h3>
             <div className="mt-4 rounded-xl border border-border bg-card/50 p-4 space-y-2">
               <div className="flex justify-between text-sm"><span className="text-muted-foreground">Plate number</span><span className="font-semibold text-foreground">{bankTransfer.plate}</span></div>
-              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Amount</span><span className="font-mono text-lg font-bold text-amber-400">{bankTransfer.amount.toLocaleString('vi-VN')} ₫</span></div>
+              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Amount</span><span className="font-mono text-lg font-bold text-amber-600">{bankTransfer.amount.toLocaleString('vi-VN')} ₫</span></div>
             </div>
             <p className="mt-4 text-sm text-muted-foreground">Open the payment page and let the customer scan the QR. After they transfer, click<strong className="text-foreground">Confirm</strong>.</p>
             <Button onClick={() => window.open(bankTransfer.checkoutUrl, '_blank', 'noopener')} variant="secondary" className="mt-4 w-full gap-2">Open payment QR page</Button>
             <div className="mt-2 grid grid-cols-2 gap-2">
-              <Button onClick={onVerifyBankTransfer} disabled={verifying} className="gap-2 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60">
+              <Button onClick={onVerifyBankTransfer} disabled={verifying} className="gap-2 bg-gradient-to-r from-sky-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60">
                 {verifying ? 'Confirming...' : 'Confirm payment'}
               </Button>
               <Button variant="secondary" onClick={() => setBankTransfer(null)} disabled={verifying}>Close</Button>

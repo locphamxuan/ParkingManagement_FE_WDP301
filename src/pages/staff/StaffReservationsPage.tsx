@@ -138,7 +138,7 @@ export function StaffReservationsPage() {
               </span>
             ) : null}
             {slotCode ? (
-              <span className="rounded border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
+              <span className="rounded border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
                 Slot {slotCode}
               </span>
             ) : (
@@ -157,7 +157,7 @@ export function StaffReservationsPage() {
       key: 'fee',
       title: 'Deposit',
       render: (row) => (
-        <span className="font-bold text-emerald-400 text-sm">
+        <span className="font-bold text-emerald-600 text-sm">
           {fmtMoney(row.amountPaid ?? row.fee)}
         </span>
       ),
@@ -184,7 +184,7 @@ export function StaffReservationsPage() {
               size="sm"
               disabled={busy}
               onClick={() => row.code && handleCheckIn(row.code, row._id)}
-              className="gap-1.5 text-xs h-7 px-2 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+              className="gap-1.5 text-xs h-7 px-2 border-emerald-500/30 text-emerald-600 hover:bg-emerald-500/10"
             >
               <CheckCircle2 size={12} />
               {busy ? '...' : 'Check-in'}
@@ -198,7 +198,7 @@ export function StaffReservationsPage() {
               size="sm"
               disabled={busy}
               onClick={() => handleExpire(row._id)}
-              className="gap-1.5 text-xs h-7 px-2 text-rose-400 hover:bg-rose-500/10"
+              className="gap-1.5 text-xs h-7 px-2 text-rose-600 hover:bg-rose-500/10"
             >
               <XCircle size={12} />
               {busy ? '...' : 'Expired'}
@@ -276,7 +276,7 @@ export function StaffReservationsPage() {
           {loading ? (
             <p className="text-sm text-muted-foreground py-6 text-center">Loading data...</p>
           ) : error ? (
-            <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-4 text-sm text-rose-400">
+            <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-4 text-sm text-rose-600">
               <p>{error}</p>
               <Button variant="secondary" onClick={load} className="mt-3 gap-2 text-xs">
                 <RefreshCcw size={13} />Retry</Button>

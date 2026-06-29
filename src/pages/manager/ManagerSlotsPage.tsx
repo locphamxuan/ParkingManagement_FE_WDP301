@@ -10,15 +10,17 @@ import { MultiSlotForm, type SlotFormRow } from '@/components/manager/MultiSlotF
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import {
   managerApi,
+  ZONE_USAGE_LABELS,
   type Floor,
   type ParkingSlot,
   type VehicleType,
+  type Zone,
 } from '@/services/manager/managerApi';
 
 interface FormState {
   code: string;
   floor: string;
-  vehicleType: string;
+  zone: string;
   status: ParkingSlot['status'];
   reservable: boolean;
   note: string;
@@ -27,11 +29,13 @@ interface FormState {
 const empty: FormState = {
   code: '',
   floor: '',
-  vehicleType: '',
+  zone: '',
   status: 'available',
   reservable: true,
   note: '',
 };
+
+const zoneFloorId = (z: Zone) => (typeof z.floor === 'string' ? z.floor : z.floor._id);
 
 const SLOT_STATUSES: ParkingSlot['status'][] = ['available', 'occupied', 'reserved', 'maintenance'];
 
@@ -169,6 +173,7 @@ export function ManagerSlotsPage() {
   const { buildingId } = useBuildingContext();
   const [items, setItems] = useState<ParkingSlot[]>([]);
   const [floors, setFloors] = useState<Floor[]>([]);
+  const [zones, setZones] = useState<Zone[]>([]);
   const [vehicleTypes, setVehicleTypes] = useState<VehicleType[]>([]);
   const [floorFilter, setFloorFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -189,16 +194,18 @@ export function ManagerSlotsPage() {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const [slotsRes, floorsRes, vtRes] = await Promise.all([
+      const [slotsRes, floorsRes, zonesRes, vtRes] = await Promise.all([
         managerApi.slots.list(buildingId, {
           floor: floorFilter || undefined,
           status: statusFilter || undefined,
         }),
         managerApi.floors.list(buildingId),
+        managerApi.zones.list(buildingId),
         managerApi.vehicleTypes.list(buildingId),
       ]);
       setItems(slotsRes.data.items);
       setFloors(floorsRes.data.items);
+      setZones(zonesRes.data.items);
       setVehicleTypes(vtRes.data.items);
       setError(null);
     } catch (err) {
@@ -241,16 +248,12 @@ export function ManagerSlotsPage() {
 
   const openEdit = (row: ParkingSlot) => {
     const floorId = typeof row.floor === 'string' ? row.floor : row.floor._id;
-    const vtId = !row.vehicleType
-      ? ''
-      : typeof row.vehicleType === 'string'
-        ? row.vehicleType
-        : row.vehicleType._id;
+    const zoneId = !row.zone ? '' : typeof row.zone === 'string' ? row.zone : row.zone._id;
     setEditing(row);
     setForm({
       code: row.code,
       floor: floorId,
-      vehicleType: vtId,
+      zone: zoneId,
       status: row.status,
       reservable: row.reservable,
       note: row.note ?? '',
@@ -263,9 +266,14 @@ export function ManagerSlotsPage() {
       alert('Select a floor first');
       return;
     }
+    if (!form.zone) {
+      alert('Please select a zone');
+      return;
+    }
     const payload = {
       code: form.code.trim().toUpperCase(),
       floor: form.floor,
+      zone: form.zone,
       status: form.status,
       reservable: form.reservable,
       note: form.note.trim(),
@@ -274,7 +282,7 @@ export function ManagerSlotsPage() {
       if (editing) {
         await managerApi.slots.update(buildingId, editing._id, payload as Partial<ParkingSlot>);
       } else {
-        await managerApi.slots.create(buildingId, payload as Partial<ParkingSlot> & { floor: string });
+        await managerApi.slots.create(buildingId, payload as Partial<ParkingSlot> & { floor: string; zone: string });
       }
       setModalOpen(false);
       refresh();
@@ -298,11 +306,12 @@ export function ManagerSlotsPage() {
       const payload = {
         code: row.code.trim().toUpperCase(),
         floor: row.floor,
+        zone: row.zone,
         status: row.status,
         reservable: row.reservable,
         note: row.note.trim(),
       };
-      await managerApi.slots.create(buildingId, payload as Partial<ParkingSlot> & { floor: string });
+      await managerApi.slots.create(buildingId, payload as Partial<ParkingSlot> & { floor: string; zone: string });
     }
     refresh();
   };
@@ -328,15 +337,29 @@ export function ManagerSlotsPage() {
       },
     },
     {
-      key: 'vehicleType',
-      title: 'Vehicle type (by floor)',
+      key: 'zone',
+      title: 'Zone',
       render: (row) => {
-        const id = typeof row.floor === 'string' ? row.floor : row.floor._id;
-        const fl = floorMap.get(id);
-        const types = (fl?.allowedVehicleTypes ?? []) as Array<{ code?: string } | string>;
-        if (!types.length) return 'All types';
-        return types.map((t) => (typeof t === 'object' ? t.code : t)).filter(Boolean).join(', ');
+        if (!row.zone) return '—';
+        if (typeof row.zone === 'object') return row.zone.code;
+        const z = zones.find((zz) => zz._id === row.zone);
+        return z ? z.code : '?';
       },
+    },
+    {
+      key: 'vehicleType',
+      title: 'Vehicle type',
+      render: (row) => {
+        if (!row.vehicleType) return '—';
+        if (typeof row.vehicleType === 'object') return row.vehicleType.name;
+        const vt = vehicleTypes.find((v) => v._id === row.vehicleType);
+        return vt ? vt.name : '?';
+      },
+    },
+    {
+      key: 'usageType',
+      title: 'Usage',
+      render: (row) => (row.usageType ? ZONE_USAGE_LABELS[row.usageType] : '—'),
     },
     {
       key: 'status',
@@ -640,7 +663,7 @@ export function ManagerSlotsPage() {
             <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Floor</label>
             <CustomSelect
               value={form.floor}
-              onChange={(val) => setForm((f) => ({ ...f, floor: val }))}
+              onChange={(val) => setForm((f) => ({ ...f, floor: val, zone: '' }))}
               options={[
                 { value: '', label: 'Select floor' },
                 ...floors.map((fl) => ({
@@ -651,8 +674,22 @@ export function ManagerSlotsPage() {
               placeholder="Select floor..."
             />
           </div>
+          <div className="grid gap-1.5">
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Zone</label>
+            <CustomSelect
+              value={form.zone}
+              onChange={(val) => setForm((f) => ({ ...f, zone: val }))}
+              options={[
+                { value: '', label: 'Select zone' },
+                ...zones
+                  .filter((z) => zoneFloorId(z) === form.floor)
+                  .map((z) => ({ value: z._id, label: `${z.code} · ${ZONE_USAGE_LABELS[z.usageType]}` })),
+              ]}
+              placeholder="Select zone..."
+            />
+          </div>
           <div className="grid gap-1.5 sm:col-span-2">
-            <p className="rounded-xl border border-sky-500/20 bg-sky-500/5 px-3 py-2 text-[11px] text-sky-300">Slot vehicle type<strong>automatically taken from the floor's allowed vehicle types</strong>(configured in the Floors tab), no need to set here.</p>
+            <p className="rounded-xl border border-sky-500/20 bg-sky-500/5 px-3 py-2 text-[11px] text-sky-300">The slot's vehicle type &amp; usage are <strong>taken from the selected Zone</strong> — configure them in the "Zones" tab.</p>
           </div>
           <div className="grid gap-1.5">
             <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Status</label>
@@ -691,6 +728,7 @@ export function ManagerSlotsPage() {
         onClose={() => setMultiSlotModalOpen(false)}
         onSubmit={onMultiSlotSubmit}
         floors={floors}
+        zones={zones}
       />
     </div>
   );

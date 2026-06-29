@@ -7,6 +7,8 @@ import { normalizePlate, isValidVietnamPlate } from '@/utils/plate';
 export interface PlateScanResult {
   plateNumber: string;
   brand: string | null;
+  /** Vehicle kind auto-detected by the AI camera (car | motorcycle | null). */
+  vehicleType: 'car' | 'motorcycle' | null;
   /** The captured frame (base64 data-URL) — stored to DB as the plate image. */
   plateImage: string;
 }
@@ -94,12 +96,14 @@ export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps
   const runScan = async (dataUrl: string, isRetry = false) => {
     const base64 = dataUrl.split(',')[1];
     const res = await staffApi.scanVehicle(base64);
-    const data = (res as { data?: { plateNumber?: string; brand?: string | null } })?.data;
+    const data = (res as { data?: { plateNumber?: string; brand?: string | null; vehicleType?: 'car' | 'motorcycle' | null } })?.data;
     // Normalize and validate the AI result — reject garbage / non-VN-format strings
     const raw = data?.plateNumber ?? '';
     const normalized = normalizePlate(raw);
     const plateNumber = isValidVietnamPlate(normalized) ? normalized : '';
     const brand = data?.brand ?? null;
+    // Vehicle kind detected by the AI camera (authoritative over the plate-format heuristic).
+    const vehicleType = data?.vehicleType === 'motorcycle' ? 'motorcycle' : data?.vehicleType === 'car' ? 'car' : null;
 
     if (!plateNumber && !isRetry) {
       // Auto-retry once after 500ms
@@ -110,12 +114,12 @@ export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps
       }
     }
 
-    onDetected({ plateNumber, brand, plateImage: dataUrl });
+    onDetected({ plateNumber, brand, vehicleType, plateImage: dataUrl });
     if (plateNumber) {
-      setSuccess(`Biển số: ${plateNumber}${brand ? ` · ${brand}` : ''}`);
+      setSuccess(`Plate: ${plateNumber}${brand ? ` · ${brand}` : ''}`);
       setTimeout(() => setSuccess(null), 2500);
     } else {
-      setError('Không đọc được biển số — hãy nhập tay hoặc tải ảnh lên.');
+      setError('Could not read the plate — please enter it manually or upload an image.');
     }
   };
 
@@ -125,14 +129,14 @@ export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps
     onScanStart?.();
     const dataUrl = captureFrame();
     if (!dataUrl) {
-      setError('Camera chưa sẵn sàng. Vui lòng thử lại.');
+      setError('Camera is not ready. Please try again.');
       return;
     }
     setProcessing(true);
     try {
       await runScan(dataUrl);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Lỗi nhận dạng biển số');
+      setError(err instanceof Error ? err.message : 'Plate recognition error');
     } finally {
       setProcessing(false);
     }
@@ -154,7 +158,7 @@ export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps
       });
       await runScan(dataUrl);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Lỗi xử lý ảnh');
+      setError(err instanceof Error ? err.message : 'Image processing error');
     } finally {
       setProcessing(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -165,7 +169,7 @@ export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps
     <div className="rounded-xl border border-border bg-card/40 p-3 space-y-2.5">
       <div className="flex items-center gap-2">
         <ScanLine size={15} className="text-primary" />
-        <p className="text-sm font-semibold text-foreground">Camera 2 · Quét biển số</p>
+        <p className="text-sm font-semibold text-foreground">Camera 2 · Plate scan</p>
       </div>
 
       <div className="relative aspect-[4/3] overflow-hidden rounded-lg border border-white/10 bg-black/60">
@@ -214,7 +218,7 @@ export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps
               style={{ left: '15%', right: '15%', top: '35%', bottom: '35%' }}
             >
               <span className="absolute -top-5 left-0 right-0 text-center text-[10px] text-yellow-400 font-medium">
-                Căn biển số vào đây
+                Align the plate here
               </span>
             </div>
             <div className={processing ? 'laser-scanner-line laser-scanner-line-active' : 'laser-scanner-line'} />
@@ -240,17 +244,17 @@ export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps
           className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:brightness-110 disabled:opacity-60"
         >
           {processing ? <Loader2 size={15} className="animate-spin" /> : <ScanLine size={15} />}
-          Chụp &amp; nhận dạng
+          Capture &amp; recognize
         </button>
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={processing || busy}
-          title="Tải ảnh biển số từ máy"
+          title="Upload a plate image from your device"
           className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-border bg-card/60 px-3 py-2.5 text-sm font-medium text-muted-foreground transition hover:bg-card hover:text-foreground disabled:opacity-60"
         >
           <Upload size={15} />
-          Tải ảnh
+          Upload
         </button>
       </div>
 

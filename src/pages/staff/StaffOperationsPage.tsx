@@ -17,7 +17,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
-import { staffApi, type PlateInfo } from '@/services/staff/staffApi';
+import { staffApi, type PlateInfo, type FreeSlot } from '@/services/staff/staffApi';
+import { CheckInSlotPicker } from '@/components/staff/CheckInSlotPicker';
 import { LivePlateCamera, type PlateScanResult, type LiveCameraHandle } from '@/components/staff/LivePlateCamera';
 import { LiveQRCamera } from '@/components/staff/LiveQRCamera';
 import { LivePortraitCamera } from '@/components/staff/LivePortraitCamera';
@@ -79,10 +80,14 @@ export function StaffOperationsPage() {
   // AbortController for the in-flight lookupPlate request. Aborted synchronously in
   // handlePlateScanStart so the fetch is cancelled at the network level before React re-renders.
   const lookupAbortRef = useRef<AbortController | null>(null);
+  // Vehicle kind detected by the AI camera/QR for a given plate. When set, it takes
+  // precedence over the plate-format heuristic so the camera result is authoritative.
+  const aiVehicleTypeRef = useRef<{ plate: string; type: VehicleKind } | null>(null);
   // Floating package: when plate has an active package, staff must choose an empty slot.
-  const [freeSlots, setFreeSlots] = useState<{ _id: string; code: string; floor?: { _id: string; name?: string; code?: string } | null }[]>([]);
+  const [freeSlots, setFreeSlots] = useState<FreeSlot[]>([]);
   const [selectedSlotId, setSelectedSlotId] = useState('');
-  const [selectedFloorId, setSelectedFloorId] = useState('');
+  // Slot gợi ý (đầu dãy tương thích) do BE trả — dùng để highlight cho staff.
+  const [suggestedSlotId, setSuggestedSlotId] = useState('');
 
   // Reject check-in flow
   const [rejectOpen, setRejectOpen] = useState(false);
@@ -112,14 +117,19 @@ export function StaffOperationsPage() {
     return 'car';
   };
 
-  // Auto-detect vehicle type when the PLATE changes (do not overwrite a manual change).
+  // Auto-detect vehicle type when the PLATE changes. The AI camera detection (when
+  // available for this plate) wins; otherwise fall back to the plate-format heuristic.
   useEffect(() => {
     const clean = plateNumber.trim().toUpperCase();
-    if (clean.length >= 3) {
-      const detected = detectTypeFromPlate(clean);
-      if (detected === 'motorcycle' && ALLOWED_TYPES.includes('MOTORCYCLE')) setVehicleType('motorcycle');
-      else if (detected === 'car' && ALLOWED_TYPES.includes('CAR')) setVehicleType('car');
+    if (clean.length < 3) return;
+    const ai = aiVehicleTypeRef.current;
+    if (ai && normalizePlate(ai.plate) === normalizePlate(clean)) {
+      setVehicleType(ai.type); // camera-detected kind is authoritative
+      return;
     }
+    const detected = detectTypeFromPlate(clean);
+    if (detected === 'motorcycle' && ALLOWED_TYPES.includes('MOTORCYCLE')) setVehicleType('motorcycle');
+    else if (detected === 'car' && ALLOWED_TYPES.includes('CAR')) setVehicleType('car');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [plateNumber]);
 
@@ -194,29 +204,42 @@ export function StaffOperationsPage() {
     : hasActiveReservation
       ? 'reservation'
       : 'standard';
+  // Đối tượng (usageType) của lượt check-in → lọc đúng pool slot (gói/đăng ký/vãng lai).
+  // Ưu tiên giá trị BE suy ra; fallback theo trạng thái biển số hiện có.
+  const usageType: 'walk_in' | 'registered' | 'subscriber' = hasActivePackage
+    ? 'subscriber'
+    : accountMatchesCurrentPlate && plateAccountInfo?.hasAccount
+      ? 'registered'
+      : (plateAccountInfo?.usageType as 'walk_in' | 'registered' | 'subscriber' | undefined) ?? 'walk_in';
+
   useEffect(() => {
-    // Fetch free slots for package (floating assignment) and standard/walk-in (BE requires slot when available)
+    // Fetch free slots for package (floating assignment) and standard/walk-in (BE requires slot when available).
+    // Lọc theo loại xe đang chọn + đối tượng để CHỈ hiện slot tương thích + nhận slot gợi ý.
     if (checkInKind === 'reservation' || !buildingId) {
       setFreeSlots([]);
       setSelectedSlotId('');
-      setSelectedFloorId('');
+      setSuggestedSlotId('');
       return;
     }
     let cancelled = false;
     staffApi
-      .freeSlots(buildingId)
+      .freeSlots(buildingId, { vehicleType, usageType })
       .then((res) => {
         if (!cancelled) {
-          setFreeSlots((res as { data?: { items?: typeof freeSlots } })?.data?.items ?? []);
-          setSelectedSlotId('');
-          setSelectedFloorId('');
+          const data = (res as { data?: { items?: FreeSlot[]; suggestedSlotId?: string | null } })?.data;
+          const items = data?.items ?? [];
+          const suggested = data?.suggestedSlotId ?? '';
+          setFreeSlots(items);
+          // Mặc định chọn sẵn slot gợi ý để staff chỉ cần xác nhận.
+          setSuggestedSlotId(suggested || '');
+          setSelectedSlotId(suggested || '');
         }
       })
       .catch(() => undefined);
     return () => {
       cancelled = true;
     };
-  }, [checkInKind, buildingId]);
+  }, [checkInKind, buildingId, vehicleType, usageType]);
 
   // Apply recognized plate (AI/QR) → lookup runs automatically via effect on plateNumber.
   const applyPlate = (plate: string, brand: string | null = null) => {
@@ -230,6 +253,7 @@ export function StaffOperationsPage() {
   const handlePlateScanStart = () => {
     lookupAbortRef.current?.abort();
     lookupAbortRef.current = null;
+    aiVehicleTypeRef.current = null;
     setPlateNumber('');
     setVehicleBrand(null);
     setPlateImage(null);
@@ -238,9 +262,13 @@ export function StaffOperationsPage() {
   };
 
   // Plate camera: always save the captured image; only apply plate number if AI read it.
+  // Record the AI-detected vehicle kind so it overrides the plate-format heuristic.
   // Do NOT auto-advance step — wait for lookup to determine kind (package/reservation/standard).
-  const handlePlateDetected = ({ plateNumber: plate, brand, plateImage: img }: PlateScanResult) => {
+  const handlePlateDetected = ({ plateNumber: plate, brand, vehicleType: kind, plateImage: img }: PlateScanResult) => {
     setPlateImage(img);
+    if (plate && (kind === 'car' || kind === 'motorcycle')) {
+      aiVehicleTypeRef.current = { plate: normalizePlate(plate) || plate.toUpperCase(), type: kind };
+    }
     if (plate) applyPlate(plate, brand);
     // If scan returns empty, plate/account were already cleared by handlePlateScanStart.
   };
@@ -282,8 +310,10 @@ export function StaffOperationsPage() {
       }
       if (data.kind === 'plate' && data.plate?.plateNumber) {
         handlePlateScanStart(); // clear stale plate/account state before applying new QR result
-        if (data.plate.vehicleType === 'motorcycle') setVehicleType('motorcycle');
-        else if (data.plate.vehicleType) setVehicleType('car');
+        const qrKind = data.plate.vehicleType === 'motorcycle' ? 'motorcycle' : data.plate.vehicleType ? 'car' : null;
+        if (qrKind) {
+          aiVehicleTypeRef.current = { plate: normalizePlate(data.plate.plateNumber) || data.plate.plateNumber.toUpperCase(), type: qrKind };
+        }
         applyPlate(data.plate.plateNumber, data.plate.brand ?? null);
         // Capture the QR camera's current frame as the plate image — the camera is already
         // pointed at the vehicle, so this frame serves as the plate photo for standard check-in.
@@ -293,7 +323,7 @@ export function StaffOperationsPage() {
         setIdentifyMode('plate');
         setOpMessage({
           type: 'ok',
-          text: `Biển số ${data.plate.plateNumber} đã được nhận từ QR.${qrFrame ? ' Có thể chụp lại bằng camera biển số nếu muốn.' : ' Vui lòng chụp ảnh biển số để tiếp tục.'}`,
+          text: `Plate ${data.plate.plateNumber} recognized from QR.${qrFrame ? ' You can recapture with the plate camera if needed.' : ' Please capture the plate photo to continue.'}`,
         });
       } else if (data.kind === 'user' && data.user) {
         // Open full user info popup + pre-switch to plate camera so it's ready when popup closes.
@@ -316,7 +346,7 @@ export function StaffOperationsPage() {
     setPlateInfoLoading(false);
     setFreeSlots([]);
     setSelectedSlotId('');
-    setSelectedFloorId('');
+    setSuggestedSlotId('');
     setScannedUser(null);
     setStep(1);
     setIdentifyMode('plate');
@@ -326,12 +356,12 @@ export function StaffOperationsPage() {
     setOpMessage(null);
     // Package: must select a slot (floating model — slot not fixed at purchase).
     if (hasActivePackage && !selectedSlotId) {
-      setOpMessage({ type: 'err', text: 'Xe có gói dài hạn — vui lòng chọn ô đỗ trước khi check-in.' });
+      setOpMessage({ type: 'err', text: 'Vehicle has a long-term package — please select a slot before check-in.' });
       return;
     }
     // Walk-in: slot required when building has available slots (BE enforces this).
     if (checkInKind === 'standard' && freeSlots.length > 0 && !selectedSlotId) {
-      setOpMessage({ type: 'err', text: 'Vui lòng chọn ô đỗ cho khách vãng lai.' });
+      setOpMessage({ type: 'err', text: 'Please select a slot for the guest.' });
       return;
     }
     setLoading(true);
@@ -389,28 +419,6 @@ export function StaffOperationsPage() {
   // Does the detected/selected vehicle type differ from the registered one?
   const vehicleTypeMismatch = Boolean(
     plateAccountInfo?.registeredVehicleType && plateAccountInfo.registeredVehicleType !== vehicleType
-  );
-
-  // Unique floors from free slots (to drive the floor picker)
-  const uniqueFloors = useMemo(() => {
-    const seen = new Set<string>();
-    const floors: Array<{ _id: string; name?: string; code?: string }> = [];
-    for (const s of freeSlots) {
-      if (s.floor && !seen.has(s.floor._id)) {
-        seen.add(s.floor._id);
-        floors.push(s.floor);
-      }
-    }
-    return floors;
-  }, [freeSlots]);
-
-  // Slots filtered by selected floor (all slots when only 1 floor or no floor selected)
-  const slotsForFloor = useMemo(
-    () =>
-      uniqueFloors.length >= 2 && selectedFloorId
-        ? freeSlots.filter((s) => s.floor?._id === selectedFloorId)
-        : freeSlots,
-    [freeSlots, selectedFloorId, uniqueFloors]
   );
 
   return (
@@ -542,15 +550,10 @@ export function StaffOperationsPage() {
                 {/* Vehicle type + warnings */}
                 <div className="grid gap-1.5">
                   <label className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Vehicle type</label>
-                  <div className="flex gap-2 p-1 rounded-lg bg-muted border border-border">
-                    <button type="button" disabled={!allowedTypes.includes('CAR')} onClick={() => setVehicleType('car')}
-                      className={`flex-1 flex items-center justify-center gap-1.5 h-8 rounded-md text-xs font-bold transition-all ${vehicleType === 'car' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground disabled:opacity-30'}`}>
-                      <Car size={13} /> Car
-                    </button>
-                    <button type="button" disabled={!allowedTypes.includes('MOTORCYCLE')} onClick={() => setVehicleType('motorcycle')}
-                      className={`flex-1 flex items-center justify-center gap-1.5 h-8 rounded-md text-xs font-bold transition-all ${vehicleType === 'motorcycle' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground disabled:opacity-30'}`}>
-                      <Bike size={13} /> Motorcycle
-                    </button>
+                  <div className="flex items-center gap-2 h-9 px-3 rounded-lg bg-muted border border-border text-xs font-bold text-foreground">
+                    {vehicleType === 'car' ? <Car size={14} /> : <Bike size={14} />}
+                    {vehicleType === 'car' ? 'Car' : 'Motorcycle'}
+                    <span className="ml-auto text-[10px] font-medium text-muted-foreground">Auto-detected by camera</span>
                   </div>
                   {plateTypeWarning && <p className="text-[11px] text-amber-400 flex items-center gap-1"><AlertCircle size={11} /> {plateTypeWarning}</p>}
                   {buildingSupportWarning && <p className="text-[11px] text-rose-400 flex items-center gap-1"><AlertCircle size={11} /> {buildingSupportWarning}</p>}
@@ -561,56 +564,25 @@ export function StaffOperationsPage() {
                   )}
                 </div>
 
-                {/* Slot + floor selection: required for package (floating) and walk-in */}
+                {/* After the camera finishes recognition, staff only picks ZONE → SLOT */}
                 {!plateInfoLoading && (hasActivePackage || (checkInKind === 'standard' && freeSlots.length > 0)) && (
-                  <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 space-y-2">
-                    <p className="text-[11px] font-bold text-amber-300 flex items-center gap-1">
-                      <AlertCircle size={12} />
-                      {hasActivePackage
-                        ? `Gói dài hạn${plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''} — chọn tầng và ô đỗ:`
-                        : 'Chọn tầng và ô đỗ cho khách vãng lai:'}
-                    </p>
-                    {uniqueFloors.length >= 2 && (
-                      <div>
-                        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-amber-200/60">Tầng:</p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {uniqueFloors.map((f) => (
-                            <button
-                              key={f._id}
-                              type="button"
-                              onClick={() => { setSelectedFloorId(f._id); setSelectedSlotId(''); }}
-                              className={`rounded-lg px-3 py-1 text-xs font-bold transition-all ${
-                                selectedFloorId === f._id
-                                  ? 'bg-amber-500 text-slate-950 shadow-[0_0_8px_rgba(245,158,11,0.3)]'
-                                  : 'bg-amber-500/20 text-amber-300 hover:bg-amber-500/30'
-                              }`}
-                            >
-                              {f.name || f.code}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    <select
-                      value={selectedSlotId}
-                      onChange={(e) => setSelectedSlotId(e.target.value)}
-                      disabled={uniqueFloors.length >= 2 && !selectedFloorId}
-                      className="h-10 w-full rounded-lg border border-white/10 bg-slate-950 px-3 text-sm font-semibold text-white outline-none focus:border-amber-400/60 disabled:opacity-40"
-                    >
-                      <option value="">
-                        {uniqueFloors.length >= 2 && !selectedFloorId ? '-- Chọn tầng trước --' : '-- Chọn ô đỗ --'}
-                      </option>
-                      {slotsForFloor.map((s) => (
-                        <option key={s._id} value={s._id}>
-                          {s.code}{uniqueFloors.length < 2 && (s.floor?.name || s.floor?.code) ? ` · ${s.floor?.name || s.floor?.code}` : ''}
-                        </option>
-                      ))}
-                    </select>
-                    {freeSlots.length === 0 && <p className="text-[11px] text-rose-300">Không có ô trống.</p>}
-                  </div>
+                  <CheckInSlotPicker
+                    slots={freeSlots}
+                    value={selectedSlotId}
+                    onChange={setSelectedSlotId}
+                    suggestedSlotId={suggestedSlotId}
+                    intro={
+                      <p className="text-[11px] font-bold text-amber-300 flex items-center gap-1">
+                        <AlertCircle size={12} />
+                        {hasActivePackage
+                          ? `Long-term package${plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''} — select zone and slot:`
+                          : 'Select zone and slot for the guest:'}
+                      </p>
+                    }
+                  />
                 )}
 
-                <p className="text-[11px] text-muted-foreground">Ảnh biển số và chân dung được chụp đồng thời từ tất cả camera khi nhấn Check-in.</p>
+                <p className="text-[11px] text-muted-foreground">The plate and portrait photos are captured simultaneously from all cameras when you press Check-in.</p>
 
                 <div className="flex gap-2">
                   <Button
@@ -705,7 +677,7 @@ export function StaffOperationsPage() {
                   {/* Only show the plate-photo instruction when in plate mode — never as a red blocker */}
                   {plateNumber.trim().length >= 7 && identifyMode === 'plate' && checkInKind === 'standard' && !plateImage && (
                     <div className="mt-1 rounded-lg border border-amber-500/20 bg-amber-500/10 p-2.5 text-[11px] text-amber-300">
-                      Nhấn <strong>"Chụp &amp; nhận dạng"</strong> ở camera biển số để chụp ảnh (bắt buộc cho khách vãng lai).
+                      Press <strong>"Capture &amp; recognize"</strong> on the plate camera to take the photo (required for guests).
                     </div>
                   )}
                 </div>
@@ -819,23 +791,10 @@ export function StaffOperationsPage() {
                 {/* Vehicle type + warnings */}
                 <div className="grid gap-1.5">
                   <label className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Vehicle type</label>
-                  <div className="flex gap-2 p-1 rounded-lg bg-muted border border-border">
-                    <button
-                      type="button"
-                      disabled={!allowedTypes.includes('CAR')}
-                      onClick={() => setVehicleType('car')}
-                      className={`flex-1 flex items-center justify-center gap-1.5 h-8 rounded-md text-xs font-bold transition-all ${vehicleType === 'car' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground disabled:opacity-30'}`}
-                    >
-                      <Car size={13} /> Car
-                    </button>
-                    <button
-                      type="button"
-                      disabled={!allowedTypes.includes('MOTORCYCLE')}
-                      onClick={() => setVehicleType('motorcycle')}
-                      className={`flex-1 flex items-center justify-center gap-1.5 h-8 rounded-md text-xs font-bold transition-all ${vehicleType === 'motorcycle' ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground disabled:opacity-30'}`}
-                    >
-                      <Bike size={13} /> Motorcycle
-                    </button>
+                  <div className="flex items-center gap-2 h-9 px-3 rounded-lg bg-muted border border-border text-xs font-bold text-foreground">
+                    {vehicleType === 'car' ? <Car size={14} /> : <Bike size={14} />}
+                    {vehicleType === 'car' ? 'Car' : 'Motorcycle'}
+                    <span className="ml-auto text-[10px] font-medium text-muted-foreground">Auto-detected by camera</span>
                   </div>
                   {plateTypeWarning && <p className="text-[11px] text-amber-400 flex items-center gap-1"><AlertCircle size={11} /> {plateTypeWarning}</p>}
                   {buildingSupportWarning && <p className="text-[11px] text-rose-400 flex items-center gap-1"><AlertCircle size={11} /> {buildingSupportWarning}</p>}
@@ -851,55 +810,22 @@ export function StaffOperationsPage() {
                   )}
                 </div>
 
-                {/* Slot + floor selection: required for package and walk-in */}
+                {/* After the camera finishes recognition, staff only picks ZONE → SLOT */}
                 {!plateInfoLoading && (hasActivePackage || (checkInKind === 'standard' && freeSlots.length > 0)) && (
-                  <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 space-y-2">
-                    <p className="text-[11px] font-bold text-amber-300 flex items-center gap-1">
-                      <AlertCircle size={12} />
-                      {hasActivePackage
-                        ? `Gói dài hạn${plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''}${plateAccountInfo?.activePackage?.maxHoursPerDay ? ` · ${plateAccountInfo.activePackage.maxHoursPerDay}h/ngày` : ''} — chọn tầng và ô đỗ:`
-                        : 'Chọn tầng và ô đỗ cho khách vãng lai:'}
-                    </p>
-                    {uniqueFloors.length >= 2 && (
-                      <div>
-                        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-amber-200/60">Tầng:</p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {uniqueFloors.map((f) => (
-                            <button
-                              key={f._id}
-                              type="button"
-                              onClick={() => { setSelectedFloorId(f._id); setSelectedSlotId(''); }}
-                              className={`rounded-lg px-3 py-1 text-xs font-bold transition-all ${
-                                selectedFloorId === f._id
-                                  ? 'bg-amber-500 text-slate-950 shadow-[0_0_8px_rgba(245,158,11,0.3)]'
-                                  : 'bg-amber-500/20 text-amber-300 hover:bg-amber-500/30'
-                              }`}
-                            >
-                              {f.name || f.code}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    <select
-                      value={selectedSlotId}
-                      onChange={(e) => setSelectedSlotId(e.target.value)}
-                      disabled={uniqueFloors.length >= 2 && !selectedFloorId}
-                      className="h-10 w-full rounded-lg border border-white/10 bg-slate-950 px-3 text-sm font-semibold text-white outline-none focus:border-amber-400/60 disabled:opacity-40"
-                    >
-                      <option value="">
-                        {uniqueFloors.length >= 2 && !selectedFloorId ? '-- Chọn tầng trước --' : '-- Chọn ô đỗ --'}
-                      </option>
-                      {slotsForFloor.map((s) => (
-                        <option key={s._id} value={s._id}>
-                          {s.code}{uniqueFloors.length < 2 && (s.floor?.name || s.floor?.code) ? ` · ${s.floor?.name || s.floor?.code}` : ''}
-                        </option>
-                      ))}
-                    </select>
-                    {freeSlots.length === 0 && (
-                      <p className="text-[11px] text-rose-300">Không có ô trống trong tòa nhà này.</p>
-                    )}
-                  </div>
+                  <CheckInSlotPicker
+                    slots={freeSlots}
+                    value={selectedSlotId}
+                    onChange={setSelectedSlotId}
+                    suggestedSlotId={suggestedSlotId}
+                    intro={
+                      <p className="text-[11px] font-bold text-amber-300 flex items-center gap-1">
+                        <AlertCircle size={12} />
+                        {hasActivePackage
+                          ? `Long-term package${plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''}${plateAccountInfo?.activePackage?.maxHoursPerDay ? ` · ${plateAccountInfo.activePackage.maxHoursPerDay}h/day` : ''} — select zone and slot:`
+                          : 'Select zone and slot for the guest:'}
+                      </p>
+                    }
+                  />
                 )}
 
                 {/* Missing photo warning: portrait required for all; plate required for guest/standard */}
@@ -925,7 +851,7 @@ export function StaffOperationsPage() {
                     }
                     className="flex-1 h-11 gap-2 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60"
                   >
-                    <ScanLine size={16} /> Check-in (vào)
+                    <ScanLine size={16} /> Check-in (entry)
                   </Button>
                   <Button
                     type="button"

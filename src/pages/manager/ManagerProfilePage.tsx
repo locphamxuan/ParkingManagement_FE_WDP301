@@ -77,27 +77,27 @@ export function ManagerProfilePage() {
   };
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <div className="space-y-6 max-w-6xl mx-auto text-foreground">
       {/* Success Notification Alert */}
       {success && (
-        <div className="flex items-center gap-3 rounded-2xl border border-emerald-500/25 bg-emerald-950/20 px-4 py-3.5 text-sm font-bold text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)] animate-fadeIn">
-          <CheckCircle2 size={16} className="text-emerald-400" />
+        <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3.5 text-sm font-bold text-emerald-700 shadow-sm animate-fadeIn">
+          <CheckCircle2 size={16} className="text-emerald-600" />
           <span>{success}</span>
         </div>
       )}
 
       {/* Profile Page Header */}
-      <div className="relative overflow-hidden flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-white/8 bg-slate-900/40 p-6 backdrop-blur-md shadow-lg">
+      <div className="relative overflow-hidden flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-sky-100 bg-white p-6 shadow-sm">
         {/* Glow accent */}
-        <div className="absolute top-0 left-0 w-40 h-40 bg-[radial-gradient(circle_at_center,rgba(245,158,11,0.06),transparent_65%)] pointer-events-none blur-xl" />
+        <div className="absolute top-0 left-0 w-40 h-40 bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.04),transparent_65%)] pointer-events-none blur-xl" />
 
         <div className="flex items-center gap-4 relative z-10">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-amber-500/20 bg-amber-500/10 shadow-[0_0_12px_rgba(245,158,11,0.15)]">
-            <User size={20} className="text-amber-400" />
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-sky-100 bg-sky-50 shadow-sm">
+            <User size={20} className="text-sky-600" />
           </div>
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-500 font-mono">Operations management</p>
-            <h1 className="text-xl font-bold text-white mt-0.5 tracking-tight">Profile</h1>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-sky-600 font-mono">Operations management</p>
+            <h1 className="text-xl font-bold text-slate-800 mt-0.5 tracking-tight">Profile</h1>
           </div>
         </div>
         <div className="flex gap-2.5 relative z-10">
@@ -105,9 +105,9 @@ export function ManagerProfilePage() {
             <Button
               variant="secondary"
               onClick={handleStartEdit}
-              className="gap-2 rounded-xl border border-white/10 bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 hover:text-white px-6 h-11 text-xs font-black uppercase tracking-wider transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+              className="gap-2 rounded-xl border border-sky-200 bg-sky-50/50 hover:bg-sky-100/50 text-sky-700 px-6 h-11 text-xs font-black uppercase tracking-wider transition-all duration-300 hover:scale-[1.02] cursor-pointer"
             >
-              <Edit size={14} className="text-amber-400" />Edit</Button>
+              <Edit size={14} className="text-sky-600" />Edit</Button>
           )}
           <Button
             variant="ghost"
@@ -115,7 +115,7 @@ export function ManagerProfilePage() {
               logout();
               navigate('/auth/login', { replace: true });
             }}
-            className="gap-2 rounded-xl text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 px-6 h-11 text-xs font-black uppercase tracking-wider transition-all duration-200 cursor-pointer"
+            className="gap-2 rounded-xl border border-rose-200 bg-rose-50/50 hover:bg-rose-100/50 text-rose-700 px-6 h-11 text-xs font-black uppercase tracking-wider transition-all duration-200 cursor-pointer"
           >
             <LogOut size={14} />Log out</Button>
         </div>
@@ -123,9 +123,9 @@ export function ManagerProfilePage() {
 
       <div className="grid gap-6 lg:grid-cols-[1fr_310px]">
         {/* Left Side: Detail Fields or Edit Form */}
-        <div className="rounded-3xl border border-white/8 bg-slate-900/40 p-6 shadow-lg backdrop-blur-md relative overflow-hidden">
+        <div className="rounded-3xl border border-sky-100 bg-white p-6 shadow-sm relative overflow-hidden">
           {/* Decorative Corner Glow */}
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-[radial-gradient(circle_at_center,rgba(245,158,11,0.04),transparent_60%)] pointer-events-none blur-2xl" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.02),transparent_60%)] pointer-events-none blur-2xl" />
 
           <p className="mb-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 font-mono">Account information</p>
 
@@ -133,9 +133,9 @@ export function ManagerProfilePage() {
             <form onSubmit={handleSave} className="grid gap-5 md:grid-cols-2 relative z-10">
               {/* Full name */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Full name</label>
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Full name</label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <User size={15} />
                   </div>
                   <input
@@ -146,12 +146,12 @@ export function ManagerProfilePage() {
                       setNameError(null);
                     }}
                     required
-                    className="h-11 w-full rounded-xl border border-white/10 bg-slate-950/60 pl-10 pr-4 text-sm text-white placeholder:text-slate-600 outline-none focus:border-amber-500/40 focus:ring-1 focus:ring-amber-500/20 transition-all duration-300"
+                    className="h-11 w-full rounded-xl border border-sky-200 bg-white pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/20 transition-all duration-300"
                     placeholder="John Doe"
                   />
                 </div>
                 {nameError && (
-                  <p className="flex items-center gap-1.5 text-xs text-rose-400 mt-1 font-semibold">
+                  <p className="flex items-center gap-1.5 text-xs text-rose-500 mt-1 font-semibold">
                     <AlertCircle size={13} /> {nameError}
                   </p>
                 )}
@@ -159,25 +159,25 @@ export function ManagerProfilePage() {
 
               {/* Email */}
               <div className="space-y-1.5 opacity-60">
-                <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Email</label>
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Email</label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <Mail size={15} />
                   </div>
                   <input
                     type="email"
                     value={session.email}
                     disabled
-                    className="h-11 w-full rounded-xl border border-white/5 bg-slate-950/20 pl-10 pr-4 text-sm text-slate-400 outline-none cursor-not-allowed"
+                    className="h-11 w-full rounded-xl border border-sky-100 bg-slate-50 pl-10 pr-4 text-sm text-slate-400 outline-none cursor-not-allowed"
                   />
                 </div>
               </div>
 
               {/* Phone number */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Phone number</label>
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Phone number</label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <Phone size={15} />
                   </div>
                   <input
@@ -189,12 +189,12 @@ export function ManagerProfilePage() {
                     }}
                     maxLength={10}
                     required
-                    className="h-11 w-full rounded-xl border border-white/10 bg-slate-950/60 pl-10 pr-4 text-sm text-white placeholder:text-slate-600 outline-none focus:border-amber-500/40 focus:ring-1 focus:ring-amber-500/20 transition-all duration-300"
+                    className="h-11 w-full rounded-xl border border-sky-200 bg-white pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/20 transition-all duration-300"
                     placeholder="0901234567"
                   />
                 </div>
                 {phoneError && (
-                  <p className="flex items-center gap-1.5 text-xs text-rose-400 mt-1 font-semibold leading-normal">
+                  <p className="flex items-center gap-1.5 text-xs text-rose-500 mt-1 font-semibold leading-normal">
                     <AlertCircle size={13} /> {phoneError}
                   </p>
                 )}
@@ -204,14 +204,14 @@ export function ManagerProfilePage() {
               <div className="flex items-end gap-3 pt-3 md:col-span-2">
                 <Button
                   type="submit"
-                  className="gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-xs uppercase tracking-wider px-6 h-11 hover:shadow-[0_0_20px_rgba(245,158,11,0.35)] transition-all duration-300 hover:scale-[1.01] cursor-pointer"
+                  className="gap-2 rounded-xl bg-sky-500 text-white font-black text-xs uppercase tracking-wider px-6 h-11 shadow-md shadow-sky-500/10 hover:bg-sky-600 transition-all duration-300 hover:scale-[1.01] cursor-pointer"
                 >
-                  <Save size={14} className="text-slate-950" />Save changes</Button>
+                  <Save size={14} className="text-white" />Save changes</Button>
                 <Button
                   type="button"
                   variant="secondary"
                   onClick={handleCancel}
-                  className="gap-2 rounded-xl border border-white/10 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white px-6 h-11 font-black text-xs uppercase tracking-wider transition-all duration-200 cursor-pointer"
+                  className="gap-2 rounded-xl border border-sky-200 bg-sky-50/50 hover:bg-sky-100/50 text-sky-700 px-6 h-11 font-black text-xs uppercase tracking-wider transition-all duration-200 cursor-pointer"
                 >
                   <X size={14} className="text-slate-400" />Cancel</Button>
               </div>
@@ -228,14 +228,14 @@ export function ManagerProfilePage() {
                 return (
                   <div
                     key={f.label}
-                    className="flex items-center gap-4 rounded-2xl border border-white/5 bg-slate-950/40 p-4 transition-all duration-300 hover:border-amber-500/20 hover:bg-slate-950/60 hover:shadow-[0_4px_20px_rgba(0,0,0,0.15)] group"
+                    className="flex items-center gap-4 rounded-2xl border border-sky-100 bg-white p-4 transition-all duration-300 hover:border-sky-300 hover:shadow-sm group"
                   >
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/10 group-hover:scale-105 transition-all duration-300">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600 border border-sky-100 group-hover:scale-105 transition-all duration-300">
                       <Icon size={16} />
                     </div>
                     <div className="min-w-0">
                       <p className="text-[9px] font-black uppercase tracking-[0.15em] text-slate-500 font-mono">{f.label}</p>
-                      <p className="mt-0.5 text-sm font-semibold text-slate-200 truncate">{f.value}</p>
+                      <p className="mt-0.5 text-sm font-semibold text-slate-800 truncate">{f.value}</p>
                     </div>
                   </div>
                 );
@@ -247,24 +247,24 @@ export function ManagerProfilePage() {
         {/* Right Side: Identity Card Badge & Assigned Building */}
         <div className="space-y-4">
           {/* Identity Employee Badge */}
-          <div className="relative overflow-hidden rounded-3xl border border-white/8 bg-slate-900/40 p-5 shadow-lg backdrop-blur-md text-center flex flex-col items-center">
+          <div className="relative overflow-hidden rounded-3xl border border-sky-100 bg-white p-5 shadow-sm text-center flex flex-col items-center">
             {/* Top decorative gradient bar */}
-            <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-amber-500 via-orange-400 to-amber-500" />
-            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-amber-500/10 to-transparent blur-xl pointer-events-none" />
+            <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-sky-500 via-cyan-400 to-sky-500" />
+            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-sky-500/10 to-transparent blur-xl pointer-events-none" />
 
             {/* Avatar container with hover glow */}
             <div className="relative mt-2 group">
-              <div className="absolute inset-0 rounded-2xl bg-amber-500/20 blur-md opacity-40 group-hover:opacity-80 transition-all duration-500" />
-              <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-amber-400/40 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-2xl font-black text-amber-400 shadow-md">
+              <div className="absolute inset-0 rounded-2xl bg-sky-500/20 blur-md opacity-40 group-hover:opacity-80 transition-all duration-500" />
+              <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-sky-200 bg-sky-50 text-2xl font-black text-sky-600 shadow-sm">
                 {initials}
               </div>
             </div>
 
-            <span className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-3 py-1 text-[9px] font-black uppercase tracking-widest text-amber-400 border border-amber-500/20 font-mono">
+            <span className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-3 py-1 text-[9px] font-black uppercase tracking-widest text-sky-600 border border-sky-100 font-mono">
               <Fingerprint size={10} /> Manager Portal
             </span>
 
-            <h2 className="mt-3 text-base font-extrabold text-white tracking-tight leading-snug truncate max-w-full">
+            <h2 className="mt-3 text-base font-extrabold text-slate-800 tracking-tight leading-snug truncate max-w-full">
               {displayName || 'Management'}
             </h2>
             <p className="text-xs text-slate-400 truncate max-w-full mt-0.5 font-medium">{session.email}</p>
@@ -272,26 +272,26 @@ export function ManagerProfilePage() {
 
           {/* Assigned Building Card */}
           {selectedBuilding && (
-            <div className="relative overflow-hidden rounded-3xl border border-white/8 bg-slate-900/40 p-5 shadow-lg backdrop-blur-md">
-              <div className="absolute bottom-0 right-0 w-20 h-20 bg-gradient-to-tr from-amber-500/5 to-transparent blur-xl pointer-events-none" />
+            <div className="relative overflow-hidden rounded-3xl border border-sky-100 bg-white p-5 shadow-sm">
+              <div className="absolute bottom-0 right-0 w-20 h-20 bg-gradient-to-tr from-sky-500/5 to-transparent blur-xl pointer-events-none" />
 
               <div className="flex items-center gap-2 mb-3.5 relative z-10">
-                <Building2 size={14} className="text-amber-400" />
+                <Building2 size={14} className="text-sky-600" />
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 font-mono">Assigned building</p>
               </div>
 
               <div className="space-y-3 relative z-10">
-                <div className="rounded-2xl border border-white/5 bg-slate-950/35 px-4 py-3 hover:border-amber-500/10 transition-all">
+                <div className="rounded-2xl border border-sky-100/50 bg-sky-50/10 px-4 py-3 hover:border-sky-300 transition-all">
                   <p className="text-[9px] font-black uppercase tracking-[0.15em] text-slate-500 font-mono">Building name</p>
-                  <p className="mt-0.5 text-sm font-semibold text-slate-200">{selectedBuilding.name}</p>
+                  <p className="mt-0.5 text-sm font-semibold text-slate-800">{selectedBuilding.name}</p>
                 </div>
-                <div className="rounded-2xl border border-white/5 bg-slate-950/35 px-4 py-3 hover:border-amber-500/10 transition-all">
+                <div className="rounded-2xl border border-sky-100/50 bg-sky-50/10 px-4 py-3 hover:border-sky-300 transition-all">
                   <p className="text-[9px] font-black uppercase tracking-[0.15em] text-slate-500 font-mono">Building code</p>
-                  <p className="mt-0.5 font-mono text-sm text-amber-400 font-extrabold">{selectedBuilding.code}</p>
+                  <p className="mt-0.5 font-mono text-sm text-sky-600 font-extrabold">{selectedBuilding.code}</p>
                 </div>
                 {buildings.length > 1 && (
                   <div className="px-4 py-1">
-                    <p className="text-[10px] font-bold text-amber-400/80 font-mono uppercase tracking-wider">
+                    <p className="text-[10px] font-bold text-sky-600 font-mono uppercase tracking-wider">
                       +{buildings.length - 1} more buildings
                     </p>
                   </div>

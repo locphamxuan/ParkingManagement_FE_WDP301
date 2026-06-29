@@ -66,11 +66,11 @@ export function ManagerOperatingHoursPage() {
       </div>
 
       {/* Live status preview */}
-      <Card className={openNow ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-rose-500/30 bg-rose-500/5'}>
+      <Card className={openNow ? 'border-emerald-200 bg-emerald-50/50' : 'border-rose-200 bg-rose-50/50'}>
         <CardContent className="flex items-center gap-3 p-5">
-          {openNow ? <DoorOpen size={24} className="text-emerald-400" /> : <DoorClosed size={24} className="text-rose-400" />}
+          {openNow ? <DoorOpen size={24} className="text-emerald-600" /> : <DoorClosed size={24} className="text-rose-600" />}
           <div>
-            <p className={`text-base font-bold ${openNow ? 'text-emerald-400' : 'text-rose-400'}`}>
+            <p className={`text-base font-bold ${openNow ? 'text-emerald-700' : 'text-rose-700'}`}>
               {openNow ? 'Currently open' : 'Currently closed'}
             </p>
             <p className="text-xs text-muted-foreground">
@@ -80,34 +80,34 @@ export function ManagerOperatingHoursPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm">Configure opening / closing hours</CardTitle>
+      <Card className="border border-sky-100 shadow-sm">
+        <CardHeader className="pb-3 border-b border-sky-100/50">
+          <CardTitle className="text-sm text-slate-800">Configure opening / closing hours</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 pt-5">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-1.5">
-              <label className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Opening hours</label>
+              <label className="text-xs uppercase tracking-[0.18em] text-slate-500 font-bold">Opening hours</label>
               <TimePicker value={open} onChange={setOpen} />
             </div>
             <div className="grid gap-1.5">
-              <label className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Closing time</label>
+              <label className="text-xs uppercase tracking-[0.18em] text-slate-500 font-bold">Closing time</label>
               <TimePicker value={close} onChange={setClose} />
             </div>
           </div>
 
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-[11px] text-slate-400 font-medium">
             Tip: if the lot is open overnight (e.g. open 22:00, close 06:00 next day), the system treats it as an overnight window.
           </p>
 
           {notice && (
-            <div className={`rounded-lg border px-3 py-2 text-sm ${notice.type === 'ok' ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-600' : 'border-rose-500/25 bg-rose-500/10 text-rose-500'}`}>
+            <div className={`rounded-xl border px-3 py-2 text-sm font-bold ${notice.type === 'ok' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-rose-200 bg-rose-50 text-rose-700'}`}>
               {notice.text}
             </div>
           )}
 
-          <Button onClick={handleSave} disabled={saving} className="gap-2">
-            {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
+          <Button onClick={handleSave} disabled={saving} className="gap-2 rounded-xl text-xs font-bold">
+            {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
             {saving ? 'Saving...' : 'Save operating hours'}
           </Button>
         </CardContent>

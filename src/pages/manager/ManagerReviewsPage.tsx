@@ -106,8 +106,8 @@ export function ManagerReviewsPage() {
       title: 'Users',
       render: (item) => (
         <div>
-          <p className="font-medium text-slate-100">{item.user?.fullName ?? '—'}</p>
-          <p className="text-xs text-slate-400">{item.user?.email ?? ''}</p>
+          <p className="font-semibold text-slate-800">{item.user?.fullName ?? '—'}</p>
+          <p className="text-xs text-slate-500">{item.user?.email ?? ''}</p>
         </div>
       ),
     },
@@ -115,7 +115,7 @@ export function ManagerReviewsPage() {
       key: 'plateNumber',
       title: 'Plate number',
       render: (item) => (
-        <span className="inline-block rounded bg-slate-800/50 px-2.5 py-1 font-mono text-sm text-amber-300">
+        <span className="inline-block rounded-lg bg-sky-50/50 border border-sky-150 px-2.5 py-1 font-mono text-xs font-black text-sky-700">
           {item.parkingSession?.plateNumber ?? '—'}
         </span>
       ),
@@ -129,10 +129,10 @@ export function ManagerReviewsPage() {
             <Star
               key={i}
               size={14}
-              className={i < item.rating ? 'fill-yellow-400 text-yellow-400' : 'text-slate-600'}
+              className={i < item.rating ? 'fill-yellow-400 text-yellow-400' : 'text-slate-200'}
             />
           ))}
-          <span className="ml-2 text-xs font-semibold text-slate-300">{item.rating}/5</span>
+          <span className="ml-2 text-xs font-semibold text-slate-550">{item.rating}/5</span>
         </div>
       ),
     },
@@ -140,7 +140,7 @@ export function ManagerReviewsPage() {
       key: 'comment',
       title: 'Comment',
       render: (item) => (
-        <p className="line-clamp-2 text-sm text-slate-300">{item.comment}</p>
+        <p className="line-clamp-2 text-sm text-slate-650 font-medium">{item.comment}</p>
       ),
     },
     {
@@ -153,8 +153,8 @@ export function ManagerReviewsPage() {
           <span
             className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold border ${
               resolved
-                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25'
-                : 'bg-amber-500/10 text-amber-400 border-amber-500/25'
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                : 'bg-amber-50 text-amber-755 border-amber-200'
             }`}
           >
             <Icon size={12} />
@@ -167,7 +167,7 @@ export function ManagerReviewsPage() {
       key: 'createdAt',
       title: 'Date',
       render: (item) => (
-        <span className="text-xs text-slate-400">
+        <span className="text-xs text-slate-500 font-medium">
           {new Date(item.createdAt).toLocaleDateString('vi-VN')}
         </span>
       ),
@@ -180,7 +180,7 @@ export function ManagerReviewsPage() {
           size="sm"
           variant="ghost"
           onClick={() => handleReplyClick(item)}
-          className="text-xs hover:bg-orange-500/10"
+          className="text-xs hover:bg-primary/10 hover:text-primary"
         >
           <MessageSquare size={14} className="mr-1" />
           {item.status === 'resolved' ? 'Edit' : 'Reply'}
@@ -190,21 +190,21 @@ export function ManagerReviewsPage() {
   ];
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-6 text-foreground">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-100">Reviews</h1>
-          <p className="mt-1 text-sm text-slate-400">Manage and reply to user reviews</p>
+          <h1 className="text-2xl font-bold text-slate-800">Reviews</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Manage and reply to user reviews</p>
         </div>
         <div className="text-right">
-          <div className="text-3xl font-bold text-orange-500">{filteredReviews.length}</div>
-          <p className="text-xs text-slate-400">total reviews</p>
+          <div className="text-3xl font-bold text-primary">{filteredReviews.length}</div>
+          <p className="text-xs text-muted-foreground">total reviews</p>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col gap-4 rounded-xl border border-white/8 bg-slate-800/30 p-4 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 rounded-xl border border-sky-100 bg-white p-4 md:flex-row md:items-center md:justify-between shadow-sm">
         <div className="flex-1">
           <Input
             placeholder="Search by name, email, plate or content..."
@@ -237,20 +237,20 @@ export function ManagerReviewsPage() {
 
       {/* Error */}
       {error && (
-        <div className="flex items-center gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
+        <div className="flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           <AlertCircle size={18} />
           {error}
         </div>
       )}
 
       {/* Data Table */}
-      <div className="rounded-xl border border-white/8 bg-slate-800/20 overflow-hidden">
+      <div className="rounded-xl border border-sky-100 bg-white overflow-hidden shadow-sm">
         {loading ? (
-          <div className="py-8 text-center text-slate-400">Loading...</div>
+          <div className="py-8 text-center text-muted-foreground">Loading...</div>
         ) : filteredReviews.length === 0 ? (
           <div className="py-12 text-center">
-            <MessageSquare size={32} className="mx-auto mb-2 text-slate-600" />
-            <p className="text-slate-400">No reviews</p>
+            <MessageSquare size={32} className="mx-auto mb-2 text-muted-foreground/50" />
+            <p className="text-muted-foreground">No reviews</p>
           </div>
         ) : (
           <DataTable title="Reviews list" columns={columns} rows={filteredReviews} />
@@ -260,13 +260,13 @@ export function ManagerReviewsPage() {
       {/* Reply Modal */}
       <Modal isOpen={replyModalOpen} onClose={() => !replying && setReplyModalOpen(false)}>
         <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto">
-          <div className="border-b border-white/8 p-6">
-            <h2 className="text-xl font-bold text-slate-100">Reply to review</h2>
+          <div className="border-b border-border p-6">
+            <h2 className="text-xl font-bold text-slate-800">Reply to review</h2>
             {selectedReview && (
-              <div className="mt-4 space-y-3 rounded-lg bg-slate-800/40 p-4">
+              <div className="mt-4 space-y-3 rounded-lg bg-slate-50 p-4 border border-sky-100">
                 <div>
                   <p className="text-xs font-semibold text-slate-400">USER</p>
-                  <p className="mt-1 font-medium text-slate-100">{selectedReview.user?.fullName ?? '—'}</p>
+                  <p className="mt-1 font-medium text-slate-800">{selectedReview.user?.fullName ?? '—'}</p>
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-slate-400">RATING</p>
@@ -275,17 +275,17 @@ export function ManagerReviewsPage() {
                       <Star
                         key={i}
                         size={16}
-                        className={i < selectedReview.rating ? 'fill-yellow-400 text-yellow-400' : 'text-slate-600'}
+                        className={i < selectedReview.rating ? 'fill-yellow-400 text-yellow-400' : 'text-slate-200'}
                       />
                     ))}
-                    <span className="ml-2 text-sm font-semibold text-slate-300">
+                    <span className="ml-2 text-sm font-semibold text-slate-500">
                       {selectedReview.rating}/5
                     </span>
                   </div>
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-slate-400">BÌNH LUẬN</p>
-                  <p className="mt-1 text-sm text-slate-300">{selectedReview.comment}</p>
+                  <p className="mt-1 text-sm text-slate-600">{selectedReview.comment}</p>
                 </div>
               </div>
             )}
@@ -293,7 +293,7 @@ export function ManagerReviewsPage() {
 
           <div className="space-y-4 p-6">
             <div>
-              <label className="block text-sm font-semibold text-slate-200 mb-2">Your response *</label>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Your response *</label>
               <textarea
                 value={replyForm.staffReply}
                 onChange={(e) =>
@@ -301,7 +301,7 @@ export function ManagerReviewsPage() {
                 }
                 placeholder="Enter a response to this review..."
                 rows={5}
-                className="w-full rounded-lg border border-white/10 bg-slate-800/60 px-4 py-2 text-slate-100 placeholder-slate-500 focus:border-orange-500/50 focus:outline-none focus:ring-1 focus:ring-orange-500/20"
+                className="w-full rounded-lg border border-sky-200 bg-white px-4 py-2 text-slate-800 placeholder-slate-400 focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/20"
               />
             </div>
 
@@ -314,7 +314,7 @@ export function ManagerReviewsPage() {
               <Button
                 onClick={handleReplySubmit}
                 disabled={replying || !replyForm.staffReply.trim()}
-                className="bg-orange-500 hover:bg-orange-600"
+                className="bg-primary hover:brightness-110 text-primary-foreground"
               >
                 {replying ? 'Sending...' : 'Submit response'}
               </Button>

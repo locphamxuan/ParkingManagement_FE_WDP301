@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { Clock } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { cn } from '@/utils/cn';
 
 interface TimePickerProps {
@@ -12,7 +12,6 @@ interface TimePickerProps {
 
 export function TimePicker({ value, onChange, className, disabled = false }: TimePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   // Parse 24h format to 12h format components
   const parseTime = (timeStr: string) => {
@@ -42,16 +41,6 @@ export function TimePicker({ value, onChange, className, disabled = false }: Tim
     onChange(formatted);
   };
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
   const hoursList = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
   const minutesList = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
   const periodsList = ['SA', 'CH'];
@@ -59,44 +48,45 @@ export function TimePicker({ value, onChange, className, disabled = false }: Tim
   const displayTime = `${hour}:${minute} ${period}`;
 
   return (
-    <div ref={containerRef} className={cn('relative w-full', className)}>
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => setIsOpen(!isOpen)}
-        className={cn(
-          "flex h-10 w-full items-center justify-between rounded-xl border border-slate-700/80 bg-[#070b12] px-3 text-sm font-semibold text-white outline-none transition-all duration-300 hover:border-slate-500",
-          isOpen && "border-orange-500/50 ring-2 ring-orange-500/10",
-          disabled && "cursor-not-allowed opacity-50"
-        )}
-      >
-        <span className="text-left font-medium">{displayTime}</span>
-        <Clock size={16} className="text-slate-400 shrink-0 ml-2" />
-      </button>
+    <div className={cn('relative w-full', className)}>
+      <DropdownMenu.Root open={isOpen} onOpenChange={setIsOpen}>
+        <DropdownMenu.Trigger asChild>
+          <button
+            type="button"
+            disabled={disabled}
+            className={cn(
+              "flex h-10 w-full items-center justify-between rounded-xl border border-border bg-card px-3 text-sm font-semibold text-foreground outline-none transition-all duration-300 hover:border-muted-foreground/30",
+              isOpen && "border-primary/50 ring-2 ring-primary/10",
+              disabled && "cursor-not-allowed opacity-50"
+            )}
+          >
+            <span className="text-left font-medium">{displayTime}</span>
+            <Clock size={16} className="text-muted-foreground shrink-0 ml-2" />
+          </button>
+        </DropdownMenu.Trigger>
 
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.98 }}
-            animate={{ opacity: 1, y: 4, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.98 }}
-            transition={{ duration: 0.15, ease: 'easeOut' }}
-            className="absolute left-0 z-50 flex h-64 w-60 gap-1 rounded-2xl border border-slate-700/80 bg-[#070b12]/98 p-2 shadow-[0_20px_50px_rgba(0,0,0,0.65)] backdrop-blur-xl"
-            style={{ top: '100%' }}
+        <DropdownMenu.Portal>
+          <DropdownMenu.Content
+            align="start"
+            sideOffset={6}
+            className="z-[9999] flex h-64 w-60 gap-1 rounded-2xl border border-border bg-card p-2 shadow-lg animate-in fade-in-50 zoom-in-95 duration-100 focus:outline-none"
           >
             {/* Hour Column */}
-            <div className="flex-1 flex flex-col overflow-y-auto custom-scrollbar border-r border-slate-800 pr-1">
-              <span className="text-[9px] font-black uppercase text-slate-500 text-center mb-1 sticky top-0 bg-[#070b12] py-1">Hour</span>
+            <div className="flex-1 flex flex-col overflow-y-auto custom-scrollbar border-r border-border pr-1">
+              <span className="text-[9px] font-black uppercase text-muted-foreground text-center mb-1 sticky top-0 bg-card py-1">Hour</span>
               {hoursList.map((h) => {
                 const isSelected = h === hour;
                 return (
                   <button
                     key={h}
                     type="button"
-                    onClick={() => updateTime(h, minute, period)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      updateTime(h, minute, period);
+                    }}
                     className={cn(
-                      "py-1.5 px-2 text-xs font-semibold rounded-lg text-center transition-all duration-150 hover:bg-white/[0.06] hover:text-white text-slate-400",
-                      isSelected && "bg-orange-500 text-slate-950 hover:bg-orange-400 hover:text-slate-950 font-black shadow-sm"
+                      "py-1.5 px-2 text-xs font-semibold rounded-lg text-center transition-all duration-150 hover:bg-muted hover:text-foreground text-muted-foreground",
+                      isSelected && "bg-primary text-primary-foreground hover:bg-primary/90 font-black shadow-sm"
                     )}
                   >
                     {h}
@@ -106,18 +96,21 @@ export function TimePicker({ value, onChange, className, disabled = false }: Tim
             </div>
 
             {/* Minute Column */}
-            <div className="flex-1 flex flex-col overflow-y-auto custom-scrollbar border-r border-slate-800 pr-1">
-              <span className="text-[9px] font-black uppercase text-slate-500 text-center mb-1 sticky top-0 bg-[#070b12] py-1">Minute</span>
+            <div className="flex-1 flex flex-col overflow-y-auto custom-scrollbar border-r border-border pr-1">
+              <span className="text-[9px] font-black uppercase text-muted-foreground text-center mb-1 sticky top-0 bg-card py-1">Minute</span>
               {minutesList.map((m) => {
                 const isSelected = m === minute;
                 return (
                   <button
                     key={m}
                     type="button"
-                    onClick={() => updateTime(hour, m, period)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      updateTime(hour, m, period);
+                    }}
                     className={cn(
-                      "py-1.5 px-2 text-xs font-semibold rounded-lg text-center transition-all duration-150 hover:bg-white/[0.06] hover:text-white text-slate-400",
-                      isSelected && "bg-orange-500 text-slate-950 hover:bg-orange-400 hover:text-slate-950 font-black shadow-sm"
+                      "py-1.5 px-2 text-xs font-semibold rounded-lg text-center transition-all duration-150 hover:bg-muted hover:text-foreground text-muted-foreground",
+                      isSelected && "bg-primary text-primary-foreground hover:bg-primary/90 font-black shadow-sm"
                     )}
                   >
                     {m}
@@ -128,7 +121,7 @@ export function TimePicker({ value, onChange, className, disabled = false }: Tim
 
             {/* Period Column */}
             <div className="w-16 flex flex-col justify-start">
-              <span className="text-[9px] font-black uppercase text-slate-500 text-center mb-1 py-1">Period</span>
+              <span className="text-[9px] font-black uppercase text-muted-foreground text-center mb-1 py-1">Period</span>
               <div className="flex flex-col gap-1">
                 {periodsList.map((p) => {
                   const isSelected = p === period;
@@ -136,10 +129,13 @@ export function TimePicker({ value, onChange, className, disabled = false }: Tim
                     <button
                       key={p}
                       type="button"
-                      onClick={() => updateTime(hour, minute, p)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        updateTime(hour, minute, p);
+                      }}
                       className={cn(
-                        "py-2 px-2 text-xs font-semibold rounded-lg text-center transition-all duration-150 hover:bg-white/[0.06] hover:text-white text-slate-400",
-                        isSelected && "bg-orange-500 text-slate-950 hover:bg-orange-400 hover:text-slate-950 font-black shadow-sm"
+                        "py-2 px-2 text-xs font-semibold rounded-lg text-center transition-all duration-150 hover:bg-muted hover:text-foreground text-muted-foreground",
+                        isSelected && "bg-primary text-primary-foreground hover:bg-primary/90 font-black shadow-sm"
                       )}
                     >
                       {p}
@@ -148,9 +144,9 @@ export function TimePicker({ value, onChange, className, disabled = false }: Tim
                 })}
               </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </DropdownMenu.Content>
+        </DropdownMenu.Portal>
+      </DropdownMenu.Root>
     </div>
   );
 }

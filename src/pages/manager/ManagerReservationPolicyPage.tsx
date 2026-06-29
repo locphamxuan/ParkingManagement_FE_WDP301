@@ -200,13 +200,15 @@ export function ManagerReservationPolicyPage() {
           ) : null}
 
           {message ? (
-            <p
-              className={`text-sm ${
-                message.type === 'success' ? 'text-emerald-600' : 'text-red-600'
+            <div
+              className={`rounded-xl border p-3 text-sm font-bold ${
+                message.type === 'success'
+                  ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                  : 'border-rose-200 bg-rose-50 text-rose-755'
               }`}
             >
               {message.text}
-            </p>
+            </div>
           ) : null}
 
           <div className="flex justify-end">

@@ -174,8 +174,8 @@ export function ManagerWalletPage() {
       )}
 
       {pendingTopup && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-500/25 bg-amber-500/5 px-4 py-3">
-          <p className="text-sm text-amber-300">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-250 bg-amber-50 px-4 py-3">
+          <p className="text-sm text-amber-800 font-semibold">
             Awaiting payment of {fmtVnd(pendingTopup.amount)}. Finish on the PayOS gateway, then confirm.
           </p>
           <div className="flex gap-2">
@@ -191,7 +191,7 @@ export function ManagerWalletPage() {
       )}
 
       {error && (
-        <div className="flex items-center gap-2 rounded-lg border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-400">
+        <div className="flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           <AlertTriangle size={14} className="shrink-0" /> {error}
         </div>
       )}
@@ -200,8 +200,8 @@ export function ManagerWalletPage() {
         <div
           className={`flex items-center gap-2 rounded-lg border px-4 py-3 text-sm ${
             message.type === 'ok'
-              ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
-              : 'border-rose-500/30 bg-rose-500/10 text-rose-400'
+              ? 'border-emerald-250 bg-emerald-50 text-emerald-700'
+              : 'border-rose-200 bg-rose-50 text-rose-755'
           }`}
         >
           {message.type === 'ok' ? <CheckCircle2 size={14} /> : <AlertTriangle size={14} />}
@@ -216,7 +216,7 @@ export function ManagerWalletPage() {
             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               Current balance
             </p>
-            <p className="mt-2 text-2xl font-bold text-foreground">{fmtVnd(wallet?.balance)}</p>
+            <p className="mt-2 text-2xl font-black text-slate-800 font-mono">{fmtVnd(wallet?.balance)}</p>
           </CardContent>
         </Card>
 
@@ -225,7 +225,7 @@ export function ManagerWalletPage() {
             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               Today's revenue
             </p>
-            <p className="mt-2 text-2xl font-bold text-emerald-400">{fmtVnd(daily?.totalRevenue)}</p>
+            <p className="mt-2 text-2xl font-black text-emerald-600 font-mono">{fmtVnd(daily?.totalRevenue)}</p>
           </CardContent>
         </Card>
       </div>

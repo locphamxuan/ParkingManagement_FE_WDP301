@@ -193,10 +193,15 @@ export function MultiSlotForm({ isOpen, onClose, onSubmit, floors, zones }: Mult
                         { value: '', label: '-- Select zone --' },
                         ...zones
                           .filter((z) => zoneFloorId(z) === row.floor)
-                          .map((z) => ({
-                            value: z._id,
-                            label: `${z.code} · ${ZONE_USAGE_LABELS[z.usageType]}`,
-                          })),
+                          .map((z) => {
+                            const used = z.slotCount ?? 0;
+                            const cap = z.capacity ?? 0;
+                            const full = cap > 0 && used >= cap;
+                            return {
+                              value: z._id,
+                              label: `${z.code} · ${ZONE_USAGE_LABELS[z.usageType]} · ${used}/${cap}${full ? ' (full)' : ''}`,
+                            };
+                          }),
                       ]}
                       disabled={submitting || !row.floor}
                       placeholder="-- Select zone --"

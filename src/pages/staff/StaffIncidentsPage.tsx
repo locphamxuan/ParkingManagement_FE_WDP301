@@ -187,7 +187,7 @@ export function StaffIncidentsPage() {
             >
               <Plus size={14} />Create incident ticket</Button>
             {incidentMessage && (
-              <p className={`text-xs ${incidentMessage.type === 'ok' ? 'text-emerald-400' : 'text-rose-400'}`}>
+              <p className={`text-xs ${incidentMessage.type === 'ok' ? 'text-emerald-600' : 'text-rose-600'}`}>
                 {incidentMessage.text}
               </p>
             )}
@@ -197,7 +197,7 @@ export function StaffIncidentsPage() {
 
       {/* Load error */}
       {!loading && error && (
-        <div className="rounded-xl border border-amber-400/20 bg-amber-500/10 p-4 text-sm text-amber-300">
+        <div className="rounded-xl border border-amber-400/20 bg-amber-500/10 p-4 text-sm text-amber-700">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="font-semibold text-foreground">Unable to load incident data</p>
@@ -286,7 +286,7 @@ export function StaffIncidentsPage() {
           return (
             <Card key={item.label}>
               <CardContent className="flex items-start gap-3 p-5">
-                <div className="rounded-xl border border-emerald-400/15 bg-emerald-500/10 p-2.5 text-emerald-400 shrink-0">
+                <div className="rounded-xl border border-emerald-400/15 bg-emerald-500/10 p-2.5 text-emerald-600 shrink-0">
                   <Icon size={17} />
                 </div>
                 <div>

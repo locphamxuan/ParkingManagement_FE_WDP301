@@ -3,6 +3,7 @@ import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DataTable, type DataColumn } from '@/components/common/DataTable';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { ModalForm } from '@/components/modals/ModalForm';
 import { CustomSelect } from '@/components/ui/select';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
@@ -31,7 +32,7 @@ const empty: FormState = {
   name: '',
   vehicleType: '',
   usageType: 'walk_in',
-  capacity: '0',
+  capacity: '1',
   status: 'active',
 };
 
@@ -89,11 +90,34 @@ export function ManagerZonesPage() {
     return map;
   }, [vehicleTypes]);
 
-  // Manager may freely assign ANY vehicle type created for the building (not floor-locked).
-  const vtOptions = useMemo(
-    () => vehicleTypes.map((v) => ({ value: v._id, label: `${v.code} — ${v.name}` })),
-    [vehicleTypes]
-  );
+  // Vehicle types selectable for a zone are limited to the SELECTED FLOOR's
+  // allowedVehicleTypes (manager-configured on the floor). If the floor lists none,
+  // fall back to all of the building's vehicle types (floor unrestricted).
+  const vtOptions = useMemo(() => {
+    const floor = floorMap.get(form.floor);
+    const allowed = (floor?.allowedVehicleTypes ?? []) as Array<VehicleType | string>;
+    const allowedIds = allowed.map((t) => (typeof t === 'object' ? t._id : t));
+    const list = allowedIds.length
+      ? vehicleTypes.filter((v) => allowedIds.includes(v._id))
+      : vehicleTypes;
+    return list.map((v) => ({ value: v._id, label: `${v.code} — ${v.name}` }));
+  }, [form.floor, floorMap, vehicleTypes]);
+
+  // Remaining slot budget on the selected floor = floor.capacity − sum of OTHER zones'
+  // capacity on that floor. Best-effort hint (the backend is the source of truth).
+  const floorBudget = useMemo(() => {
+    if (!form.floor) return null;
+    const floorCap = Number(floorMap.get(form.floor)?.capacity ?? 0);
+    if (floorCap <= 0) return null; // floor unlimited → no budget shown
+    const used = items
+      .filter(
+        (z) =>
+          (typeof z.floor === 'string' ? z.floor : z.floor._id) === form.floor &&
+          z._id !== editing?._id
+      )
+      .reduce((sum, z) => sum + Number(z.capacity || 0), 0);
+    return { floorCap, used, remaining: Math.max(0, floorCap - used) };
+  }, [form.floor, floorMap, items, editing]);
 
   const openCreate = () => {
     setEditing(null);
@@ -141,7 +165,7 @@ export function ManagerZonesPage() {
   };
 
   const onDelete = async (row: Zone) => {
-    if (!window.confirm(`Delete zone ${row.code}?`)) return;
+    if (!window.confirm(`Delete zone ${row.code}? The zone must have no slots.`)) return;
     try {
       await managerApi.zones.remove(buildingId, row._id);
       refresh();
@@ -174,21 +198,39 @@ export function ManagerZonesPage() {
       key: 'usageType',
       title: 'Usage',
       render: (r) => (
-        <span className="inline-block rounded-lg bg-orange-500/10 border border-orange-500/30 text-orange-300 px-2 py-0.5 text-[11px] font-bold">
+        <span className="inline-block rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
           {ZONE_USAGE_LABELS[r.usageType]}
         </span>
       ),
     },
-    { key: 'capacity', title: 'Capacity', render: (r) => r.capacity ?? 0 },
+    {
+      key: 'capacity',
+      title: 'Slots / Capacity',
+      render: (r) => {
+        const used = r.slotCount ?? 0;
+        const cap = r.capacity ?? 0;
+        const full = cap > 0 && used >= cap;
+        return (
+          <span className={full ? 'font-semibold text-amber-600' : ''}>
+            {used}/{cap}{full ? ' (full)' : ''}
+          </span>
+        );
+      },
+    },
+    {
+      key: 'status',
+      title: 'Status',
+      render: (r) => <StatusBadge status={r.status} />,
+    },
     {
       key: 'actions',
       title: '',
       render: (row) => (
         <div className="flex gap-1">
-          <Button size="sm" variant="ghost" onClick={() => openEdit(row)} className="hover:bg-orange-500/10 hover:text-orange-400">
+          <Button size="sm" variant="ghost" onClick={() => openEdit(row)}>
             <Pencil size={14} />
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => onDelete(row)} className="hover:bg-rose-500/10 hover:text-rose-400">
+          <Button size="sm" variant="ghost" onClick={() => onDelete(row)}>
             <Trash2 size={14} />
           </Button>
         </div>
@@ -197,35 +239,31 @@ export function ManagerZonesPage() {
   ];
 
   return (
-    <div className="grid gap-6 animate-fadeIn">
-      <div className="flex flex-wrap items-center justify-between gap-4 glass-panel-dark p-4 rounded-3xl border border-white/5">
+    <div className="grid gap-4">
+      <div className="flex items-center justify-between gap-3">
         <CustomSelect
           value={floorFilter}
           onChange={setFloorFilter}
           options={[{ value: '', label: 'All floors' }, ...floors.map((f) => ({ value: f._id, label: f.code }))]}
-          className="w-40"
+          className="w-44"
         />
-        <Button onClick={openCreate} className="rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider gap-2">
-          <Plus size={14} className="stroke-[3]" />Add zone
+        <Button onClick={openCreate} className="gap-2">
+          <Plus size={14} />Add zone
         </Button>
       </div>
 
       {loading ? (
-        <div className="text-sm text-slate-400 flex items-center justify-center p-24 glass-panel-dark rounded-3xl border border-white/5">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-orange-500 border-t-transparent mr-2" />Loading zones...
-        </div>
+        <div className="text-sm text-muted-foreground">Loading...</div>
       ) : error ? (
-        <div className="text-sm text-rose-400 glass-panel-dark p-6 rounded-3xl border border-rose-500/10 bg-rose-950/15">{error}</div>
+        <div className="text-sm text-red-600">{error}</div>
       ) : (
-        <div className="glass-panel-dark rounded-3xl border border-white/5 p-6 backdrop-blur-md shadow-2xl">
-          <DataTable title={`Zones (${items.length})`} rows={items} columns={columns} />
-        </div>
+        <DataTable title={`Zones (${items.length})`} rows={items} columns={columns} />
       )}
 
       <ModalForm open={modalOpen} onOpenChange={setModalOpen} title={editing ? 'Edit zone' : 'Add zone'} onSubmit={onSubmit}>
-        <div className="grid gap-4 md:grid-cols-2 text-slate-100">
+        <div className="grid gap-3 md:grid-cols-2">
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Floor</label>
+            <label className="text-xs uppercase text-muted-foreground">Floor</label>
             <CustomSelect
               value={form.floor}
               onChange={(val) => setForm((f) => ({ ...f, floor: val, vehicleType: '' }))}
@@ -234,20 +272,24 @@ export function ManagerZonesPage() {
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Zone code</label>
-            <Input value={form.code} onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))} placeholder="e.g. A, B1" className="bg-slate-950 border-white/10 text-white rounded-xl" />
+            <label className="text-xs uppercase text-muted-foreground">Zone code</label>
+            <Input value={form.code} onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))} placeholder="e.g. A, B1" />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Vehicle type</label>
+            <label className="text-xs uppercase text-muted-foreground">Vehicle type</label>
             <CustomSelect
               value={form.vehicleType}
               onChange={(val) => setForm((f) => ({ ...f, vehicleType: val }))}
               options={[{ value: '', label: 'Select vehicle type' }, ...vtOptions]}
               placeholder="Select vehicle type..."
+              disabled={!form.floor}
             />
+            <p className="text-[11px] text-muted-foreground">
+              {form.floor ? "Only vehicle types allowed on the selected floor." : 'Select a floor first.'}
+            </p>
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Usage</label>
+            <label className="text-xs uppercase text-muted-foreground">Usage</label>
             <CustomSelect
               value={form.usageType}
               onChange={(val) => setForm((f) => ({ ...f, usageType: val as ZoneUsageType }))}
@@ -255,15 +297,20 @@ export function ManagerZonesPage() {
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Name (optional)</label>
-            <Input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} className="bg-slate-950 border-white/10 text-white rounded-xl" />
+            <label className="text-xs uppercase text-muted-foreground">Name (optional)</label>
+            <Input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Capacity</label>
-            <Input type="number" value={form.capacity} onChange={(e) => setForm((f) => ({ ...f, capacity: e.target.value }))} className="bg-slate-950 border-white/10 text-white rounded-xl" />
+            <label className="text-xs uppercase text-muted-foreground">Capacity</label>
+            <Input type="number" min={1} value={form.capacity} onChange={(e) => setForm((f) => ({ ...f, capacity: e.target.value }))} />
+            {floorBudget && (
+              <p className="text-[11px] text-muted-foreground">
+                Floor budget: {floorBudget.used}/{floorBudget.floorCap} allocated · <strong>{floorBudget.remaining}</strong> remaining
+              </p>
+            )}
           </div>
           <div className="grid gap-1.5 md:col-span-2">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Status</label>
+            <label className="text-xs uppercase text-muted-foreground">Status</label>
             <CustomSelect
               value={form.status}
               onChange={(val) => setForm((f) => ({ ...f, status: val as Zone['status'] }))}

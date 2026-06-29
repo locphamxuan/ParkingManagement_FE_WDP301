@@ -7,7 +7,6 @@ import { StatusBadge } from '@/components/common/StatusBadge';
 import { ModalForm } from '@/components/modals/ModalForm';
 import { CustomSelect } from '@/components/ui/select';
 import { TimePicker } from '@/components/ui/time-picker';
-import { DatePicker } from '@/components/ui/date-picker';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { managerApi, type PricePolicy, type VehicleType } from '@/services/manager/managerApi';
 
@@ -20,8 +19,6 @@ interface FormState {
   hourlyRate: string;
   fromTime: string;
   toTime: string;
-  effectiveFrom: string;
-  effectiveTo: string;
   isActive: boolean;
 }
 
@@ -32,12 +29,8 @@ const empty: FormState = {
   hourlyRate: '',
   fromTime: '00:00',
   toTime: '23:59',
-  effectiveFrom: '',
-  effectiveTo: '',
   isActive: true,
 };
-
-const toDateInput = (v?: string | null) => (v ? new Date(v).toISOString().slice(0, 10) : '');
 
 const TYPE_LABEL: Record<PricingType, string> = {
   regular: 'Regular hours',
@@ -90,8 +83,6 @@ export function ManagerPricingPage() {
       hourlyRate: String(row.hourlyRate),
       fromTime: row.timeWindow?.from ?? '00:00',
       toTime: row.timeWindow?.to ?? '23:59',
-      effectiveFrom: toDateInput(row.effectiveFrom),
-      effectiveTo: toDateInput(row.effectiveTo),
       isActive: row.isActive,
     });
     setModalOpen(true);
@@ -108,8 +99,6 @@ export function ManagerPricingPage() {
       type: form.type,
       hourlyRate: Number(form.hourlyRate),
       timeWindow: { from: form.fromTime, to: form.toTime },
-      ...(form.effectiveFrom ? { effectiveFrom: form.effectiveFrom } : {}),
-      effectiveTo: form.effectiveTo ? form.effectiveTo : null,
       isActive: form.isActive,
     };
     try {
@@ -259,22 +248,6 @@ export function ManagerPricingPage() {
           <p className="md:col-span-2 text-[11px] text-muted-foreground">
             "Regular" applies by default; "Peak" applies within the From–To window. Fee = total hours × hourly rate for that window.
           </p>
-          <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Effective from</label>
-            <DatePicker
-              value={form.effectiveFrom}
-              onChange={(val) => setForm((f) => ({ ...f, effectiveFrom: val }))}
-            />
-            <p className="text-[11px] text-muted-foreground">Leave empty = apply immediately.</p>
-          </div>
-          <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Effective to</label>
-            <DatePicker
-              value={form.effectiveTo}
-              onChange={(val) => setForm((f) => ({ ...f, effectiveTo: val }))}
-            />
-            <p className="text-[11px] text-muted-foreground">Leave empty = no limit.</p>
-          </div>
           <label className="flex items-center gap-2 text-sm md:col-span-2">
             <input
               type="checkbox"

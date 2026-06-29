@@ -23,6 +23,7 @@ import { LivePlateCamera, type PlateScanResult, type LiveCameraHandle } from '@/
 import { LiveQRCamera } from '@/components/staff/LiveQRCamera';
 import { LivePortraitCamera } from '@/components/staff/LivePortraitCamera';
 import { UserAccountInfoModal } from '@/components/staff/UserAccountInfoModal';
+import { CameraSettingsModal, RejectCheckInModal } from '@/components/staff/StaffOpsModals';
 import { useCameraDevices, type CameraRole } from '@/hooks/useCameraDevices';
 import { useAssignedGates } from '@/hooks/staff/useAssignedGates';
 import { normalizePlate } from '@/utils/plate';
@@ -505,7 +506,7 @@ export function StaffOperationsPage() {
                 </div>
 
                 {distinctDeviceCount < 2 && (
-                  <p className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-2.5 text-[11px] text-amber-300">
+                  <p className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-2.5 text-[11px] text-amber-700">
                     Currently sharing 1 webcam for all 3 roles so the frames look identical. Connect additional cameras and go to "Camera settings" to assign each one separately for simultaneous plate and portrait capture.
                   </p>
                 )}
@@ -521,27 +522,27 @@ export function StaffOperationsPage() {
                     onKeyDown={(e) => { if (e.key === 'Enter' && !(!plateNumber.trim() || loading || !!buildingSupportWarning || (hasActivePackage && !selectedSlotId))) onCheckIn(); }}
                   />
                   {vehicleBrand && (
-                    <span className="inline-flex w-fit items-center gap-1 rounded-full border border-sky-500/30 bg-sky-500/10 px-2.5 py-1 text-[11px] font-semibold text-sky-300">
+                    <span className="inline-flex w-fit items-center gap-1 rounded-full border border-sky-500/30 bg-sky-500/10 px-2.5 py-1 text-[11px] font-semibold text-sky-700">
                       <Car size={11} /> Brand: {vehicleBrand}
                     </span>
                   )}
                   {plateNumber.trim().length >= 7 && !plateInfoLoading && accountMatchesCurrentPlate && plateAccountInfo?.hasAccount && (
-                    <div className="mt-1 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-2.5 text-xs text-emerald-400">
+                    <div className="mt-1 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-2.5 text-xs text-emerald-600">
                       Member: <strong className="text-foreground">{plateAccountInfo.user?.fullName}</strong> ({plateAccountInfo.user?.email})
                     </div>
                   )}
                   {plateNumber.trim().length >= 7 && !plateInfoLoading && accountMatchesCurrentPlate && !plateAccountInfo?.hasAccount && (
-                    <div className="mt-1 rounded-lg border border-amber-500/20 bg-amber-500/10 p-2.5 text-xs text-amber-300">
+                    <div className="mt-1 rounded-lg border border-amber-500/20 bg-amber-500/10 p-2.5 text-xs text-amber-700">
                       <strong className="text-foreground">Guest</strong> (no account).
                     </div>
                   )}
                   {plateNumber.trim().length >= 7 && !plateInfoLoading && checkInKind === 'package' && (
-                    <div className="mt-1 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-300">
+                    <div className="mt-1 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-700">
                       🅿️ Vehicle has a long-term package{plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''} — select an empty slot below.
                     </div>
                   )}
                   {plateNumber.trim().length >= 7 && !plateInfoLoading && checkInKind === 'reservation' && (
-                    <div className="mt-1 rounded-lg border border-sky-500/30 bg-sky-500/10 p-2.5 text-xs text-sky-300">
+                    <div className="mt-1 rounded-lg border border-sky-500/30 bg-sky-500/10 p-2.5 text-xs text-sky-700">
                       📅 Vehicle has a reservation{plateAccountInfo?.activeReservation?.code ? ` (code ${plateAccountInfo.activeReservation.code})` : ''}.
                     </div>
                   )}
@@ -555,10 +556,10 @@ export function StaffOperationsPage() {
                     {vehicleType === 'car' ? 'Car' : 'Motorcycle'}
                     <span className="ml-auto text-[10px] font-medium text-muted-foreground">Auto-detected by camera</span>
                   </div>
-                  {plateTypeWarning && <p className="text-[11px] text-amber-400 flex items-center gap-1"><AlertCircle size={11} /> {plateTypeWarning}</p>}
-                  {buildingSupportWarning && <p className="text-[11px] text-rose-400 flex items-center gap-1"><AlertCircle size={11} /> {buildingSupportWarning}</p>}
+                  {plateTypeWarning && <p className="text-[11px] text-amber-600 flex items-center gap-1"><AlertCircle size={11} /> {plateTypeWarning}</p>}
+                  {buildingSupportWarning && <p className="text-[11px] text-rose-600 flex items-center gap-1"><AlertCircle size={11} /> {buildingSupportWarning}</p>}
                   {vehicleTypeMismatch && (
-                    <p className="text-[11px] text-rose-300 flex items-center gap-1">
+                    <p className="text-[11px] text-rose-700 flex items-center gap-1">
                       <AlertCircle size={12} /> Vehicle type does not match registration (registered: <strong>{plateAccountInfo?.registeredVehicleType === 'car' ? 'Car' : 'Motorcycle'}</strong>).
                     </p>
                   )}
@@ -572,7 +573,7 @@ export function StaffOperationsPage() {
                     onChange={setSelectedSlotId}
                     suggestedSlotId={suggestedSlotId}
                     intro={
-                      <p className="text-[11px] font-bold text-amber-300 flex items-center gap-1">
+                      <p className="text-[11px] font-bold text-amber-700 flex items-center gap-1">
                         <AlertCircle size={12} />
                         {hasActivePackage
                           ? `Long-term package${plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''} — select zone and slot:`
@@ -588,12 +589,12 @@ export function StaffOperationsPage() {
                   <Button
                     onClick={onCheckIn}
                     disabled={!plateNumber.trim() || loading || !!buildingSupportWarning || (hasActivePackage && !selectedSlotId) || (checkInKind === 'standard' && freeSlots.length > 0 && !selectedSlotId)}
-                    className="flex-1 h-11 gap-2 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60"
+                    className="flex-1 h-11 gap-2 bg-gradient-to-r from-sky-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60"
                   >
                     <ScanLine size={16} /> Check-in (entry)
                   </Button>
                   <Button type="button" variant="outline" onClick={() => setRejectOpen(true)} disabled={loading || !plateNumber.trim()}
-                    className="h-11 border-rose-500/40 text-rose-400 hover:bg-rose-500/10">
+                    className="h-11 border-rose-500/40 text-rose-600 hover:bg-rose-500/10">
                     Reject
                   </Button>
                 </div>
@@ -643,14 +644,14 @@ export function StaffOperationsPage() {
                     onKeyDown={(e) => { if (e.key === 'Enter' && plateNumber.trim().length >= 7 && !(checkInKind === 'standard' && !plateImage)) proceedFromIdentify(); }}
                   />
                   {vehicleBrand && (
-                    <span className="inline-flex w-fit items-center gap-1 rounded-full border border-sky-500/30 bg-sky-500/10 px-2.5 py-1 text-[11px] font-semibold text-sky-300">
+                    <span className="inline-flex w-fit items-center gap-1 rounded-full border border-sky-500/30 bg-sky-500/10 px-2.5 py-1 text-[11px] font-semibold text-sky-700">
                       <Car size={11} /> Brand: {vehicleBrand}
                     </span>
                   )}
                   {plateNumber.trim().length >= 7 && !plateInfoLoading && accountMatchesCurrentPlate && plateAccountInfo?.hasAccount && (
                     <div className="mt-1 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-2.5 flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                      <p className="text-xs text-emerald-400">
+                      <p className="text-xs text-emerald-600">
                         Member: <strong className="text-foreground">{plateAccountInfo.user?.fullName}</strong> ({plateAccountInfo.user?.email})
                       </p>
                     </div>
@@ -658,25 +659,25 @@ export function StaffOperationsPage() {
                   {plateNumber.trim().length >= 7 && !plateInfoLoading && accountMatchesCurrentPlate && !plateAccountInfo?.hasAccount && (
                     <div className="mt-1 rounded-lg border border-amber-500/20 bg-amber-500/10 p-2.5 flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full bg-amber-500" />
-                      <p className="text-xs text-amber-300">
+                      <p className="text-xs text-amber-700">
                         Plate <strong className="text-foreground">{plateNumber.toUpperCase()}</strong> — <strong>Guest</strong> (no account).
                       </p>
                     </div>
                   )}
                   {/* Check-in kind badge */}
                   {plateNumber.trim().length >= 7 && !plateInfoLoading && checkInKind === 'package' && (
-                    <div className="mt-1 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-300">
+                    <div className="mt-1 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-700">
                       🅿️ Vehicle has a <strong>long-term package</strong>{plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''} — next step: capture portrait &amp; select empty slot.
                     </div>
                   )}
                   {plateNumber.trim().length >= 7 && !plateInfoLoading && checkInKind === 'reservation' && (
-                    <div className="mt-1 rounded-lg border border-sky-500/30 bg-sky-500/10 p-2.5 text-xs text-sky-300">
+                    <div className="mt-1 rounded-lg border border-sky-500/30 bg-sky-500/10 p-2.5 text-xs text-sky-700">
                       📅 Vehicle has a <strong>reservation</strong>{plateAccountInfo?.activeReservation?.code ? ` (code ${plateAccountInfo.activeReservation.code})` : ''} — next step: capture portrait to confirm.
                     </div>
                   )}
                   {/* Only show the plate-photo instruction when in plate mode — never as a red blocker */}
                   {plateNumber.trim().length >= 7 && identifyMode === 'plate' && checkInKind === 'standard' && !plateImage && (
-                    <div className="mt-1 rounded-lg border border-amber-500/20 bg-amber-500/10 p-2.5 text-[11px] text-amber-300">
+                    <div className="mt-1 rounded-lg border border-amber-500/20 bg-amber-500/10 p-2.5 text-[11px] text-amber-700">
                       Press <strong>"Capture &amp; recognize"</strong> on the plate camera to take the photo (required for guests).
                     </div>
                   )}
@@ -685,7 +686,7 @@ export function StaffOperationsPage() {
                 <Button
                   onClick={proceedFromIdentify}
                   disabled={plateNumber.trim().length < 7 || !!buildingSupportWarning || (checkInKind === 'standard' && !plateImage)}
-                  className="w-full h-11 gap-2 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60"
+                  className="w-full h-11 gap-2 bg-gradient-to-r from-sky-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60"
                 >
                   Continue <ArrowRight size={16} />
                 </Button>
@@ -697,7 +698,7 @@ export function StaffOperationsPage() {
               <div className="space-y-4">
                 <LivePortraitCamera ref={portraitCamRef} deviceId={assignment.portrait} />
                 {portraitImage && (
-                  <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2 text-xs text-emerald-400">
+                  <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2 text-xs text-emerald-600">
                     <UserSquare size={14} /> Portrait captured — you can retake if needed.
                   </div>
                 )}
@@ -705,7 +706,7 @@ export function StaffOperationsPage() {
                   <Button type="button" variant="outline" onClick={() => setStep(1)} className="h-11 gap-1">
                     <ArrowLeft size={16} /> Back
                   </Button>
-                  <Button onClick={capturePortraitAndNext} className="flex-1 h-11 gap-2 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110">
+                  <Button onClick={capturePortraitAndNext} className="flex-1 h-11 gap-2 bg-gradient-to-r from-sky-500 to-amber-400 text-slate-950 hover:brightness-110">
                     <UserSquare size={16} /> {portraitImage ? 'Retake & continue' : 'Capture portrait & continue'}
                   </Button>
                 </div>
@@ -717,13 +718,13 @@ export function StaffOperationsPage() {
               <div className="space-y-5">
                 {/* Check-in kind banner */}
                 {!plateInfoLoading && checkInKind === 'package' && (
-                  <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-300">
-                    🅿️ Vehicle has a long-term package{plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''} — select an empty slot below then check-in.
+                  <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-700">
+                    Vehicle has a long-term package{plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''} — select an empty slot below then check-in.
                   </div>
                 )}
                 {!plateInfoLoading && checkInKind === 'reservation' && (
-                  <div className="rounded-lg border border-sky-500/30 bg-sky-500/10 p-2.5 text-xs text-sky-300">
-                    📅 Vehicle has a reservation{plateAccountInfo?.activeReservation?.code ? ` (code ${plateAccountInfo.activeReservation.code})` : ''} — confirm to allow entry.
+                  <div className="rounded-lg border border-sky-500/30 bg-sky-500/10 p-2.5 text-xs text-sky-700">
+                     Vehicle has a reservation{plateAccountInfo?.activeReservation?.code ? ` (code ${plateAccountInfo.activeReservation.code})` : ''} — confirm to allow entry.
                   </div>
                 )}
 
@@ -766,14 +767,14 @@ export function StaffOperationsPage() {
                     placeholder="59G2-038.80"
                   />
                   {vehicleBrand && (
-                    <span className="inline-flex w-fit items-center gap-1 rounded-full border border-sky-500/30 bg-sky-500/10 px-2.5 py-1 text-[11px] font-semibold text-sky-300">
+                    <span className="inline-flex w-fit items-center gap-1 rounded-full border border-sky-500/30 bg-sky-500/10 px-2.5 py-1 text-[11px] font-semibold text-sky-700">
                       <Car size={11} /> Brand: {vehicleBrand}
                     </span>
                   )}
                   {plateNumber.trim().length >= 7 && !plateInfoLoading && accountMatchesCurrentPlate && plateAccountInfo?.hasAccount && (
                     <div className="mt-1 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-2.5 flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                      <p className="text-xs text-emerald-400">
+                      <p className="text-xs text-emerald-600">
                         Member: <strong className="text-foreground">{plateAccountInfo.user?.fullName}</strong> ({plateAccountInfo.user?.email})
                       </p>
                     </div>
@@ -781,7 +782,7 @@ export function StaffOperationsPage() {
                   {plateNumber.trim().length >= 7 && !plateInfoLoading && accountMatchesCurrentPlate && !plateAccountInfo?.hasAccount && (
                     <div className="mt-1 rounded-lg border border-amber-500/20 bg-amber-500/10 p-2.5 flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full bg-amber-500" />
-                      <p className="text-xs text-amber-300">
+                      <p className="text-xs text-amber-700">
                         Plate <strong className="text-foreground">{plateNumber.toUpperCase()}</strong> — <strong>Guest</strong> (no account).
                       </p>
                     </div>
@@ -796,14 +797,14 @@ export function StaffOperationsPage() {
                     {vehicleType === 'car' ? 'Car' : 'Motorcycle'}
                     <span className="ml-auto text-[10px] font-medium text-muted-foreground">Auto-detected by camera</span>
                   </div>
-                  {plateTypeWarning && <p className="text-[11px] text-amber-400 flex items-center gap-1"><AlertCircle size={11} /> {plateTypeWarning}</p>}
-                  {buildingSupportWarning && <p className="text-[11px] text-rose-400 flex items-center gap-1"><AlertCircle size={11} /> {buildingSupportWarning}</p>}
+                  {plateTypeWarning && <p className="text-[11px] text-amber-600 flex items-center gap-1"><AlertCircle size={11} /> {plateTypeWarning}</p>}
+                  {buildingSupportWarning && <p className="text-[11px] text-rose-600 flex items-center gap-1"><AlertCircle size={11} /> {buildingSupportWarning}</p>}
                   {vehicleTypeMismatch && (
-                    <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-2.5 text-[11px] text-rose-300 flex items-center justify-between gap-2">
+                    <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-2.5 text-[11px] text-rose-700 flex items-center justify-between gap-2">
                       <span className="flex items-center gap-1">
                         <AlertCircle size={12} /> Vehicle type does not match registration (registered: <strong>{plateAccountInfo?.registeredVehicleType === 'car' ? 'Car' : 'Motorcycle'}</strong>).
                       </span>
-                      <button type="button" onClick={() => setRejectOpen(true)} className="shrink-0 rounded-md bg-rose-500 px-2.5 py-1 text-[10px] font-bold text-white hover:bg-rose-400">
+                      <button type="button" onClick={() => setRejectOpen(true)} className="shrink-0 rounded-md bg-rose-500 px-2.5 py-1 text-[10px] font-bold text-slate-800 hover:bg-rose-400">
                         Reject
                       </button>
                     </div>
@@ -818,7 +819,7 @@ export function StaffOperationsPage() {
                     onChange={setSelectedSlotId}
                     suggestedSlotId={suggestedSlotId}
                     intro={
-                      <p className="text-[11px] font-bold text-amber-300 flex items-center gap-1">
+                      <p className="text-[11px] font-bold text-amber-700 flex items-center gap-1">
                         <AlertCircle size={12} />
                         {hasActivePackage
                           ? `Long-term package${plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''}${plateAccountInfo?.activePackage?.maxHoursPerDay ? ` · ${plateAccountInfo.activePackage.maxHoursPerDay}h/day` : ''} — select zone and slot:`
@@ -830,7 +831,7 @@ export function StaffOperationsPage() {
 
                 {/* Missing photo warning: portrait required for all; plate required for guest/standard */}
                 {(!portraitImage || (checkInKind === 'standard' && !plateImage)) && (
-                  <p className="text-[11px] text-rose-300 flex items-center gap-1">
+                  <p className="text-[11px] text-rose-700 flex items-center gap-1">
                     <AlertCircle size={12} /> <strong>Portrait photo</strong> required
                     {checkInKind === 'standard' ? <> and <strong>plate photo</strong></> : null} before check-in (go back to the previous step to capture).
                   </p>
@@ -849,7 +850,7 @@ export function StaffOperationsPage() {
                       (checkInKind === 'standard' && !plateImage) ||
                       (checkInKind === 'standard' && freeSlots.length > 0 && !selectedSlotId)
                     }
-                    className="flex-1 h-11 gap-2 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60"
+                    className="flex-1 h-11 gap-2 bg-gradient-to-r from-sky-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60"
                   >
                     <ScanLine size={16} /> Check-in (entry)
                   </Button>
@@ -858,7 +859,7 @@ export function StaffOperationsPage() {
                     variant="outline"
                     onClick={() => setRejectOpen(true)}
                     disabled={loading || !plateNumber.trim()}
-                    className="h-11 border-rose-500/40 text-rose-400 hover:bg-rose-500/10"
+                    className="h-11 border-rose-500/40 text-rose-600 hover:bg-rose-500/10"
                   >
                     Reject
                   </Button>
@@ -868,7 +869,7 @@ export function StaffOperationsPage() {
 
             {/* Operation feedback */}
             {opMessage && (
-              <div className={`rounded-xl border p-4 text-sm ${opMessage.type === 'ok' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' : 'border-rose-500/30 bg-rose-500/10 text-rose-400'}`}>
+              <div className={`rounded-xl border p-4 text-sm ${opMessage.type === 'ok' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600' : 'border-rose-500/30 bg-rose-500/10 text-rose-600'}`}>
                 {opMessage.text}
               </div>
             )}
@@ -887,65 +888,14 @@ export function StaffOperationsPage() {
       </section>
 
       {/* Camera settings — assign physical devices to each role */}
-      {cameraSettingsOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-          <motion.div initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-            className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-2xl"
-          >
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary">Devices</p>
-                <h3 className="text-xl font-semibold text-foreground">Camera settings</h3>
-              </div>
-              <button onClick={() => setCameraSettingsOpen(false)} className="text-muted-foreground hover:text-foreground transition">✕</button>
-            </div>
-
-            <p className="mb-4 text-xs text-muted-foreground">
-              When multiple cameras are available (plate / portrait / QR), assign each role to a separate device
-              so they can all open simultaneously and capture the correct image. On a single-webcam machine all roles share the same device.
-            </p>
-
-            <div className="space-y-3">
-              {([
-                { role: 'plate' as CameraRole, label: 'Camera 1 · Plate' },
-                { role: 'qr' as CameraRole, label: 'Camera 2 · QR' },
-                { role: 'portrait' as CameraRole, label: 'Camera 3 · Portrait' },
-              ]).map(({ role, label }) => (
-                <div key={role} className="grid gap-1.5">
-                  <label className="text-xs font-semibold text-foreground">{label}</label>
-                  <select
-                    value={assignment[role] ?? ''}
-                    onChange={(e) => assign(role, e.target.value)}
-                    className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-primary/50"
-                  >
-                    <option value="">— Auto (default) —</option>
-                    {devices.map((d, i) => (
-                      <option key={d.deviceId} value={d.deviceId}>
-                        {d.label || `Camera ${i + 1}`}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              ))}
-            </div>
-
-            {devices.length === 0 && (
-              <p className="mt-3 text-[11px] text-amber-400">
-                No devices found — press "Refresh" and grant camera permission in the browser.
-              </p>
-            )}
-
-            <div className="mt-5 flex justify-between gap-2">
-              <Button type="button" variant="secondary" onClick={() => void requestAndRefresh()} className="gap-1.5 text-xs">
-                <Settings size={13} /> Refresh list
-              </Button>
-              <Button onClick={() => setCameraSettingsOpen(false)} className="bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 text-xs">
-                Done
-              </Button>
-            </div>
-          </motion.div>
-        </div>
-      )}
+      <CameraSettingsModal
+        open={cameraSettingsOpen}
+        onClose={() => setCameraSettingsOpen(false)}
+        assignment={assignment}
+        assign={assign}
+        devices={devices}
+        onRefresh={requestAndRefresh}
+      />
 
       {/* User QR info popup */}
       {scannedUser && (
@@ -953,33 +903,14 @@ export function StaffOperationsPage() {
       )}
 
       {/* Reject check-in */}
-      {rejectOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-            className="w-full max-w-md rounded-2xl border border-rose-500/30 bg-card p-6 shadow-2xl"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-rose-400">Reject entry</p>
-                <h3 className="text-xl font-semibold text-foreground">Rejection reason</h3>
-              </div>
-              <button onClick={() => { setRejectOpen(false); setRejectReason(''); }} className="text-muted-foreground hover:text-foreground transition">✕</button>
-            </div>
-            <p className="text-xs text-muted-foreground mb-3">Plate <strong className="text-foreground font-mono">{normalizePlate(plateNumber) || plateNumber || '—'}</strong>. The system will send a notification with the reason to the customer's account (if the plate is registered).</p>
-            <textarea
-              value={rejectReason}
-              onChange={(e) => setRejectReason(e.target.value)}
-              rows={3}
-              placeholder="e.g. Registered a motorcycle but it is actually a car; vehicle info does not match..."
-              className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-rose-500/50"
-            />
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <Button variant="secondary" onClick={() => { setRejectOpen(false); setRejectReason(''); }} className="text-xs">Cancel</Button>
-              <Button onClick={onReject} disabled={!rejectReason.trim()} className="bg-rose-500 text-white hover:bg-rose-400 text-xs disabled:opacity-60">Confirm rejection</Button>
-            </div>
-          </motion.div>
-        </div>
-      )}
+      <RejectCheckInModal
+        open={rejectOpen}
+        onClose={() => { setRejectOpen(false); setRejectReason(''); }}
+        reason={rejectReason}
+        setReason={setRejectReason}
+        plateNumber={plateNumber}
+        onConfirm={onReject}
+      />
     </motion.div>
   );
 }

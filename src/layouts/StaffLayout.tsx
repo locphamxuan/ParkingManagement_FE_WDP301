@@ -86,7 +86,7 @@ export function StaffLayout() {
   };
 
   return (
-    <div className="admin-theme relative min-h-screen bg-background text-foreground">
+    <div className="manager-theme relative min-h-screen bg-background text-foreground">
       {/* Background glows */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div className="absolute -right-24 -top-24 h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.08),transparent_65%)] blur-3xl" />
@@ -97,18 +97,18 @@ export function StaffLayout() {
         {/* ── Sidebar ── */}
         <aside
           className={cn(
-            'sticky top-0 hidden h-screen border-r border-white/8 bg-slate-900/95 p-4 shadow-[4px_0_30px_rgba(0,0,0,0.25)] backdrop-blur-xl lg:flex lg:flex-col transition-all duration-300 ease-in-out',
+            'sticky top-0 hidden h-screen border-r border-sky-100 bg-white p-4 shadow-[4px_0_30px_rgba(2,132,199,0.10)] backdrop-blur-xl lg:flex lg:flex-col transition-all duration-300 ease-in-out',
             collapsed ? 'w-[80px]' : 'w-[248px]',
           )}
         >
           {/* Sidebar header */}
-          <div className="mb-5 flex items-center justify-between rounded-2xl border border-white/8 bg-slate-800/60 p-3 shadow-sm">
+          <div className="mb-5 flex items-center justify-between rounded-2xl border border-sky-100 bg-sky-50/50 p-3 shadow-sm">
             {!collapsed ? (
               <div className="pl-1 min-w-0">
                 <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">
                   PBMS Staff
                 </p>
-                <p className="text-xs font-extrabold text-slate-100">Operations staff</p>
+                <p className="text-xs font-extrabold text-slate-800">Operations staff</p>
                 {selectedBuilding ? (
                   <p className="mt-0.5 truncate text-[10px] text-slate-500">
                     {selectedBuilding.code} · {selectedBuilding.name}
@@ -118,14 +118,14 @@ export function StaffLayout() {
             ) : (
               <ScanLine
                 size={18}
-                className="mx-auto text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]"
+                className="mx-auto text-emerald-600 drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]"
               />
             )}
             <Button
               size="sm"
               variant="ghost"
               onClick={() => setCollapsed((p) => !p)}
-              className="h-7 w-7 shrink-0 rounded-lg p-0 text-slate-400 hover:bg-white/8 hover:text-white"
+              className="h-7 w-7 shrink-0 rounded-lg p-0 text-slate-400 hover:bg-sky-50 hover:text-slate-800"
             >
               <ChevronLeft
                 size={14}
@@ -148,7 +148,7 @@ export function StaffLayout() {
                       'flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition-all duration-200',
                       isActive
                         ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/25 scale-[1.02]'
-                        : 'text-slate-400 hover:bg-white/6 hover:text-slate-100',
+                        : 'text-slate-400 hover:bg-sky-50 hover:text-slate-800',
                     )
                   }
                 >
@@ -163,11 +163,11 @@ export function StaffLayout() {
         {/* ── Main area ── */}
         <div className="flex min-h-screen flex-1 flex-col">
           {/* Header */}
-          <header className="sticky top-0 z-20 border-b border-white/8 bg-slate-950/80 px-5 py-3 backdrop-blur-xl">
+          <header className="sticky top-0 z-20 border-b border-sky-100 bg-white px-5 py-3 backdrop-blur-xl">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-600">Staff</p>
-                <h1 className="text-lg font-semibold text-white">{title}</h1>
+                <h1 className="text-lg font-semibold text-slate-800">{title}</h1>
               </div>
 
               <div className="flex items-center gap-2">
@@ -175,7 +175,7 @@ export function StaffLayout() {
                   <select
                     value={selectedBuildingId ?? ''}
                     onChange={(e) => setSelectedBuildingId(e.target.value)}
-                    className="h-9 rounded-lg border border-white/10 bg-slate-800 px-3 text-sm text-slate-200 outline-none focus:ring-1 focus:ring-emerald-500"
+                    className="h-9 rounded-lg border border-sky-100 bg-slate-100 px-3 text-sm text-slate-800 outline-none focus:ring-1 focus:ring-emerald-500"
                   >
                     {buildings.map((b) => (
                       <option key={b._id} value={b._id}>
@@ -189,12 +189,12 @@ export function StaffLayout() {
                   <DropdownMenu.Trigger asChild>
                     <button
                       type="button"
-                      className="group inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-slate-900/80 px-3.5 py-2 text-xs font-semibold text-slate-200 shadow-md backdrop-blur-md transition-all duration-300 hover:bg-slate-800/80 hover:border-emerald-500/30 hover:shadow-[0_0_15px_rgba(16,185,129,0.15)] focus:outline-none focus:ring-2 focus:ring-emerald-500/40 cursor-pointer"
+                      className="group inline-flex items-center gap-2.5 rounded-full border border-sky-100 bg-white px-3.5 py-2 text-xs font-semibold text-slate-800 shadow-md backdrop-blur-md transition-all duration-300 hover:bg-sky-50/50 hover:border-emerald-500/30 hover:shadow-[0_0_15px_rgba(16,185,129,0.15)] focus:outline-none focus:ring-2 focus:ring-emerald-500/40 cursor-pointer"
                     >
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 text-xs font-extrabold text-emerald-400 border border-emerald-500/30 shadow-inner">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 text-xs font-extrabold text-emerald-600 border border-emerald-500/30 shadow-inner">
                         {(user?.fullName ?? user?.email ?? 'S')[0]?.toUpperCase()}
                       </span>
-                      <span className="max-w-[120px] truncate text-slate-200 font-bold tracking-wide">
+                      <span className="max-w-[120px] truncate text-slate-800 font-bold tracking-wide">
                         {user?.fullName || user?.email?.split('@')[0]}
                       </span>
                       <ChevronDown size={13} className="shrink-0 text-slate-500 transition-transform duration-300 group-aria-expanded:rotate-180 ml-0.5" />
@@ -203,22 +203,22 @@ export function StaffLayout() {
                   <DropdownMenu.Portal>
                     <DropdownMenu.Content
                       sideOffset={6}
-                      className="z-50 w-72 overflow-hidden rounded-2xl border border-white/10 bg-slate-900 shadow-[0_20px_45px_rgba(0,0,0,0.5)]"
+                      className="z-50 w-72 overflow-hidden rounded-2xl border border-sky-100 bg-white shadow-[0_20px_45px_rgba(2,132,199,0.10)]"
                     >
                       {/* Profile card */}
-                      <div className="border-b border-white/8 px-4 py-4">
+                      <div className="border-b border-sky-100 px-4 py-4">
                         <div className="flex items-center gap-3">
                           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-emerald-500/25 bg-emerald-500/10">
-                            <span className="text-base font-bold text-emerald-400">
+                            <span className="text-base font-bold text-emerald-600">
                               {(user?.fullName ?? user?.email ?? 'S')[0]?.toUpperCase()}
                             </span>
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold text-white truncate">
+                            <p className="text-sm font-semibold text-slate-800 truncate">
                               {user?.fullName || 'Staff'}
                             </p>
                             <p className="text-xs text-slate-400 truncate">{user?.email}</p>
-                            <p className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-emerald-500">
+                            <p className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-emerald-600">
                               Staff
                             </p>
                           </div>
@@ -226,9 +226,9 @@ export function StaffLayout() {
 
                         {/* Building info */}
                         {selectedBuilding && (
-                          <div className="mt-3 rounded-xl border border-white/8 bg-slate-800/60 px-3 py-2">
+                          <div className="mt-3 rounded-xl border border-sky-100 bg-sky-50/50 px-3 py-2">
                             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Assigned building</p>
-                            <p className="mt-0.5 text-xs font-semibold text-slate-200">
+                            <p className="mt-0.5 text-xs font-semibold text-slate-800">
                               {selectedBuilding.name}
                             </p>
                             <p className="text-[10px] text-slate-500">
@@ -244,13 +244,13 @@ export function StaffLayout() {
                       {/* Actions */}
                       <div className="p-1.5 space-y-1">
                         <DropdownMenu.Item
-                          className="flex cursor-pointer items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-300 outline-none transition-all duration-200 hover:bg-emerald-500/10 hover:text-emerald-400 focus:bg-emerald-500/10 focus:text-emerald-400"
+                          className="flex cursor-pointer items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-700 outline-none transition-all duration-200 hover:bg-emerald-500/10 hover:text-emerald-600 focus:bg-emerald-500/10 focus:text-emerald-600"
                           onClick={() => navigate('/staff/profile')}
                         >
-                          <User size={14} className="text-emerald-400" />View profile</DropdownMenu.Item>
-                        <DropdownMenu.Separator className="my-1.5 h-px bg-white/8" />
+                          <User size={14} className="text-emerald-600" />View profile</DropdownMenu.Item>
+                        <DropdownMenu.Separator className="my-1.5 h-px bg-sky-50" />
                         <DropdownMenu.Item
-                          className="flex cursor-pointer items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-bold text-rose-400 outline-none transition-all duration-200 hover:bg-rose-500/10 hover:text-rose-300 focus:bg-rose-500/10 focus:text-rose-300"
+                          className="flex cursor-pointer items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-bold text-rose-600 outline-none transition-all duration-200 hover:bg-rose-500/10 hover:text-rose-700 focus:bg-rose-500/10 focus:text-rose-700"
                           onClick={onLogout}
                         >
                           <LogOut size={14} />Log out</DropdownMenu.Item>
@@ -265,7 +265,7 @@ export function StaffLayout() {
           {/* Content */}
           <main className="flex-1 p-4 md:p-6">
             {bootstrapping && !isProfileRoute ? (
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-slate-400">Loading...</div>
+              <div className="rounded-2xl border border-sky-100 bg-sky-50 p-6 text-sm text-slate-400">Loading...</div>
             ) : !selectedBuildingId && !isProfileRoute ? (
               <div className="rounded-2xl border border-amber-500/20 bg-amber-500/8 p-6 text-sm text-amber-200">This account has not been assigned to any building. Please contact a manager.</div>
             ) : (

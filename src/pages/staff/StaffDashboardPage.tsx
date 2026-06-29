@@ -41,7 +41,7 @@ function fmtDateFull() {
 }
 
 function Skeleton({ className = '' }: { className?: string }) {
-  return <div className={`animate-pulse rounded bg-white/10 ${className}`} />;
+  return <div className={`animate-pulse rounded bg-slate-200 ${className}`} />;
 }
 
 interface StatCardProps {
@@ -54,7 +54,7 @@ interface StatCardProps {
 
 function StatCard({ label, value, icon: Icon, accent, loading }: StatCardProps) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-slate-900/40 p-4">
+    <div className="rounded-2xl border border-sky-100 bg-white p-4">
       <div className="flex items-center justify-between">
         <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{label}</p>
         <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${accent}`}>
@@ -64,7 +64,7 @@ function StatCard({ label, value, icon: Icon, accent, loading }: StatCardProps) 
       {loading ? (
         <Skeleton className="mt-2 h-8 w-12" />
       ) : (
-        <p className="mt-1.5 text-3xl font-bold tabular-nums text-white">{value}</p>
+        <p className="mt-1.5 text-3xl font-bold tabular-nums text-slate-800">{value}</p>
       )}
     </div>
   );
@@ -195,8 +195,8 @@ export function StaffDashboardPage() {
       value: openIncidents.length,
       icon: ShieldAlert,
       accent: openIncidents.length > 0
-        ? 'border border-rose-500/30 bg-rose-500/10 text-rose-400'
-        : 'border border-white/10 bg-slate-950/40 text-slate-400',
+        ? 'border border-rose-500/30 bg-rose-500/10 text-rose-600'
+        : 'border border-sky-100 bg-sky-50/40 text-slate-400',
       loading,
     },
   ];
@@ -205,8 +205,8 @@ export function StaffDashboardPage() {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="max-w-sm rounded-2xl border border-amber-500/30 bg-amber-500/10 p-8 text-center">
-          <Building2 size={36} className="mx-auto mb-3 text-amber-400" />
-          <p className="text-base font-extrabold text-amber-300">No building selected</p>
+          <Building2 size={36} className="mx-auto mb-3 text-amber-600" />
+          <p className="text-base font-extrabold text-amber-700">No building selected</p>
           <p className="mt-1 text-sm text-slate-400 font-medium">Please select a building from the left menu to start your shift.</p>
         </div>
       </div>
@@ -221,7 +221,7 @@ export function StaffDashboardPage() {
       className="space-y-5"
     >
       {/* Hero */}
-      <div className="relative overflow-hidden rounded-3xl border border-white/8 bg-slate-900/40 p-6 backdrop-blur-md shadow-lg">
+      <div className="relative overflow-hidden rounded-3xl border border-sky-100 bg-white p-6 backdrop-blur-md shadow-sm">
         {/* Glow accents */}
         <div className="absolute top-0 left-0 w-60 h-60 bg-[radial-gradient(circle_at_center,rgba(20,184,166,0.06),transparent_65%)] pointer-events-none blur-2xl animate-pulse" />
         <div className="absolute bottom-0 right-0 w-40 h-40 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.04),transparent_65%)] pointer-events-none blur-2xl" />
@@ -229,11 +229,11 @@ export function StaffDashboardPage() {
         <div className="relative z-10 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-4">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-teal-500/20 bg-teal-500/10 shadow-[0_0_12px_rgba(20,184,166,0.15)]">
-              <Building2 size={20} className="text-teal-400" />
+              <Building2 size={20} className="text-teal-600" />
             </div>
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 font-mono">Operations staff</p>
-              <h1 className="mt-1 text-2xl font-black text-white tracking-tight leading-none">
+              <h1 className="mt-1 text-2xl font-black text-slate-800 tracking-tight leading-none">
                 {building ? building.name : <Skeleton className="h-7 w-48" />}
               </h1>
               <p className="mt-1.5 text-xs font-semibold text-slate-400">{fmtDateFull()}</p>
@@ -246,19 +246,19 @@ export function StaffDashboardPage() {
                 assignedGates.map((g) => (
                   <div
                     key={g._id}
-                    className="flex items-center gap-1.5 rounded-xl border border-teal-500/20 bg-teal-500/10 px-3.5 py-2 text-xs font-black uppercase tracking-wider text-teal-400 shadow-[0_0_10px_rgba(20,184,166,0.08)]"
+                    className="flex items-center gap-1.5 rounded-xl border border-teal-500/20 bg-teal-500/10 px-3.5 py-2 text-xs font-black uppercase tracking-wider text-teal-600 shadow-[0_0_10px_rgba(20,184,166,0.08)]"
                   >
                     <DoorOpen size={13} />
                     Gate {g.code}{g.name ? ` · ${g.name}` : ''} · {directionText(g.direction)}
                   </div>
                 ))
               ) : (
-                <div className="flex items-center gap-1.5 rounded-xl border border-white/5 bg-slate-950/40 px-3.5 py-2 text-xs font-black uppercase tracking-wider text-slate-400">
+                <div className="flex items-center gap-1.5 rounded-xl border border-sky-100 bg-sky-50/40 px-3.5 py-2 text-xs font-black uppercase tracking-wider text-slate-400">
                   <DoorOpen size={13} />No gate assigned</div>
               )
             )}
             {building?.operatingHours && (
-              <div className="flex items-center gap-1.5 rounded-xl border border-white/5 bg-slate-950/40 px-3.5 py-2 text-xs font-black uppercase tracking-wider text-slate-400 font-mono">
+              <div className="flex items-center gap-1.5 rounded-xl border border-sky-100 bg-sky-50/40 px-3.5 py-2 text-xs font-black uppercase tracking-wider text-slate-400 font-mono">
                 <Clock size={12} />
                 {building.operatingHours.open} – {building.operatingHours.close}
               </div>
@@ -280,54 +280,54 @@ export function StaffDashboardPage() {
 
               <div className="flex items-center gap-4 relative z-10">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-emerald-500/20 bg-emerald-500/10 shadow-[0_0_10px_rgba(16,185,129,0.1)] group-hover:scale-105 transition-all duration-300">
-                  <ScanLine size={20} className="text-emerald-400" />
+                  <ScanLine size={20} className="text-emerald-600" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 font-mono">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600 font-mono">
                     {assignedGates.length > 0 ? 'Assigned entry gate' : 'Tasks'}
                   </p>
-                  <h3 className="mt-0.5 text-base font-extrabold text-white tracking-tight">Check in vehicle</h3>
+                  <h3 className="mt-0.5 text-base font-extrabold text-slate-800 tracking-tight">Check in vehicle</h3>
                   <p className="text-xs text-slate-400 mt-0.5 font-medium">Scan plate / QR to admit a vehicle</p>
                 </div>
               </div>
-              <ArrowRight size={18} className="shrink-0 ml-auto text-emerald-400 transition-transform group-hover:translate-x-1" />
+              <ArrowRight size={18} className="shrink-0 ml-auto text-emerald-600 transition-transform group-hover:translate-x-1" />
             </Link>
           )}
           {showCheckOut && (
             <Link
               to="/staff/checkout"
-              className="group relative overflow-hidden flex items-center gap-4 rounded-2xl border border-orange-500/25 bg-orange-500/[0.06] p-5 transition-colors hover:bg-orange-500/10"
+              className="group relative overflow-hidden flex items-center gap-4 rounded-2xl border border-sky-200 bg-sky-50/40 p-5 transition-colors hover:bg-sky-50"
             >
-              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-orange-500/5 to-transparent blur-xl pointer-events-none" />
+              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-sky-500/5 to-transparent blur-xl pointer-events-none" />
 
               <div className="flex items-center gap-4 relative z-10">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-orange-500/20 bg-orange-500/10 shadow-[0_0_10px_rgba(249,115,22,0.1)] group-hover:scale-105 transition-all duration-300">
-                  <ScanLine size={20} className="text-orange-400" />
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-sky-200 bg-sky-50 shadow-[0_0_10px_rgba(249,115,22,0.1)] group-hover:scale-105 transition-all duration-300">
+                  <ScanLine size={20} className="text-sky-600" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500 font-mono">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-sky-600 font-mono">
                     {assignedGates.length > 0 ? 'Assigned exit gate' : 'Tasks'}
                   </p>
-                  <h3 className="mt-0.5 text-base font-extrabold text-white tracking-tight">Check out vehicle</h3>
+                  <h3 className="mt-0.5 text-base font-extrabold text-slate-800 tracking-tight">Check out vehicle</h3>
                   <p className="text-xs text-slate-400 mt-0.5 font-medium">Scan plate / QR → verify photo → charge &amp; release</p>
                 </div>
               </div>
-              <ArrowRight size={18} className="shrink-0 ml-auto text-orange-400 transition-transform group-hover:translate-x-1" />
+              <ArrowRight size={18} className="shrink-0 ml-auto text-sky-600 transition-transform group-hover:translate-x-1" />
             </Link>
           )}
           <Link
             to="/staff/parked"
-            className="group relative overflow-hidden rounded-3xl border border-white/8 bg-slate-900/35 p-5 transition-all duration-300 hover:border-white/18 hover:bg-slate-900/60 hover:shadow-[0_8px_30px_rgba(255,255,255,0.05)] hover:scale-[1.02]"
+            className="group relative overflow-hidden rounded-3xl border border-sky-100 bg-white p-5 transition-all duration-300 hover:border-sky-200 hover:bg-sky-50/50 hover:shadow-[0_8px_30px_rgba(255,255,255,0.05)] hover:scale-[1.02]"
           >
             <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-white/5 to-transparent blur-xl pointer-events-none" />
 
             <div className="flex items-center gap-4 relative z-10">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/8 bg-slate-950/40 group-hover:scale-105 transition-all duration-300">
-                <Car size={20} className="text-slate-350" />
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-sky-100 bg-sky-50/40 group-hover:scale-105 transition-all duration-300">
+                <Car size={20} className="text-slate-600" />
               </div>
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 font-mono">Monitoring</p>
-                <h3 className="mt-0.5 text-base font-extrabold text-white tracking-tight">Parked vehicles</h3>
+                <h3 className="mt-0.5 text-base font-extrabold text-slate-800 tracking-tight">Parked vehicles</h3>
                 <p className="text-xs text-slate-400 mt-0.5 font-medium">View parked vehicles (read-only)</p>
               </div>
             </div>
@@ -344,15 +344,15 @@ export function StaffDashboardPage() {
 
       {/* Banners */}
       {error && (
-        <div className="flex items-center gap-3 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-400">
+        <div className="flex items-center gap-3 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-600">
           <AlertTriangle size={16} className="shrink-0" /> {error}
         </div>
       )}
       {!loading && openIncidents.length > 0 && (
         <div className="flex items-start gap-3 rounded-2xl border border-rose-500/30 bg-rose-500/8 px-4 py-3.5 shadow-[0_0_15px_rgba(244,63,94,0.08)]">
-          <ShieldAlert size={16} className="mt-0.5 shrink-0 text-rose-400" />
+          <ShieldAlert size={16} className="mt-0.5 shrink-0 text-rose-600" />
           <div>
-            <p className="text-sm font-extrabold text-rose-300">
+            <p className="text-sm font-extrabold text-rose-700">
               {openIncidents.length} open incident{openIncidents.length > 1 ? 's' : ''}
             </p>
             <p className="text-xs text-slate-400 mt-0.5 font-medium">Go to the Incidents tab to view details and handle them promptly.</p>
@@ -363,15 +363,15 @@ export function StaffDashboardPage() {
       {/* Main grid */}
       <div className="grid gap-6 xl:grid-cols-2">
         {/* Today's shifts */}
-        <div className="rounded-3xl border border-white/8 bg-slate-900/40 p-6 backdrop-blur-md shadow-lg relative overflow-hidden">
+        <div className="rounded-3xl border border-sky-100 bg-white p-6 backdrop-blur-md shadow-sm relative overflow-hidden">
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-[radial-gradient(circle_at_center,rgba(20,184,166,0.03),transparent_60%)] pointer-events-none blur-2xl" />
 
           <div className="mb-5 flex items-center justify-between relative z-10">
             <div className="flex items-center gap-2">
-              <CalendarClock size={16} className="text-teal-400" />
-              <h2 className="text-sm font-bold text-white tracking-tight">Today's shift</h2>
+              <CalendarClock size={16} className="text-teal-600" />
+              <h2 className="text-sm font-bold text-slate-800 tracking-tight">Today's shift</h2>
             </div>
-            <span className="rounded-md border border-white/5 bg-slate-950/40 px-2 py-0.5 text-[11px] font-bold text-slate-400 font-mono">
+            <span className="rounded-md border border-sky-100 bg-sky-50/40 px-2 py-0.5 text-[11px] font-bold text-slate-400 font-mono">
               {loading ? '…' : todayShifts.length}
             </span>
           </div>
@@ -383,33 +383,33 @@ export function StaffDashboardPage() {
                 <Skeleton className="h-16 w-full rounded-2xl" />
               </>
             ) : todayShifts.length === 0 ? (
-              <div className="flex flex-col items-center gap-2.5 py-12 text-center border border-dashed border-white/5 rounded-2xl bg-slate-950/20">
-                <Circle size={28} className="text-slate-700 opacity-60" />
+              <div className="flex flex-col items-center gap-2.5 py-12 text-center border border-dashed border-sky-100 rounded-2xl bg-sky-50/20">
+                <Circle size={28} className="text-slate-300 opacity-60" />
                 <p className="text-sm text-slate-500 font-medium">No shifts today</p>
               </div>
             ) : (
               todayShifts.map((s) => (
                 <div
                   key={s._id}
-                  className="flex items-center gap-4 rounded-2xl border border-white/5 bg-slate-950/35 px-4 py-3.5 transition-all duration-300 hover:border-teal-500/10 hover:bg-slate-950/60"
+                  className="flex items-center gap-4 rounded-2xl border border-sky-100 bg-sky-50/30 px-4 py-3.5 transition-all duration-300 hover:border-teal-500/10 hover:bg-sky-50/50"
                 >
                   <div className="w-20 shrink-0 text-center">
-                    <p className="text-[11px] font-black tabular-nums text-teal-400 font-mono">
+                    <p className="text-[11px] font-black tabular-nums text-teal-600 font-mono">
                       {s.shift.startTime}
                     </p>
-                    <div className="mx-auto my-1.5 h-3.5 w-px bg-slate-800" />
+                    <div className="mx-auto my-1.5 h-3.5 w-px bg-slate-200" />
                     <p className="text-[11px] font-black tabular-nums text-slate-500 font-mono">
                       {s.shift.endTime}
                     </p>
                   </div>
-                  <div className="h-11 w-px shrink-0 bg-white/5" />
+                  <div className="h-11 w-px shrink-0 bg-slate-200" />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold text-slate-200">
+                    <p className="truncate text-sm font-bold text-slate-800">
                       {s.shift.code} — {s.shift.name}
                     </p>
                     <p className="mt-0.5 truncate text-xs text-slate-400 font-medium">{s.building.name}</p>
                     {s.gate ? (
-                      <p className="mt-1.5 inline-flex items-center gap-1 rounded-md border border-teal-500/20 bg-teal-500/10 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-teal-400 font-mono">
+                      <p className="mt-1.5 inline-flex items-center gap-1 rounded-md border border-teal-500/20 bg-teal-500/10 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-teal-600 font-mono">
                         <DoorOpen size={10} />
                         Gate {s.gate.code}
                         {s.gate.name ? ` · ${s.gate.name}` : ''}
@@ -431,15 +431,15 @@ export function StaffDashboardPage() {
         </div>
 
         {/* Parked vehicles */}
-        <div className="rounded-3xl border border-white/8 bg-slate-900/40 p-6 backdrop-blur-md shadow-lg relative overflow-hidden">
+        <div className="rounded-3xl border border-sky-100 bg-white p-6 backdrop-blur-md shadow-sm relative overflow-hidden">
           <div className="absolute bottom-0 right-0 w-48 h-48 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.03),transparent_60%)] pointer-events-none blur-2xl" />
 
           <div className="mb-5 flex items-center justify-between relative z-10">
             <div className="flex items-center gap-2">
-              <Car size={16} className="text-emerald-400" />
-              <h2 className="text-sm font-bold text-white tracking-tight">Parked vehicles</h2>
+              <Car size={16} className="text-emerald-600" />
+              <h2 className="text-sm font-bold text-slate-800 tracking-tight">Parked vehicles</h2>
             </div>
-            <span className="rounded-md border border-white/5 bg-slate-950/40 px-2 py-0.5 text-[11px] font-bold text-slate-400 font-mono">
+            <span className="rounded-md border border-sky-100 bg-sky-50/40 px-2 py-0.5 text-[11px] font-bold text-slate-400 font-mono">
               {loading ? '…' : activeSessions.length}
             </span>
           </div>
@@ -451,18 +451,18 @@ export function StaffDashboardPage() {
                 <Skeleton className="h-16 w-full rounded-2xl" />
               </>
             ) : activeSessions.length === 0 ? (
-              <div className="flex flex-col items-center gap-2.5 py-12 text-center border border-dashed border-white/5 rounded-2xl bg-slate-950/20">
-                <CheckCircle2 size={28} className="text-slate-700 opacity-60" />
+              <div className="flex flex-col items-center gap-2.5 py-12 text-center border border-dashed border-sky-100 rounded-2xl bg-sky-50/20">
+                <CheckCircle2 size={28} className="text-slate-300 opacity-60" />
                 <p className="text-sm text-slate-500 font-medium">No vehicles parked</p>
               </div>
             ) : (
               activeSessions.slice(0, 5).map((session) => (
                 <div
                   key={session._id}
-                  className="flex items-center gap-3 rounded-2xl border border-white/5 bg-slate-950/35 px-4 py-3.5 transition-all duration-300 hover:border-emerald-500/10 hover:bg-slate-950/60"
+                  className="flex items-center gap-3 rounded-2xl border border-sky-100 bg-sky-50/30 px-4 py-3.5 transition-all duration-300 hover:border-emerald-500/10 hover:bg-sky-50/50"
                 >
                   <div className="flex h-9 min-w-[90px] items-center justify-center rounded-xl border border-amber-500/20 bg-amber-500/5 px-2.5 shadow-[0_0_10px_rgba(245,158,11,0.05)]">
-                    <span className="font-mono text-xs font-black tracking-widest text-amber-300">
+                    <span className="font-mono text-xs font-black tracking-widest text-amber-700">
                       {session.plateNumber}
                     </span>
                   </div>
@@ -471,7 +471,7 @@ export function StaffDashboardPage() {
                       {session.entryGate?.name ?? session.entryGate?.code ?? '—'}
                       {session.vehicleType ? ` · ${session.vehicleType.name}` : ''}
                     </p>
-                    <p className="mt-1.5 text-xs font-bold text-orange-300">
+                    <p className="mt-1.5 text-xs font-bold text-sky-600">
                       {formatSlotLocation(session)}
                     </p>
                     <p className="mt-0.5 text-[11px] text-slate-500 font-mono">

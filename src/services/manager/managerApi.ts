@@ -61,6 +61,8 @@ export interface Zone {
   vehicleType: VehicleType | string;
   usageType: ZoneUsageType;
   capacity?: number;
+  /** Number of slots currently in this zone (server-computed). */
+  slotCount?: number;
   status: 'active' | 'inactive' | 'maintenance';
 }
 

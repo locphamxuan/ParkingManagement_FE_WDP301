@@ -49,6 +49,8 @@ export interface ParkingSession {
   status: 'active' | 'completed' | 'cancelled';
   note?: string | null;
   reservation?: { _id: string; code?: string; estimatedFee?: number; fee?: number } | null;
+  isReservation?: boolean;
+  reservationRemainingFee?: number;
 }
 
 export interface StaffReservation {
@@ -377,6 +379,8 @@ export const staffApi = {
 
     /** Vehicles checked in by entry-gate staff today. */
     myCheckins: (buildingId: string) =>
+      api.get<Wrap<{ items: Array<{ _id: string; plateNumber: string; entryTime: string; entryGate?: { code: string; name?: string } | null; slot?: { code: string } | null; vehicleType?: { name: string } | null }> }>>('/staff/parking-sessions/my-checkins', { query: { building: buildingId } }),
+    myCheckIns: (buildingId: string) =>
       api.get<Wrap<{ items: Array<{ _id: string; plateNumber: string; entryTime: string; entryGate?: { code: string; name?: string } | null; slot?: { code: string } | null; vehicleType?: { name: string } | null }> }>>('/staff/parking-sessions/my-checkins', { query: { building: buildingId } }),
   },
 

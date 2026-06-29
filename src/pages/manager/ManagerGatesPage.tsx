@@ -9,9 +9,9 @@ import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { managerApi, type Gate } from '@/services/manager/managerApi';
 
 const directionLabel: Record<Gate['direction'], string> = {
-  in: 'Entry gate',
-  out: 'Exit gate',
-  both: 'Two-way',
+  in: 'Cổng vào',
+  out: 'Cổng ra',
+  both: 'Hai chiều',
 };
 
 const directionIcon: Record<Gate['direction'], React.ReactNode> = {
@@ -22,9 +22,9 @@ const directionIcon: Record<Gate['direction'], React.ReactNode> = {
 
 const GATE_STATUSES: Gate['status'][] = ['active', 'inactive', 'maintenance'];
 const statusLabel: Record<Gate['status'], string> = {
-  active: 'Active',
-  inactive: 'Suspended',
-  maintenance: 'Maintenance',
+  active: 'Hoạt động',
+  inactive: 'Tạm ngưng',
+  maintenance: 'Bảo trì',
 };
 
 interface GateForm {
@@ -56,7 +56,7 @@ export function ManagerGatesPage() {
       setItems(gates.data.items);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load');
+      setError(err instanceof Error ? err.message : 'Tải thất bại');
     } finally {
       setLoading(false);
     }
@@ -86,7 +86,7 @@ export function ManagerGatesPage() {
     try {
       await managerApi.gates.updateStatus(buildingId, row._id, status);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to update status');
+      alert(err instanceof Error ? err.message : 'Cập nhật trạng thái thất bại');
       refresh();
     } finally {
       setSavingId(null);
@@ -97,7 +97,7 @@ export function ManagerGatesPage() {
     e.preventDefault();
     setFormError(null);
     if (!form.code.trim()) {
-      setFormError('Please enter the gate code');
+      setFormError('Vui lòng nhập mã cổng');
       return;
     }
     setSubmitting(true);
@@ -117,28 +117,28 @@ export function ManagerGatesPage() {
       setEditing(null);
       refresh();
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Save failed');
+      setFormError(err instanceof Error ? err.message : 'Lưu thất bại');
     } finally {
       setSubmitting(false);
     }
   };
 
   const onDelete = async (row: Gate) => {
-    if (!window.confirm(`Delete gate ${row.code}?`)) return;
+    if (!window.confirm(`Xóa cổng ${row.code}?`)) return;
     try {
       await managerApi.gates.remove(buildingId, row._id);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Delete failed');
+      alert(err instanceof Error ? err.message : 'Xóa thất bại');
     }
   };
 
   const columns: DataColumn<Gate>[] = [
-    { key: 'code', title: 'Code' },
-    { key: 'name', title: 'Name', render: (row) => row.name || '—' },
+    { key: 'code', title: 'Mã' },
+    { key: 'name', title: 'Tên', render: (row) => row.name || '—' },
     {
       key: 'direction',
-      title: 'Gate type',
+      title: 'Loại cổng',
       render: (row) => (
         <span className="inline-flex items-center gap-1.5 text-sm">
           {directionIcon[row.direction]} {directionLabel[row.direction]}
@@ -147,7 +147,7 @@ export function ManagerGatesPage() {
     },
     {
       key: 'status',
-      title: 'Status',
+      title: 'Trạng thái',
       render: (row) => (
         <CustomSelect
           value={row.status}
@@ -181,88 +181,98 @@ export function ManagerGatesPage() {
     <div className="grid gap-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Entry / exit gate</h1>
-          <p className="text-sm text-muted-foreground">Create a gate and choose its type: entry, exit or two-way.</p>
+          <h1 className="text-2xl font-bold">Cổng ra / vào</h1>
+          <p className="text-sm text-muted-foreground">Tạo cổng và chọn thể loại: cổng vào, cổng ra hoặc hai chiều.</p>
         </div>
         <Button onClick={openCreate} className="gap-2" disabled={loading}>
-          <Plus size={16} />Add gate</Button>
+          <Plus size={16} /> Thêm cổng
+        </Button>
       </div>
 
       {loading ? (
-        <div className="text-sm text-muted-foreground">Loading...</div>
+        <div className="text-sm text-muted-foreground">Đang tải...</div>
       ) : error ? (
         <div className="text-sm text-red-600">{error}</div>
       ) : items.length === 0 ? (
-        <div className="rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">No gates yet. Click "Add gate" to create one.</div>
+        <div className="rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+          Chưa có cổng nào. Nhấn “Thêm cổng” để tạo.
+        </div>
       ) : (
-        <DataTable title="Entry / exit gate" rows={items} columns={columns} />
+        <DataTable title="Cổng ra / vào" rows={items} columns={columns} />
       )}
 
-      <Modal 
-        isOpen={modalOpen} 
-        onClose={() => !submitting && setModalOpen(false)}
-        title={editing ? 'Edit gate' : 'Add gate'}
-      >
-        <form onSubmit={onSubmit} className="grid gap-4 max-h-[68vh] overflow-y-auto pr-1 pb-2 custom-scrollbar">
-          <div className="grid gap-2">
-            <label className="text-xs uppercase text-slate-500 font-bold tracking-wider font-mono">Gate code<span className="text-red-500">*</span></label>
-            <Input
-              value={form.code}
-              onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
-              placeholder="e.g. IN, OUT, G1"
-              disabled={submitting}
-            />
+      <Modal isOpen={modalOpen} onClose={() => !submitting && setModalOpen(false)}>
+        <div className="w-full max-w-md rounded-lg bg-card p-6 shadow-lg">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-foreground">{editing ? 'Sửa cổng' : 'Thêm cổng'}</h2>
+            <button onClick={() => !submitting && setModalOpen(false)} className="text-muted-foreground hover:text-foreground">
+              <X size={20} />
+            </button>
           </div>
 
-          <div className="grid gap-2">
-            <label className="text-xs uppercase text-slate-500 font-bold tracking-wider font-mono">Gate name</label>
-            <Input
-              value={form.name}
-              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              placeholder="e.g. Main entrance gate"
-              disabled={submitting}
-            />
-          </div>
+          <form onSubmit={onSubmit} className="grid gap-4">
+            <div className="grid gap-2">
+              <label className="text-sm font-medium text-foreground">Mã cổng <span className="text-red-500">*</span></label>
+              <Input
+                value={form.code}
+                onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
+                placeholder="VD: IN, OUT, G1"
+                disabled={submitting}
+              />
+            </div>
 
-          <div className="grid gap-2">
-            <label className="text-xs uppercase text-slate-500 font-bold tracking-wider font-mono">Gate type<span className="text-red-500">*</span></label>
-            <CustomSelect
-              value={form.direction}
-              onChange={(val) => setForm((f) => ({ ...f, direction: val as Gate['direction'] }))}
-              options={[
-                { value: 'in', label: 'Entry gate' },
-                { value: 'out', label: 'Exit gate' },
-                { value: 'both', label: 'Two-way' },
-              ]}
-              disabled={submitting}
-            />
-          </div>
+            <div className="grid gap-2">
+              <label className="text-sm font-medium text-foreground">Tên cổng</label>
+              <Input
+                value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                placeholder="VD: Cổng vào chính"
+                disabled={submitting}
+              />
+            </div>
 
-          <div className="grid gap-2">
-            <label className="text-xs uppercase text-slate-500 font-bold tracking-wider font-mono">Status</label>
-            <CustomSelect
-              value={form.status}
-              onChange={(val) => setForm((f) => ({ ...f, status: val as Gate['status'] }))}
-              options={GATE_STATUSES.map((s) => ({
-                value: s,
-                label: statusLabel[s],
-              }))}
-              disabled={submitting}
-            />
-          </div>
+            <div className="grid gap-2">
+              <label className="text-sm font-medium text-foreground">Thể loại cổng <span className="text-red-500">*</span></label>
+              <CustomSelect
+                value={form.direction}
+                onChange={(val) => setForm((f) => ({ ...f, direction: val as Gate['direction'] }))}
+                options={[
+                  { value: 'in', label: 'Cổng vào' },
+                  { value: 'out', label: 'Cổng ra' },
+                  { value: 'both', label: 'Hai chiều' },
+                ]}
+                disabled={submitting}
+              />
+            </div>
 
-          {formError && (
-            <div className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700 border border-rose-200">{formError}</div>
-          )}
+            <div className="grid gap-2">
+              <label className="text-sm font-medium text-foreground">Trạng thái</label>
+              <CustomSelect
+                value={form.status}
+                onChange={(val) => setForm((f) => ({ ...f, status: val as Gate['status'] }))}
+                options={GATE_STATUSES.map((s) => ({
+                  value: s,
+                  label: statusLabel[s],
+                }))}
+                disabled={submitting}
+              />
+            </div>
 
-          <div className="flex gap-3 pt-4 border-t border-sky-100/50 mt-2">
-            <Button type="button" variant="secondary" onClick={() => setModalOpen(false)} disabled={submitting} className="flex-1 rounded-xl text-xs font-bold">Cancel</Button>
-            <Button type="submit" disabled={submitting} className="flex-1 gap-2 rounded-xl text-xs font-bold">
-              {submitting && <Loader size={14} className="animate-spin" />}
-              {submitting ? 'Saving...' : editing ? 'Update' : 'Add gate'}
-            </Button>
-          </div>
-        </form>
+            {formError && (
+              <div className="rounded-md bg-red-50 p-3 text-sm text-red-600 border border-red-200">{formError}</div>
+            )}
+
+            <div className="flex gap-3 pt-2">
+              <Button type="button" variant="outline" onClick={() => setModalOpen(false)} disabled={submitting} className="flex-1">
+                Hủy
+              </Button>
+              <Button type="submit" disabled={submitting} className="flex-1 gap-2">
+                {submitting && <Loader size={16} className="animate-spin" />}
+                {submitting ? 'Đang lưu...' : editing ? 'Cập nhật' : 'Thêm cổng'}
+              </Button>
+            </div>
+          </form>
+        </div>
       </Modal>
     </div>
   );

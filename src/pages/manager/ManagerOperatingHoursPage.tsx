@@ -39,15 +39,15 @@ export function ManagerOperatingHoursPage() {
   const handleSave = async () => {
     setNotice(null);
     if (open === close) {
-      setNotice({ type: 'err', text: 'Opening and closing times must not be the same.' });
+      setNotice({ type: 'err', text: 'Giờ mở và giờ đóng không được trùng nhau.' });
       return;
     }
     setSaving(true);
     try {
       await managerApi.updateOperatingHours(buildingId, { open, close });
-      setNotice({ type: 'ok', text: 'Operating hours updated. Customers will see the open/closed status based on these hours.' });
+      setNotice({ type: 'ok', text: 'Đã cập nhật giờ hoạt động. Khách hàng sẽ thấy trạng thái mở/đóng theo giờ này.' });
     } catch (err) {
-      setNotice({ type: 'err', text: err instanceof Error ? err.message : 'Update failed.' });
+      setNotice({ type: 'err', text: err instanceof Error ? err.message : 'Cập nhật thất bại.' });
     } finally {
       setSaving(false);
     }
@@ -58,57 +58,57 @@ export function ManagerOperatingHoursPage() {
       <div className="flex items-center gap-2">
         <Clock size={18} className="text-primary" />
         <div>
-          <h1 className="text-xl font-bold text-foreground">Operating hours</h1>
+          <h1 className="text-xl font-bold text-foreground">Giờ hoạt động</h1>
           <p className="text-sm text-muted-foreground">
-            Set the building open and close times. Outside this window, customers see "closed".
+            Đặt giờ mở cửa và đóng cửa của tòa nhà. Ngoài khung giờ này, khách hàng sẽ thấy “đang đóng cửa”.
           </p>
         </div>
       </div>
 
       {/* Live status preview */}
-      <Card className={openNow ? 'border-emerald-200 bg-emerald-50/50' : 'border-rose-200 bg-rose-50/50'}>
+      <Card className={openNow ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-rose-500/30 bg-rose-500/5'}>
         <CardContent className="flex items-center gap-3 p-5">
-          {openNow ? <DoorOpen size={24} className="text-emerald-600" /> : <DoorClosed size={24} className="text-rose-600" />}
+          {openNow ? <DoorOpen size={24} className="text-emerald-400" /> : <DoorClosed size={24} className="text-rose-400" />}
           <div>
-            <p className={`text-base font-bold ${openNow ? 'text-emerald-700' : 'text-rose-700'}`}>
-              {openNow ? 'Currently open' : 'Currently closed'}
+            <p className={`text-base font-bold ${openNow ? 'text-emerald-400' : 'text-rose-400'}`}>
+              {openNow ? 'Hiện đang mở cửa' : 'Hiện đang đóng cửa'}
             </p>
             <p className="text-xs text-muted-foreground">
-              {building ? `${building.code} · ${building.name}` : ''} · Time slots: {open} – {close}
+              {building ? `${building.code} · ${building.name}` : ''} · Khung giờ: {open} – {close}
             </p>
           </div>
         </CardContent>
       </Card>
 
-      <Card className="border border-sky-100 shadow-sm">
-        <CardHeader className="pb-3 border-b border-sky-100/50">
-          <CardTitle className="text-sm text-slate-800">Configure opening / closing hours</CardTitle>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">Cấu hình giờ mở / đóng cửa</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4 pt-5">
+        <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-1.5">
-              <label className="text-xs uppercase tracking-[0.18em] text-slate-500 font-bold">Opening hours</label>
+              <label className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Giờ mở cửa</label>
               <TimePicker value={open} onChange={setOpen} />
             </div>
             <div className="grid gap-1.5">
-              <label className="text-xs uppercase tracking-[0.18em] text-slate-500 font-bold">Closing time</label>
+              <label className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Giờ đóng cửa</label>
               <TimePicker value={close} onChange={setClose} />
             </div>
           </div>
 
-          <p className="text-[11px] text-slate-400 font-medium">
-            Tip: if the lot is open overnight (e.g. open 22:00, close 06:00 next day), the system treats it as an overnight window.
+          <p className="text-[11px] text-muted-foreground">
+            Mẹo: nếu bãi mở qua đêm (ví dụ mở 22:00, đóng 06:00 hôm sau), hệ thống tự hiểu là khung giờ qua ngày.
           </p>
 
           {notice && (
-            <div className={`rounded-xl border px-3 py-2 text-sm font-bold ${notice.type === 'ok' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-rose-200 bg-rose-50 text-rose-700'}`}>
+            <div className={`rounded-lg border px-3 py-2 text-sm ${notice.type === 'ok' ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-600' : 'border-rose-500/25 bg-rose-500/10 text-rose-500'}`}>
               {notice.text}
             </div>
           )}
 
-          <Button onClick={handleSave} disabled={saving} className="gap-2 rounded-xl text-xs font-bold">
-            {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-            {saving ? 'Saving...' : 'Save operating hours'}
+          <Button onClick={handleSave} disabled={saving} className="gap-2">
+            {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
+            {saving ? 'Đang lưu...' : 'Lưu giờ hoạt động'}
           </Button>
         </CardContent>
       </Card>

@@ -6,13 +6,13 @@ import { ManagerStaffShiftsPage } from '@/pages/manager/ManagerStaffShiftsPage';
 type Tab = 'shifts' | 'assign';
 
 const TABS: { value: Tab; label: string; icon: React.ElementType }[] = [
-  { value: 'shifts', label: 'Shift', icon: CalendarClock },
-  { value: 'assign', label: 'Assign shifts to staff', icon: Users },
+  { value: 'shifts', label: 'Ca trực', icon: CalendarClock },
+  { value: 'assign', label: 'Gán ca cho nhân viên', icon: Users },
 ];
 
 /**
- * Combined "Shifts & Assignments" tab — define shifts and assign staff
- * to shifts (with assigned gate) on a single page.
+ * Combined "Ca trực & Gán ca" tab — định nghĩa ca trực và phân công nhân viên
+ * vào ca (kèm cổng phụ trách) trong cùng một trang.
  */
 export function ManagerShiftManagementPage() {
   const [tab, setTab] = useState<Tab>('shifts');
@@ -20,8 +20,10 @@ export function ManagerShiftManagementPage() {
   return (
     <div className="grid gap-5">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Shifts &amp; Assignments</h1>
-        <p className="text-sm text-muted-foreground">Manage shifts and assign staff to them (with their assigned gate).</p>
+        <h1 className="text-2xl font-bold text-foreground">Ca trực &amp; Gán ca</h1>
+        <p className="text-sm text-muted-foreground">
+          Quản lý danh sách ca trực và phân công nhân viên vào ca (kèm cổng phụ trách).
+        </p>
       </div>
 
       {/* Sub-tabs */}

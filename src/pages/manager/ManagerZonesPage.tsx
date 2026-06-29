@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { Pencil, Plus, Trash2, LayoutGrid, Layers, ShieldCheck, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DataTable, type DataColumn } from '@/components/common/DataTable';
-import { StatusBadge } from '@/components/common/StatusBadge';
 import { ModalForm } from '@/components/modals/ModalForm';
 import { CustomSelect } from '@/components/ui/select';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
@@ -68,7 +68,7 @@ export function ManagerZonesPage() {
       setVehicleTypes(vtRes.data.items);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load');
+      setError(err instanceof Error ? err.message : 'Tải dữ liệu thất bại');
     } finally {
       setLoading(false);
     }
@@ -90,9 +90,6 @@ export function ManagerZonesPage() {
     return map;
   }, [vehicleTypes]);
 
-  // Vehicle types selectable for a zone are limited to the SELECTED FLOOR's
-  // allowedVehicleTypes (manager-configured on the floor). If the floor lists none,
-  // fall back to all of the building's vehicle types (floor unrestricted).
   const vtOptions = useMemo(() => {
     const floor = floorMap.get(form.floor);
     const allowed = (floor?.allowedVehicleTypes ?? []) as Array<VehicleType | string>;
@@ -103,12 +100,10 @@ export function ManagerZonesPage() {
     return list.map((v) => ({ value: v._id, label: `${v.code} — ${v.name}` }));
   }, [form.floor, floorMap, vehicleTypes]);
 
-  // Remaining slot budget on the selected floor = floor.capacity − sum of OTHER zones'
-  // capacity on that floor. Best-effort hint (the backend is the source of truth).
   const floorBudget = useMemo(() => {
     if (!form.floor) return null;
     const floorCap = Number(floorMap.get(form.floor)?.capacity ?? 0);
-    if (floorCap <= 0) return null; // floor unlimited → no budget shown
+    if (floorCap <= 0) return null;
     const used = items
       .filter(
         (z) =>
@@ -140,8 +135,8 @@ export function ManagerZonesPage() {
   };
 
   const onSubmit = async () => {
-    if (!form.floor) return alert('Please select a floor');
-    if (!form.vehicleType) return alert('Please select a vehicle type');
+    if (!form.floor) return alert('Vui lòng chọn tầng');
+    if (!form.vehicleType) return alert('Vui lòng chọn loại xe');
     const body = {
       floor: form.floor,
       code: form.code.trim().toUpperCase(),
@@ -160,77 +155,131 @@ export function ManagerZonesPage() {
       setModalOpen(false);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Save failed');
+      alert(err instanceof Error ? err.message : 'Lưu thất bại');
     }
   };
 
   const onDelete = async (row: Zone) => {
-    if (!window.confirm(`Delete zone ${row.code}? The zone must have no slots.`)) return;
+    if (!window.confirm(`Xóa dãy ${row.code}? Dãy này phải không chứa ô đỗ nào.`)) return;
     try {
       await managerApi.zones.remove(buildingId, row._id);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Delete failed');
+      alert(err instanceof Error ? err.message : 'Xóa thất bại');
     }
   };
 
+  // Status Badge Component
+  const ZoneStatusBadge = ({ status }: { status: Zone['status'] }) => {
+    const config = {
+      active: { bg: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400', label: 'Hoạt động', dot: 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]' },
+      inactive: { bg: 'bg-rose-500/10 border-rose-500/30 text-rose-400', label: 'Tạm khóa', dot: 'bg-rose-400 shadow-[0_0_8px_rgba(248,113,113,0.5)]' },
+      maintenance: { bg: 'bg-amber-500/10 border-amber-500/30 text-amber-400', label: 'Bảo trì', dot: 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]' },
+    }[status] || { bg: 'bg-slate-500/10 border-slate-500/30 text-slate-400', label: 'Không rõ', dot: 'bg-slate-400' };
+
+    return (
+      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-black uppercase tracking-wider font-mono ${config.bg}`}>
+        <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
+        {config.label}
+      </span>
+    );
+  };
+
   const columns: DataColumn<Zone>[] = [
-    { key: 'code', title: 'Zone code' },
-    { key: 'name', title: 'Name', render: (r) => r.name || '—' },
+    {
+      key: 'code',
+      title: 'Mã dãy',
+      render: (r) => (
+        <span className="font-mono text-sm font-black tracking-wider text-slate-100">{r.code}</span>
+      ),
+    },
+    { key: 'name', title: 'Tên dãy', render: (r) => <span className="font-semibold text-slate-200">{r.name || '—'}</span> },
     {
       key: 'floor',
-      title: 'Floor',
+      title: 'Tầng',
       render: (r) => {
         const id = typeof r.floor === 'string' ? r.floor : r.floor._id;
-        return floorMap.get(id)?.code ?? '?';
+        return (
+          <span className="inline-flex items-center gap-1.5 font-mono text-xs font-bold text-sky-400">
+            <Layers size={12} />
+            {floorMap.get(id)?.code ?? '?'}
+          </span>
+        );
       },
     },
     {
       key: 'vehicleType',
-      title: 'Vehicle type',
+      title: 'Loại xe cho phép',
       render: (r) => {
         const id = typeof r.vehicleType === 'string' ? r.vehicleType : r.vehicleType._id;
         const vt = vtMap.get(id);
-        return vt ? `${vt.code} — ${vt.name}` : '?';
+        return vt ? (
+          <span className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 border border-white/5 px-2.5 py-1 text-xs font-bold text-slate-300">
+            {vt.name}
+          </span>
+        ) : '?';
       },
     },
     {
       key: 'usageType',
-      title: 'Usage',
+      title: 'Đối tượng sử dụng',
       render: (r) => (
-        <span className="inline-block rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+        <span className="inline-flex items-center gap-1 bg-sky-500/10 border border-sky-500/20 text-sky-400 px-2.5 py-1 rounded-xl text-xs font-bold">
           {ZONE_USAGE_LABELS[r.usageType]}
         </span>
       ),
     },
     {
       key: 'capacity',
-      title: 'Slots / Capacity',
+      title: 'Sức chứa / Đã dùng',
       render: (r) => {
         const used = r.slotCount ?? 0;
         const cap = r.capacity ?? 0;
-        const full = cap > 0 && used >= cap;
+        const percent = cap > 0 ? Math.min(100, (used / cap) * 100) : 0;
         return (
-          <span className={full ? 'font-semibold text-amber-600' : ''}>
-            {used}/{cap}{full ? ' (full)' : ''}
-          </span>
+          <div className="flex flex-col gap-1.5 min-w-[120px]">
+            <div className="flex justify-between text-xs font-bold font-mono">
+              <span className={percent >= 100 ? 'text-amber-400' : 'text-slate-300'}>
+                {used} / {cap} ô
+              </span>
+              <span className="text-slate-400 text-[10px]">{Math.round(percent)}%</span>
+            </div>
+            <div className="w-full h-1.5 rounded-full bg-slate-900 border border-white/5 overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${
+                  percent >= 100 ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.5)]'
+                }`}
+                style={{ width: `${percent}%` }}
+              />
+            </div>
+          </div>
         );
       },
     },
     {
       key: 'status',
-      title: 'Status',
-      render: (r) => <StatusBadge status={r.status} />,
+      title: 'Trạng thái',
+      render: (r) => <ZoneStatusBadge status={r.status} />,
     },
     {
       key: 'actions',
       title: '',
       render: (row) => (
-        <div className="flex gap-1">
-          <Button size="sm" variant="ghost" onClick={() => openEdit(row)}>
+        <div className="flex gap-1 justify-end">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => openEdit(row)}
+            className="h-8 w-8 rounded-lg p-0 text-slate-400 hover:bg-white/5 hover:text-white"
+          >
             <Pencil size={14} />
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => onDelete(row)}>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => onDelete(row)}
+            className="h-8 w-8 rounded-lg p-0 text-slate-400 hover:bg-rose-500/10 hover:text-rose-400"
+          >
             <Trash2 size={14} />
           </Button>
         </div>
@@ -238,58 +287,142 @@ export function ManagerZonesPage() {
     },
   ];
 
+  // Quick stats
+  const stats = useMemo(() => {
+    const total = items.length;
+    const active = items.filter(z => z.status === 'active').length;
+    const totalCapacity = items.reduce((sum, z) => sum + (z.capacity ?? 0), 0);
+    const totalUsed = items.reduce((sum, z) => sum + (z.slotCount ?? 0), 0);
+    return { total, active, totalCapacity, totalUsed };
+  }, [items]);
+
   return (
-    <div className="grid gap-4">
-      <div className="flex items-center justify-between gap-3">
-        <CustomSelect
-          value={floorFilter}
-          onChange={setFloorFilter}
-          options={[{ value: '', label: 'All floors' }, ...floors.map((f) => ({ value: f._id, label: f.code }))]}
-          className="w-44"
-        />
-        <Button onClick={openCreate} className="gap-2">
-          <Plus size={14} />Add zone
+    <div className="space-y-6">
+      {/* Overview Cards */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="glass-panel-dark border border-white/10 rounded-2xl p-4 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 shadow-inner">
+            <LayoutGrid size={22} />
+          </div>
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 font-mono">Tổng số dãy</p>
+            <p className="text-2xl font-black text-slate-100 mt-0.5 font-mono">{stats.total}</p>
+          </div>
+        </div>
+
+        <div className="glass-panel-dark border border-white/10 rounded-2xl p-4 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shadow-inner">
+            <CheckCircle2 size={22} />
+          </div>
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 font-mono">Dãy hoạt động</p>
+            <p className="text-2xl font-black text-slate-100 mt-0.5 font-mono">{stats.active}</p>
+          </div>
+        </div>
+
+        <div className="glass-panel-dark border border-white/10 rounded-2xl p-4 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shadow-inner">
+            <ShieldCheck size={22} />
+          </div>
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 font-mono">Tổng ô đỗ tối đa</p>
+            <p className="text-2xl font-black text-slate-100 mt-0.5 font-mono">{stats.totalCapacity}</p>
+          </div>
+        </div>
+
+        <div className="glass-panel-dark border border-white/10 rounded-2xl p-4 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shadow-inner">
+            <Layers size={22} />
+          </div>
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 font-mono">Ô đỗ đã thiết lập</p>
+            <p className="text-2xl font-black text-slate-100 mt-0.5 font-mono">
+              {stats.totalUsed} <span className="text-xs font-bold text-slate-400">/ {stats.totalCapacity}</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Filter and Action Bar */}
+      <div className="glass-panel-dark border border-white/10 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-black uppercase tracking-wider text-slate-400 font-mono hidden sm:inline">Lọc:</span>
+          <CustomSelect
+            value={floorFilter}
+            onChange={setFloorFilter}
+            options={[{ value: '', label: 'Tất cả các tầng' }, ...floors.map((f) => ({ value: f._id, label: `Tầng ${f.code}` }))]}
+            className="w-48 bg-slate-950/40 border-white/10 text-white rounded-xl"
+            placeholder="Lọc theo tầng..."
+          />
+        </div>
+
+        <Button
+          onClick={openCreate}
+          className="bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl px-4 py-2.5 flex items-center gap-2 shadow-lg shadow-sky-500/20 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+        >
+          <Plus size={16} />
+          Thêm dãy mới
         </Button>
       </div>
 
-      {loading ? (
-        <div className="text-sm text-muted-foreground">Loading...</div>
-      ) : error ? (
-        <div className="text-sm text-red-600">{error}</div>
-      ) : (
-        <DataTable title={`Zones (${items.length})`} rows={items} columns={columns} />
-      )}
+      {/* Main Table */}
+      <div className="glass-panel-dark border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+        {loading ? (
+          <div className="p-8 text-center text-sm text-slate-400 font-medium flex flex-col items-center justify-center gap-3">
+            <div className="w-6 h-6 rounded-full border-2 border-sky-500/20 border-t-sky-500 animate-spin" />
+            Đang tải danh sách dãy...
+          </div>
+        ) : error ? (
+          <div className="p-8 text-center text-sm text-rose-400 font-medium flex items-center justify-center gap-2">
+            <XCircle size={16} />
+            {error}
+          </div>
+        ) : (
+          <DataTable title={`Danh sách dãy đỗ (${items.length})`} rows={items} columns={columns} />
+        )}
+      </div>
 
-      <ModalForm open={modalOpen} onOpenChange={setModalOpen} title={editing ? 'Edit zone' : 'Add zone'} onSubmit={onSubmit}>
-        <div className="grid gap-3 md:grid-cols-2">
+      {/* Modal Form */}
+      <ModalForm
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        title={editing ? 'Cấu hình dãy đỗ' : 'Tạo dãy đỗ mới'}
+        onSubmit={onSubmit}
+      >
+        <div className="grid gap-4 md:grid-cols-2 text-slate-100">
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Floor</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Tầng *</label>
             <CustomSelect
               value={form.floor}
               onChange={(val) => setForm((f) => ({ ...f, floor: val, vehicleType: '' }))}
-              options={[{ value: '', label: 'Select floor' }, ...floors.map((fl) => ({ value: fl._id, label: fl.code }))]}
-              placeholder="Select floor..."
+              options={[{ value: '', label: 'Chọn tầng đỗ' }, ...floors.map((fl) => ({ value: fl._id, label: `Tầng ${fl.code}` }))]}
+              placeholder="Chọn tầng..."
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Zone code</label>
-            <Input value={form.code} onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))} placeholder="e.g. A, B1" />
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Mã dãy *</label>
+            <Input
+              value={form.code}
+              onChange={(e) => setForm((f) => ({ ...f, code: e.target.value.toUpperCase() }))}
+              placeholder="Ví dụ: A, B, C1"
+              className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-sky-500/40"
+            />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Vehicle type</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Loại xe *</label>
             <CustomSelect
               value={form.vehicleType}
               onChange={(val) => setForm((f) => ({ ...f, vehicleType: val }))}
-              options={[{ value: '', label: 'Select vehicle type' }, ...vtOptions]}
-              placeholder="Select vehicle type..."
+              options={[{ value: '', label: 'Chọn loại xe đỗ' }, ...vtOptions]}
+              placeholder="Chọn loại xe..."
               disabled={!form.floor}
             />
-            <p className="text-[11px] text-muted-foreground">
-              {form.floor ? "Only vehicle types allowed on the selected floor." : 'Select a floor first.'}
+            <p className="text-[10px] text-slate-400 font-medium">
+              {form.floor ? 'Chỉ gồm các loại xe được khai báo ở tầng đã chọn.' : 'Vui lòng chọn tầng trước.'}
             </p>
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Usage</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Đối tượng sử dụng *</label>
             <CustomSelect
               value={form.usageType}
               onChange={(val) => setForm((f) => ({ ...f, usageType: val as ZoneUsageType }))}
@@ -297,24 +430,39 @@ export function ManagerZonesPage() {
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Name (optional)</label>
-            <Input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Tên dãy (Tùy chọn)</label>
+            <Input
+              value={form.name}
+              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              placeholder="Ví dụ: Dãy xe máy tầng 1"
+              className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-sky-500/40"
+            />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Capacity</label>
-            <Input type="number" min={1} value={form.capacity} onChange={(e) => setForm((f) => ({ ...f, capacity: e.target.value }))} />
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Sức chứa dãy (ô đỗ) *</label>
+            <Input
+              type="number"
+              min={1}
+              value={form.capacity}
+              onChange={(e) => setForm((f) => ({ ...f, capacity: e.target.value }))}
+              className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-sky-500/40"
+            />
             {floorBudget && (
-              <p className="text-[11px] text-muted-foreground">
-                Floor budget: {floorBudget.used}/{floorBudget.floorCap} allocated · <strong>{floorBudget.remaining}</strong> remaining
+              <p className="text-[10px] text-slate-400 font-medium flex items-center gap-1">
+                <AlertTriangle size={12} className="text-amber-400" />
+                Ngân sách tầng: Đã chia {floorBudget.used}/{floorBudget.floorCap} ô. Còn lại: <strong>{floorBudget.remaining} ô</strong>.
               </p>
             )}
           </div>
           <div className="grid gap-1.5 md:col-span-2">
-            <label className="text-xs uppercase text-muted-foreground">Status</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Trạng thái dãy</label>
             <CustomSelect
               value={form.status}
               onChange={(val) => setForm((f) => ({ ...f, status: val as Zone['status'] }))}
-              options={ZONE_STATUSES.map((s) => ({ value: s, label: s === 'active' ? 'Active' : s === 'inactive' ? 'Inactive' : 'Maintenance' }))}
+              options={ZONE_STATUSES.map((s) => ({
+                value: s,
+                label: s === 'active' ? 'Hoạt động' : s === 'inactive' ? 'Khóa tạm thời' : 'Bảo trì',
+              }))}
             />
           </div>
         </div>

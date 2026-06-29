@@ -239,12 +239,21 @@ const path = (buildingId: string, suffix: string) =>
 export const managerApi = {
   listAssignedBuildings: () =>
     api.get<Wrap<ManagerBuilding[] | { items: ManagerBuilding[] }>>('/manager/buildings'),
+  updateBuilding: (buildingId: string, body: Partial<ManagerBuilding>) =>
+    api.put<Wrap<{ building: ManagerBuilding }>>(`/manager/buildings/${buildingId}`, body),
   /** Update only the building open/close hours (dedicated tab). */
   updateOperatingHours: (buildingId: string, body: { open: string; close: string }) =>
     api.put<Wrap<{ building: ManagerBuilding }>>(path(buildingId, '/operating-hours'), body),
 
   getDashboard: (buildingId: string) =>
     api.get<Wrap<DashboardOverview>>(path(buildingId, '/dashboard')),
+
+  feedbacks: {
+    list: (b: string, q?: Record<string, string | undefined>) =>
+      api.get<Wrap<{ items: any[] }>>(path(b, '/feedbacks'), { query: q }),
+    respond: (b: string, id: string, body: { staffReply: string; status: 'resolved' }) =>
+      api.put<Wrap<{ item: any }>>(path(b, `/feedbacks/${id}/respond`), body),
+  },
 
   vehicleTypes: {
     list: (b: string) => api.get<Wrap<{ items: VehicleType[] }>>(path(b, '/vehicle-types')),

@@ -6,21 +6,21 @@ import { ManagerSubscriptionsPage } from '@/pages/manager/ManagerSubscriptionsPa
 type Tab = 'packages' | 'subscribers';
 
 const TABS: { key: Tab; label: string; icon: typeof Package }[] = [
-  { key: 'packages', label: 'Package list', icon: Package },
-  { key: 'subscribers', label: 'Subscribers', icon: Users },
+  { key: 'packages', label: 'Danh sách gói', icon: Package },
+  { key: 'subscribers', label: 'Khách đăng ký', icon: Users },
 ];
 
 /**
- * Consolidates the previous "Packages" and "Customer Packages" screens into one page
- * with sub-tabs to keep the sidebar compact. "Package list" shows the building's
- * long-term package catalog; "Subscribers" lists customers who have purchased packages.
+ * Gộp 2 màn trước đây ("Gói" + "Gói của khách") thành một trang với sub-tab
+ * để gọn sidebar. "Danh sách gói" là danh mục gói dài hạn của tòa nhà; "Khách
+ * đăng ký" là các lượt khách đã mua gói.
  */
 export function ManagerPackagesHubPage() {
   const [tab, setTab] = useState<Tab>('packages');
 
   return (
     <div className="grid gap-4">
-      <div className="flex w-fit gap-1.5 rounded-lg border border-border bg-card p-1">
+      <div className="flex flex-wrap gap-2">
         {TABS.map(({ key, label, icon: Icon }) => {
           const isActive = key === tab;
           return (
@@ -28,10 +28,10 @@ export function ManagerPackagesHubPage() {
               key={key}
               type="button"
               onClick={() => setTab(key)}
-              className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
+              className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
                 isActive
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-border bg-card text-muted-foreground hover:text-foreground'
               }`}
             >
               <Icon size={14} />

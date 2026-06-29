@@ -3,9 +3,10 @@ import type { FormEvent } from 'react';
 import { Home, X, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useSearchParams } from 'react-router-dom';
-import { CartoonCar3D } from '@/components/map/CartoonCar3D';
 import { forgotPassword, resetPassword } from '@/services/authService';
+import { InteractiveParticleCanvas } from '@/components/common/InteractiveParticleCanvas';
 import back1 from '@/assets/back1.webp';
+
 
 const initialForm = {
   fullName: '',
@@ -29,32 +30,36 @@ interface AuthPageProps {
 const promoPoints = [
   {
     title: 'Easy to use',
-    text: 'Clean, fast forms with colors synced to the landing page.',
+    text: 'Clear forms, fast operation, and matching color scheme with the landing page.',
   },
   {
-    title: 'Context-aware',
-    text: 'The parking background and cream-orange tones clearly identify this as a parking system.',
+    title: 'Contextual Design',
+    text: 'Parking lot background and amber tones clearly identify the system theme.',
   },
   {
-    title: 'Secure access',
-    text: 'Account information and the sign-in / sign-up flows are presented concisely and clearly.',
+    title: 'Secure Access',
+    text: 'Your account info and all flows are structured securely and are easy to track.',
   },
 ];
 
-export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSubmit, isLoading }: AuthPageProps) {
+export default function AuthPage({ mode, notice, onModeChange, onSubmit, isLoading }: AuthPageProps) {
   const [searchParams] = useSearchParams();
   const [localNotice, setLocalNotice] = useState<{ message?: string; type?: string } | null>(null);
   const [form, setForm] = useState(initialForm);
   const [forgotEmail, setForgotEmail] = useState('');
   const [resetPasswordForm, setResetPasswordForm] = useState({ newPassword: '', confirmPassword: '' });
-  // Only remember the EMAIL to suggest sign-in — NEVER store passwords on the client.
+  // Chỉ ghi nhớ EMAIL để gợi ý đăng nhập — KHÔNG bao giờ lưu mật khẩu ở client.
   const [savedAccounts, setSavedAccounts] = useState<{ email: string }[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [resetToken, setResetToken] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [lockTimeLeft, setLockTimeLeft] = useState<number>(0);
-  const [resetToken, setResetToken] = useState<string | null>(null);
-  // Notification modal (success/failure) for the forgot & reset password flow.
+
+  useEffect(() => {
+    setShowPassword(false);
+    setShowConfirmPassword(false);
+  }, [mode]);
+  // Modal thông báo (thành công/thất bại) cho luồng quên & đặt lại mật khẩu.
   const [modal, setModal] = useState<{
     title: string;
     message: string;
@@ -77,28 +82,6 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
     }
   }, [searchParams]);
 
-  useEffect(() => {
-    const checkLock = () => {
-      const email = form.email.trim().toLowerCase();
-      if (!email) {
-        setLockTimeLeft(0);
-        return;
-      }
-      const lockUntil = Number(localStorage.getItem(`pbms.lockUntil.${email}`) || '0');
-      const timeLeft = Math.ceil((lockUntil - Date.now()) / 1000);
-      
-      if (timeLeft > 0) {
-        setLockTimeLeft(timeLeft);
-      } else {
-        setLockTimeLeft(0);
-      }
-    };
-
-
-    checkLock();
-    const interval = setInterval(checkLock, 1000);
-    return () => clearInterval(interval);
-  }, [form.email]);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const emailInputRef = useRef<HTMLInputElement | null>(null);
   const passwordInputRef = useRef<HTMLInputElement | null>(null);
@@ -108,7 +91,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
     try {
       const stored = localStorage.getItem('pbms_saved_accounts');
       if (stored) {
-        // Keep only the email; remove any plaintext passwords left over from older versions.
+        // Chỉ giữ email; loại bỏ mọi mật khẩu plaintext có thể còn sót từ bản cũ.
         const parsed: { email?: string }[] = JSON.parse(stored);
         const emailsOnly = parsed
           .filter((acc) => acc?.email)
@@ -118,11 +101,6 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
       }
     } catch (e) {
       console.error('Failed to load saved accounts', e);
-    }
-
-    // Initialize mock database if not already present
-    if (!localStorage.getItem('pbms.allRegisteredPhones')) {
-      localStorage.setItem('pbms.allRegisteredPhones', JSON.stringify(["0911111111", "0922222222"]));
     }
   }, []);
 
@@ -159,10 +137,10 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
   };
 
   const handleSelectAccount = (e: React.MouseEvent, acc: { email: string }) => {
-    e.preventDefault(); // Prefill the email; the user enters the password.
+    e.preventDefault(); // Điền sẵn email, người dùng tự nhập mật khẩu.
     setForm((s) => ({ ...s, email: acc.email }));
     setShowDropdown(false);
-    // Auto-focus the password field after filling the email so the browser can suggest the saved password
+    // Tự động focus vào ô mật khẩu sau khi điền email, giúp trình duyệt gợi ý mật khẩu tương ứng đã lưu
     setTimeout(() => {
       passwordInputRef.current?.focus();
     }, 50);
@@ -181,18 +159,18 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
   const rotateX = useTransform(springY, [0, 1], [8, -8]);
 
   const title = useMemo(() => {
-    if (mode === 'reset-password') return 'Reset password';
-    if (mode === 'forgot-password') return 'Recover password';
-    return mode === 'login' ? 'Sign in to PBMS' : 'Create a PBMS account';
+    if (mode === 'reset-password') return 'Reset Password';
+    if (mode === 'forgot-password') return 'Recover Password';
+    return mode === 'login' ? 'Login to PBMS' : 'Create PBMS Account';
   }, [mode]);
   const description = useMemo(() => {
     if (mode === 'reset-password')
       return 'Enter your new password to complete the reset process.';
     if (mode === 'forgot-password')
-      return 'Enter the email linked to your account to receive a password reset link.';
+      return 'Enter the email address associated with your account to receive a reset link.';
     return mode === 'login'
-      ? 'Sign in to continue using the parking management system, track your information and access the features you need.'
-      : 'Create a new account to start using the parking management platform with a UI consistent with the homepage.';
+      ? 'Log in to continue using the smart parking management system.'
+      : 'Create a new account to start using the smart parking platform.';
   }, [mode]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -206,7 +184,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
 
     if (mode === 'register') {
       if (form.password !== form.confirmPassword) {
-        setLocalNotice({ message: 'Passwords do not match!', type: 'error' });
+        setLocalNotice({ message: 'Confirm password does not match!', type: 'error' });
         return;
       }
 
@@ -214,20 +192,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
       const phoneRegex = /^0[0-9]{9}$/;
       if (!phoneRegex.test(phoneTrimmed)) {
         setLocalNotice({
-          message: 'Phone number must start with 0 and be exactly 10 digits!',
-          type: 'error',
-        });
-        return;
-      }
-
-      const allRegisteredPhonesRaw = localStorage.getItem('pbms.allRegisteredPhones');
-      const allRegisteredPhones: string[] = allRegisteredPhonesRaw
-        ? JSON.parse(allRegisteredPhonesRaw)
-        : ['0911111111', '0922222222'];
-
-      if (allRegisteredPhones.includes(phoneTrimmed)) {
-        setLocalNotice({
-          message: 'This phone number is already registered by another account!',
+          message: 'Phone number must start with 0 and contain exactly 10 digits!',
           type: 'error',
         });
         return;
@@ -241,28 +206,12 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
       };
 
       try {
+        // BE kiểm tra trùng email/phone (409 PHONE_TAKEN) — lỗi hiển thị qua notice của parent.
         await onSubmit({ mode, payload });
-        
-        // Add new phone to simulated registry on registration success
-        const updatedPhones = [...allRegisteredPhones, phoneTrimmed];
-        localStorage.setItem('pbms.allRegisteredPhones', JSON.stringify(updatedPhones));
-      } catch (err) {
+      } catch {
         // Error already mapped in public auth flow hook
       }
     } else {
-      const email = form.email.trim().toLowerCase();
-      
-      // Strict frontend-side login lock check
-      const lockUntil = Number(localStorage.getItem(`pbms.lockUntil.${email}`) || '0');
-      const timeLeft = Math.ceil((lockUntil - Date.now()) / 1000);
-      if (timeLeft > 0) {
-        setLocalNotice({
-          message: `Account temporarily locked. Please come back in ${Math.floor(timeLeft / 60)}m ${timeLeft % 60}s!`,
-          type: 'error',
-        });
-        return;
-      }
-
       const payload: Record<string, string> = {
         email: form.email.trim(),
         password: form.password,
@@ -270,29 +219,13 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
 
       try {
         await onSubmit({ mode, payload });
-        
-        // Login success: clear wrong attempts counters & lock periods
-        localStorage.removeItem(`pbms.failedAttempts.${email}`);
-        localStorage.removeItem(`pbms.lockUntil.${email}`);
         saveAccount(form.email.trim());
       } catch (err) {
-        // Login failure: increment fail counters & lock for 5 mins if attempts >= 5
-        const attempts = Number(localStorage.getItem(`pbms.failedAttempts.${email}`) || '0') + 1;
-        if (attempts >= 5) {
-          localStorage.setItem(`pbms.lockUntil.${email}`, String(Date.now() + 5 * 60 * 1000));
-          localStorage.removeItem(`pbms.failedAttempts.${email}`);
-          setLockTimeLeft(300);
-          setLocalNotice({
-            message: 'Account locked for 5 minutes due to more than 5 failed password attempts!',
-            type: 'error',
-          });
-        } else {
-          localStorage.setItem(`pbms.failedAttempts.${email}`, String(attempts));
-          setLocalNotice({
-            message: `Incorrect email or password. You have ${5 - attempts} attempts left before your account is locked!`,
-            type: 'error',
-          });
-        }
+        // BE xử lý lockout (423 ACCOUNT_LOCKED) + sai mật khẩu — hiển thị message của BE.
+        setLocalNotice({
+          message: err instanceof Error ? err.message : 'Login failed',
+          type: 'error',
+        });
       }
     }
   }
@@ -311,16 +244,16 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setLocalNotice({ message: 'Invalid email!', type: 'error' });
+      setLocalNotice({ message: 'Invalid email address!', type: 'error' });
       return;
     }
 
     try {
       await forgotPassword(email);
       setModal({
-        title: 'Recovery email sent',
+        title: 'Recovery Email Sent',
         message:
-          'If this email exists in the system, we have sent a password reset link. Please check your inbox (including spam). The link is valid for 15 minutes.',
+          'If this email exists in our system, we have sent a reset password link. Please check your inbox (including spam folder). The link is valid for 15 minutes.',
         type: 'success',
         next: () => {
           setForgotEmail('');
@@ -330,7 +263,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
       });
     } catch (error) {
       setModal({
-        title: 'Failed to send email',
+        title: 'Failed to Send Email',
         message: error instanceof Error ? error.message : 'Failed to send email. Please try again.',
         type: 'error',
       });
@@ -342,41 +275,41 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
     setLocalNotice(null);
 
     if (!resetToken) {
-      setLocalNotice({ message: 'The password reset link is invalid or has expired!', type: 'error' });
+      setLocalNotice({ message: 'Invalid or expired password reset link!', type: 'error' });
       return;
     }
 
     const newPassword = resetPasswordForm.newPassword.trim();
     const confirmPassword = resetPasswordForm.confirmPassword.trim();
 
-    // Validation: password must not be empty
+    // Validation: Mật khẩu không được bỏ trống
     if (!newPassword || !confirmPassword) {
-      setLocalNotice({ message: 'Please enter your password!', type: 'error' });
+      setLocalNotice({ message: 'Please enter password!', type: 'error' });
       return;
     }
 
-    // Validation: password length >= 6
+    // Validation: Độ dài mật khẩu >= 6
     if (newPassword.length < 6) {
       setLocalNotice({ message: 'Password must be at least 6 characters!', type: 'error' });
       return;
     }
 
-    // Validation: password and confirmation must match
+    // Validation: Mật khẩu và xác nhận phải trùng khớp
     if (newPassword !== confirmPassword) {
-      setLocalNotice({ message: 'Passwords do not match!', type: 'error' });
+      setLocalNotice({ message: 'Confirm password does not match!', type: 'error' });
       return;
     }
 
     try {
       await resetPassword(resetToken, newPassword);
 
-      // The password is sensitive data — do not store plaintext on the client. The source of
-      // truth is the backend; only clean up leftover pending email.
+      // Mật khẩu là dữ liệu nhạy cảm — không lưu plaintext ở client. Nguồn chính
+      // thống là backend; chỉ dọn email pending còn sót lại.
       localStorage.removeItem('pbms.forgotEmail_pending');
 
       setModal({
-        title: 'Password reset successfully',
-        message: 'Your password has been updated. Please sign in with your new password.',
+        title: 'Password Reset Successfully',
+        message: 'Your password has been updated. Please log in with your new password.',
         type: 'success',
         next: () => {
           setResetPasswordForm({ newPassword: '', confirmPassword: '' });
@@ -387,11 +320,11 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
       });
     } catch (error) {
       setModal({
-        title: 'Password reset failed',
+        title: 'Failed to Reset Password',
         message:
           error instanceof Error
             ? error.message
-            : 'Password reset failed. Please try again or request a new link.',
+            : 'Failed to reset password. Please try again or request a new link.',
         type: 'error',
       });
     }
@@ -453,6 +386,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
       {/* Background Neon Glow Vectors */}
       <div className="absolute top-0 right-0 w-[550px] h-[550px] rounded-full bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.08),transparent_60%)] pointer-events-none blur-3xl z-0" />
       <div className="absolute bottom-0 left-0 w-[450px] h-[450px] rounded-full bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.06),transparent_60%)] pointer-events-none blur-3xl z-0" />
+      <InteractiveParticleCanvas />
 
       {/* 3D Cyber-Grid Perspective Floor */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
@@ -487,7 +421,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
           className="inline-flex items-center gap-2 rounded-xl border border-white/5 bg-slate-900/60 backdrop-blur-md px-4 py-2.5 text-xs font-black uppercase tracking-widest text-orange-400 shadow-xl hover:border-orange-500/30 hover:shadow-[0_0_15px_rgba(249,115,22,0.25)] hover:scale-105 transition-all duration-300"
         >
           <Home size={14} className="stroke-[3]" />
-          Go to home
+          Về trang chủ
         </a>
       </div>
 
@@ -505,17 +439,15 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
       >
         {/* Left Interactive Promo Info Column */}
         <div 
-          className="p-8 text-white flex flex-col justify-between relative overflow-hidden preserve-3d bg-slate-950"
+          className="p-8 text-white flex flex-col justify-between relative overflow-hidden preserve-3d bg-cover bg-no-repeat"
           style={{ 
             transformStyle: "preserve-3d",
             backgroundImage: `url(${back1})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'bottom',
+            backgroundPosition: 'center 85%'
           }}
         >
-          {/* Dark Glassmorphic Overlay for Readability */}
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-950/90 via-slate-950/85 to-orange-950/70 pointer-events-none z-0" />
-          
+          {/* Subtle overlay to ensure text contrast and premium vibe */}
+          <div className="absolute inset-0 bg-slate-950/45 pointer-events-none z-0" />
           <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none z-0" />
           
           <div className="relative z-10" style={{ transform: "translateZ(30px)" }}>
@@ -523,69 +455,138 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
             <p className="mt-3.5 text-xs font-bold text-orange-100 leading-relaxed">{description}</p>
           </div>
           
-          {/* Centered Premium Illustration Section */}
+          {/* HOLOGRAPHIC 3D RADAR SCANNER CORE */}
           <div 
-            className="relative my-6 py-4 flex flex-col items-center justify-center min-h-[180px] z-10 preserve-3d"
+            className="relative my-6 py-8 flex flex-col items-center justify-center min-h-[180px] z-10 preserve-3d"
             style={{ transform: "translateZ(45px)", transformStyle: "preserve-3d" }}
           >
-            {/* Ambient Background Glow behind the Image */}
-            <div className="absolute w-48 h-48 rounded-full bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.15),transparent_70%)] pointer-events-none blur-2xl" />
+            {/* Ambient Background Glow behind the Radar */}
+            <div className="absolute w-36 h-36 rounded-full bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.18),transparent_70%)] pointer-events-none blur-xl" />
             
             {/* Holographic Spark Particles */}
             {[
-              { id: 1, left: "20%", color: "#f97316", delay: 0 },
-              { id: 2, left: "40%", color: "#fbbf24", delay: 1.2 },
-              { id: 3, left: "70%", color: "#f97316", delay: 2.4 },
-              { id: 4, left: "80%", color: "#fbbf24", delay: 0.6 },
+              { id: 1, left: "25%", color: "#06b6d4", delay: 0 },
+              { id: 2, left: "42%", color: "#fbbf24", delay: 1.2 },
+              { id: 3, left: "68%", color: "#06b6d4", delay: 2.4 },
+              { id: 4, left: "78%", color: "#fbbf24", delay: 0.6 },
             ].map((spark) => (
               <motion.span
                 key={spark.id}
                 initial={{ y: 20, opacity: 0, scale: 0.4 }}
                 animate={{ 
-                  y: [20, -50], 
-                  opacity: [0, 0.8, 0],
-                  scale: [0.4, 1.0, 0.3]
+                  y: [20, -60], 
+                  opacity: [0, 0.9, 0],
+                  scale: [0.4, 1.2, 0.3]
                 }}
                 transition={{
                   repeat: Infinity,
-                  duration: 4,
+                  duration: 3.5,
                   delay: spark.delay,
                   ease: "easeInOut"
                 }}
-                className="absolute w-1 h-1 rounded-full pointer-events-none filter blur-[0.5px] z-0"
+                className="absolute w-1.5 h-1.5 rounded-full pointer-events-none filter blur-[0.5px] z-0"
                 style={{
                   left: spark.left,
                   backgroundColor: spark.color,
-                  boxShadow: `0 0 6px ${spark.color}`
+                  boxShadow: `0 0 8px ${spark.color}`
                 }}
               />
             ))}
 
-            <motion.div
-              animate={{ 
-                y: [0, -6, 0]
-              }}
-              transition={{
-                repeat: Infinity,
-                duration: 5,
-                ease: "easeInOut"
-              }}
-              className="relative w-full max-w-[290px] aspect-[16/10] rounded-2xl border border-white/10 overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] bg-slate-950/40 backdrop-blur-sm z-10 flex items-center justify-center p-1.5"
-            >
-              <img 
-                src={back1} 
-                alt="PBMS System Illustration" 
-                className="w-full h-full object-cover object-bottom rounded-xl"
-              />
-              {/* Scanline sweep effect for high tech vibe */}
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-orange-500/10 to-transparent pointer-events-none animate-[scan_3s_linear_infinite]" />
-              <style>{`
-                @keyframes scan {
-                  0% { transform: translateY(-100%); }
-                  100% { transform: translateY(100%); }
-                }
-              `}</style>
-            </motion.div>
+            {/* Rotating Holographic Radar SVG */}
+            <div className="relative w-44 h-44 flex items-center justify-center preserve-3d">
+              
+              {/* Outer Cyber Ring (Rotates Counter-Clockwise) */}
+              <motion.div
+                animate={{ rotate: -360 }}
+                transition={{ repeat: Infinity, duration: 18, ease: "linear" }}
+                className="absolute w-full h-full"
+              >
+                <svg viewBox="0 0 100 100" className="w-full h-full text-cyan-500/25">
+                  <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="6 8 12 8" />
+                  <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2 4" />
+                </svg>
+              </motion.div>
+
+              {/* Inner Concentric Rings (Rotates Clockwise) */}
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ repeat: Infinity, duration: 12, ease: "linear" }}
+                className="absolute w-[80%] h-[80%]"
+              >
+                <svg viewBox="0 0 100 100" className="w-full h-full text-orange-500/30">
+                  <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="30 15 10 15" />
+                  <path d="M 50,2 L 50,15 M 50,85 L 50,98 M 2,50 L 15,50 M 85,50 L 98,50" stroke="currentColor" strokeWidth="1" />
+                </svg>
+              </motion.div>
+
+              {/* Sweeping Radar Scanner Line */}
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
+                className="absolute w-[90%] h-[90%] flex items-center justify-center"
+              >
+                <svg viewBox="0 0 100 100" className="w-full h-full">
+                  <defs>
+                    <radialGradient id="radarSweep" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.4" />
+                      <stop offset="80%" stopColor="#06b6d4" stopOpacity="0.1" />
+                      <stop offset="100%" stopColor="#06b6d4" stopOpacity="0" />
+                    </radialGradient>
+                  </defs>
+                  {/* Sweep sector */}
+                  <path d="M 50,50 L 50,5 A 45,45 0 0,1 85,25 Z" fill="url(#radarSweep)" />
+                  {/* Leading sweeping line */}
+                  <line x1="50" y1="50" x2="50" y2="5" stroke="#06b6d4" strokeWidth="1.5" className="shadow-[0_0_8px_#06b6d4]" />
+                </svg>
+              </motion.div>
+
+              {/* Central Glowing Smart Hub Shield Icon */}
+              <motion.div 
+                animate={{ 
+                  scale: [1, 1.06, 1],
+                  opacity: [0.85, 1, 0.85]
+                }}
+                transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+                className="absolute w-14 h-14 bg-slate-950/90 rounded-full border border-cyan-500/50 flex items-center justify-center shadow-[0_0_20px_rgba(6,182,212,0.45)] backdrop-blur-md"
+              >
+                {/* 3D Wireframe Cube/Hexagon SVG inside core */}
+                <svg viewBox="0 0 24 24" className="w-7 h-7 text-cyan-400">
+                  <path 
+                    d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="1.5" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                    className="animate-pulse"
+                  />
+                </svg>
+              </motion.div>
+
+              {/* Small Glowing Target Node Pins (representing parked cars/slots detected by radar) */}
+              <div className="absolute inset-0">
+                {/* Slot 1 Target */}
+                <motion.div 
+                  animate={{ opacity: [0.2, 1, 0.2] }}
+                  transition={{ repeat: Infinity, duration: 1.5, delay: 0.2 }}
+                  className="absolute w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981] top-[24%] left-[28%]"
+                />
+                {/* Slot 2 Target */}
+                <motion.div 
+                  animate={{ opacity: [1, 0.2, 1] }}
+                  transition={{ repeat: Infinity, duration: 2, delay: 0.5 }}
+                  className="absolute w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_6px_#06b6d4] bottom-[30%] right-[22%]"
+                />
+                {/* Slot 3 Target */}
+                <motion.div 
+                  animate={{ opacity: [0.3, 1, 0.3] }}
+                  transition={{ repeat: Infinity, duration: 1.8, delay: 0.8 }}
+                  className="absolute w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_6px_#f97316] top-[40%] right-[32%]"
+                />
+              </div>
+
+            </div>
           </div>
           
           <div className="mt-4 space-y-4 relative z-10" style={{ transform: "translateZ(25px)" }}>
@@ -605,21 +606,8 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
         </div>
 
         {/* Right Input Form Column */}
-        <div className="p-8 flex flex-col justify-center bg-white/[0.08] backdrop-blur-2xl border-l border-white/5 shadow-[inset_1px_0_0_rgba(255,255,255,0.05)]">
-          {lockTimeLeft > 0 ? (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="mb-5 rounded-xl border border-rose-500/25 bg-rose-950/30 text-rose-400 p-4 text-xs font-black uppercase tracking-wider font-mono shadow-[0_0_20px_rgba(239,68,68,0.15)] flex flex-col gap-2"
-            >
-              <div className="flex items-center gap-2.5">
-                <AlertCircle size={16} className="shrink-0 stroke-[2.5]" />
-                <span>Account is temporarily locked</span>
-              </div>
-              <p className="text-[10px] text-slate-400 font-sans tracking-normal font-semibold normal-case leading-relaxed">Wrong password more than 5 times. Please come back later:<span className="text-rose-400 font-black font-mono">{Math.floor(lockTimeLeft / 60)}m {lockTimeLeft % 60}s</span>.
-              </p>
-            </motion.div>
-          ) : (localNotice || notice)?.message ? (
+        <div className="p-8 flex flex-col justify-center bg-white/[0.08] backdrop-blur-2xl border-l border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] relative">
+          {(localNotice || notice)?.message ? (
             <motion.div 
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -637,8 +625,10 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
           {mode === 'forgot-password' ? (
             <form onSubmit={handleForgotPassword} className="space-y-4">
               <div className="space-y-2 mb-4">
-                <h3 className="text-sm font-bold text-foreground">Enter your email to recover your password</h3>
-                <p className="text-xs text-slate-400">We will send a password reset link to your email.</p>
+                <h3 className="text-sm font-bold text-foreground">Recover Password</h3>
+                <p className="text-xs text-slate-400">
+                  We will send a reset password link to your email.
+                </p>
               </div>
 
               <div className="space-y-1.5">
@@ -663,8 +653,10 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                     setForgotEmail('');
                     setLocalNotice(null);
                   }}
-                  className="flex-1 h-11 rounded-xl border border-white/10 text-white font-black text-xs uppercase tracking-wider hover:bg-slate-900 transition-all"
-                >Back</button>
+                  className="flex-1 h-11 rounded-xl border border-white/10 text-white font-black text-xs uppercase tracking-wider hover:bg-white/10 transition-all"
+                >
+                  Back
+                </button>
                 <motion.button 
                   type="submit"
                   disabled={isLoading}
@@ -682,11 +674,15 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
               <input type="hidden" autoComplete="username" value={forgotEmail || ''} />
               <div className="space-y-2 mb-4">
                 <h3 className="text-sm font-bold text-foreground">Enter new password</h3>
-                <p className="text-xs text-slate-400">Password must be at least 6 characters.</p>
+                <p className="text-xs text-slate-400">
+                  Password must be at least 6 characters.
+                </p>
               </div>
 
-              <div className="space-y-1.5 relative">
-                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">New password</label>
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">
+                  New password
+                </label>
                 <div className="relative">
                   <input 
                     type={showPassword ? "text" : "password"}
@@ -694,21 +690,23 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                     value={resetPasswordForm.newPassword}
                     onChange={(e) => setResetPasswordForm(s => ({ ...s, newPassword: e.target.value }))}
                     required
-                    className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 pl-4 pr-10 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
+                    className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 pl-4 pr-11 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
                     placeholder="At least 6 characters"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
               </div>
 
-              <div className="space-y-1.5 relative">
-                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Confirm password</label>
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">
+                  Confirm Password
+                </label>
                 <div className="relative">
                   <input 
                     type={showConfirmPassword ? "text" : "password"}
@@ -716,13 +714,13 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                     value={resetPasswordForm.confirmPassword}
                     onChange={(e) => setResetPasswordForm(s => ({ ...s, confirmPassword: e.target.value }))}
                     required
-                    className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 pl-4 pr-10 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
-                    placeholder="Re-enter password"
+                    className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 pl-4 pr-11 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
+                    placeholder="Retype password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
                   >
                     {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
@@ -738,8 +736,10 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                     setResetToken(null);
                     setLocalNotice(null);
                   }}
-                  className="flex-1 h-11 rounded-xl border border-white/10 text-white font-black text-xs uppercase tracking-wider hover:bg-slate-900 transition-all"
-                >Cancel</button>
+                  className="flex-1 h-11 rounded-xl border border-white/10 text-white font-black text-xs uppercase tracking-wider hover:bg-white/10 transition-all"
+                >
+                  Cancel
+                </button>
                 <motion.button 
                   type="submit"
                   disabled={isLoading}
@@ -747,7 +747,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                   whileTap={{ scale: 0.96 }}
                   className="flex-1 h-11 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider hover:shadow-[0_0_25px_rgba(249,115,22,0.45)] disabled:opacity-50 transition-all"
                 >
-                  {isLoading ? 'Processing...' : 'Reset password'}
+                  {isLoading ? 'Processing...' : 'Reset Password'}
                 </motion.button>
               </div>
             </form>
@@ -756,7 +756,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
             {mode === 'register' && (
               <>
                 <div className="space-y-1.5">
-                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Full name</label>
+                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Full Name</label>
                   <input 
                     name="fullName" 
                     value={form.fullName} 
@@ -767,7 +767,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Phone number</label>
+                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Phone Number</label>
                   <input 
                     name="phone" 
                     value={form.phone} 
@@ -813,7 +813,9 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                   ref={dropdownRef}
                   className="absolute left-0 right-0 top-[68px] z-50 rounded-xl border border-white/10 bg-slate-950/95 shadow-2xl backdrop-blur-md overflow-hidden py-1.5 animate-fadeIn"
                 >
-                  <div className="px-3.5 py-1.5 border-b border-white/5 text-[9px] font-mono text-slate-500 tracking-wider uppercase font-black">Saved accounts</div>
+                  <div className="px-3.5 py-1.5 border-b border-white/5 text-[9px] font-mono text-slate-500 tracking-wider uppercase font-black">
+                    Saved Accounts
+                  </div>
                   {savedAccounts.map((acc) => (
                     <div
                       key={acc.email}
@@ -835,7 +837,7 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
               )}
             </div>
 
-            <div className="space-y-1.5 relative">
+            <div className="space-y-1.5">
               <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Password</label>
               <div className="relative">
                 <input 
@@ -846,13 +848,13 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                   type={showPassword ? "text" : "password"} 
                   required 
                   autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-                  className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 pl-4 pr-10 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
+                  className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 pl-4 pr-11 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
                   placeholder="At least 6 characters" 
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -865,13 +867,15 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                   type="button"
                   onClick={() => onModeChange('forgot-password')}
                   className="text-xs font-semibold text-slate-400 hover:text-orange-400 transition-colors"
-                >Forgot password?</button>
+                >
+                  Forgot password?
+                </button>
               </div>
             )}
 
             {mode === 'register' && (
-              <div className="space-y-1.5 relative animate-fadeIn">
-                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Confirm password</label>
+              <div className="space-y-1.5 animate-fadeIn">
+                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Confirm Password</label>
                 <div className="relative">
                   <input 
                     name="confirmPassword" 
@@ -879,13 +883,13 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                     onChange={handleChange} 
                     type={showConfirmPassword ? "text" : "password"} 
                     required 
-                    className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 pl-4 pr-10 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
-                    placeholder="Re-enter password" 
+                    className="block w-full rounded-xl border border-white/10 bg-slate-950/60 text-white placeholder-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 text-sm h-11 pl-4 pr-11 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(249,115,22,0.15)] input-scan-focus"
+                    placeholder="Retype password" 
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
                   >
                     {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
@@ -894,24 +898,18 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
             )}
 
             <div className="flex flex-col gap-4 pt-3">
-              <motion.button 
-                type="submit" 
-                disabled={isLoading || (mode === 'login' && lockTimeLeft > 0)} 
-                whileHover={mode === 'login' && lockTimeLeft > 0 ? {} : { scale: 1.015 }}
-                whileTap={mode === 'login' && lockTimeLeft > 0 ? {} : { scale: 0.96 }}
-                className={`w-full h-11 rounded-xl text-slate-950 font-black text-xs uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 ${
-                  mode === 'login' && lockTimeLeft > 0
-                    ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30 cursor-not-allowed shadow-[0_0_15px_rgba(239,68,68,0.05)]'
-                    : 'bg-gradient-to-r from-orange-500 to-amber-500 hover:shadow-[0_0_25px_rgba(249,115,22,0.45)] disabled:opacity-50'
-                }`}
+              <motion.button
+                type="submit"
+                disabled={isLoading}
+                whileHover={{ scale: 1.015 }}
+                whileTap={{ scale: 0.96 }}
+                className="w-full h-11 rounded-xl text-slate-950 font-black text-xs uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:shadow-[0_0_25px_rgba(249,115,22,0.45)] disabled:opacity-50"
               >
-                {isLoading 
-                  ? 'Processing...' 
-                  : mode === 'login' && lockTimeLeft > 0 
-                  ? `Locked (retry in ${Math.floor(lockTimeLeft / 60)}m ${lockTimeLeft % 60}s)` 
-                  : mode === 'login' 
-                  ? 'Sign in' 
-                  : 'Create account'}
+                {isLoading
+                  ? 'Processing...'
+                  : mode === 'login'
+                  ? 'Login'
+                  : 'Register'}
               </motion.button>
               
               <div className="text-center">
@@ -920,9 +918,84 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                   onClick={() => onModeChange(mode === 'login' ? 'register' : 'login')} 
                   className="text-xs font-bold text-slate-400 hover:text-orange-400 underline transition-colors"
                 >
-                  {mode === 'login' ? 'Create new account' : 'Already have an account? Sign in'}
+                  {mode === 'login' ? 'Create new account' : 'Already have an account? Login'}
                 </button>
               </div>
+
+              {mode === 'login' && (
+                <div className="mt-2 space-y-4 animate-fadeIn">
+                  {/* Divider */}
+                  <div className="flex items-center my-3">
+                    <div className="flex-1 h-px bg-white/10" />
+                    <span className="px-3 text-[9px] font-mono text-slate-500 tracking-widest uppercase font-black">
+                      Or sign in with
+                    </span>
+                    <div className="flex-1 h-px bg-white/10" />
+                  </div>
+
+                  {/* Social Buttons */}
+                  <div className="flex justify-center gap-3.5">
+                    {/* Google */}
+                    <button
+                      type="button"
+                      onClick={() => alert('Google login is coming soon...')}
+                      className="w-11 h-11 rounded-2xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/20 transition-all flex items-center justify-center hover:scale-105 active:scale-95 shadow-md group"
+                    >
+                      <svg className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" viewBox="0 0 24 24">
+                        <path
+                          fill="#EA4335"
+                          d="M12 5.04c1.67 0 3.2.58 4.4 1.71l3.29-3.29C17.72 1.58 14.99 1 12 1 7.35 1 3.37 3.67 1.39 7.56l3.89 3.02C6.22 7.74 8.89 5.04 12 5.04z"
+                        />
+                        <path
+                          fill="#4285F4"
+                          d="M23.45 12.3c0-.82-.07-1.6-.22-2.3H12v4.35h6.42c-.28 1.48-1.12 2.74-2.38 3.58v2.98h3.84c2.25-2.07 3.57-5.12 3.57-8.61z"
+                        />
+                        <path
+                          fill="#FBBC05"
+                          d="M5.28 14.78a6.99 6.99 0 0 1 0-4.35L1.39 7.41a11.96 11.96 0 0 0 0 10.37l3.89-3z"
+                        />
+                        <path
+                          fill="#34A853"
+                          d="M12 23c3.24 0 5.95-1.08 7.93-2.91l-3.84-2.98c-1.07.72-2.45 1.15-4.09 1.15-3.11 0-5.78-2.7-6.72-5.54L1.39 15.7A11.94 11.94 0 0 0 12 23z"
+                        />
+                      </svg>
+                    </button>
+
+                    {/* Facebook */}
+                    <button
+                      type="button"
+                      onClick={() => alert('Facebook login is coming soon...')}
+                      className="w-11 h-11 rounded-2xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/20 transition-all flex items-center justify-center hover:scale-105 active:scale-95 shadow-md group"
+                    >
+                      <svg className="w-5 h-5 text-[#1877F2] fill-[#1877F2] group-hover:scale-110 transition-transform duration-200" viewBox="0 0 24 24">
+                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                      </svg>
+                    </button>
+
+                    {/* GitHub */}
+                    <button
+                      type="button"
+                      onClick={() => alert('GitHub login is coming soon...')}
+                      className="w-11 h-11 rounded-2xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/20 transition-all flex items-center justify-center hover:scale-105 active:scale-95 shadow-md group"
+                    >
+                      <svg className="w-5 h-5 text-white fill-white group-hover:scale-110 transition-transform duration-200" viewBox="0 0 24 24">
+                        <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.579.688.481C19.137 20.162 22 16.418 22 12c0-5.523-4.477-10-10-10z" />
+                      </svg>
+                    </button>
+
+                    {/* LinkedIn */}
+                    <button
+                      type="button"
+                      onClick={() => alert('LinkedIn login is coming soon...')}
+                      className="w-11 h-11 rounded-2xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/20 transition-all flex items-center justify-center hover:scale-105 active:scale-95 shadow-md group"
+                    >
+                      <svg className="w-5 h-5 text-[#0A66C2] fill-[#0A66C2] group-hover:scale-110 transition-transform duration-200" viewBox="0 0 24 24">
+                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </form>
           )}
@@ -976,7 +1049,9 @@ export default function AuthPage({ mode, notice, onModeChange, onBackHome, onSub
                   ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 hover:shadow-[0_0_25px_rgba(249,115,22,0.45)]'
                   : 'border border-white/10 text-white hover:bg-slate-800'
               }`}
-            >Got it</button>
+            >
+              Got it
+            </button>
           </motion.div>
         </div>
       ) : null}

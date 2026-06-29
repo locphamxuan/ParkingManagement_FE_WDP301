@@ -7,6 +7,7 @@ import { StatusBadge } from '@/components/common/StatusBadge';
 import { ModalForm } from '@/components/modals/ModalForm';
 import { CustomSelect } from '@/components/ui/select';
 import { TimePicker } from '@/components/ui/time-picker';
+import { DatePicker } from '@/components/ui/date-picker';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { managerApi, type PricePolicy, type VehicleType } from '@/services/manager/managerApi';
 
@@ -19,6 +20,8 @@ interface FormState {
   hourlyRate: string;
   fromTime: string;
   toTime: string;
+  effectiveFrom: string;
+  effectiveTo: string;
   isActive: boolean;
 }
 
@@ -29,12 +32,16 @@ const empty: FormState = {
   hourlyRate: '',
   fromTime: '00:00',
   toTime: '23:59',
+  effectiveFrom: '',
+  effectiveTo: '',
   isActive: true,
 };
 
+const toDateInput = (v?: string | null) => (v ? new Date(v).toISOString().slice(0, 10) : '');
+
 const TYPE_LABEL: Record<PricingType, string> = {
-  regular: 'Regular hours',
-  peak: 'Peak hours',
+  regular: 'Giờ thường',
+  peak: 'Cao điểm',
 };
 
 export function ManagerPricingPage() {
@@ -58,7 +65,7 @@ export function ManagerPricingPage() {
       setVts(vtList.data.items);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load');
+      setError(err instanceof Error ? err.message : 'Tải thất bại');
     } finally {
       setLoading(false);
     }
@@ -83,6 +90,8 @@ export function ManagerPricingPage() {
       hourlyRate: String(row.hourlyRate),
       fromTime: row.timeWindow?.from ?? '00:00',
       toTime: row.timeWindow?.to ?? '23:59',
+      effectiveFrom: toDateInput(row.effectiveFrom),
+      effectiveTo: toDateInput(row.effectiveTo),
       isActive: row.isActive,
     });
     setModalOpen(true);
@@ -90,7 +99,7 @@ export function ManagerPricingPage() {
 
   const onSubmit = async () => {
     if (!form.vehicleType) {
-      alert('Select vehicle type first');
+      alert('Chọn loại xe trước');
       return;
     }
     const payload = {
@@ -99,6 +108,8 @@ export function ManagerPricingPage() {
       type: form.type,
       hourlyRate: Number(form.hourlyRate),
       timeWindow: { from: form.fromTime, to: form.toTime },
+      ...(form.effectiveFrom ? { effectiveFrom: form.effectiveFrom } : {}),
+      effectiveTo: form.effectiveTo ? form.effectiveTo : null,
       isActive: form.isActive,
     };
     try {
@@ -110,46 +121,46 @@ export function ManagerPricingPage() {
       setModalOpen(false);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Save failed');
+      alert(err instanceof Error ? err.message : 'Lưu thất bại');
     }
   };
 
   const deactivate = async (row: PricePolicy) => {
-    if (!window.confirm(`Disable policy "${row.name}"?`)) return;
+    if (!window.confirm(`Vô hiệu hóa chính sách "${row.name}"?`)) return;
     try {
       await managerApi.pricePolicies.deactivate(buildingId, row._id);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed');
+      alert(err instanceof Error ? err.message : 'Thất bại');
     }
   };
 
   const columns: DataColumn<PricePolicy>[] = [
-    { key: 'name', title: 'Policy name' },
+    { key: 'name', title: 'Tên chính sách' },
     {
       key: 'vehicleType',
-      title: 'Vehicle type',
+      title: 'Loại xe',
       render: (row) => (typeof row.vehicleType === 'string' ? row.vehicleType : row.vehicleType.code),
     },
     {
       key: 'type',
-      title: 'Price type',
+      title: 'Loại giá',
       render: (row) => TYPE_LABEL[(row.type === 'peak' ? 'peak' : 'regular') as PricingType],
     },
     {
       key: 'hourlyRate',
-      title: 'Price/hour',
-      render: (row) => `${row.hourlyRate.toLocaleString('vi-VN')} ₫`,
+      title: 'Giá/giờ',
+      render: (row) => `${row.hourlyRate.toLocaleString('vi-VN')} đ`,
     },
     {
       key: 'timeWindow',
-      title: 'Time range',
+      title: 'Khung giờ',
       render: (row) =>
         row.timeWindow ? `${row.timeWindow.from} – ${row.timeWindow.to}` : '—',
     },
     {
       key: 'isActive',
-      title: 'Status',
+      title: 'Trạng thái',
       render: (row) => <StatusBadge status={row.isActive ? 'active' : 'inactive'} />,
     },
     {
@@ -172,58 +183,59 @@ export function ManagerPricingPage() {
     <div className="grid gap-4">
       <div className="flex justify-end">
         <Button onClick={openCreate} className="gap-2">
-          <Plus size={14} />Create pricing policy</Button>
+          <Plus size={14} /> Tạo chính sách giá
+        </Button>
       </div>
       {loading ? (
-        <div className="text-sm text-muted-foreground">Loading...</div>
+        <div className="text-sm text-muted-foreground">Đang tải...</div>
       ) : error ? (
         <div className="text-sm text-red-600">{error}</div>
       ) : (
-        <DataTable title="Pricing" rows={items} columns={columns} />
+        <DataTable title="Bảng giá" rows={items} columns={columns} />
       )}
 
       <ModalForm
         open={modalOpen}
         onOpenChange={setModalOpen}
-        title={editing ? 'Edit pricing policy' : 'Create pricing policy'}
+        title={editing ? 'Sửa chính sách giá' : 'Tạo chính sách giá'}
         onSubmit={onSubmit}
       >
         <div className="grid gap-3 md:grid-cols-2">
           <div className="grid gap-1.5 md:col-span-2">
-            <label className="text-xs uppercase text-muted-foreground">Name</label>
+            <label className="text-xs uppercase text-muted-foreground">Tên</label>
             <Input
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Vehicle type</label>
+            <label className="text-xs uppercase text-muted-foreground">Loại xe</label>
             <CustomSelect
               value={form.vehicleType}
               onChange={(val) => setForm((f) => ({ ...f, vehicleType: val }))}
               options={[
-                { value: '', label: 'Select vehicle type' },
+                { value: '', label: 'Chọn loại xe' },
                 ...vts.map((vt) => ({
                   value: vt._id,
                   label: `${vt.code} - ${vt.name}`,
                 })),
               ]}
-              placeholder="Select vehicle type..."
+              placeholder="Chọn loại xe..."
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Price type</label>
+            <label className="text-xs uppercase text-muted-foreground">Loại giá</label>
             <CustomSelect
               value={form.type}
               onChange={(val) => setForm((f) => ({ ...f, type: val as PricingType }))}
               options={[
-                { value: 'regular', label: 'Regular hours' },
-                { value: 'peak', label: 'Peak hours' },
+                { value: 'regular', label: 'Giờ thường' },
+                { value: 'peak', label: 'Cao điểm' },
               ]}
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Price/hour (VND)</label>
+            <label className="text-xs uppercase text-muted-foreground">Giá/giờ (VND)</label>
             <Input
               type="number"
               min={0}
@@ -232,29 +244,45 @@ export function ManagerPricingPage() {
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">From</label>
+            <label className="text-xs uppercase text-muted-foreground">Từ</label>
             <TimePicker
               value={form.fromTime}
               onChange={(val) => setForm((f) => ({ ...f, fromTime: val }))}
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">To</label>
+            <label className="text-xs uppercase text-muted-foreground">Đến</label>
             <TimePicker
               value={form.toTime}
               onChange={(val) => setForm((f) => ({ ...f, toTime: val }))}
             />
           </div>
           <p className="md:col-span-2 text-[11px] text-muted-foreground">
-            "Regular" applies by default; "Peak" applies within the From–To window. Fee = total hours × hourly rate for that window.
+            “Giờ thường” áp dụng mặc định; “Cao điểm” áp dụng trong khung giờ Từ–Đến. Phí = tổng giờ đỗ × giá/giờ theo khung.
           </p>
+          <div className="grid gap-1.5">
+            <label className="text-xs uppercase text-muted-foreground">Hiệu lực từ</label>
+            <DatePicker
+              value={form.effectiveFrom}
+              onChange={(val) => setForm((f) => ({ ...f, effectiveFrom: val }))}
+            />
+            <p className="text-[11px] text-muted-foreground">Để trống = áp dụng ngay.</p>
+          </div>
+          <div className="grid gap-1.5">
+            <label className="text-xs uppercase text-muted-foreground">Hiệu lực đến</label>
+            <DatePicker
+              value={form.effectiveTo}
+              onChange={(val) => setForm((f) => ({ ...f, effectiveTo: val }))}
+            />
+            <p className="text-[11px] text-muted-foreground">Để trống = không giới hạn.</p>
+          </div>
           <label className="flex items-center gap-2 text-sm md:col-span-2">
             <input
               type="checkbox"
               checked={form.isActive}
               onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))}
             />
-            <span>Active</span>
+            <span>Đang áp dụng</span>
           </label>
         </div>
       </ModalForm>

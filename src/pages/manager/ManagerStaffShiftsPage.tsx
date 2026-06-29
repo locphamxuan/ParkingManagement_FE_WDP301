@@ -26,7 +26,7 @@ export function ManagerStaffShiftsPage() {
       .listStaffShifts(buildingId)
       .then((res) => setItems(res.data.items))
       .catch((err) => {
-        const msg = err instanceof Error ? err.message : 'Failed to load';
+        const msg = err instanceof Error ? err.message : 'Tải thất bại';
         setError(msg);
       })
       .finally(() => setLoading(false));
@@ -66,26 +66,26 @@ export function ManagerStaffShiftsPage() {
       setEditing(null);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Save failed');
+      alert(err instanceof Error ? err.message : 'Lưu thất bại');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const onDelete = async (row: StaffShift) => {
-    if (!window.confirm(`Delete assignment for ${row.staff?.fullName ?? 'staff'}?`)) return;
+    if (!window.confirm(`Xóa assignment cho ${row.staff?.fullName ?? 'nhân viên'}?`)) return;
     try {
       await managerApi.shifts.removeStaffShift(buildingId, row._id);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Delete failed');
+      alert(err instanceof Error ? err.message : 'Xóa thất bại');
     }
   };
 
   const columns: DataColumn<StaffShift>[] = [
     {
       key: 'shift',
-      title: 'Shift',
+      title: 'Ca Trực',
       render: (row) => (
         <div>
           <div className="font-medium">{row.shift?.code ?? '—'}</div>
@@ -97,7 +97,7 @@ export function ManagerStaffShiftsPage() {
     },
     {
       key: 'staff',
-      title: 'Staff',
+      title: 'Nhân Viên',
       render: (row) =>
         row.staff ? (
           <div>
@@ -105,18 +105,18 @@ export function ManagerStaffShiftsPage() {
             <div className="text-xs text-muted-foreground">{row.staff.email}</div>
           </div>
         ) : (
-          <span className="text-xs italic text-muted-foreground">Staff removed</span>
+          <span className="text-xs italic text-muted-foreground">Nhân viên đã bị xóa</span>
         ),
     },
     {
       key: 'gate',
-      title: 'Gate',
+      title: 'Cổng',
       render: (row) =>
         row.gate ? (
           <div>
             <div className="font-medium">{row.gate.code}</div>
             <div className="text-xs text-muted-foreground">
-              {row.gate.direction === 'in' ? 'Entry gate' : row.gate.direction === 'out' ? 'Exit gate' : 'Two-way'}
+              {row.gate.direction === 'in' ? 'Cổng vào' : row.gate.direction === 'out' ? 'Cổng ra' : 'Hai chiều'}
             </div>
           </div>
         ) : (
@@ -125,17 +125,17 @@ export function ManagerStaffShiftsPage() {
     },
     {
       key: 'workDate',
-      title: 'Work date',
+      title: 'Ngày Làm',
       render: (row) => new Date(row.workDate).toLocaleDateString('vi-VN'),
     },
     {
       key: 'status',
-      title: 'Status',
+      title: 'Trạng Thái',
       render: (row) => <StatusBadge status={row.status} />,
     },
     {
       key: 'note',
-      title: 'Note',
+      title: 'Ghi Chú',
       render: (row) => row.note ? <span className="text-sm">{row.note}</span> : <span className="text-muted-foreground">—</span>,
     },
     {
@@ -167,28 +167,30 @@ export function ManagerStaffShiftsPage() {
   return (
     <div className="grid gap-4">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Assign staff to shift</h1>
+        <h1 className="text-2xl font-bold">Gán Staff Vào Ca Trực</h1>
         <Button onClick={openCreate} className="gap-2" disabled={loading}>
-          <Plus size={16} />Assign staff</Button>
+          <Plus size={16} /> Gán Staff
+        </Button>
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <Loader className="animate-spin mr-2" size={20} />
-          <span className="text-muted-foreground">Loading...</span>
+          <span className="text-muted-foreground">Đang tải...</span>
         </div>
       ) : error ? (
-        <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+        <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-400">
           {error}
         </div>
       ) : items.length === 0 ? (
         <div className="rounded-lg border border-border bg-card p-8 text-center">
-          <p className="text-muted-foreground mb-4">No staff assigned to shifts yet</p>
+          <p className="text-muted-foreground mb-4">Chưa có staff được gán vào ca trực</p>
           <Button onClick={openCreate} className="gap-2">
-            <Plus size={16} />Assign first staff</Button>
+            <Plus size={16} /> Gán Staff Đầu Tiên
+          </Button>
         </div>
       ) : (
-        <DataTable title="Shift assignments" rows={items} columns={columns} />
+        <DataTable title="Danh Sách Gán Ca" rows={items} columns={columns} />
       )}
 
       <AssignStaffModal

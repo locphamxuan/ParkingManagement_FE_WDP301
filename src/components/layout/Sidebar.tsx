@@ -28,20 +28,20 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   return (
     <aside
       className={cn(
-        'sticky top-0 hidden h-screen border-r border-white/8 bg-slate-900/95 p-4 shadow-[4px_0_30px_rgba(0,0,0,0.25)] backdrop-blur-xl lg:block transition-all duration-350 ease-in-out',
+        'sticky top-0 hidden h-screen border-r border-sky-100 bg-white p-4 shadow-[4px_0_30px_rgba(14,165,233,0.015)] lg:block transition-all duration-350 ease-in-out shrink-0',
         collapsed ? 'w-[84px]' : 'w-[264px]'
       )}
     >
-      <div className="mb-6 flex items-center justify-between rounded-2xl border border-white/8 bg-slate-800/60 p-3 shadow-sm backdrop-blur-md">
+      <div className="mb-6 flex items-center justify-between rounded-2xl border border-sky-100 bg-sky-50/50 p-3 shadow-sm">
         {!collapsed ? (
           <div className="pl-1">
-            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">Environment</p>
-            <p className="text-xs font-extrabold text-slate-100">ADMIN PORTAL</p>
+            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-sky-600">Environment</p>
+            <p className="text-xs font-extrabold text-slate-800">ADMIN PORTAL</p>
           </div>
         ) : (
-          <Fingerprint className="text-primary drop-shadow-[0_0_8px_rgba(249,115,22,0.25)] h-5 w-5 mx-auto" />
+          <Fingerprint className="text-sky-500 h-5 w-5 mx-auto animate-pulse" />
         )}
-        <Button size="sm" variant="ghost" onClick={onToggle} className="h-7 w-7 rounded-lg p-0 hover:bg-white/8 text-slate-400 hover:text-white">
+        <Button size="sm" variant="ghost" onClick={onToggle} className="h-7 w-7 rounded-lg p-0 hover:bg-sky-100/50 text-slate-400 hover:text-sky-600">
           <ChevronLeft className={cn('h-3.5 w-3.5 transition-all duration-300', collapsed && 'rotate-180')} />
         </Button>
       </div>
@@ -58,8 +58,8 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                 cn(
                   'flex items-center gap-3.5 rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-all duration-300',
                   isActive
-                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/25 scale-[1.02]'
-                    : 'text-slate-400 hover:bg-white/6 hover:text-slate-100'
+                    ? 'bg-sky-500 text-white shadow-md shadow-sky-500/10 scale-[1.02]'
+                    : 'text-slate-500 hover:bg-sky-50/50 hover:text-sky-600'
                 )
               }
             >

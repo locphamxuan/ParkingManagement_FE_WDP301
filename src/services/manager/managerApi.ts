@@ -252,7 +252,7 @@ export const managerApi = {
     list: (b: string, q?: Record<string, string | undefined>) =>
       api.get<Wrap<{ items: any[] }>>(path(b, '/feedbacks'), { query: q }),
     respond: (b: string, id: string, body: { staffReply: string; status: 'resolved' }) =>
-      api.put<Wrap<{ item: any }>>(path(b, `/feedbacks/${id}/respond`), body),
+      api.patch<Wrap<{ item: any }>>(path(b, `/feedbacks/${id}`), body),
   },
 
   vehicleTypes: {

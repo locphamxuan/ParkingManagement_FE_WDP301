@@ -93,7 +93,7 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
   const refreshSessions = useCallback(() => {
     setLoading(true);
     staffApi
-      .getActiveSessions({ populate: 'slot.floor,vehicleType,entryGate,exitGate' })
+      .getActiveSessions({ building: buildingId, populate: 'slot.floor,vehicleType,entryGate,exitGate' })
       .then((res) => {
         const rows = (res as { data?: { items?: ParkingSession[] } | ParkingSession[] })?.data;
         const list = Array.isArray(rows) ? rows : ((rows as { items?: ParkingSession[] })?.items ?? []);

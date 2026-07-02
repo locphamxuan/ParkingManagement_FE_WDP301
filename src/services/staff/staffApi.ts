@@ -264,8 +264,8 @@ export const staffApi = {
   verifySessionPayment: (orderCode: number) =>
     api.get<Wrap<PaymentStatus>>(`/staff/parking-sessions/payment/${orderCode}/status`),
 
-  lookupPlate: (plateNumber: string, signal?: AbortSignal) =>
-    api.get<Wrap<PlateInfo>>(`/staff/parking-sessions/lookup-plate/${plateNumber}`, { signal }),
+  lookupPlate: (plateNumber: string, buildingId?: string, signal?: AbortSignal) =>
+    api.get<Wrap<PlateInfo>>(`/staff/parking-sessions/lookup-plate/${plateNumber}`, { query: { building: buildingId }, signal }),
 
   lookupUserQr: (qrCode: string) =>
     api.get<Wrap<{ hasAccount: boolean; user: { id: string; fullName: string; email: string } | null }>>(
@@ -286,7 +286,7 @@ export const staffApi = {
 
   // AI camera (Camera 1): send a captured frame (base64, data-URL prefix allowed),
   // get back the recognized plate + brand and the resolved owner account.
-  scanVehicle: (image: string) =>
+  scanVehicle: (image: string, buildingId?: string) =>
     api.post<
       Wrap<{
         plateNumber: string;
@@ -300,7 +300,7 @@ export const staffApi = {
         user: { id: string; fullName: string; email: string; phone: string | null; walletBalance: number } | null;
         activeSession: { id: string; building: string; entryTime: string } | null;
       }>
-    >('/staff/parking-sessions/scan', { image }),
+    >('/staff/parking-sessions/scan', { image, building: buildingId }),
 
   // Staff rejects a check-in/check-out → backend notifies the plate owner.
   reject: (payload: { plateNumber: string; stage: 'check-in' | 'check-out'; reason: string; building?: string }) =>

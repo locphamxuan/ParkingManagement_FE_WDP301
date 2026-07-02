@@ -153,7 +153,7 @@ export function StaffOperationsPage() {
     if (clean.length >= 7) {
       let cancelled = false;
       staffApi
-        .lookupPlate(clean)
+        .lookupPlate(clean, buildingId)
         .then((res) => {
           if (!cancelled) setPlateAccountInfo((res as { data?: PlateInfo })?.data ?? null);
         })
@@ -426,7 +426,7 @@ export function StaffOperationsPage() {
             {multiCamMode && (
               <div className="space-y-5">
                 <div className="grid gap-3 lg:grid-cols-3">
-                  <LivePlateCamera ref={plateCamRef} onDetected={handlePlateDetected} busy={loading} deviceId={assignment.plate} />
+                  <LivePlateCamera ref={plateCamRef} onDetected={handlePlateDetected} busy={loading} deviceId={assignment.plate} buildingId={buildingId} />
                   <LivePortraitCamera ref={portraitCamRef} deviceId={assignment.portrait} />
                   <LiveQRCamera ref={qrCamRef} onResult={handleResolveIdQr} deviceId={assignment.qr} />
                 </div>
@@ -602,7 +602,7 @@ export function StaffOperationsPage() {
                 </div>
 
                 {identifyMode === 'plate' ? (
-                  <LivePlateCamera ref={plateCamRef} onDetected={handlePlateDetected} busy={loading} deviceId={assignment.plate} />
+                  <LivePlateCamera ref={plateCamRef} onDetected={handlePlateDetected} busy={loading} deviceId={assignment.plate} buildingId={buildingId} />
                 ) : (
                   <LiveQRCamera ref={qrCamRef} onResult={handleResolveIdQr} deviceId={assignment.qr} />
                 )}

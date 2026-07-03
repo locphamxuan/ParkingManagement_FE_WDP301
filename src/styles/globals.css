@@ -33,23 +33,24 @@
   --radius-sm: 12px;
 }
 
+/* Admin theme: nền sáng đồng nhất với manager/staff, giữ accent cam làm nhận diện admin. */
 .admin-theme {
-  color-scheme: dark;
-  --app-background: 224 71% 4%;
-  --app-foreground: 210 40% 98%;
-  --app-primary: 24 94% 54%;
-  --app-primary-foreground: 20 20% 98%;
-  --app-secondary: 217 32% 12%;
-  --app-secondary-foreground: 210 40% 98%;
-  --app-muted: 217 32% 12%;
-  --app-muted-foreground: 215 20.2% 65.1%;
-  --app-card: 222 47% 11%;
-  --app-card-foreground: 210 40% 98%;
-  --app-border: 217 32.6% 17.5%;
-  --app-input: 217 32.6% 17.5%;
+  color-scheme: light;
+  --app-background: 210 40% 98%; /* #f8fafc */
+  --app-foreground: 222 47% 11%; /* #0f172a */
+  --app-primary: 24 94% 54%; /* admin accent: orange */
+  --app-primary-foreground: 210 40% 98%;
+  --app-secondary: 200 30% 96%; /* #f0f4f8 */
+  --app-secondary-foreground: 222 47% 11%;
+  --app-muted: 210 40% 96.1%;
+  --app-muted-foreground: 215.4 16.3% 46.9%;
+  --app-card: 0 0% 100%; /* #ffffff */
+  --app-card-foreground: 222 47% 11%;
+  --app-border: 199 89% 90%; /* sky-100 */
+  --app-input: 199 89% 90%;
   --app-ring: 24 94% 54%;
-  --text: #f8fafc;
-  --shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  --text: #0f172a;
+  --shadow: 0 10px 30px rgba(14, 165, 233, 0.04);
 }
 
 .manager-theme {
@@ -448,41 +449,41 @@ button[aria-expanded="true"] .chev {
   animation: modal-fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Premium Dark Mode Override Styles for Status Badges in Admin/Manager Dashboard */
+/* Status badges — light values dùng chung cho cả admin-theme và manager-theme. */
 .admin-theme .status-badge-success {
-  background-color: rgba(16, 185, 129, 0.15) !important;
-  color: #34d399 !important;
-  border-color: rgba(16, 185, 129, 0.3) !important;
+  background-color: #f0fdf4 !important;
+  color: #15803d !important;
+  border-color: #bbf7d0 !important;
 }
 
 .admin-theme .status-badge-warning {
-  background-color: rgba(245, 158, 11, 0.15) !important;
-  color: #fbbf24 !important;
-  border-color: rgba(245, 158, 11, 0.3) !important;
+  background-color: #fffbeb !important;
+  color: #a16207 !important;
+  border-color: #fef3c7 !important;
 }
 
 .admin-theme .status-badge-info {
-  background-color: rgba(14, 165, 233, 0.15) !important;
-  color: #38bdf8 !important;
-  border-color: rgba(14, 165, 233, 0.3) !important;
+  background-color: #f0f9ff !important;
+  color: #0369a1 !important;
+  border-color: #e0f2fe !important;
 }
 
 .admin-theme .status-badge-reserved {
-  background-color: rgba(139, 92, 246, 0.15) !important;
-  color: #a78bfa !important;
-  border-color: rgba(139, 92, 246, 0.3) !important;
+  background-color: #faf5ff !important;
+  color: #7e22ce !important;
+  border-color: #f3e8ff !important;
 }
 
 .admin-theme .status-badge-danger {
-  background-color: rgba(244, 63, 94, 0.15) !important;
-  color: #fb7185 !important;
-  border-color: rgba(244, 63, 94, 0.3) !important;
+  background-color: #fef2f2 !important;
+  color: #b91c1c !important;
+  border-color: #fee2e2 !important;
 }
 
 .admin-theme .status-badge-default {
-  background-color: rgba(255, 255, 255, 0.08) !important;
-  color: #cbd5e1 !important;
-  border-color: rgba(255, 255, 255, 0.15) !important;
+  background-color: #f8fafc !important;
+  color: #475569 !important;
+  border-color: #cbd5e1 !important;
 }
 
 /* Manager Theme Overrides */
@@ -579,5 +580,70 @@ button[aria-expanded="true"] .chev {
 .manager-theme select:not(:disabled),
 .manager-theme textarea:not(:disabled) {
   background-color: #ffffff !important;
+}
+
+/* ── Admin Theme Overrides ──────────────────────────────────────────────────
+   Nhân bản re-skin sáng của manager-theme cho admin-theme để dashboard admin
+   đồng nhất tông sáng sky-blue với manager & staff (accent riêng vẫn là cam). */
+.admin-theme .premium-row:hover {
+  background-color: rgba(14, 165, 233, 0.04) !important;
+}
+
+.admin-theme .glass-premium {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-color: rgba(14, 165, 233, 0.15) !important;
+  box-shadow: 0 10px 30px rgba(14, 165, 233, 0.04) !important;
+}
+
+.admin-theme .glow-border-pulse::before {
+  background: linear-gradient(
+    135deg,
+    rgba(14, 165, 233, 0.25),
+    rgba(56, 189, 248, 0.15),
+    rgba(14, 165, 233, 0.25)
+  ) !important;
+}
+
+.admin-theme .cyber-scanline::after {
+  background: linear-gradient(90deg, transparent, rgba(14, 165, 233, 0.15), rgba(14, 165, 233, 0.3), rgba(14, 165, 233, 0.15), transparent) !important;
+  box-shadow: 0 0 8px 1px rgba(14, 165, 233, 0.15) !important;
+}
+
+.admin-theme .card,
+.admin-theme [class*="Card"] {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.admin-theme .card:hover,
+.admin-theme [class*="Card"]:hover {
+  box-shadow: 0 8px 24px rgba(14, 165, 233, 0.05) !important;
+  border-color: rgba(14, 165, 233, 0.22) !important;
+}
+
+.admin-theme .text-slate-500,
+.admin-theme .text-muted-foreground {
+  color: #576b85 !important;
+}
+
+.admin-theme .text-slate-400 {
+  color: #475569 !important;
+}
+
+.admin-theme h1,
+.admin-theme h2,
+.admin-theme h3,
+.admin-theme h4 {
+  color: #0f172a !important;
+}
+
+.admin-theme input:not([type="range"]):not(:disabled),
+.admin-theme select:not(:disabled),
+.admin-theme textarea:not(:disabled) {
+  background-color: #ffffff !important;
+  color: #0f172a !important; /* tránh chữ trắng vô hình trên input nền trắng */
+}
+.admin-theme input::placeholder,
+.admin-theme textarea::placeholder {
+  color: #94a3b8 !important;
 }
 

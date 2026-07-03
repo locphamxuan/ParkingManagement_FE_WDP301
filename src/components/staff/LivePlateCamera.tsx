@@ -26,6 +26,8 @@ interface LivePlateCameraProps {
   busy?: boolean;
   /** Physical camera device assigned to this role (when multiple cameras are available). */
   deviceId?: string;
+  /** Selected building — required by the backend scope check on /scan. */
+  buildingId?: string;
 }
 
 /**
@@ -34,7 +36,7 @@ interface LivePlateCameraProps {
  * recognized plate + captured image. Also supports uploading a file image.
  */
 export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps>(function LivePlateCamera(
-  { onDetected, onScanStart, busy = false, deviceId },
+  { onDetected, onScanStart, busy = false, deviceId, buildingId },
   ref,
 ) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -95,7 +97,7 @@ export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps
 
   const runScan = async (dataUrl: string, isRetry = false) => {
     const base64 = dataUrl.split(',')[1];
-    const res = await staffApi.scanVehicle(base64);
+    const res = await staffApi.scanVehicle(base64, buildingId);
     const data = (res as { data?: { plateNumber?: string; brand?: string | null; vehicleType?: 'car' | 'motorcycle' | null } })?.data;
     // Normalize and validate the AI result — reject garbage / non-VN-format strings
     const raw = data?.plateNumber ?? '';

@@ -28,7 +28,7 @@ export function DashboardOverviewPage() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center p-24 text-sm text-slate-400 font-semibold bg-slate-950/40 rounded-3xl border border-white/5 backdrop-blur-md">
+      <div className="flex flex-col items-center justify-center p-24 text-sm text-slate-500 font-semibold glass-premium rounded-3xl">
         <div className="h-6 w-6 animate-spin rounded-full border-2 border-orange-500 border-t-transparent mb-3" />
         Đang tải dữ liệu tổng quan bãi đỗ...
       </div>
@@ -146,8 +146,8 @@ export function DashboardOverviewPage() {
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
                       return (
-                        <div className="glass-premium border border-white/10 px-3 py-2 rounded-xl shadow-2xl text-[10px] text-white">
-                          <p className="font-mono font-black uppercase tracking-wider text-slate-400">{payload[0].name}</p>
+                        <div className="bg-white border border-sky-100 px-3 py-2 rounded-xl shadow-xl text-[10px] text-slate-800">
+                          <p className="font-mono font-black uppercase tracking-wider text-slate-500">{payload[0].name}</p>
                           <p className="font-black mt-1 font-mono text-xs" style={{ color: payload[0].payload.fill }}>
                             {payload[0].value}%
                           </p>

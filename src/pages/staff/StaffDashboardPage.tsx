@@ -92,7 +92,7 @@ export function StaffDashboardPage() {
     const buildingId = building?._id;
     Promise.all([
       staffApi.myShifts(),
-      staffApi.getActiveSessions({ populate: 'slot.floor,vehicleType,entryGate,exitGate' }),
+      staffApi.getActiveSessions({ building: buildingId, populate: 'slot.floor,vehicleType,entryGate,exitGate' }),
       staffApi.incidents.list(buildingId),
       staffApi.listReservations(buildingId ? { buildingId, status: 'confirmed' } : {}),
     ])

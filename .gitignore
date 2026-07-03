@@ -28,3 +28,8 @@ openspec/
 
 # system files
 .DS_Store
+
+# Claude Code — chi dung local, khong push len remote
+CLAUDE.md
+claude.md
+.claude.json

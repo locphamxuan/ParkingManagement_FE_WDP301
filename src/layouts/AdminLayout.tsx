@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Navbar } from '@/components/layout/Navbar';
@@ -23,6 +23,15 @@ export function AdminLayout() {
   const location = useLocation();
 
   const title = useMemo(() => titles[location.pathname] ?? 'Admin Dashboard', [location.pathname]);
+
+  // Áp theme sáng của admin (đồng nhất tông với manager/staff) lên body.
+  useEffect(() => {
+    document.body.classList.add('admin-theme');
+    document.body.classList.remove('manager-theme');
+    return () => {
+      document.body.classList.remove('admin-theme');
+    };
+  }, []);
 
   return (
     <div className="relative min-h-screen bg-background text-foreground transition-colors duration-200">

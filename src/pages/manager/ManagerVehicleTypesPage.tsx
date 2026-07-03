@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { managerApi, type VehicleType } from '@/services/manager/managerApi';
+import { VEHICLE_PRESETS } from '@/constants/vehiclePresets';
 
 export function ManagerVehicleTypesPage() {
   const { buildingId } = useBuildingContext();
@@ -16,10 +17,19 @@ export function ManagerVehicleTypesPage() {
 
   // Form tạo mới
   const [showCreate, setShowCreate] = useState(false);
+  const [newPreset, setNewPreset] = useState('');
   const [newCode, setNewCode] = useState('');
   const [newName, setNewName] = useState('');
   const [newDesc, setNewDesc] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+
+  // Chọn preset → tự điền mã + tên. "Khác" (__other__) → cho nhập tay.
+  const onPickPreset = (val: string) => {
+    setNewPreset(val);
+    if (val === '__other__') { setNewCode(''); setNewName(''); return; }
+    const p = VEHICLE_PRESETS.find((x) => x.code === val);
+    if (p) { setNewCode(p.code); setNewName(p.name); }
+  };
 
   // Form chỉnh sửa
   const [editId, setEditId] = useState<string | null>(null);
@@ -57,6 +67,7 @@ export function ManagerVehicleTypesPage() {
         name: newName.trim(),
         description: newDesc.trim() || undefined,
       });
+      setNewPreset('');
       setNewCode('');
       setNewName('');
       setNewDesc('');
@@ -138,24 +149,40 @@ export function ManagerVehicleTypesPage() {
             </button>
           </CardHeader>
           <CardContent className="grid gap-3">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="grid gap-1.5">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Mã loại xe <span className="text-rose-400">*</span></label>
-                <Input
-                  value={newCode}
-                  onChange={(e) => setNewCode(e.target.value.toUpperCase())}
-                  placeholder="Ví dụ: CAR, MOTO, TRUCK"
-                />
-              </div>
-              <div className="grid gap-1.5">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Tên loại xe <span className="text-rose-400">*</span></label>
-                <Input
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  placeholder="Ví dụ: Ô tô, Xe máy"
-                />
-              </div>
+            <div className="grid gap-1.5">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Loại xe <span className="text-rose-400">*</span></label>
+              <select
+                value={newPreset}
+                onChange={(e) => onPickPreset(e.target.value)}
+                className="h-10 rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-primary/50"
+              >
+                <option value="">— Chọn loại xe —</option>
+                {VEHICLE_PRESETS.map((p) => (
+                  <option key={p.code} value={p.code}>{p.name}</option>
+                ))}
+                <option value="__other__">Khác (tự nhập)</option>
+              </select>
             </div>
+            {newPreset === '__other__' && (
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid gap-1.5">
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Mã loại xe <span className="text-rose-400">*</span></label>
+                  <Input
+                    value={newCode}
+                    onChange={(e) => setNewCode(e.target.value.toUpperCase())}
+                    placeholder="Ví dụ: TRUCK, VAN"
+                  />
+                </div>
+                <div className="grid gap-1.5">
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Tên loại xe <span className="text-rose-400">*</span></label>
+                  <Input
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    placeholder="Ví dụ: Xe tải, Xe van"
+                  />
+                </div>
+              </div>
+            )}
             <div className="grid gap-1.5">
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Mô tả</label>
               <Input

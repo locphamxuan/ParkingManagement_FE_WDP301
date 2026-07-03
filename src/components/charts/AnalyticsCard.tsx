@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { motion, useMotionValue, useMotionTemplate, useSpring, useTransform } from 'framer-motion';
 
 interface AnalyticsCardProps {
   label: string;
@@ -18,8 +18,12 @@ export function AnalyticsCard({ label, value, delta, index = 0, icon }: Analytic
   const rawY = useMotionValue(0.5);
   const springX = useSpring(rawX, { stiffness: 160, damping: 22 });
   const springY = useSpring(rawY, { stiffness: 160, damping: 22 });
-  const rotateY = useTransform(springX, [0, 1], [-8, 8]);
-  const rotateX = useTransform(springY, [0, 1], [7, -7]);
+  const rotateY = useTransform(springX, [0, 1], [-10, 10]);
+  const rotateX = useTransform(springY, [0, 1], [9, -9]);
+  // Vệt loé sáng (specular) chạy theo con trỏ → tăng cảm giác chiều sâu 3D.
+  const glareX = useTransform(springX, [0, 1], ['0%', '100%']);
+  const glareY = useTransform(springY, [0, 1], ['0%', '100%']);
+  const glare = useMotionTemplate`radial-gradient(circle at ${glareX} ${glareY}, rgba(255,255,255,0.28), transparent 55%)`;
 
   function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
     const rect = ref.current?.getBoundingClientRect();
@@ -70,8 +74,8 @@ export function AnalyticsCard({ label, value, delta, index = 0, icon }: Analytic
           </div>
 
           {/* Main value — elevated forward with parallax depth */}
-          <div style={{ transform: 'translateZ(16px)' }}>
-            <h3 className="text-3xl font-black tracking-tight font-mono bg-gradient-to-br from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
+          <div style={{ transform: 'translateZ(28px)' }}>
+            <h3 className="text-3xl font-black tracking-tight font-mono bg-gradient-to-br from-slate-900 via-slate-700 to-slate-500 bg-clip-text text-transparent">
               {value}
             </h3>
           </div>
@@ -95,6 +99,12 @@ export function AnalyticsCard({ label, value, delta, index = 0, icon }: Analytic
 
         {/* Ambient micro-grid texture overlay */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.012)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.012)_1px,transparent_1px)] bg-[size:12px_12px] pointer-events-none rounded-2xl" />
+
+        {/* Vệt loé sáng chạy theo nghiêng — lớp trên cùng, hoà trộn mềm */}
+        <motion.div
+          className="absolute inset-0 rounded-2xl pointer-events-none mix-blend-soft-light"
+          style={{ background: glare, transform: 'translateZ(40px)' }}
+        />
       </div>
     </motion.div>
   );

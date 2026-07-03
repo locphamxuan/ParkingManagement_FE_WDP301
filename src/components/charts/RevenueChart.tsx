@@ -19,17 +19,17 @@ export function RevenueChart({ data }: RevenueChartProps) {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="glass-panel-dark border border-orange-500/20 px-4 py-3 rounded-2xl shadow-[0_0_25px_rgba(249,115,22,0.2)] text-xs text-white backdrop-blur-md">
-          <p className="font-mono font-black text-slate-400 mb-2 uppercase tracking-widest">{label}</p>
+        <div className="bg-white border border-orange-500/25 px-4 py-3 rounded-2xl shadow-[0_10px_30px_rgba(249,115,22,0.12)] text-xs text-slate-800 backdrop-blur-md">
+          <p className="font-mono font-black text-slate-500 mb-2 uppercase tracking-widest">{label}</p>
           <div className="space-y-1.5">
             <div className="flex justify-between items-center gap-6">
-              <span className="text-orange-400 font-bold">Doanh thu:</span>
-              <span className="font-mono font-black text-white">{payload[0].value.toLocaleString()} VND</span>
+              <span className="text-orange-500 font-bold">Doanh thu:</span>
+              <span className="font-mono font-black text-slate-900">{payload[0].value.toLocaleString()} VND</span>
             </div>
             {payload[1] && (
               <div className="flex justify-between items-center gap-6">
-                <span className="text-purple-400 font-bold">Occupancy:</span>
-                <span className="font-mono font-black text-white">{payload[1].value}%</span>
+                <span className="text-purple-500 font-bold">Occupancy:</span>
+                <span className="font-mono font-black text-slate-900">{payload[1].value}%</span>
               </div>
             )}
           </div>
@@ -40,7 +40,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
   };
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-white/5 bg-slate-900/60 p-6 backdrop-blur-md shadow-2xl">
+    <div className="relative overflow-hidden rounded-3xl glass-premium glow-border-pulse p-6 shadow-2xl">
       {/* Background backing glow effect */}
       <div className="absolute -left-16 -bottom-16 h-36 w-36 rounded-full bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.1),transparent_65%)] pointer-events-none" />
       <div className="absolute -right-16 -top-16 h-36 w-36 rounded-full bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.08),transparent_65%)] pointer-events-none" />
@@ -67,23 +67,23 @@ export function RevenueChart({ data }: RevenueChartProps) {
                 <stop offset="100%" stopColor="#a855f7" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid stroke="rgba(255,255,255,0.03)" strokeDasharray="3 3" vertical={false} />
-            <XAxis 
-              dataKey="date" 
-              tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 'bold', fontFamily: 'monospace' }} 
-              tickLine={false} 
-              axisLine={{ stroke: 'rgba(255,255,255,0.05)' }} 
+            <CartesianGrid stroke="rgba(15,23,42,0.06)" strokeDasharray="3 3" vertical={false} />
+            <XAxis
+              dataKey="date"
+              tick={{ fill: '#64748b', fontSize: 10, fontWeight: 'bold', fontFamily: 'monospace' }}
+              tickLine={false}
+              axisLine={{ stroke: 'rgba(15,23,42,0.12)' }}
             />
-            <YAxis 
-              tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 'bold', fontFamily: 'monospace' }} 
-              tickLine={false} 
-              axisLine={{ stroke: 'rgba(255,255,255,0.05)' }} 
+            <YAxis
+              tick={{ fill: '#64748b', fontSize: 10, fontWeight: 'bold', fontFamily: 'monospace' }}
+              tickLine={false}
+              axisLine={{ stroke: 'rgba(15,23,42,0.12)' }}
             />
-            <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(249,115,22,0.15)', strokeWidth: 1 }} />
-            <Legend 
-              verticalAlign="top" 
-              height={36} 
-              wrapperStyle={{ color: '#cbd5e1', fontSize: 11, fontWeight: 'bold', fontFamily: 'monospace', textTransform: 'uppercase' }} 
+            <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(249,115,22,0.25)', strokeWidth: 1 }} />
+            <Legend
+              verticalAlign="top"
+              height={36}
+              wrapperStyle={{ color: '#475569', fontSize: 11, fontWeight: 'bold', fontFamily: 'monospace', textTransform: 'uppercase' }}
             />
             <Area 
               type="monotone" 

@@ -132,14 +132,14 @@ export function AdminProfilePage() {
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* Success Notification Alert */}
       {success && (
-        <div className="flex items-center gap-3 rounded-2xl border border-emerald-500/25 bg-emerald-950/20 px-4 py-3.5 text-sm font-bold text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)] animate-fadeIn">
+        <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3.5 text-sm font-bold text-emerald-700 shadow-sm animate-fadeIn">
           <CheckCircle2 size={16} className="text-emerald-400" />
           <span>{success}</span>
         </div>
       )}
 
       {/* ── Section 1: Admin's own profile ─────────────────────────────────── */}
-      <div className="relative overflow-hidden flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-white/8 bg-slate-900/40 p-6 backdrop-blur-md shadow-lg">
+      <div className="relative overflow-hidden flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-slate-200 bg-white p-6 backdrop-blur-md shadow-lg">
         {/* Glow accent */}
         <div className="absolute top-0 left-0 w-40 h-40 bg-[radial-gradient(circle_at_center,rgba(244,63,94,0.06),transparent_65%)] pointer-events-none blur-xl" />
 
@@ -157,7 +157,7 @@ export function AdminProfilePage() {
             <Button
               variant="secondary"
               onClick={handleStartEdit}
-              className="gap-2 rounded-xl border border-white/10 bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 hover:text-white px-6 h-11 text-xs font-black uppercase tracking-wider transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+              className="gap-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 px-6 h-11 text-xs font-black uppercase tracking-wider transition-all duration-300 hover:scale-[1.02] cursor-pointer"
             >
               <Edit size={14} className="text-rose-400" /> Chỉnh sửa
             </Button>
@@ -177,7 +177,7 @@ export function AdminProfilePage() {
 
       <div className="grid gap-6 lg:grid-cols-[1fr_310px]">
         {/* Left Side: Detail Fields or Edit Form */}
-        <div className="rounded-3xl border border-white/8 bg-slate-900/40 p-6 shadow-lg backdrop-blur-md relative overflow-hidden">
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-lg backdrop-blur-md relative overflow-hidden">
           {/* Decorative Corner Glow */}
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-[radial-gradient(circle_at_center,rgba(244,63,94,0.04),transparent_60%)] pointer-events-none blur-2xl" />
 
@@ -200,7 +200,7 @@ export function AdminProfilePage() {
                       setNameError(null);
                     }}
                     required
-                    className="h-11 w-full rounded-xl border border-white/10 bg-slate-950/60 pl-10 pr-4 text-sm text-white placeholder:text-slate-600 outline-none focus:border-rose-500/40 focus:ring-1 focus:ring-rose-500/20 transition-all duration-300"
+                    className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-white placeholder:text-slate-600 outline-none focus:border-rose-500/40 focus:ring-1 focus:ring-rose-500/20 transition-all duration-300"
                     placeholder="Nguyễn Văn A"
                   />
                 </div>
@@ -222,7 +222,7 @@ export function AdminProfilePage() {
                     type="email"
                     value={session.email}
                     disabled
-                    className="h-11 w-full rounded-xl border border-white/5 bg-slate-950/20 pl-10 pr-4 text-sm text-slate-400 outline-none cursor-not-allowed"
+                    className="h-11 w-full rounded-xl border border-slate-100 bg-slate-50 pl-10 pr-4 text-sm text-slate-400 outline-none cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -243,7 +243,7 @@ export function AdminProfilePage() {
                     }}
                     maxLength={10}
                     required
-                    className="h-11 w-full rounded-xl border border-white/10 bg-slate-950/60 pl-10 pr-4 text-sm text-white placeholder:text-slate-600 outline-none focus:border-rose-500/40 focus:ring-1 focus:ring-rose-500/20 transition-all duration-300"
+                    className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-white placeholder:text-slate-600 outline-none focus:border-rose-500/40 focus:ring-1 focus:ring-rose-500/20 transition-all duration-300"
                     placeholder="0901234567"
                   />
                 </div>
@@ -266,7 +266,7 @@ export function AdminProfilePage() {
                   type="button"
                   variant="secondary"
                   onClick={handleCancel}
-                  className="gap-2 rounded-xl border border-white/10 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white px-6 h-11 font-black text-xs uppercase tracking-wider transition-all duration-200 cursor-pointer"
+                  className="gap-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 px-6 h-11 font-black text-xs uppercase tracking-wider transition-all duration-200 cursor-pointer"
                 >
                   <X size={14} className="text-slate-400" /> Hủy
                 </Button>
@@ -284,14 +284,14 @@ export function AdminProfilePage() {
                 return (
                   <div
                     key={f.label}
-                    className="flex items-center gap-4 rounded-2xl border border-white/5 bg-slate-950/40 p-4 transition-all duration-300 hover:border-rose-500/20 hover:bg-slate-950/60 hover:shadow-[0_4px_20px_rgba(0,0,0,0.15)] group"
+                    className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 transition-all duration-300 hover:border-rose-500/20 hover:bg-slate-50 hover:shadow-[0_4px_20px_rgba(0,0,0,0.15)] group"
                   >
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/10 group-hover:scale-105 transition-all duration-300">
                       <Icon size={16} />
                     </div>
                     <div className="min-w-0">
                       <p className="text-[9px] font-black uppercase tracking-[0.15em] text-slate-500 font-mono">{f.label}</p>
-                      <p className="mt-0.5 text-sm font-semibold text-slate-200 truncate">{f.value}</p>
+                      <p className="mt-0.5 text-sm font-semibold text-slate-700 truncate">{f.value}</p>
                     </div>
                   </div>
                 );
@@ -302,7 +302,7 @@ export function AdminProfilePage() {
 
         {/* Right Side: Identity Card Badge */}
         <div className="space-y-4">
-          <div className="relative overflow-hidden rounded-3xl border border-white/8 bg-slate-900/40 p-5 shadow-lg backdrop-blur-md text-center flex flex-col items-center">
+          <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-5 shadow-lg backdrop-blur-md text-center flex flex-col items-center">
             {/* Top decorative gradient bar */}
             <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-rose-500 via-purple-400 to-rose-500" />
             <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-rose-500/10 to-transparent blur-xl pointer-events-none" />
@@ -328,7 +328,7 @@ export function AdminProfilePage() {
       </div>
 
       {/* ── Section 2: User directory ────────────────────────────────────────── */}
-      <div className="rounded-3xl border border-white/8 bg-slate-900/40 p-6 backdrop-blur-md shadow-lg relative overflow-hidden">
+      <div className="rounded-3xl border border-slate-200 bg-white p-6 backdrop-blur-md shadow-lg relative overflow-hidden">
         {/* Glow accent */}
         <div className="absolute bottom-0 right-0 w-48 h-48 bg-[radial-gradient(circle_at_center,rgba(56,189,248,0.03),transparent_60%)] pointer-events-none blur-2xl" />
 
@@ -345,7 +345,7 @@ export function AdminProfilePage() {
           <Button
             variant="secondary"
             onClick={() => void loadUsers(activeRole)}
-            className="gap-2 rounded-xl border border-white/10 bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 hover:text-white px-5 h-11 text-xs font-black uppercase tracking-wider transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+            className="gap-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 px-5 h-11 text-xs font-black uppercase tracking-wider transition-all duration-300 hover:scale-[1.02] cursor-pointer"
           >
             <RefreshCw size={14} className={usersLoading ? 'animate-spin text-sky-400' : 'text-sky-400'} /> Làm mới
           </Button>
@@ -367,7 +367,7 @@ export function AdminProfilePage() {
                 className={`flex items-center gap-2.5 rounded-xl border px-4 py-2.5 text-xs font-black uppercase tracking-wider transition-all duration-300 hover:scale-[1.02] cursor-pointer ${
                   isActive
                     ? `${tab.border} ${tab.bg} ${tab.color}`
-                    : 'border-white/5 bg-slate-950/20 text-slate-400 hover:bg-slate-950/40 hover:text-slate-200'
+                    : 'border-slate-100 bg-slate-50 text-slate-400 hover:bg-slate-50 hover:text-slate-700'
                 }`}
               >
                 <Icon size={14} />
@@ -389,14 +389,14 @@ export function AdminProfilePage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={`Tìm theo tên, email, SĐT của ${activeTab.label}...`}
-            className="h-11 w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 text-sm text-white placeholder:text-slate-600 outline-none focus:border-rose-500/40 focus:ring-1 focus:ring-rose-500/20 transition-all duration-300"
+            className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-white placeholder:text-slate-600 outline-none focus:border-rose-500/40 focus:ring-1 focus:ring-rose-500/20 transition-all duration-300"
           />
         </div>
 
         {/* Content */}
         <div className="relative z-10">
           {usersError && (
-            <div className="flex items-center gap-3 rounded-2xl border border-rose-500/25 bg-rose-950/20 px-4 py-3.5 text-sm font-bold text-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.1)] mb-4">
+            <div className="flex items-center gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3.5 text-sm font-bold text-rose-700 shadow-sm mb-4">
               <AlertCircle size={16} />
               <span>{usersError}</span>
             </div>
@@ -407,17 +407,17 @@ export function AdminProfilePage() {
               Đang tải danh sách {activeTab.label}...
             </div>
           ) : filteredUsers.length === 0 ? (
-            <div className="py-16 text-center border border-dashed border-white/5 rounded-3xl bg-slate-950/20">
+            <div className="py-16 text-center border border-dashed border-slate-100 rounded-3xl bg-slate-50">
               <activeTab.icon size={36} className="mx-auto mb-3 text-slate-650 opacity-40" />
               <p className="text-sm font-semibold text-slate-400">
                 {search ? `Không tìm thấy ${activeTab.label} phù hợp.` : `Chưa có ${activeTab.label} nào.`}
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-2xl border border-white/5 bg-slate-950/20">
+            <div className="overflow-x-auto rounded-2xl border border-slate-100 bg-slate-50">
               <table className="w-full text-sm border-collapse">
                 <thead>
-                  <tr className="border-b border-white/5 bg-slate-950/40 text-[10px] font-black uppercase tracking-widest text-slate-500 font-mono">
+                  <tr className="border-b border-slate-100 bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-500 font-mono">
                     <th className="py-4 px-5 text-left">Họ tên</th>
                     <th className="py-4 px-5 text-left">Email</th>
                     <th className="py-4 px-5 text-left">SĐT</th>
@@ -428,9 +428,9 @@ export function AdminProfilePage() {
                     ) : null}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="divide-y divide-slate-100">
                   {filteredUsers.map((u) => (
-                    <tr key={u._id} className="group hover:bg-white/2 transition-colors duration-250">
+                    <tr key={u._id} className="group hover:bg-slate-50 transition-colors duration-250">
                       <td className="py-3.5 px-5">
                         <div className="flex items-center gap-3">
                           <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${activeTab.border} ${activeTab.bg}`}>
@@ -438,7 +438,7 @@ export function AdminProfilePage() {
                               {(u.fullName?.[0] ?? u.email[0] ?? '?').toUpperCase()}
                             </span>
                           </div>
-                          <span className="font-bold text-slate-200 group-hover:text-white transition-colors">
+                          <span className="font-bold text-slate-700 group-hover:text-slate-900 transition-colors">
                             {u.fullName || '—'}
                           </span>
                         </div>

@@ -10,12 +10,12 @@ export function ActivityTimeline({ title, items }: ActivityTimelineProps) {
   return (
     <Card className="border-0 bg-transparent shadow-none p-0">
       <CardHeader className="p-0 pb-4">
-        <CardTitle className="text-sm font-black uppercase tracking-wider text-slate-300 font-mono">
+        <CardTitle className="text-sm font-black uppercase tracking-wider text-slate-700 font-mono">
           {title}
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="relative border-l border-slate-800 ml-3 pl-6 space-y-5 py-2">
+        <div className="relative border-l border-slate-200 ml-3 pl-6 space-y-5 py-2">
           {items.map((item) => {
             const isDanger = item.action.includes('BLOCK') || item.action.includes('CANCEL') || item.action.includes('REJECT');
             const isSuccess = item.action.includes('CHECK_IN') || item.action.includes('CHECK_OUT') || item.action.includes('TOP_UP');
@@ -69,7 +69,7 @@ export function ActivityTimeline({ title, items }: ActivityTimelineProps) {
                     </span>
                   </div>
 
-                  <p className="text-xs font-semibold text-slate-200 leading-relaxed mt-0.5">
+                  <p className="text-xs font-semibold text-slate-700 leading-relaxed mt-0.5">
                     {item.details}
                   </p>
 

@@ -13,6 +13,44 @@ export function AnalyticsCard({ label, value, delta, index = 0, icon }: Analytic
   const isPositive = !delta.includes('-');
   const ref = useRef<HTMLDivElement>(null);
 
+  // Configuration settings for different card themes
+  const cardThemes = [
+    {
+      glowRight: 'bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.22),transparent_70%)]',
+      glowLeft: 'bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.15),transparent_70%)]',
+      iconBox: 'bg-blue-500/10 border-blue-500/20 text-blue-500 group-hover:bg-blue-500 group-hover:text-white group-hover:shadow-[0_0_12px_rgba(59,130,246,0.3)]',
+      valueText: 'from-slate-900 via-blue-950 to-indigo-900 group-hover:from-blue-700 group-hover:to-indigo-850',
+      bottomLine: 'from-blue-500/0 via-blue-500/60 to-blue-500/0',
+      borderHover: 'hover:border-blue-500/35 hover:shadow-[0_20px_40px_rgba(59,130,246,0.12)]',
+    },
+    {
+      glowRight: 'bg-[radial-gradient(circle_at_center,rgba(139,92,246,0.22),transparent_70%)]',
+      glowLeft: 'bg-[radial-gradient(circle_at_center,rgba(124,58,237,0.15),transparent_70%)]',
+      iconBox: 'bg-purple-500/10 border-purple-500/20 text-purple-500 group-hover:bg-purple-500 group-hover:text-white group-hover:shadow-[0_0_12px_rgba(139,92,246,0.3)]',
+      valueText: 'from-slate-900 via-purple-950 to-violet-900 group-hover:from-purple-700 group-hover:to-violet-850',
+      bottomLine: 'from-purple-500/0 via-purple-500/60 to-purple-500/0',
+      borderHover: 'hover:border-purple-500/35 hover:shadow-[0_20px_40px_rgba(139,92,246,0.12)]',
+    },
+    {
+      glowRight: 'bg-[radial-gradient(circle_at_center,rgba(245,158,11,0.22),transparent_70%)]',
+      glowLeft: 'bg-[radial-gradient(circle_at_center,rgba(217,119,6,0.15),transparent_70%)]',
+      iconBox: 'bg-amber-500/10 border-amber-500/20 text-amber-600 group-hover:bg-amber-500 group-hover:text-white group-hover:shadow-[0_0_12px_rgba(245,158,11,0.3)]',
+      valueText: 'from-slate-900 via-amber-950 to-orange-900 group-hover:from-amber-700 group-hover:to-orange-850',
+      bottomLine: 'from-amber-500/0 via-amber-500/60 to-amber-500/0',
+      borderHover: 'hover:border-amber-500/35 hover:shadow-[0_20px_40px_rgba(245,158,11,0.12)]',
+    },
+    {
+      glowRight: 'bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.22),transparent_70%)]',
+      glowLeft: 'bg-[radial-gradient(circle_at_center,rgba(5,150,105,0.15),transparent_70%)]',
+      iconBox: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-[0_0_12px_rgba(16,185,129,0.3)]',
+      valueText: 'from-slate-900 via-emerald-950 to-teal-900 group-hover:from-emerald-700 group-hover:to-teal-850',
+      bottomLine: 'from-emerald-500/0 via-emerald-500/60 to-emerald-500/0',
+      borderHover: 'hover:border-emerald-500/35 hover:shadow-[0_20px_40px_rgba(16,185,129,0.12)]',
+    },
+  ];
+
+  const theme = cardThemes[index % cardThemes.length];
+
   // Mouse-tracking motion values for 3D parallax tilt
   const rawX = useMotionValue(0.5);
   const rawY = useMotionValue(0.5);
@@ -52,11 +90,11 @@ export function AnalyticsCard({ label, value, delta, index = 0, icon }: Analytic
         perspective: '900px',
       }}
     >
-      <div className="h-full relative overflow-hidden rounded-2xl p-6 glass-premium glow-border-pulse shadow-2xl transition-all duration-300 group cursor-default">
+      <div className={`h-full relative overflow-hidden rounded-2xl p-6 glass-premium shadow-2xl transition-all duration-500 group cursor-default ${theme.borderHover}`}>
         
         {/* Dynamic corner neon spot glow — shifts on hover */}
-        <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.18),transparent_70%)] pointer-events-none transition-all duration-500 group-hover:scale-150 group-hover:opacity-75" />
-        <div className="absolute -left-6 -bottom-6 h-16 w-16 rounded-full bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.12),transparent_70%)] pointer-events-none group-hover:scale-125 transition-all duration-500" />
+        <div className={`absolute -right-6 -top-6 h-24 w-24 rounded-full ${theme.glowRight} pointer-events-none transition-all duration-500 group-hover:scale-150 group-hover:opacity-75`} />
+        <div className={`absolute -left-6 -bottom-6 h-16 w-16 rounded-full ${theme.glowLeft} pointer-events-none group-hover:scale-125 transition-all duration-500`} />
         
         {/* Content elevated with preserve-3d for floating layering effect */}
         <div className="relative z-10" style={{ transformStyle: 'preserve-3d' }}>
@@ -67,7 +105,7 @@ export function AnalyticsCard({ label, value, delta, index = 0, icon }: Analytic
               {label}
             </p>
             {icon && (
-              <div className="w-8 h-8 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400">
+              <div className={`w-8.5 h-8.5 rounded-xl border flex items-center justify-center transition-all duration-300 ${theme.iconBox}`}>
                 {icon}
               </div>
             )}
@@ -75,7 +113,7 @@ export function AnalyticsCard({ label, value, delta, index = 0, icon }: Analytic
 
           {/* Main value — elevated forward with parallax depth */}
           <div style={{ transform: 'translateZ(28px)' }}>
-            <h3 className="text-3xl font-black tracking-tight font-mono bg-gradient-to-br from-slate-900 via-slate-700 to-slate-500 bg-clip-text text-transparent">
+            <h3 className={`text-4xl font-extrabold tracking-tight bg-gradient-to-r ${theme.valueText} bg-clip-text text-transparent transition-all duration-300 drop-shadow-[0_1px_2px_rgba(0,0,0,0.05)]`}>
               {value}
             </h3>
           </div>
@@ -84,8 +122,8 @@ export function AnalyticsCard({ label, value, delta, index = 0, icon }: Analytic
           <div className="mt-4 flex items-center gap-2" style={{ transform: 'translateZ(10px)' }}>
             <span className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-0.5 text-[9px] font-black tracking-wider uppercase font-mono border ${
               isPositive 
-                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_8px_rgba(16,185,129,0.2)]' 
-                : 'bg-rose-500/10 text-rose-400 border-rose-500/20 shadow-[0_0_8px_rgba(239,68,68,0.2)]'
+                ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 shadow-[0_0_8px_rgba(16,185,129,0.15)]' 
+                : 'bg-rose-500/10 text-rose-500 border-rose-500/20 shadow-[0_0_8px_rgba(244,63,94,0.15)]'
             }`}>
               <span>{isPositive ? '▲' : '▼'}</span>
               {delta}
@@ -95,10 +133,10 @@ export function AnalyticsCard({ label, value, delta, index = 0, icon }: Analytic
         </div>
 
         {/* Neon bottom accent line — visible on hover */}
-        <div className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-orange-500/0 via-orange-500/35 to-orange-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className={`absolute bottom-0 left-0 right-0 h-[1.5px] bg-gradient-to-r ${theme.bottomLine} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
 
         {/* Ambient micro-grid texture overlay */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.012)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.012)_1px,transparent_1px)] bg-[size:12px_12px] pointer-events-none rounded-2xl" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(14,165,233,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.015)_1px,transparent_1px)] bg-[size:12px_12px] pointer-events-none rounded-2xl" />
 
         {/* Vệt loé sáng chạy theo nghiêng — lớp trên cùng, hoà trộn mềm */}
         <motion.div

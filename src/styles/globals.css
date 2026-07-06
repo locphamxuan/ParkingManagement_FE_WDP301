@@ -38,7 +38,7 @@
   color-scheme: light;
   --app-background: 210 40% 98%; /* #f8fafc */
   --app-foreground: 222 47% 11%; /* #0f172a */
-  --app-primary: 24 94% 54%; /* admin accent: orange */
+  --app-primary: 217 91% 60%; /* admin accent: blue */
   --app-primary-foreground: 210 40% 98%;
   --app-secondary: 200 30% 96%; /* #f0f4f8 */
   --app-secondary-foreground: 222 47% 11%;
@@ -48,7 +48,7 @@
   --app-card-foreground: 222 47% 11%;
   --app-border: 199 89% 90%; /* sky-100 */
   --app-input: 199 89% 90%;
-  --app-ring: 24 94% 54%;
+  --app-ring: 217 91% 60%;
   --text: #0f172a;
   --shadow: 0 10px 30px rgba(14, 165, 233, 0.04);
 }
@@ -582,65 +582,130 @@ button[aria-expanded="true"] .chev {
   background-color: #ffffff !important;
 }
 
-/* ── Admin Theme Overrides ──────────────────────────────────────────────────
-   Nhân bản re-skin sáng của manager-theme cho admin-theme để dashboard admin
-   đồng nhất tông sáng sky-blue với manager & staff (accent riêng vẫn là cam). */
+/* ── Admin Theme Overrides (Fluent Light Glassmorphism) ─────────────────── */
+.admin-theme {
+  color-scheme: light;
+  --app-background: 210 40% 98%; /* #f8fafc */
+  --app-foreground: 222 47% 11%; /* #0f172a */
+  --app-primary: 217 91% 56%; /* blue */
+  --app-primary-foreground: 210 40% 98%;
+  --app-secondary: 210 40% 96.1%; /* #f1f5f9 */
+  --app-secondary-foreground: 222 47% 11%;
+  --app-muted: 210 40% 96.1%;
+  --app-muted-foreground: 215.4 16.3% 46.9%;
+  --app-card: 0 0% 100%; /* #ffffff */
+  --app-card-foreground: 222 47% 11%;
+  --app-border: 199 89% 92%; /* sky-100 */
+  --app-input: 199 89% 92%;
+  --app-ring: 217 91% 56%;
+  --text: #0f172a;
+  --shadow: 0 12px 35px rgba(14, 165, 233, 0.05);
+}
+
 .admin-theme .premium-row:hover {
   background-color: rgba(14, 165, 233, 0.04) !important;
 }
 
 .admin-theme .glass-premium {
-  background: rgba(255, 255, 255, 0.9) !important;
-  border-color: rgba(14, 165, 233, 0.15) !important;
-  box-shadow: 0 10px 30px rgba(14, 165, 233, 0.04) !important;
+  background: rgba(255, 255, 255, 0.52) !important;
+  backdrop-filter: blur(25px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(25px) saturate(190%) !important;
+  border-color: rgba(14, 165, 233, 0.16) !important;
+  box-shadow: 
+    0 12px 35px -10px rgba(31, 38, 135, 0.06) !important,
+    inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
 }
 
 .admin-theme .glow-border-pulse::before {
   background: linear-gradient(
     135deg,
-    rgba(14, 165, 233, 0.25),
-    rgba(56, 189, 248, 0.15),
-    rgba(14, 165, 233, 0.25)
+    rgba(14, 165, 233, 0.22),
+    rgba(56, 189, 248, 0.12),
+    rgba(14, 165, 233, 0.22)
   ) !important;
 }
 
 .admin-theme .cyber-scanline::after {
-  background: linear-gradient(90deg, transparent, rgba(14, 165, 233, 0.15), rgba(14, 165, 233, 0.3), rgba(14, 165, 233, 0.15), transparent) !important;
-  box-shadow: 0 0 8px 1px rgba(14, 165, 233, 0.15) !important;
+  background: linear-gradient(90deg, transparent, rgba(14, 165, 233, 0.1), rgba(56, 189, 248, 0.2), rgba(14, 165, 233, 0.1), transparent) !important;
+  box-shadow: 0 0 8px 1px rgba(14, 165, 233, 0.08) !important;
 }
 
 .admin-theme .card,
 .admin-theme [class*="Card"] {
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .admin-theme .card:hover,
 .admin-theme [class*="Card"]:hover {
-  box-shadow: 0 8px 24px rgba(14, 165, 233, 0.05) !important;
-  border-color: rgba(14, 165, 233, 0.22) !important;
+  background: rgba(255, 255, 255, 0.68) !important;
+  box-shadow: 0 20px 45px rgba(14, 165, 233, 0.12) !important;
+  border-color: rgba(14, 165, 233, 0.35) !important;
 }
 
 .admin-theme .text-slate-500,
 .admin-theme .text-muted-foreground {
-  color: #576b85 !important;
+  color: #64748b !important;
 }
 
 .admin-theme .text-slate-400 {
   color: #475569 !important;
 }
 
-.admin-theme h1,
-.admin-theme h2,
-.admin-theme h3,
-.admin-theme h4 {
+.admin-theme h1:not(.bg-clip-text),
+.admin-theme h2:not(.bg-clip-text),
+.admin-theme h3:not(.bg-clip-text),
+.admin-theme h4:not(.bg-clip-text) {
   color: #0f172a !important;
 }
 
 .admin-theme input:not([type="range"]):not(:disabled),
 .admin-theme select:not(:disabled),
 .admin-theme textarea:not(:disabled) {
-  background-color: #ffffff !important;
-  color: #0f172a !important; /* tránh chữ trắng vô hình trên input nền trắng */
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  color: #0f172a !important;
+  border-color: rgba(14, 165, 233, 0.2) !important;
+}
+
+/* Sidebar reskin for light admin theme */
+.admin-theme aside {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+  border-right-color: rgba(14, 165, 233, 0.12) !important;
+  box-shadow: 4px 0 35px rgba(14, 165, 233, 0.015) !important;
+  backdrop-filter: blur(25px) !important;
+  -webkit-backdrop-filter: blur(25px) !important;
+}
+
+.admin-theme aside .border-sky-100 {
+  border-color: rgba(14, 165, 233, 0.15) !important;
+}
+
+.admin-theme aside .bg-sky-50\/50 {
+  background-color: rgba(14, 165, 233, 0.05) !important;
+}
+
+.admin-theme aside .text-slate-800 {
+  color: #0f172a !important;
+}
+
+.admin-theme aside .text-slate-500 {
+  color: #475569 !important;
+}
+
+.admin-theme aside .hover\:bg-sky-50\/50:hover {
+  background-color: rgba(14, 165, 233, 0.08) !important;
+  color: #0284c7 !important;
+}
+.admin-theme aside nav a[class*="bg-sky-500"] {
+  background-color: #0ea5e9 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 15px rgba(14, 165, 233, 0.25) !important;
+}
+.admin-theme aside nav a:not([class*="bg-sky-500"]) {
+  color: #475569 !important;
+}
+.admin-theme aside nav a:not([class*="bg-sky-500"]):hover {
+  background-color: rgba(14, 165, 233, 0.08) !important;
+  color: #0284c7 !important;
 }
 .admin-theme input::placeholder,
 .admin-theme textarea::placeholder {

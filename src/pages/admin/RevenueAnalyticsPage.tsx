@@ -1,9 +1,19 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Building2, CircleDollarSign, RefreshCw } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useCallback, useEffect, useState, useMemo } from 'react';
+import { motion } from 'framer-motion';
+import { 
+  Building2, 
+  Coins, 
+  CreditCard, 
+  Calendar, 
+  TrendingUp, 
+  RefreshCw, 
+  Wallet,
+  ArrowUpRight
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { adminApi, type RevenueReport } from '@/services/admin/adminApi';
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 
 const fmtVnd = (n: number | undefined | null) =>
   n != null ? `${n.toLocaleString('vi-VN')} ₫` : '—';
@@ -32,100 +42,321 @@ export function RevenueAnalyticsPage() {
 
   useEffect(() => { void loadReport(); }, [loadReport]);
 
+  const stats = useMemo(() => {
+    if (!report?.items) return { totalSessions: 0, cashlessRate: 0, activeBuildings: 0 };
+    let totalSessions = 0;
+    let cash = 0;
+    let cashless = 0;
+    report.items.forEach((r) => {
+      totalSessions += r.sessionCount || 0;
+      cash += r.cashAmount || 0;
+      cashless += (r.walletAmount || 0) + (r.qrAmount || 0);
+    });
+    const total = cash + cashless;
+    const cashlessRate = total > 0 ? Math.round((cashless / total) * 100) : 0;
+    const activeBuildings = report.items.length;
+    return { totalSessions, cashlessRate, activeBuildings };
+  }, [report]);
+
+  const channelData = useMemo(() => {
+    if (!report?.items) return [];
+    let cash = 0;
+    let wallet = 0;
+    let qr = 0;
+    report.items.forEach((r) => {
+      cash += r.cashAmount || 0;
+      wallet += r.walletAmount || 0;
+      qr += r.qrAmount || 0;
+    });
+    return [
+      { name: 'Ví điện tử', value: wallet, color: '#3b82f6' },
+      { name: 'Mã QR Pay', value: qr, color: '#8b5cf6' },
+      { name: 'Tiền mặt', value: cash, color: '#f59e0b' },
+    ].filter(item => item.value > 0);
+  }, [report]);
+
   return (
-    <div className="space-y-6">
-      <section className="space-y-4">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <CircleDollarSign size={18} className="text-emerald-400" />
-            <div>
-              <h3 className="font-semibold text-foreground">Doanh thu gửi xe theo tòa nhà</h3>
-              <p className="text-xs text-muted-foreground">
-                Tổng hợp doanh thu gửi xe của các tòa nhà trong khoảng thời gian đã chọn
-              </p>
-            </div>
+    <div className="space-y-6 pb-12">
+      {/* Control Actions Row (Search, filter, create button) grouped together beautifully */}
+      <div className="flex flex-col lg:flex-row items-center justify-between gap-4 w-full rounded-3xl border border-sky-100/50 bg-white/30 p-4 shadow-sm backdrop-blur-md relative overflow-hidden">
+        {/* Decorative subtle top edge line */}
+        <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-blue-500/10 via-blue-500/30 to-indigo-500/10" />
+        
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-655 flex items-center justify-center font-bold shrink-0 border border-blue-500/15">
+            <Coins size={18} />
           </div>
-          <div className="flex items-end gap-2">
-            <div className="grid gap-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Từ ngày</label>
-              <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-40" />
-            </div>
-            <div className="grid gap-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Đến ngày</label>
-              <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-40" />
-            </div>
-            <Button variant="secondary" size="sm" onClick={loadReport} className="gap-1.5">
-              <RefreshCw size={13} /> Làm mới
-            </Button>
+          <div>
+            <h3 className="font-extrabold text-sm text-slate-800 leading-tight">Doanh thu gửi xe theo tòa nhà</h3>
+            <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider mt-0.5">
+              Phân tích cơ cấu dòng tiền thanh toán
+            </p>
           </div>
         </div>
 
-        {error && (
-          <div className="rounded-lg border border-rose-500/20 bg-rose-500/10 px-3 py-2 text-sm text-rose-500">
-            {error}
+        <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto justify-end">
+          <div className="flex items-center gap-1.5 bg-white/90 border border-sky-100/80 rounded-xl px-3 py-1.5 shadow-sm">
+            <Calendar size={13} className="text-slate-400" />
+            <span className="text-[9px] font-black uppercase text-slate-400 mr-1">Từ</span>
+            <input 
+              type="date" 
+              value={from} 
+              onChange={(e) => setFrom(e.target.value)} 
+              className="bg-transparent border-0 text-xs font-bold text-slate-700 focus:outline-none focus:ring-0 w-28 p-0"
+            />
           </div>
-        )}
+          <div className="flex items-center gap-1.5 bg-white/90 border border-sky-100/80 rounded-xl px-3 py-1.5 shadow-sm">
+            <Calendar size={13} className="text-slate-400" />
+            <span className="text-[9px] font-black uppercase text-slate-400 mr-1">Đến</span>
+            <input 
+              type="date" 
+              value={to} 
+              onChange={(e) => setTo(e.target.value)} 
+              className="bg-transparent border-0 text-xs font-bold text-slate-700 focus:outline-none focus:ring-0 w-28 p-0"
+            />
+          </div>
+          <Button 
+            onClick={loadReport} 
+            className="bg-gradient-to-r from-blue-600 to-indigo-650 hover:from-blue-550 hover:to-indigo-600 hover:shadow-lg hover:shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-white rounded-xl font-black px-5 py-2.5 h-10 text-xs border-0 shadow-md flex items-center gap-1.5 shrink-0"
+          >
+            <RefreshCw size={13} className={loading ? 'animate-spin' : ''} /> Làm mới
+          </Button>
+        </div>
+      </div>
 
-        {loading ? (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <RefreshCw size={14} className="animate-spin" /> Đang tải báo cáo doanh thu...
-          </div>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-3">
-            <Card className="border-emerald-500/20 bg-emerald-500/5 sm:col-span-1">
-              <CardContent className="p-5">
-                <div className="mb-2 flex items-center gap-2">
-                  <CircleDollarSign size={14} className="text-emerald-500" />
-                  <p className="text-xs font-black uppercase tracking-wider text-emerald-600/70">
-                    Tổng doanh thu
-                  </p>
+      {error && (
+        <div className="rounded-3xl border border-rose-500/20 bg-rose-500/10 p-4 text-xs font-bold text-rose-600 shadow-sm animate-in fade-in duration-200">
+          {error}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="flex items-center gap-2 text-sm text-slate-500 font-bold p-12 justify-center">
+          <RefreshCw size={16} className="animate-spin text-blue-500" /> Đang tổng hợp số liệu doanh thu...
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {/* Analytics Stats Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Grand Total Revenue */}
+            <div className="relative overflow-hidden rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.04] p-5 shadow-sm hover:shadow-emerald-500/10 transition-all duration-300 group">
+              <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-emerald-500/10 via-emerald-500 to-teal-400/10 opacity-60" />
+              <div className="flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-bold shrink-0 border border-emerald-500/20">
+                  <Coins size={20} />
                 </div>
-                <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
-                  {fmtVnd(report?.grandTotal)}
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {report?.items?.length ?? 0} tòa nhà có doanh thu
-                </p>
-              </CardContent>
-            </Card>
+                <div>
+                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Tổng doanh thu</p>
+                  <p className="text-base font-black text-emerald-650 mt-0.5">{fmtVnd(report?.grandTotal)}</p>
+                </div>
+              </div>
+            </div>
 
-            <Card className="sm:col-span-2">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-sm">
-                  <Building2 size={14} className="text-primary" />
-                  Doanh thu theo tòa nhà
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {!report?.items?.length ? (
-                  <p className="py-2 text-sm text-muted-foreground">Chưa có doanh thu trong khoảng thời gian này.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {report.items.map((r) => (
-                      <div key={r.buildingId} className="flex items-center justify-between rounded-lg border border-border bg-card/50 px-3 py-2.5">
-                        <div>
-                          <p className="text-sm font-semibold text-foreground">
-                            {r.buildingCode && (
-                              <span className="mr-1.5 font-mono text-xs text-muted-foreground">{r.buildingCode}</span>
-                            )}
-                            {r.buildingName ?? 'Tòa nhà'}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {r.sessionCount} lượt · Tiền mặt {fmtVnd(r.cashAmount)} · Ví {fmtVnd(r.walletAmount)} · QR {fmtVnd(r.qrAmount)}
-                          </p>
+            {/* Total Sessions */}
+            <div className="relative overflow-hidden rounded-2xl border border-blue-500/20 bg-blue-500/[0.04] p-5 shadow-sm hover:shadow-blue-500/10 transition-all duration-300 group">
+              <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-blue-500/10 via-blue-500 to-sky-400/10 opacity-60" />
+              <div className="flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center font-bold shrink-0 border border-blue-500/20">
+                  <TrendingUp size={20} />
+                </div>
+                <div>
+                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Tổng lượt đỗ xe</p>
+                  <p className="text-base font-black text-slate-800 mt-0.5">{stats.totalSessions} lượt</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Cashless rate */}
+            <div className="relative overflow-hidden rounded-2xl border border-purple-500/20 bg-purple-500/[0.04] p-5 shadow-sm hover:shadow-purple-500/10 transition-all duration-300 group">
+              <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-purple-500/10 via-purple-500 to-indigo-400/10 opacity-60" />
+              <div className="flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-650 flex items-center justify-center font-bold shrink-0 border border-purple-500/20">
+                  <CreditCard size={20} />
+                </div>
+                <div>
+                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Không tiền mặt</p>
+                  <p className="text-base font-black text-purple-650 mt-0.5">{stats.cashlessRate}%</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Active buildings */}
+            <div className="relative overflow-hidden rounded-2xl border border-amber-500/20 bg-amber-500/[0.04] p-5 shadow-sm hover:shadow-amber-500/10 transition-all duration-300 group">
+              <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-amber-500/10 via-amber-500 to-orange-400/10 opacity-60" />
+              <div className="flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold shrink-0 border border-amber-500/20">
+                  <Building2 size={20} />
+                </div>
+                <div>
+                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Tòa nhà phát sinh</p>
+                  <p className="text-base font-black text-slate-800 mt-0.5">{stats.activeBuildings} tòa nhà</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Double Column Display */}
+          <div className="grid grid-cols-1 xl:grid-cols-5 gap-6 items-start">
+            {/* Payment Channel Pie Chart Card */}
+            <div className="relative overflow-hidden rounded-3xl border border-sky-100/60 bg-white/45 p-6 shadow-md flex flex-col justify-between xl:col-span-2">
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500/10 via-blue-500/30 to-indigo-500/10" />
+              <div>
+                <h4 className="font-extrabold text-sm text-slate-800 leading-tight">Phân phối Kênh thanh toán</h4>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Tỷ trọng doanh thu theo dòng tiền</p>
+              </div>
+
+              {channelData.length === 0 ? (
+                <div className="py-24 text-center text-xs text-slate-400 italic">Chưa phát sinh doanh thu</div>
+              ) : (
+                <div className="mt-6 flex-grow flex flex-col justify-center">
+                  <div className="h-44 relative">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={channelData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={50}
+                          outerRadius={70}
+                          paddingAngle={6}
+                          dataKey="value"
+                          cornerRadius={6}
+                        >
+                          {channelData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          contentStyle={{
+                            background: 'rgba(15, 20, 40, 0.92)',
+                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                            borderRadius: '12px',
+                            color: '#fff',
+                            fontSize: '11px',
+                            fontWeight: 'bold',
+                          }}
+                          formatter={(value: number) => [fmtVnd(value), 'Doanh thu']}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Doanh số</span>
+                      <span className="text-xs font-black text-slate-700 mt-1 leading-none">100%</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 mt-6 border-t border-sky-100/30 pt-4">
+                    {channelData.map((item) => (
+                      <div key={item.name} className="flex items-center justify-between text-xs font-semibold">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm animate-pulse" style={{ backgroundColor: item.color }} />
+                          <span className="text-slate-500 font-bold">{item.name}</span>
                         </div>
-                        <p className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                          {fmtVnd(r.totalRevenue)}
-                        </p>
+                        <span className="font-extrabold text-slate-800">{fmtVnd(item.value)}</span>
                       </div>
                     ))}
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                </div>
+              )}
+            </div>
+
+            {/* Detailed Buildings List (No Nested Wrapper Card) */}
+            <div className="xl:col-span-3 space-y-4">
+              <div>
+                <h4 className="font-extrabold text-sm text-slate-850 leading-tight">Báo cáo doanh số tòa nhà</h4>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Thống kê chi tiết doanh thu bãi đỗ xe</p>
+              </div>
+
+              {!report?.items?.length ? (
+                <div className="rounded-3xl border border-sky-100/60 bg-white/45 p-12 text-center text-xs text-slate-400 italic shadow-md">
+                  Chưa có doanh thu phát sinh trong giai đoạn này.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {report.items.map((r) => {
+                    const total = r.totalRevenue || 1;
+                    const cashPct = Math.round(((r.cashAmount || 0) / total) * 100);
+                    const walletPct = Math.round(((r.walletAmount || 0) / total) * 100);
+                    const qrPct = Math.round(((r.qrAmount || 0) / total) * 100);
+
+                    return (
+                      <motion.div
+                        key={r.buildingId}
+                        whileHover={{ scale: 1.005, y: -2 }}
+                        className="rounded-3xl border border-sky-100/60 bg-white/45 p-6 shadow-md hover:border-blue-500/15 transition-all duration-200 group relative overflow-hidden"
+                      >
+                        {/* Top Accent line */}
+                        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500/10 via-blue-500/25 to-indigo-500/10" />
+
+                        <div className="flex items-start justify-between gap-3 mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-650 flex items-center justify-center font-bold shrink-0 border border-blue-500/15">
+                              <Building2 size={16} />
+                            </div>
+                            <div>
+                              <h5 className="font-extrabold text-xs text-slate-800 leading-tight">{r.buildingName ?? 'Tòa nhà'}</h5>
+                              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-1 font-mono">{r.buildingCode || r.buildingId.slice(0, 8)}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <span className="font-black text-xs text-emerald-650 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-lg inline-block">
+                              {fmtVnd(r.totalRevenue)}
+                            </span>
+                            <p className="text-[9px] text-slate-450 font-bold mt-1.5 uppercase tracking-wider">{r.sessionCount} lượt gửi xe</p>
+                          </div>
+                        </div>
+
+                        {/* Revenue Stacked bar graph simulating channel split */}
+                        <div className="space-y-3">
+                          <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100 flex shadow-inner">
+                            {r.walletAmount > 0 && (
+                              <div 
+                                className="h-full bg-gradient-to-r from-blue-500 to-sky-400 transition-all" 
+                                style={{ width: `${walletPct}%` }}
+                                title={`Ví điện tử: ${walletPct}%`}
+                              />
+                            )}
+                            {r.qrAmount > 0 && (
+                              <div 
+                                className="h-full bg-gradient-to-r from-purple-500 to-indigo-400 transition-all" 
+                                style={{ width: `${qrPct}%` }}
+                                title={`Mã QR Pay: ${qrPct}%`}
+                              />
+                            )}
+                            {r.cashAmount > 0 && (
+                              <div 
+                                className="h-full bg-gradient-to-r from-amber-500 to-orange-400 transition-all" 
+                                style={{ width: `${cashPct}%` }}
+                                title={`Tiền mặt: ${cashPct}%`}
+                              />
+                            )}
+                          </div>
+
+                          {/* Channel labels */}
+                          <div className="grid grid-cols-3 gap-2 text-[10px] font-bold text-slate-450 mt-1 bg-slate-50/60 p-2.5 rounded-xl border border-slate-100">
+                            <span className="flex items-center gap-1.5 justify-center border-r border-slate-200/50 last:border-r-0">
+                              <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0 shadow-sm" />
+                              Ví: <span className="text-slate-700 font-extrabold">{fmtVnd(r.walletAmount)}</span>
+                            </span>
+                            <span className="flex items-center gap-1.5 justify-center border-r border-slate-200/50 last:border-r-0">
+                              <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0 shadow-sm" />
+                              QR: <span className="text-slate-700 font-extrabold">{fmtVnd(r.qrAmount)}</span>
+                            </span>
+                            <span className="flex items-center gap-1.5 justify-center border-r border-slate-200/50 last:border-r-0">
+                              <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0 shadow-sm" />
+                              Tiền mặt: <span className="text-slate-700 font-extrabold">{fmtVnd(r.cashAmount)}</span>
+                            </span>
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
-        )}
-      </section>
+        </div>
+      )}
     </div>
   );
 }

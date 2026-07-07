@@ -8,21 +8,21 @@ export interface VehiclePreset {
 }
 
 export const VEHICLE_PRESETS: VehiclePreset[] = [
-  { code: 'MOTORCYCLE', name: 'Xe máy', plateType: 'motorcycle' },
-  { code: 'CAR', name: 'Ô tô', plateType: 'car' },
-  { code: 'EBIKE', name: 'Xe đạp điện', plateType: 'ebike' },
-  { code: 'EMOTORBIKE', name: 'Xe máy điện', plateType: 'emotorbike' },
+  { code: 'MOTORCYCLE', name: 'Motorcycle', plateType: 'motorcycle' },
+  { code: 'CAR', name: 'Car', plateType: 'car' },
+  { code: 'EBIKE', name: 'E-bike', plateType: 'ebike' },
+  { code: 'EMOTORBIKE', name: 'E-motorbike', plateType: 'emotorbike' },
   { code: 'SUV', name: 'SUV', plateType: 'suv' },
-  { code: 'TRUCK', name: 'Xe tải', plateType: 'truck' },
+  { code: 'TRUCK', name: 'Truck', plateType: 'truck' },
 ];
 
 // Nhãn tiếng Việt cho từng giá trị enum của biển số (gồm 'other' = Khác).
 export const PLATE_TYPE_LABELS: Record<string, string> = {
-  motorcycle: 'Xe máy',
-  car: 'Ô tô',
-  ebike: 'Xe đạp điện',
-  emotorbike: 'Xe máy điện',
+  motorcycle: 'Motorcycle',
+  car: 'Car',
+  ebike: 'E-bike',
+  emotorbike: 'E-motorbike',
   suv: 'SUV',
-  truck: 'Xe tải',
-  other: 'Khác',
+  truck: 'Truck',
+  other: 'Other',
 };

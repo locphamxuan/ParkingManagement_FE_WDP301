@@ -13,11 +13,11 @@ import {
 } from 'lucide-react';
 
 export const navigationLinks = [
-  { label: 'Trang chủ', href: '#top' },
-  { label: 'Giới thiệu', href: '#gioi-thieu' },
-  { label: 'Giải pháp', href: '#giai-phap' },
-  { label: 'Dịch vụ', href: '#dich-vu' },
-  { label: 'Liên hệ', href: '#lien-he' },
+  { label: 'Home', href: '#top' },
+  { label: 'About', href: '#gioi-thieu' },
+  { label: 'Solutions', href: '#giai-phap' },
+  { label: 'Services', href: '#dich-vu' },
+  { label: 'Contact', href: '#lien-he' },
 ];
 
 export const moduleIcons: Record<string, LucideIcon> = {

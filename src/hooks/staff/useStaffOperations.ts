@@ -107,7 +107,7 @@ export function useStaffOperations() {
     const clean = plateNumber.trim().toUpperCase();
     if (clean.length >= 3) {
       const detected = detectTypeFromPlate(clean);
-      if (detected !== vehicleType) return `Cảnh báo: Biển số có vẻ là ${detected === 'car' ? 'ô tô' : 'xe máy'}, nhưng bạn chọn ${vehicleType === 'car' ? 'ô tô' : 'xe máy'}.`;
+      if (detected !== vehicleType) return `Warning: the plate looks like a ${detected === 'car' ? 'car' : 'motorcycle'}, but you selected ${vehicleType === 'car' ? 'car' : 'motorcycle'}.`;
     }
     return null;
   }, [plateNumber, vehicleType]);
@@ -116,7 +116,7 @@ export function useStaffOperations() {
     if (allowedTypes.length === 0) return null;
     const code = vehicleType === 'car' ? 'CAR' : 'MOTORCYCLE';
     if (!allowedTypes.includes(code))
-      return `Tòa nhà này không hỗ trợ loại xe ${vehicleType === 'car' ? 'ô tô' : 'xe máy'}.`;
+      return `This building does not support ${vehicleType === 'car' ? 'cars' : 'motorcycles'}.`;
     return null;
   }, [allowedTypes, vehicleType]);
 
@@ -184,7 +184,7 @@ export function useStaffOperations() {
   const capturePortraitAndNext = () => {
     const img = portraitCamRef.current?.capture() ?? null;
     if (!img) {
-      setOpMessage({ type: 'err', text: 'Camera chân dung chưa sẵn sàng. Vui lòng thử lại.' });
+      setOpMessage({ type: 'err', text: 'Portrait camera not ready. Please try again.' });
       return;
     }
     setPortraitImage(img);
@@ -204,14 +204,14 @@ export function useStaffOperations() {
         };
       })?.data;
       if (!data) {
-        setOpMessage({ type: 'err', text: 'Không nhận diện được mã QR.' });
+        setOpMessage({ type: 'err', text: 'Could not read the QR code.' });
         return;
       }
       if (data.kind === 'plate' && data.plate?.plateNumber) {
         if (data.plate.vehicleType === 'motorcycle') setVehicleType('motorcycle');
         else if (data.plate.vehicleType) setVehicleType('car');
         applyPlate(data.plate.plateNumber, data.plate.brand ?? null);
-        setOpMessage({ type: 'ok', text: `Đã nhận diện biển số ${data.plate.plateNumber}. Bấm "Tiếp tục".` });
+        setOpMessage({ type: 'ok', text: `Plate ${data.plate.plateNumber} recognized. Tap "Continue".` });
       } else if (data.user) {
         setUserQrInfo({
           fullName: data.user.fullName,
@@ -219,12 +219,12 @@ export function useStaffOperations() {
           walletBalance: data.user.walletBalance,
           activePackages: data.activePackages ?? [],
         });
-        setOpMessage({ type: 'ok', text: `Đã nhận diện tài khoản: ${data.user.fullName}. Vui lòng quét/nhập biển số xe.` });
+        setOpMessage({ type: 'ok', text: `Account recognized: ${data.user.fullName}. Please scan/enter the plate number.` });
       } else {
-        setOpMessage({ type: 'err', text: 'Mã QR không khớp với tài khoản hoặc phương tiện nào.' });
+        setOpMessage({ type: 'err', text: 'The QR code does not match any account or vehicle.' });
       }
     } catch (err) {
-      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Lỗi tra cứu mã QR.' });
+      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'QR lookup error.' });
     }
   };
 
@@ -244,7 +244,7 @@ export function useStaffOperations() {
   const onCheckIn = async () => {
     setOpMessage(null);
     if (hasActivePackage && !selectedSlotId) {
-      setOpMessage({ type: 'err', text: 'Xe này có gói dài hạn — vui lòng chọn 1 chỗ đỗ trống trước khi check-in.' });
+      setOpMessage({ type: 'err', text: 'This vehicle has a long-term package — please pick a free slot before checking in.' });
       return;
     }
     setLoading(true);
@@ -262,10 +262,10 @@ export function useStaffOperations() {
         slot: selectedSlotId || undefined,
         gate: entryGateId || undefined,
       });
-      setOpMessage({ type: 'ok', text: `Đã tạo phiên gửi xe cho biển số ${currentPlate} thành công.` });
+      setOpMessage({ type: 'ok', text: `Parking session created for plate ${currentPlate}.` });
       resetForm();
     } catch (err) {
-      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Check-in thất bại' });
+      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Check-in failed' });
     } finally {
       setLoading(false);
     }
@@ -285,12 +285,12 @@ export function useStaffOperations() {
       const notified = (res as { data?: { notified?: boolean } })?.data?.notified;
       setOpMessage({
         type: 'ok',
-        text: `Đã từ chối cho xe vào biển ${plate}.${notified ? ' Đã gửi thông báo cho khách.' : ' (Biển chưa có tài khoản nên không gửi được thông báo.)'}`,
+        text: `Rejected entry for plate ${plate}.${notified ? ' Guest has been notified.' : ' (The plate has no account, so no notification was sent.)'}`,
       });
       setRejectOpen(false);
       setRejectReason('');
     } catch (err) {
-      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Từ chối thất bại' });
+      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Rejection failed' });
     }
   };
 
@@ -331,3 +331,6 @@ export function useStaffOperations() {
     vehicleTypeMismatch,
   };
 }
+
+// Kiểu view-model của màn check-in — dùng cho các component con nhận nguyên `ops`.
+export type StaffOperations = ReturnType<typeof useStaffOperations>;

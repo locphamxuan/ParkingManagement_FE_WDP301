@@ -20,39 +20,39 @@ import { useAdminDataset } from '@/hooks/admin/useAdminDataset';
 import type { AuditLog } from '@/types';
 
 const TARGET_LABELS: Record<string, string> = {
-  users: 'Người dùng',
-  buildings: 'Tòa nhà',
-  floors: 'Tầng',
-  gates: 'Cổng',
-  parking_slots: 'Chỗ đỗ',
-  vehicle_types: 'Loại xe',
-  price_policies: 'Bảng giá',
-  long_term_packages: 'Gói dài hạn',
-  reservation_policies: 'Chính sách đặt chỗ',
-  shifts: 'Ca làm việc',
-  staff_shifts: 'Phân ca nhân viên',
-  feedbacks: 'Phản hồi',
-  revenue_distributions: 'Phân phối doanh thu',
-  subscription_packages: 'Gói dịch vụ',
-  subscriptions: 'Đăng ký gói',
-  wallets: 'Ví',
-  transactions: 'Giao dịch',
-  parking_sessions: 'Lượt gửi xe'
+  users: 'Users',
+  buildings: 'Buildings',
+  floors: 'Floors',
+  gates: 'Gates',
+  parking_slots: 'Parking slots',
+  vehicle_types: 'Vehicle types',
+  price_policies: 'Price policies',
+  long_term_packages: 'Long-term packages',
+  reservation_policies: 'Reservation policies',
+  shifts: 'Shifts',
+  staff_shifts: 'Staff shifts',
+  feedbacks: 'Feedback',
+  revenue_distributions: 'Revenue distributions',
+  subscription_packages: 'Subscription packages',
+  subscriptions: 'Subscriptions',
+  wallets: 'Wallets',
+  transactions: 'Transactions',
+  parking_sessions: 'Parking sessions'
 };
 
 const targetLabel = (target: string) => TARGET_LABELS[target] ?? target;
 
 const ACTION_VERBS: Record<string, string> = {
-  CREATE: 'Tạo',
-  UPDATE: 'Cập nhật',
-  DELETE: 'Xóa',
-  ASSIGN: 'Gán',
-  REVOKE: 'Thu hồi',
-  GRANT: 'Cấp',
-  RESPOND: 'Phản hồi',
-  DISTRIBUTE: 'Phân phối',
-  LOGIN: 'Đăng nhập',
-  LOGOUT: 'Đăng xuất',
+  CREATE: 'Create',
+  UPDATE: 'Update',
+  DELETE: 'Delete',
+  ASSIGN: 'Assign',
+  REVOKE: 'Revoke',
+  GRANT: 'Grant',
+  RESPOND: 'Respond',
+  DISTRIBUTE: 'Distribute',
+  LOGIN: 'Login',
+  LOGOUT: 'Logout',
 };
 
 const friendlyDetails = (log: AuditLog) => {
@@ -75,7 +75,7 @@ export function AuditLogsPage() {
   const groups = useMemo(() => {
     const map = new Map<string, AuditLog[]>();
     for (const log of logs) {
-      const key = log.target || 'khác';
+      const key = log.target || 'other';
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(log);
     }
@@ -119,17 +119,17 @@ export function AuditLogsPage() {
   }, [logs]);
 
   if (isLoading) {
-    return <div className="text-sm font-bold text-slate-500 p-8">Đang tải nhật ký hoạt động...</div>;
+    return <div className="text-sm font-bold text-slate-500 p-8">Loading activity logs...</div>;
   }
 
   if (error || !data) {
-    return <div className="text-sm text-rose-600 p-8">{error || 'Tải nhật ký thất bại.'}</div>;
+    return <div className="text-sm text-rose-600 p-8">{error || 'Failed to load logs.'}</div>;
   }
 
   const columns: DataColumn<AuditLog>[] = [
     {
       key: 'actor',
-      title: 'Người thực hiện',
+      title: 'Actor',
       render: (row) => (
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-full bg-slate-500/10 border border-slate-200/50 text-slate-650 flex items-center justify-center font-bold text-[10px] uppercase shrink-0">
@@ -141,7 +141,7 @@ export function AuditLogsPage() {
     },
     {
       key: 'details',
-      title: 'Chi tiết nhật ký',
+      title: 'Log details',
       render: (row) => {
         const desc = friendlyDetails(row);
         const hasScope = !!row.building;
@@ -151,7 +151,7 @@ export function AuditLogsPage() {
             <span className={`inline-flex items-center mt-1 px-1.5 py-0.5 rounded text-[9px] font-bold font-mono tracking-wider ${
               hasScope ? 'bg-blue-500/10 border border-blue-500/15 text-blue-600' : 'bg-slate-100 border border-slate-200/50 text-slate-400'
             }`}>
-              {hasScope ? `Tòa nhà: ${row.building}` : 'Toàn hệ thống'}
+              {hasScope ? `Building: ${row.building}` : 'System-wide'}
             </span>
           </div>
         );
@@ -159,7 +159,7 @@ export function AuditLogsPage() {
     },
     {
       key: 'timestamp',
-      title: 'Thời gian',
+      title: 'Time',
       render: (row) => {
         const parts = row.timestamp.split(' ');
         const time = parts[0] || '';
@@ -174,7 +174,7 @@ export function AuditLogsPage() {
     },
     {
       key: 'severity',
-      title: 'Mức độ',
+      title: 'Severity',
       render: (row) => {
         const getSeverityStyle = (sev: string) => {
           const s = sev.toLowerCase();
@@ -195,7 +195,7 @@ export function AuditLogsPage() {
   if (groups.length === 0) {
     return (
       <div className="rounded-3xl glass-premium border border-sky-100/80 p-12 text-center text-slate-500 italic">
-        Chưa có nhật ký hoạt động nào.
+        No activity logs yet.
       </div>
     );
   }
@@ -211,7 +211,7 @@ export function AuditLogsPage() {
             <Activity size={18} />
           </div>
           <div>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Tổng số nhật ký</p>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total logs</p>
             <p className="text-lg font-black text-slate-800 mt-0.5">{stats.total}</p>
           </div>
         </div>
@@ -223,7 +223,7 @@ export function AuditLogsPage() {
             <ShieldCheck size={18} />
           </div>
           <div>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Mức độ Thấp</p>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Low severity</p>
             <p className="text-lg font-black text-slate-800 mt-0.5">{stats.lowCount}</p>
           </div>
         </div>
@@ -235,7 +235,7 @@ export function AuditLogsPage() {
             <Info size={18} />
           </div>
           <div>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Mức độ Trung bình</p>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Medium severity</p>
             <p className="text-lg font-black text-slate-800 mt-0.5">{stats.mediumCount}</p>
           </div>
         </div>
@@ -247,7 +247,7 @@ export function AuditLogsPage() {
             <ShieldAlert size={18} />
           </div>
           <div>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Mức độ Nghiêm trọng</p>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Critical severity</p>
             <p className="text-lg font-black text-slate-800 mt-0.5">{stats.criticalCount}</p>
           </div>
         </div>
@@ -298,7 +298,7 @@ export function AuditLogsPage() {
               setPage(1);
               setQuery(e.target.value);
             }}
-            placeholder="Tìm kiếm theo người thực hiện, chi tiết hoặc địa điểm..."
+            placeholder="Search by actor, details or location..."
             className="pl-9 bg-white/90 border-sky-100 focus-visible:ring-blue-500 rounded-xl text-xs font-semibold w-full h-10"
           />
         </div>
@@ -312,18 +312,18 @@ export function AuditLogsPage() {
             setSeverity(val);
           }}
           options={[
-            { value: 'all', label: 'Tất cả mức độ' },
-            { value: 'low', label: 'Thấp (Low)' },
-            { value: 'medium', label: 'Trung bình (Medium)' },
+            { value: 'all', label: 'All severities' },
+            { value: 'low', label: 'Low' },
+            { value: 'medium', label: 'Medium' },
             { value: 'high', label: 'Cao (High)' },
-            { value: 'critical', label: 'Nghiêm trọng (Critical)' },
+            { value: 'critical', label: 'Critical' },
           ]}
         />
       </div>
 
       {/* Log list DataTable */}
       <DataTable
-        title={`Nhật ký hoạt động: ${currentTab ? targetLabel(currentTab) : ''}`}
+        title={`Activity logs: ${currentTab ? targetLabel(currentTab) : ''}`}
         rows={pageRows}
         columns={columns}
       />
@@ -332,8 +332,8 @@ export function AuditLogsPage() {
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/20 p-3 rounded-2xl border border-sky-100/30 backdrop-blur-md">
         <span className="text-xs font-bold text-slate-400">
           {filtered.length > 0
-            ? `Hiển thị ${(safePage - 1) * PAGE_SIZE + 1} – ${Math.min(safePage * PAGE_SIZE, filtered.length)} trên ${filtered.length} sự kiện`
-            : 'Không có sự kiện phù hợp'}
+            ? `Showing ${(safePage - 1) * PAGE_SIZE + 1} – ${Math.min(safePage * PAGE_SIZE, filtered.length)} of ${filtered.length} events`
+            : 'No matching events'}
         </span>
         <div className="flex items-center gap-2.5">
           <Button
@@ -343,7 +343,7 @@ export function AuditLogsPage() {
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             className="bg-white/80 hover:bg-slate-100 text-slate-700 font-bold border border-sky-100 rounded-xl px-4 py-2 text-xs shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all h-auto disabled:opacity-50 disabled:pointer-events-none"
           >
-            Trước
+            Prev
           </Button>
           <span className="text-xs font-mono font-bold text-slate-500 px-3 py-1.5 rounded-lg bg-slate-50 border border-sky-100/50">
             Trang {safePage} / {maxPage}
@@ -355,7 +355,7 @@ export function AuditLogsPage() {
             onClick={() => setPage((p) => Math.min(maxPage, p + 1))}
             className="bg-white/80 hover:bg-slate-100 text-slate-700 font-bold border border-sky-100 rounded-xl px-4 py-2 text-xs shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all h-auto disabled:opacity-50 disabled:pointer-events-none"
           >
-            Tiếp
+            Next
           </Button>
         </div>
       </div>

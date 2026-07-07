@@ -48,8 +48,8 @@ export function UserAccountInfoModal({ user, onClose }: UserAccountInfoModalProp
         {/* Header */}
         <div className="mb-5 flex items-start justify-between gap-2">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary">Thông tin tài khoản</p>
-            <h3 className="mt-1 text-xl font-semibold text-foreground">Kết quả quét QR</h3>
+            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary">Account information</p>
+            <h3 className="mt-1 text-xl font-semibold text-foreground">QR scan result</h3>
           </div>
           <button
             onClick={onClose}
@@ -79,7 +79,7 @@ export function UserAccountInfoModal({ user, onClose }: UserAccountInfoModalProp
           <div className="flex items-center gap-2">
             <Wallet size={14} className="shrink-0 text-emerald-400" />
             <span className="text-sm">
-              Số dư ví:{' '}
+              Wallet balance:{' '}
               <strong className="text-emerald-400">
                 {formatMoney(user.walletBalance ?? 0)}
               </strong>
@@ -91,7 +91,7 @@ export function UserAccountInfoModal({ user, onClose }: UserAccountInfoModalProp
         {user.activeSessions && user.activeSessions.length > 0 && (
           <div className="mt-4 space-y-2">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Xe đang gửi ({user.activeSessions.length})
+              Parked vehicles ({user.activeSessions.length})
             </p>
             <div className="space-y-2">
               {user.activeSessions.map((s) => (
@@ -102,7 +102,7 @@ export function UserAccountInfoModal({ user, onClose }: UserAccountInfoModalProp
                   <Car size={14} className="shrink-0 text-primary" />
                   <div className="min-w-0 flex-1">
                     <p className="font-mono text-sm font-semibold text-foreground">{s.plateNumber}</p>
-                    <p className="text-[11px] text-muted-foreground">Vào: {formatTime(s.entryTime)}</p>
+                    <p className="text-[11px] text-muted-foreground">Entry: {formatTime(s.entryTime)}</p>
                   </div>
                   {s.fee != null && s.fee > 0 && (
                     <span className="shrink-0 text-xs font-semibold text-amber-400">
@@ -116,14 +116,14 @@ export function UserAccountInfoModal({ user, onClose }: UserAccountInfoModalProp
         )}
 
         {(!user.activeSessions || user.activeSessions.length === 0) && (
-          <p className="mt-4 text-center text-xs text-muted-foreground">Không có xe đang gửi</p>
+          <p className="mt-4 text-center text-xs text-muted-foreground">No parked vehicles</p>
         )}
 
         <button
           onClick={onClose}
           className="mt-5 w-full rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition hover:brightness-110"
         >
-          Đóng
+          Close
         </button>
       </motion.div>
     </div>

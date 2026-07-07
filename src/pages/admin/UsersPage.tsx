@@ -66,17 +66,17 @@ export function UsersPage() {
     const source = (data?.users ?? []).filter((user) => user.role === 'user');
     const total = source.length;
     const active = source.filter((u) => u.status === 'active').length;
-    const blocked = source.filter((u) => u.status === 'blocked' || u.status === 'inactive').length;
+    const blocked = source.filter((u) => u.status === 'blocked').length;
     const totalBalance = source.reduce((sum, u) => sum + (u.walletBalance || 0), 0);
     return { total, active, blocked, totalBalance };
   }, [data?.users]);
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Đang tải danh sách người dùng...</div>;
+    return <div className="text-sm text-muted-foreground">Loading users...</div>;
   }
 
   if (error || !data) {
-    return <div className="text-sm text-red-600">{error || 'Tải người dùng thất bại.'}</div>;
+    return <div className="text-sm text-red-600">{error || 'Failed to load users.'}</div>;
   }
 
   const token = session?.token || '';
@@ -123,7 +123,7 @@ export function UsersPage() {
       await refresh();
       closeModals();
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Không thể tạo người dùng');
+      setActionError(err instanceof Error ? err.message : 'Unable to create user');
       setIsSaving(false);
     }
   };
@@ -140,7 +140,7 @@ export function UsersPage() {
       await refresh();
       closeModals();
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Không thể cập nhật người dùng');
+      setActionError(err instanceof Error ? err.message : 'Unable to update user');
       setIsSaving(false);
     }
   };
@@ -152,7 +152,7 @@ export function UsersPage() {
       await updateAdminUserStatus(token, user.id, user.status !== 'active');
       await refresh();
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Không thể đổi trạng thái người dùng');
+      setActionError(err instanceof Error ? err.message : 'Unable to change user status');
     }
   };
 
@@ -165,7 +165,7 @@ export function UsersPage() {
       await refresh();
       setPendingDeleteUser(null);
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Không thể xóa người dùng');
+      setActionError(err instanceof Error ? err.message : 'Unable to delete user');
     } finally {
       setIsDeleting(false);
     }
@@ -174,7 +174,7 @@ export function UsersPage() {
   const columns: DataColumn<UserRecord>[] = [
     {
       key: 'name',
-      title: 'Họ tên',
+      title: 'Full name',
       render: (row) => (
         <div className="flex items-center gap-3">
           <div className="w-8.5 h-8.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 flex items-center justify-center font-bold text-xs shrink-0 uppercase">
@@ -199,14 +199,14 @@ export function UsersPage() {
     },
     {
       key: 'phone',
-      title: 'Số điện thoại',
+      title: 'Phone number',
       render: (row) => {
-        const hasPhone = !!row.phone && row.phone !== 'Chưa cập nhật';
+        const hasPhone = !!row.phone && row.phone !== 'Not updated';
         return (
           <div className="flex items-center gap-1.5 text-slate-500">
             <Phone size={12} className={hasPhone ? 'text-slate-400 shrink-0' : 'text-slate-350 shrink-0'} />
             <span className={hasPhone ? 'text-xs font-semibold text-slate-600' : 'text-xs italic text-slate-400 font-medium'}>
-              {row.phone || 'Chưa cập nhật'}
+              {row.phone || 'Not updated'}
             </span>
           </div>
         );
@@ -214,12 +214,12 @@ export function UsersPage() {
     },
     {
       key: 'status',
-      title: 'Trạng thái',
+      title: 'Status',
       render: (row) => <StatusBadge status={row.status} />,
     },
     {
       key: 'walletBalance',
-      title: 'Số dư ví',
+      title: 'Wallet balance',
       render: (row) => (
         <span className="font-bold text-emerald-600 text-xs bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-lg whitespace-nowrap">
           {row.walletBalance.toLocaleString('vi-VN')} ₫
@@ -228,11 +228,11 @@ export function UsersPage() {
     },
     {
       key: 'linkedPlates',
-      title: 'Biển số liên kết',
+      title: 'Linked plates',
       render: (row) => {
         const plates = row.linkedPlates || [];
         if (plates.length === 0) {
-          return <span className="text-slate-400 italic text-xs font-medium">Chưa liên kết</span>;
+          return <span className="text-slate-400 italic text-xs font-medium">Not linked</span>;
         }
         return (
           <div className="flex flex-wrap gap-1.5">
@@ -250,27 +250,27 @@ export function UsersPage() {
     },
     {
       key: 'actions',
-      title: 'Hành động',
+      title: 'Actions',
       render: (row) => (
         <div className="flex items-center gap-1.5 whitespace-nowrap">
           <button
             onClick={() => openEditModal(row)}
             className="p-1.5 rounded-lg bg-amber-50 border border-amber-100 hover:bg-amber-500 hover:text-white text-amber-600 hover:shadow-md transition-all duration-200"
-            title="Sửa"
+            title="Edit"
           >
             <Edit size={13} />
           </button>
           <button
             onClick={() => toggleStatus(row)}
             className="p-1.5 rounded-lg bg-orange-50 border border-orange-100 hover:bg-orange-500 hover:text-white text-orange-600 hover:shadow-md transition-all duration-200"
-            title={row.status === 'active' ? 'Khóa tài khoản' : 'Mở khóa'}
+            title={row.status === 'active' ? 'Lock account' : 'Unlock'}
           >
             {row.status === 'active' ? <Lock size={13} /> : <Unlock size={13} />}
           </button>
           <button
             onClick={() => setPendingDeleteUser(row)}
             className="p-1.5 rounded-lg bg-red-50 border border-red-100 hover:bg-red-500 hover:text-white text-red-650 hover:shadow-md transition-all duration-200"
-            title="Xóa"
+            title="Delete"
           >
             <Trash2 size={13} />
           </button>
@@ -296,7 +296,7 @@ export function UsersPage() {
             <Users size={18} />
           </div>
           <div>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Tổng khách hàng</p>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total customers</p>
             <p className="text-base font-black text-slate-800 mt-0.5">{stats.total}</p>
           </div>
         </div>
@@ -308,7 +308,7 @@ export function UsersPage() {
             <UserCheck size={18} />
           </div>
           <div>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Đang hoạt động</p>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Active</p>
             <p className="text-base font-black text-slate-800 mt-0.5">{stats.active}</p>
           </div>
         </div>
@@ -320,7 +320,7 @@ export function UsersPage() {
             <UserX size={18} />
           </div>
           <div>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Tài khoản khóa</p>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Locked accounts</p>
             <p className="text-base font-black text-slate-800 mt-0.5">{stats.blocked}</p>
           </div>
         </div>
@@ -332,7 +332,7 @@ export function UsersPage() {
             <Wallet size={18} />
           </div>
           <div>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Tổng số dư ví</p>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total wallet balance</p>
             <p className="text-base font-black text-slate-800 mt-0.5">{stats.totalBalance.toLocaleString('vi-VN')} ₫</p>
           </div>
         </div>
@@ -348,7 +348,7 @@ export function UsersPage() {
             onChange={(e) => {
               setQuery(e.target.value);
             }}
-            placeholder="Tìm kiếm khách hàng theo tên, email hoặc biển số xe..."
+            placeholder="Search customers by name, email or plate..."
             className="pl-9 bg-white/90 border-sky-100 focus-visible:ring-blue-500 rounded-xl text-xs font-semibold w-full h-10"
           />
         </div>
@@ -359,10 +359,10 @@ export function UsersPage() {
           value={statusFilter}
           onChange={setStatusFilter}
           options={[
-            { value: 'all', label: 'Tất cả trạng thái' },
-            { value: 'active', label: 'Hoạt động' },
-            { value: 'blocked', label: 'Bị khóa' },
-            { value: 'pending', label: 'Chờ duyệt' },
+            { value: 'all', label: 'All statuses' },
+            { value: 'active', label: 'Active' },
+            { value: 'blocked', label: 'Locked' },
+            { value: 'pending', label: 'Pending' },
           ]}
         />
 
@@ -371,19 +371,19 @@ export function UsersPage() {
           onClick={openCreateModal}
           className="bg-gradient-to-r from-blue-600 to-indigo-650 hover:from-blue-500 hover:to-indigo-600 hover:shadow-lg hover:shadow-blue-500/15 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-white rounded-xl font-black px-5 py-2.5 h-10 text-xs border-0 shadow-md flex items-center gap-1.5 shrink-0 w-full md:w-auto justify-center"
         >
-          <Plus size={14} /> Tạo người dùng
+          <Plus size={14} /> Create user
         </Button>
       </div>
 
       {/* Premium User Cards Grid */}
       {filtered.length === 0 ? (
         <div className="rounded-3xl glass-premium border border-sky-100/80 p-12 text-center text-slate-500 italic">
-          Không tìm thấy khách hàng nào.
+          No customers found.
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {filtered.map((u) => {
-            const hasPhone = !!u.phone && u.phone !== 'Chưa cập nhật';
+            const hasPhone = !!u.phone && u.phone !== 'Not updated';
             const plates = u.linkedPlates || [];
             return (
               <motion.div
@@ -419,14 +419,14 @@ export function UsersPage() {
                   <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold">
                     <Phone size={13} className={hasPhone ? 'text-slate-455 shrink-0' : 'text-slate-350 shrink-0'} />
                     <span className={`text-xs ${hasPhone ? 'text-slate-650 font-bold' : 'italic text-slate-400 font-medium'}`}>
-                      {u.phone || 'Chưa cập nhật'}
+                      {u.phone || 'Not updated'}
                     </span>
                   </div>
                 </div>
 
                 {/* Wallet Balance Section */}
                 <div className="mt-4 pt-4 border-t border-sky-100/40 flex items-center justify-between gap-3">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Số dư ví</span>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Wallet balance</span>
                   <span className="text-xs font-black text-emerald-600 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-lg inline-block shadow-sm">
                     {u.walletBalance.toLocaleString('vi-VN')} ₫
                   </span>
@@ -434,9 +434,9 @@ export function UsersPage() {
 
                 {/* Linked Plates Container */}
                 <div className="mt-4">
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">Biển số liên kết ({plates.length})</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">Linked plates ({plates.length})</p>
                   {plates.length === 0 ? (
-                    <span className="text-slate-400 italic text-xs font-medium">Chưa liên kết</span>
+                    <span className="text-slate-400 italic text-xs font-medium">Not linked</span>
                   ) : (
                     <div className="flex flex-wrap gap-1.5 bg-slate-50/50 p-2.5 rounded-xl border border-slate-100">
                       {plates.map((p) => (
@@ -456,21 +456,21 @@ export function UsersPage() {
                   <button
                     onClick={() => openEditModal(u)}
                     className="p-2 rounded-xl bg-amber-50 border border-amber-100 hover:bg-amber-500 hover:text-white text-amber-600 hover:shadow-md hover:shadow-amber-500/10 transition-all duration-200"
-                    title="Sửa"
+                    title="Edit"
                   >
                     <Edit size={14} />
                   </button>
                   <button
                     onClick={() => toggleStatus(u)}
                     className="p-2 rounded-xl bg-orange-50 border border-orange-100 hover:bg-orange-500 hover:text-white text-orange-600 hover:shadow-md hover:shadow-orange-500/10 transition-all duration-200"
-                    title={u.status === 'active' ? 'Khóa tài khoản' : 'Mở khóa'}
+                    title={u.status === 'active' ? 'Lock account' : 'Unlock'}
                   >
                     {u.status === 'active' ? <Lock size={14} /> : <Unlock size={14} />}
                   </button>
                   <button
                     onClick={() => setPendingDeleteUser(u)}
                     className="p-2 rounded-xl bg-red-50 border border-red-100 hover:bg-red-500 hover:text-white text-red-650 hover:shadow-md hover:shadow-red-500/10 transition-all duration-200"
-                    title="Xóa"
+                    title="Delete"
                   >
                     <Trash2 size={14} />
                   </button>
@@ -487,23 +487,23 @@ export function UsersPage() {
         onOpenChange={(open) => {
           if (!open) closeModals();
         }}
-        title="Cập nhật người dùng"
+        title="Update user"
         onSubmit={saveUpdate}
       >
         <div className="grid gap-3 md:grid-cols-2">
           <Input
-            placeholder="Họ tên"
+            placeholder="Full name"
             value={form.fullName}
             onChange={(e) => setForm((prev) => ({ ...prev, fullName: e.target.value }))}
           />
           <Input placeholder="Email" value={form.email} disabled />
           <Input
-            placeholder="Số điện thoại"
+            placeholder="Phone number"
             value={form.phone}
             onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
           />
         </div>
-        {isSaving ? <p className="text-xs text-muted-foreground">Đang lưu...</p> : null}
+        {isSaving ? <p className="text-xs text-muted-foreground">Saving...</p> : null}
       </ModalForm>
 
       {/* Create User Modal */}
@@ -512,12 +512,12 @@ export function UsersPage() {
         onOpenChange={(open) => {
           if (!open) closeModals();
         }}
-        title="Tạo người dùng"
+        title="Create user"
         onSubmit={saveCreate}
       >
         <div className="grid gap-3 md:grid-cols-2">
           <Input
-            placeholder="Họ tên"
+            placeholder="Full name"
             value={form.fullName}
             onChange={(e) => setForm((prev) => ({ ...prev, fullName: e.target.value }))}
           />
@@ -527,18 +527,18 @@ export function UsersPage() {
             onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
           />
           <Input
-            placeholder="Mật khẩu"
+            placeholder="Password"
             type="password"
             value={form.password}
             onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))}
           />
           <Input
-            placeholder="Số điện thoại"
+            placeholder="Phone number"
             value={form.phone}
             onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
           />
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Vai trò</label>
+            <label className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Role</label>
             <CustomSelect
               className="h-10"
               value={form.role}
@@ -546,24 +546,24 @@ export function UsersPage() {
                 setForm((prev) => ({ ...prev, role: val as typeof prev.role, buildingId: '' }))
               }
               options={[
-                { value: 'user', label: 'Người dùng' },
-                { value: 'staff', label: 'Nhân viên' },
-                { value: 'manager', label: 'Quản lý' }
+                { value: 'user', label: 'User' },
+                { value: 'staff', label: 'Staff' },
+                { value: 'manager', label: 'Manager' }
               ]}
             />
           </div>
           {(form.role === 'staff' || form.role === 'manager') && (
             <div className="grid gap-1.5">
               <label className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                Tòa nhà phụ trách <span className="text-red-500">*</span>
+                Assigned building <span className="text-red-500">*</span>
               </label>
               <CustomSelect
                 className="h-10"
                 value={form.buildingId}
                 onChange={(val) => setForm((prev) => ({ ...prev, buildingId: val }))}
-                placeholder="-- Chọn tòa nhà --"
+                placeholder="-- Select building --"
                 options={[
-                  { value: '', label: '-- Chọn tòa nhà --' },
+                  { value: '', label: '-- Select building --' },
                   ...(data?.buildings ?? []).map((b) => ({
                     value: b.backendId || b.id,
                     label: b.name
@@ -575,18 +575,18 @@ export function UsersPage() {
         </div>
         {(form.role === 'staff' || form.role === 'manager') && (
           <p className="mt-2 text-[11px] text-muted-foreground">
-            {form.role === 'staff' ? 'Nhân viên' : 'Quản lý'} sẽ được gán vào tòa nhà đã chọn ngay khi tạo.
-            Tài khoản loại này không hiển thị ở danh sách “Người dùng”.
+            {form.role === 'staff' ? 'Staff' : 'Manager'} will be assigned to the selected building on creation.
+            This account type is not shown in the “Users” list.
           </p>
         )}
-        {isSaving ? <p className="text-xs text-muted-foreground">Đang tạo...</p> : null}
+        {isSaving ? <p className="text-xs text-muted-foreground">Creating...</p> : null}
       </ModalForm>
 
       <ConfirmModal
         open={Boolean(pendingDeleteUser)}
-        title="Xác nhận xóa người dùng"
-        description={`Xóa vĩnh viễn tài khoản "${pendingDeleteUser?.name || pendingDeleteUser?.email || ''}"? Hành động này không thể hoàn tác.`}
-        confirmLabel="Xóa"
+        title="Confirm delete user"
+        description={`Permanently delete account "${pendingDeleteUser?.name || pendingDeleteUser?.email || ''}"? This action cannot be undone.`}
+        confirmLabel="Delete"
         isConfirming={isDeleting}
         onOpenChange={(open) => {
           if (!open) setPendingDeleteUser(null);

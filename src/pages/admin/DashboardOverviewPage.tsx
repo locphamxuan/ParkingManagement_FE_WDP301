@@ -42,7 +42,7 @@ export function DashboardOverviewPage() {
     return (
       <div className="flex flex-col items-center justify-center p-24 text-sm text-slate-500 font-semibold glass-premium rounded-3xl">
         <div className="h-6 w-6 animate-spin rounded-full border-2 border-orange-500 border-t-transparent mb-3" />
-        Đang tải dữ liệu tổng quan bãi đỗ...
+        Loading parking overview...
       </div>
     );
   }
@@ -50,7 +50,7 @@ export function DashboardOverviewPage() {
   if (error || !data) {
     return (
       <div className="rounded-2xl border border-rose-500/20 bg-rose-950/20 p-5 text-sm font-semibold text-rose-400 backdrop-blur-md">
-        {error || 'Tải dữ liệu thất bại.'}
+        {error || 'Failed to load data.'}
       </div>
     );
   }
@@ -81,18 +81,18 @@ export function DashboardOverviewPage() {
         <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/10 border border-white/20 text-[9px] font-black uppercase tracking-widest text-white font-mono shadow-sm">
-              Cổng Quản Trị Trung Tâm
+              Central Admin Portal
             </div>
             <h1 className="mt-4 text-3xl font-black tracking-tight text-white sm:text-4xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]">
-              Tổng quan Hệ Thống PBMS
+              PBMS System Overview
             </h1>
             <p className="mt-3.5 max-w-2xl text-xs font-semibold text-blue-50/90 leading-relaxed drop-shadow-[0_1px_2px_rgba(0,0,0,0.1)]">
-              Trung tâm giám sát toàn diện bãi đỗ xe nhiều tầng. Theo dõi doanh thu thời gian thực, quản lý phân bổ phương thức thanh toán, rà soát giao dịch gần đây và giám sát hoạt động bãi đỗ trực tiếp.
+              A comprehensive monitoring center for multi-story parking. Track real-time revenue, manage payment-method distribution, review recent transactions and monitor live parking activity.
             </p>
           </div>
           <div className="inline-flex items-center gap-2.5 rounded-full bg-white/10 border border-white/20 px-4 py-2.5 text-xs font-black text-white uppercase font-mono shadow-md backdrop-blur-md">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34d399]" />
-            <span>Hệ thống Live</span>
+            <span>Live system</span>
           </div>
         </div>
       </motion.section>
@@ -136,7 +136,7 @@ export function DashboardOverviewPage() {
           <div className="absolute -right-16 -top-16 h-32 w-32 rounded-full bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.12),transparent_65%)] pointer-events-none blur-2xl animate-pulse" />
           
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-sm font-black uppercase tracking-wider text-slate-400 font-mono">Phân bổ phương thức</h3>
+            <h3 className="text-sm font-black uppercase tracking-wider text-slate-400 font-mono">Method distribution</h3>
             <span className="px-2 py-0.5 rounded-md bg-blue-500/10 border border-blue-500/20 text-[9px] font-black text-blue-500 font-mono uppercase tracking-wider shadow-[0_0_8px_rgba(59,130,246,0.1)]">Live</span>
           </div>
 
@@ -210,7 +210,7 @@ export function DashboardOverviewPage() {
         <div className="relative overflow-hidden rounded-3xl glass-premium p-6 shadow-lg border border-sky-100/80 transition-all duration-500 hover:shadow-[0_22px_45px_rgba(37,99,235,0.08)] hover:-translate-y-1 hover:border-blue-500/30 group">
           {/* Crystal Bevel Border */}
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500/10 via-blue-500/40 to-indigo-500/10" />
-          <ActivityTimeline title="Hoạt động bãi đỗ trực tiếp" items={data.liveActivities} />
+          <ActivityTimeline title="Live parking activity" items={data.liveActivities} />
         </div>
 
         {/* Buildings performance */}
@@ -218,12 +218,12 @@ export function DashboardOverviewPage() {
           {/* Crystal Bevel Border */}
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500/10 via-blue-500/40 to-indigo-500/10" />
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-sm font-black uppercase tracking-wider text-slate-400 font-mono">Hiệu suất tòa nhà</h3>
-            <span className="px-2 py-0.5 rounded-md bg-blue-500/10 border border-blue-500/20 text-[9px] font-black text-blue-500 font-mono uppercase tracking-wider shadow-[0_0_8px_rgba(59,130,246,0.1)]">{data.buildings.length} tòa</span>
+            <h3 className="text-sm font-black uppercase tracking-wider text-slate-400 font-mono">Building performance</h3>
+            <span className="px-2 py-0.5 rounded-md bg-blue-500/10 border border-blue-500/20 text-[9px] font-black text-blue-500 font-mono uppercase tracking-wider shadow-[0_0_8px_rgba(59,130,246,0.1)]">{data.buildings.length} bldg</span>
           </div>
           <div className="max-h-[360px] overflow-y-auto pr-1 space-y-3">
             {data.buildings.length === 0 ? (
-              <p className="text-xs text-slate-500 italic text-center py-6">Chưa có dữ liệu tòa nhà.</p>
+              <p className="text-xs text-slate-500 italic text-center py-6">No building data yet.</p>
             ) : (
               data.buildings.slice(0, 8).map((b) => (
                 <motion.div
@@ -258,7 +258,7 @@ export function DashboardOverviewPage() {
           {/* Crystal Bevel Border */}
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500/10 via-blue-500/40 to-indigo-500/10" />
           <div className="mb-4">
-            <h3 className="text-sm font-black uppercase tracking-wider text-slate-400 font-mono">Rào cản vận hành</h3>
+            <h3 className="text-sm font-black uppercase tracking-wider text-slate-400 font-mono">Operational blockers</h3>
           </div>
           <div className="space-y-3">
             {data.operationalGuardrails.map((rule, idx) => {

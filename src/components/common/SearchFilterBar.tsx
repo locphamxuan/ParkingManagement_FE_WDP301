@@ -51,7 +51,7 @@ export function SearchFilterBar({
         <Input
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
-          placeholder="Tìm kiếm..."
+          placeholder="Search..."
           className="pl-9 bg-white/90 border-sky-100 focus-visible:ring-blue-500 rounded-xl"
         />
       </div>

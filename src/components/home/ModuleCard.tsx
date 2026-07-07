@@ -215,7 +215,7 @@ export function ModuleCard({
             disabled={!module.available}
           >
             <span className="relative z-10 flex items-center justify-center gap-1.5 w-full">
-              {module.available ? module.actionLabel : 'Sắp ra mắt'} <ArrowRight size={12} />
+              {module.available ? module.actionLabel : 'Coming soon'} <ArrowRight size={12} />
             </span>
           </motion.button>
         </div>

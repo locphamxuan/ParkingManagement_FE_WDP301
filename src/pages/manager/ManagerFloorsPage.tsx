@@ -44,7 +44,7 @@ export function ManagerFloorsPage() {
       setVehicleTypes(vts.data.items);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Tải thất bại');
+      setError(err instanceof Error ? err.message : 'Load failed');
     } finally {
       setLoading(false);
     }
@@ -87,17 +87,17 @@ export function ManagerFloorsPage() {
       setModalOpen(false);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Lưu thất bại');
+      alert(err instanceof Error ? err.message : 'Save failed');
     }
   };
 
   const onDelete = async (row: Floor) => {
-    if (!window.confirm(`Xóa tầng ${row.code}? Tầng phải không có ô đỗ.`)) return;
+    if (!window.confirm(`Delete floor ${row.code}? The floor must have no slots.`)) return;
     try {
       await managerApi.floors.remove(buildingId, row._id);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Xóa thất bại');
+      alert(err instanceof Error ? err.message : 'Delete failed');
     }
   };
 
@@ -112,11 +112,11 @@ export function ManagerFloorsPage() {
 
   const columns: DataColumn<Floor>[] = useMemo(
     () => [
-      { key: 'code', title: 'Mã tầng' },
-      { key: 'capacity', title: 'Sức chứa' },
+      { key: 'code', title: 'Floor code' },
+      { key: 'capacity', title: 'Capacity' },
       {
         key: 'allowedVehicleTypes',
-        title: 'Loại xe cho phép',
+        title: 'Allowed vehicle types',
         render: (row) =>
           row.allowedVehicleTypes
             .map((v) => (typeof v === 'string' ? v : `${v.code}`))
@@ -124,7 +124,7 @@ export function ManagerFloorsPage() {
       },
       {
         key: 'status',
-        title: 'Trạng thái',
+        title: 'Status',
         render: (row) => <StatusBadge status={row.status} />,
       },
       {
@@ -149,32 +149,32 @@ export function ManagerFloorsPage() {
     <div className="grid gap-4">
       <div className="flex justify-end">
         <Button onClick={openCreate} className="gap-2">
-          <Plus size={14} /> Thêm tầng
+          <Plus size={14} /> Add floor
         </Button>
       </div>
       {loading ? (
-        <div className="text-sm text-muted-foreground">Đang tải...</div>
+        <div className="text-sm text-muted-foreground">Loading...</div>
       ) : error ? (
         <div className="text-sm text-red-600">{error}</div>
       ) : (
-        <DataTable title="Tầng" rows={items} columns={columns} />
+        <DataTable title="Floors" rows={items} columns={columns} />
       )}
       <ModalForm
         open={modalOpen}
         onOpenChange={setModalOpen}
-        title={editing ? 'Sửa tầng' : 'Thêm tầng'}
+        title={editing ? 'Edit floor' : 'Add floor'}
         onSubmit={onSubmit}
       >
         <div className="grid gap-3 md:grid-cols-2">
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Mã tầng</label>
+            <label className="text-xs uppercase text-muted-foreground">Floor code</label>
             <Input
               value={form.code}
               onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Sức chứa</label>
+            <label className="text-xs uppercase text-muted-foreground">Capacity</label>
             <Input
               type="number"
               min={0}
@@ -183,22 +183,22 @@ export function ManagerFloorsPage() {
             />
           </div>
           <div className="grid gap-1.5 md:col-span-2">
-            <label className="text-xs uppercase text-muted-foreground">Trạng thái</label>
+            <label className="text-xs uppercase text-muted-foreground">Status</label>
             <CustomSelect
               value={form.status}
               onChange={(val) => setForm((f) => ({ ...f, status: val as Floor['status'] }))}
               options={[
-                { value: 'active', label: 'Hoạt động' },
-                { value: 'inactive', label: 'Không hoạt động' },
-                { value: 'maintenance', label: 'Bảo trì' },
+                { value: 'active', label: 'Active' },
+                { value: 'inactive', label: 'Inactive' },
+                { value: 'maintenance', label: 'Maintenance' },
               ]}
             />
           </div>
           <div className="grid gap-1.5 md:col-span-2">
-            <label className="text-xs uppercase text-muted-foreground">Loại xe được phép</label>
+            <label className="text-xs uppercase text-muted-foreground">Allowed vehicle types</label>
             <div className="flex flex-wrap gap-2">
               {vehicleTypes.length === 0 ? (
-                <p className="text-xs text-muted-foreground">Chưa có loại xe. Hãy tạo trước.</p>
+                <p className="text-xs text-muted-foreground">No vehicle types. Create them first.</p>
               ) : (
                 vehicleTypes.map((vt) => {
                   const active = form.allowedVehicleTypes.includes(vt._id);

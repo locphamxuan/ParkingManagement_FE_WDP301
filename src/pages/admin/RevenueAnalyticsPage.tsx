@@ -34,7 +34,7 @@ export function RevenueAnalyticsPage() {
       const res = await adminApi.revenue.report({ from, to });
       setReport((res as { data?: RevenueReport })?.data ?? null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Không thể tải báo cáo doanh thu.');
+      setError(err instanceof Error ? err.message : 'Unable to load revenue report.');
     } finally {
       setLoading(false);
     }
@@ -69,9 +69,9 @@ export function RevenueAnalyticsPage() {
       qr += r.qrAmount || 0;
     });
     return [
-      { name: 'Ví điện tử', value: wallet, color: '#3b82f6' },
-      { name: 'Mã QR Pay', value: qr, color: '#8b5cf6' },
-      { name: 'Tiền mặt', value: cash, color: '#f59e0b' },
+      { name: 'E-wallet', value: wallet, color: '#3b82f6' },
+      { name: 'QR Pay', value: qr, color: '#8b5cf6' },
+      { name: 'Cash', value: cash, color: '#f59e0b' },
     ].filter(item => item.value > 0);
   }, [report]);
 
@@ -87,9 +87,9 @@ export function RevenueAnalyticsPage() {
             <Coins size={18} />
           </div>
           <div>
-            <h3 className="font-extrabold text-sm text-slate-800 leading-tight">Doanh thu gửi xe theo tòa nhà</h3>
+            <h3 className="font-extrabold text-sm text-slate-800 leading-tight">Parking revenue by building</h3>
             <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider mt-0.5">
-              Phân tích cơ cấu dòng tiền thanh toán
+              Payment cash-flow breakdown
             </p>
           </div>
         </div>
@@ -97,7 +97,7 @@ export function RevenueAnalyticsPage() {
         <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto justify-end">
           <div className="flex items-center gap-1.5 bg-white/90 border border-sky-100/80 rounded-xl px-3 py-1.5 shadow-sm">
             <Calendar size={13} className="text-slate-400" />
-            <span className="text-[9px] font-black uppercase text-slate-400 mr-1">Từ</span>
+            <span className="text-[9px] font-black uppercase text-slate-400 mr-1">From</span>
             <input 
               type="date" 
               value={from} 
@@ -107,7 +107,7 @@ export function RevenueAnalyticsPage() {
           </div>
           <div className="flex items-center gap-1.5 bg-white/90 border border-sky-100/80 rounded-xl px-3 py-1.5 shadow-sm">
             <Calendar size={13} className="text-slate-400" />
-            <span className="text-[9px] font-black uppercase text-slate-400 mr-1">Đến</span>
+            <span className="text-[9px] font-black uppercase text-slate-400 mr-1">To</span>
             <input 
               type="date" 
               value={to} 
@@ -119,7 +119,7 @@ export function RevenueAnalyticsPage() {
             onClick={loadReport} 
             className="bg-gradient-to-r from-blue-600 to-indigo-650 hover:from-blue-550 hover:to-indigo-600 hover:shadow-lg hover:shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-white rounded-xl font-black px-5 py-2.5 h-10 text-xs border-0 shadow-md flex items-center gap-1.5 shrink-0"
           >
-            <RefreshCw size={13} className={loading ? 'animate-spin' : ''} /> Làm mới
+            <RefreshCw size={13} className={loading ? 'animate-spin' : ''} /> Refresh
           </Button>
         </div>
       </div>
@@ -132,7 +132,7 @@ export function RevenueAnalyticsPage() {
 
       {loading ? (
         <div className="flex items-center gap-2 text-sm text-slate-500 font-bold p-12 justify-center">
-          <RefreshCw size={16} className="animate-spin text-blue-500" /> Đang tổng hợp số liệu doanh thu...
+          <RefreshCw size={16} className="animate-spin text-blue-500" /> Aggregating revenue data...
         </div>
       ) : (
         <div className="space-y-6">
@@ -146,7 +146,7 @@ export function RevenueAnalyticsPage() {
                   <Coins size={20} />
                 </div>
                 <div>
-                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Tổng doanh thu</p>
+                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total revenue</p>
                   <p className="text-base font-black text-emerald-650 mt-0.5">{fmtVnd(report?.grandTotal)}</p>
                 </div>
               </div>
@@ -160,8 +160,8 @@ export function RevenueAnalyticsPage() {
                   <TrendingUp size={20} />
                 </div>
                 <div>
-                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Tổng lượt đỗ xe</p>
-                  <p className="text-base font-black text-slate-800 mt-0.5">{stats.totalSessions} lượt</p>
+                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total parking sessions</p>
+                  <p className="text-base font-black text-slate-800 mt-0.5">{stats.totalSessions} sessions</p>
                 </div>
               </div>
             </div>
@@ -174,7 +174,7 @@ export function RevenueAnalyticsPage() {
                   <CreditCard size={20} />
                 </div>
                 <div>
-                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Không tiền mặt</p>
+                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Cashless</p>
                   <p className="text-base font-black text-purple-650 mt-0.5">{stats.cashlessRate}%</p>
                 </div>
               </div>
@@ -188,8 +188,8 @@ export function RevenueAnalyticsPage() {
                   <Building2 size={20} />
                 </div>
                 <div>
-                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Tòa nhà phát sinh</p>
-                  <p className="text-base font-black text-slate-800 mt-0.5">{stats.activeBuildings} tòa nhà</p>
+                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Active buildings</p>
+                  <p className="text-base font-black text-slate-800 mt-0.5">{stats.activeBuildings} building(s)</p>
                 </div>
               </div>
             </div>
@@ -201,12 +201,12 @@ export function RevenueAnalyticsPage() {
             <div className="relative overflow-hidden rounded-3xl border border-sky-100/60 bg-white/45 p-6 shadow-md flex flex-col justify-between xl:col-span-2">
               <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500/10 via-blue-500/30 to-indigo-500/10" />
               <div>
-                <h4 className="font-extrabold text-sm text-slate-800 leading-tight">Phân phối Kênh thanh toán</h4>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Tỷ trọng doanh thu theo dòng tiền</p>
+                <h4 className="font-extrabold text-sm text-slate-800 leading-tight">Payment channel distribution</h4>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Revenue share by cash flow</p>
               </div>
 
               {channelData.length === 0 ? (
-                <div className="py-24 text-center text-xs text-slate-400 italic">Chưa phát sinh doanh thu</div>
+                <div className="py-24 text-center text-xs text-slate-400 italic">No revenue yet</div>
               ) : (
                 <div className="mt-6 flex-grow flex flex-col justify-center">
                   <div className="h-44 relative">
@@ -240,7 +240,7 @@ export function RevenueAnalyticsPage() {
                       </PieChart>
                     </ResponsiveContainer>
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Doanh số</span>
+                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Sales</span>
                       <span className="text-xs font-black text-slate-700 mt-1 leading-none">100%</span>
                     </div>
                   </div>
@@ -263,13 +263,13 @@ export function RevenueAnalyticsPage() {
             {/* Detailed Buildings List (No Nested Wrapper Card) */}
             <div className="xl:col-span-3 space-y-4">
               <div>
-                <h4 className="font-extrabold text-sm text-slate-850 leading-tight">Báo cáo doanh số tòa nhà</h4>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Thống kê chi tiết doanh thu bãi đỗ xe</p>
+                <h4 className="font-extrabold text-sm text-slate-850 leading-tight">Building sales report</h4>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Detailed parking revenue statistics</p>
               </div>
 
               {!report?.items?.length ? (
                 <div className="rounded-3xl border border-sky-100/60 bg-white/45 p-12 text-center text-xs text-slate-400 italic shadow-md">
-                  Chưa có doanh thu phát sinh trong giai đoạn này.
+                  No revenue in this period.
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -294,7 +294,7 @@ export function RevenueAnalyticsPage() {
                               <Building2 size={16} />
                             </div>
                             <div>
-                              <h5 className="font-extrabold text-xs text-slate-800 leading-tight">{r.buildingName ?? 'Tòa nhà'}</h5>
+                              <h5 className="font-extrabold text-xs text-slate-800 leading-tight">{r.buildingName ?? 'Building'}</h5>
                               <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-1 font-mono">{r.buildingCode || r.buildingId.slice(0, 8)}</p>
                             </div>
                           </div>
@@ -302,7 +302,7 @@ export function RevenueAnalyticsPage() {
                             <span className="font-black text-xs text-emerald-650 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-lg inline-block">
                               {fmtVnd(r.totalRevenue)}
                             </span>
-                            <p className="text-[9px] text-slate-450 font-bold mt-1.5 uppercase tracking-wider">{r.sessionCount} lượt gửi xe</p>
+                            <p className="text-[9px] text-slate-450 font-bold mt-1.5 uppercase tracking-wider">{r.sessionCount} parking sessions</p>
                           </div>
                         </div>
 
@@ -313,21 +313,21 @@ export function RevenueAnalyticsPage() {
                               <div 
                                 className="h-full bg-gradient-to-r from-blue-500 to-sky-400 transition-all" 
                                 style={{ width: `${walletPct}%` }}
-                                title={`Ví điện tử: ${walletPct}%`}
+                                title={`E-wallet: ${walletPct}%`}
                               />
                             )}
                             {r.qrAmount > 0 && (
                               <div 
                                 className="h-full bg-gradient-to-r from-purple-500 to-indigo-400 transition-all" 
                                 style={{ width: `${qrPct}%` }}
-                                title={`Mã QR Pay: ${qrPct}%`}
+                                title={`QR Pay: ${qrPct}%`}
                               />
                             )}
                             {r.cashAmount > 0 && (
                               <div 
                                 className="h-full bg-gradient-to-r from-amber-500 to-orange-400 transition-all" 
                                 style={{ width: `${cashPct}%` }}
-                                title={`Tiền mặt: ${cashPct}%`}
+                                title={`Cash: ${cashPct}%`}
                               />
                             )}
                           </div>
@@ -336,7 +336,7 @@ export function RevenueAnalyticsPage() {
                           <div className="grid grid-cols-3 gap-2 text-[10px] font-bold text-slate-450 mt-1 bg-slate-50/60 p-2.5 rounded-xl border border-slate-100">
                             <span className="flex items-center gap-1.5 justify-center border-r border-slate-200/50 last:border-r-0">
                               <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0 shadow-sm" />
-                              Ví: <span className="text-slate-700 font-extrabold">{fmtVnd(r.walletAmount)}</span>
+                              Wallet: <span className="text-slate-700 font-extrabold">{fmtVnd(r.walletAmount)}</span>
                             </span>
                             <span className="flex items-center gap-1.5 justify-center border-r border-slate-200/50 last:border-r-0">
                               <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0 shadow-sm" />
@@ -344,7 +344,7 @@ export function RevenueAnalyticsPage() {
                             </span>
                             <span className="flex items-center gap-1.5 justify-center border-r border-slate-200/50 last:border-r-0">
                               <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0 shadow-sm" />
-                              Tiền mặt: <span className="text-slate-700 font-extrabold">{fmtVnd(r.cashAmount)}</span>
+                              Cash: <span className="text-slate-700 font-extrabold">{fmtVnd(r.cashAmount)}</span>
                             </span>
                           </div>
                         </div>

@@ -17,22 +17,22 @@ export const carModelFromVehicleType = (name: string): CartoonCar3DProps['type']
 const STATUS_CONFIG = {
   available: {
     faceColor: 'bg-emerald-500/25 border-emerald-500/40 text-emerald-300',
-    label: 'Trống',
+    label: 'Available',
     glow: 'shadow-[0_0_14px_rgba(16,185,129,0.25),0_0_4px_rgba(16,185,129,0.1)] hover:shadow-[0_0_28px_rgba(16,185,129,0.6),0_0_8px_rgba(16,185,129,0.3)]',
   },
   occupied: {
     faceColor: 'bg-red-500/25 border-red-500/45 text-red-300',
-    label: 'Có xe',
+    label: 'Occupied',
     glow: 'shadow-[0_0_14px_rgba(239,68,68,0.35),0_0_4px_rgba(239,68,68,0.15)] hover:shadow-[0_0_28px_rgba(239,68,68,0.65),0_0_8px_rgba(239,68,68,0.3)]',
   },
   reserved: {
     faceColor: 'bg-purple-500/25 border-purple-500/45 text-purple-300',
-    label: 'Đã đặt',
+    label: 'Reserved',
     glow: 'shadow-[0_0_14px_rgba(168,85,247,0.35),0_0_4px_rgba(168,85,247,0.15)] hover:shadow-[0_0_28px_rgba(168,85,247,0.65),0_0_8px_rgba(168,85,247,0.3)]',
   },
   maintenance: {
     faceColor: 'bg-amber-500/20 border-amber-500/35 text-amber-300 bg-[repeating-linear-gradient(45deg,rgba(245,158,11,0.12),rgba(245,158,11,0.12)_6px,rgba(0,0,0,0.4)_6px,rgba(0,0,0,0.4)_12px)]',
-    label: 'Bảo trì',
+    label: 'Maintenance',
     glow: 'shadow-[0_0_14px_rgba(245,158,11,0.2),0_0_4px_rgba(245,158,11,0.1)] hover:shadow-[0_0_28px_rgba(245,158,11,0.55),0_0_8px_rgba(245,158,11,0.25)]',
   },
 } as const;
@@ -56,10 +56,10 @@ export function Slot3DBox({ slot, onClick, statusFilter = '', vehicleTypes = [] 
   const isFilteredOut = statusFilter && slot.status !== statusFilter;
 
   const vtName = useMemo(() => {
-    if (!slot.vehicleType) return '— Không cố định —';
+    if (!slot.vehicleType) return '— Any type —';
     if (typeof slot.vehicleType === 'object') return slot.vehicleType.name;
     const found = vehicleTypes.find((v) => v._id === slot.vehicleType);
-    return found ? found.name : 'Loại xe';
+    return found ? found.name : 'Vehicle type';
   }, [slot.vehicleType, vehicleTypes]);
 
   return (
@@ -145,8 +145,8 @@ export function Slot3DBox({ slot, onClick, statusFilter = '', vehicleTypes = [] 
               </span>
             </div>
             <div className="space-y-1 text-[9px] text-slate-400 font-semibold leading-relaxed">
-              <p>Loại: <span className="text-white font-black">{vtName}</span></p>
-              <p>Đặt chỗ: <span className="text-white font-black">{slot.reservable ? 'Có' : 'Khóa'}</span></p>
+              <p>Type: <span className="text-white font-black">{vtName}</span></p>
+              <p>Reservable: <span className="text-white font-black">{slot.reservable ? 'Yes' : 'Locked'}</span></p>
               {slot.note && <p className="border-t border-white/5 pt-1 mt-1 text-slate-500 italic">Note: {slot.note}</p>}
             </div>
           </motion.div>

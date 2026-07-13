@@ -26,6 +26,8 @@ export function ManagerSubscriptionsPage() {
   const [cancelReason, setCancelReason] = useState('');
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
+  // % hoàn tiền theo ReservationPolicy của tòa (BE dùng chung cho hủy gói) — mặc định 80.
+  const [refundPercent, setRefundPercent] = useState(80);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -39,6 +41,16 @@ export function ManagerSubscriptionsPage() {
       setLoading(false);
     }
   }, [buildingId, status]);
+
+  useEffect(() => {
+    managerApi.reservationPolicy
+      .get(buildingId)
+      .then((res) => {
+        const p = res.data.item?.refundPercent;
+        if (typeof p === 'number') setRefundPercent(Math.min(Math.max(p, 0), 100));
+      })
+      .catch(() => {});
+  }, [buildingId]);
 
   useEffect(() => {
     refresh();
@@ -97,7 +109,13 @@ export function ManagerSubscriptionsPage() {
                 </thead>
                 <tbody>
                   {items.map((s) => {
-                    const refund = s.package?.price != null ? Math.round(s.package.price * 0.95) : null;
+                    // Ưu tiên snapshot lưu lúc hủy; gói cũ chưa có snapshot thì tính theo policy hiện tại.
+                    const pct = s.refundPercent ?? refundPercent;
+                    const refund =
+                      s.refundAmount ??
+                      (s.package?.price != null ? Math.round((s.package.price * pct) / 100) : null);
+                    const deduction =
+                      s.package?.price != null && refund != null ? s.package.price - refund : null;
                     return (
                       <tr key={s._id} className="border-b last:border-0">
                         <td className="py-2 pr-3">
@@ -114,12 +132,12 @@ export function ManagerSubscriptionsPage() {
                               <span className="text-muted-foreground">Original price: </span>
                               <span className="font-medium">{fmtMoney(s.package?.price)}</span>
                               <br />
-                              <span className="text-rose-400">5% deduction: </span>
+                              <span className="text-rose-400">{100 - pct}% deduction: </span>
                               <span className="text-rose-400 font-medium">
-                                {s.package?.price != null ? fmtMoney(Math.round(s.package.price * 0.05)) : '—'}
+                                {deduction != null ? fmtMoney(deduction) : '—'}
                               </span>
                               <br />
-                              <span className="text-emerald-400">Refunded: </span>
+                              <span className="text-emerald-400">Refunded ({pct}%): </span>
                               <span className="text-emerald-400 font-medium">{refund != null ? fmtMoney(refund) : '—'}</span>
                             </div>
                           ) : (
@@ -161,10 +179,10 @@ export function ManagerSubscriptionsPage() {
             </div>
 
             <div className="rounded-xl border border-amber-500/25 bg-amber-500/8 px-4 py-3 text-sm text-amber-200 mb-4">
-              <p className="font-semibold mb-1">Refund policy for manager cancellation:</p>
+              <p className="font-semibold mb-1">Refund policy for manager cancellation (per building reservation policy):</p>
               <ul className="text-xs space-y-0.5 list-disc list-inside">
-                <li>Deduct <strong>5%</strong> processing fee</li>
-                <li>Refund <strong>95%</strong> = {cancelTarget.package?.price != null ? fmtMoney(Math.round(cancelTarget.package.price * 0.95)) : '—'} to the user wallet</li>
+                <li>Deduct <strong>{100 - refundPercent}%</strong> processing fee</li>
+                <li>Refund <strong>{refundPercent}%</strong> = {cancelTarget.package?.price != null ? fmtMoney(Math.round((cancelTarget.package.price * refundPercent) / 100)) : '—'} to the user wallet</li>
               </ul>
             </div>
 

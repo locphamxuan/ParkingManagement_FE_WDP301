@@ -18,7 +18,6 @@ import {
 
 interface FormState {
   floor: string;
-  code: string;
   name: string;
   vehicleType: string;
   usageType: ZoneUsageType;
@@ -28,7 +27,6 @@ interface FormState {
 
 const empty: FormState = {
   floor: '',
-  code: '',
   name: '',
   vehicleType: '',
   usageType: 'walk_in',
@@ -124,7 +122,6 @@ export function ManagerZonesPage() {
     setEditing(row);
     setForm({
       floor: typeof row.floor === 'string' ? row.floor : row.floor._id,
-      code: row.code,
       name: row.name ?? '',
       vehicleType: typeof row.vehicleType === 'string' ? row.vehicleType : row.vehicleType._id,
       usageType: row.usageType,
@@ -136,10 +133,11 @@ export function ManagerZonesPage() {
 
   const onSubmit = async () => {
     if (!form.floor) return alert('Please select a floor');
+    if (!form.name.trim()) return alert('Please enter a zone name');
     if (!form.vehicleType) return alert('Please select a vehicle type');
+    // Mã zone do BE tự sinh từ name — chỉ gửi name.
     const body = {
       floor: form.floor,
-      code: form.code.trim().toUpperCase(),
       name: form.name.trim(),
       vehicleType: form.vehicleType,
       usageType: form.usageType,
@@ -350,7 +348,7 @@ export function ManagerZonesPage() {
           <CustomSelect
             value={floorFilter}
             onChange={setFloorFilter}
-            options={[{ value: '', label: 'All floors' }, ...floors.map((f) => ({ value: f._id, label: `Floor ${f.code}` }))]}
+            options={[{ value: '', label: 'All floors' }, ...floors.map((f) => ({ value: f._id, label: f.name ? `${f.code} — ${f.name}` : `Floor ${f.code}` }))]}
             className="w-48 bg-slate-950/40 border-white/10 text-white rounded-xl"
             placeholder="Filter by floor..."
           />
@@ -395,18 +393,23 @@ export function ManagerZonesPage() {
             <CustomSelect
               value={form.floor}
               onChange={(val) => setForm((f) => ({ ...f, floor: val, vehicleType: '' }))}
-              options={[{ value: '', label: 'Select floor' }, ...floors.map((fl) => ({ value: fl._id, label: `Floor ${fl.code}` }))]}
+              options={[{ value: '', label: 'Select floor' }, ...floors.map((fl) => ({ value: fl._id, label: fl.name ? `${fl.code} — ${fl.name}` : `Floor ${fl.code}` }))]}
               placeholder="Select floor..."
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Zone code *</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Zone name *</label>
             <Input
-              value={form.code}
-              onChange={(e) => setForm((f) => ({ ...f, code: e.target.value.toUpperCase() }))}
-              placeholder="e.g. A, B, C1"
+              value={form.name}
+              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              placeholder="e.g. Walk-in zone, VIP zone A"
               className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-sky-500/40"
             />
+            <p className="text-[10px] text-slate-400 font-medium">
+              {editing
+                ? `Zone code: ${editing.code} (auto-generated, cannot be changed)`
+                : 'The zone code is auto-generated from the name.'}
+            </p>
           </div>
           <div className="grid gap-1.5">
             <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Vehicle type *</label>
@@ -427,15 +430,6 @@ export function ManagerZonesPage() {
               value={form.usageType}
               onChange={(val) => setForm((f) => ({ ...f, usageType: val as ZoneUsageType }))}
               options={USAGE_OPTIONS}
-            />
-          </div>
-          <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Zone name (optional)</label>
-            <Input
-              value={form.name}
-              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              placeholder="e.g. Motorcycle zone floor 1"
-              className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-sky-500/40"
             />
           </div>
           <div className="grid gap-1.5">

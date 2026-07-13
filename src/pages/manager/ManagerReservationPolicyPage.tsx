@@ -12,6 +12,7 @@ interface FormState {
   depositPercent: string;
   maxAdvanceDays: string;
   maxDurationHours: string;
+  overstayPenaltyPercent: string;
   cancellationCutoffHours: string;
   isActive: boolean;
 }
@@ -22,6 +23,7 @@ const toForm = (p: ReservationPolicy | null): FormState => ({
   depositPercent: String(p?.depositPercent ?? 15),
   maxAdvanceDays: String(p?.maxAdvanceDays ?? 7),
   maxDurationHours: String(p?.maxDurationHours ?? 24),
+  overstayPenaltyPercent: String(p?.overstayPenaltyPercent ?? 0),
   cancellationCutoffHours: String(p?.cancellationCutoffHours ?? 0),
   isActive: p?.isActive ?? true,
 });
@@ -57,7 +59,7 @@ export function ManagerReservationPolicyPage() {
         depositPercent: Number(form.depositPercent),
         maxAdvanceDays: Number(form.maxAdvanceDays),
         maxDurationHours: Number(form.maxDurationHours),
-        overstayPenaltyPercent: 0,
+        overstayPenaltyPercent: Number(form.overstayPenaltyPercent),
         cancellationCutoffHours: Number(form.cancellationCutoffHours),
         isActive: form.isActive,
       });
@@ -171,6 +173,23 @@ export function ManagerReservationPolicyPage() {
               />
               <p className="text-[11px] text-muted-foreground">
                 Each reservation cannot exceed this many hours.
+              </p>
+            </div>
+            <div className="grid gap-1.5">
+              <label className="text-xs uppercase text-muted-foreground">
+                % Overstay penalty surcharge
+              </label>
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                value={form.overstayPenaltyPercent}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, overstayPenaltyPercent: e.target.value }))
+                }
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Extra % added on top of the regular fee for time parked past the booked end time. 0 = no penalty.
               </p>
             </div>
             <div className="grid gap-1.5">

@@ -24,7 +24,9 @@ export interface VehicleType {
 export interface Floor {
   _id: string;
   building: string;
+  /** Mã do BE tự sinh từ name ("Tầng 1" → T1) — client không đặt. */
   code: string;
+  name: string;
   capacity: number;
   status: 'active' | 'inactive' | 'maintenance';
   allowedVehicleTypes: VehicleType[];
@@ -69,7 +71,7 @@ export interface Zone {
 export interface ParkingSlot {
   _id: string;
   building: string;
-  floor: { _id: string; code: string; name: string; levelNumber: number } | string;
+  floor: { _id: string; code: string; name: string } | string;
   zone?: { _id: string; code: string; usageType: ZoneUsageType; vehicleType?: string } | string | null;
   code: string;
   vehicleType?: VehicleType | string | null;
@@ -122,6 +124,9 @@ export interface Subscription {
   startDate: string;
   endDate: string;
   status: 'pending' | 'active' | 'expired' | 'cancelled';
+  /** Snapshot % và số tiền đã hoàn lúc hủy (theo ReservationPolicy thời điểm đó) — null với gói cũ. */
+  refundPercent?: number | null;
+  refundAmount?: number | null;
   // NOTE: long-term packages are FLOATING — no fixed slot is held on the subscription.
   // The slot is assigned by staff at each check-in, so there is no slot field here.
 }
@@ -288,9 +293,10 @@ export const managerApi = {
   zones: {
     list: (b: string, q?: Record<string, string | undefined>) =>
       api.get<Wrap<{ items: Zone[] }>>(path(b, '/zones'), { query: q }),
+    // BE tự sinh code từ name — client chỉ gửi name.
     create: (
       b: string,
-      body: { floor: string; code: string; name?: string; vehicleType: string; usageType: ZoneUsageType; capacity?: number; status?: Zone['status'] }
+      body: { floor: string; name: string; vehicleType: string; usageType: ZoneUsageType; capacity?: number; status?: Zone['status'] }
     ) => api.post<Wrap<{ item: Zone }>>(path(b, '/zones'), body),
     update: (b: string, id: string, body: Partial<Omit<Zone, '_id' | 'building'>> & { vehicleType?: string }) =>
       api.put<Wrap<{ item: Zone }>>(path(b, `/zones/${id}`), body),
@@ -300,8 +306,14 @@ export const managerApi = {
   slots: {
     list: (b: string, q?: Record<string, string | undefined>) =>
       api.get<Wrap<{ items: ParkingSlot[] }>>(path(b, '/slots'), { query: q }),
+    // code optional — BE tự sinh {zoneCode}-01, -02… khi bỏ trống.
     create: (b: string, body: Partial<ParkingSlot> & { floor: string; zone: string }) =>
       api.post<Wrap<{ item: ParkingSlot }>>(path(b, '/slots'), body),
+    /** Tạo hàng loạt: BE tự sinh mã nối tiếp theo code zone (quantity 1–50). */
+    createBatch: (
+      b: string,
+      body: { floor: string; zone: string; quantity: number; status?: ParkingSlot['status']; reservable?: boolean; note?: string }
+    ) => api.post<Wrap<{ items: ParkingSlot[] }>>(path(b, '/slots/batch'), body),
     update: (b: string, id: string, body: Partial<ParkingSlot>) =>
       api.put<Wrap<{ item: ParkingSlot }>>(path(b, `/slots/${id}`), body),
     updateStatus: (b: string, id: string, status: ParkingSlot['status']) =>

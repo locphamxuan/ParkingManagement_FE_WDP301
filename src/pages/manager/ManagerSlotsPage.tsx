@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { DataTable, type DataColumn } from '@/components/common/DataTable';
 import { ModalForm } from '@/components/modals/ModalForm';
 import { CustomSelect } from '@/components/ui/select';
-import { MultiSlotForm, type SlotFormRow } from '@/components/manager/MultiSlotForm';
+import { MultiSlotForm, type SlotBatchInput } from '@/components/manager/MultiSlotForm';
 import { SlotMap3DView } from '@/components/manager/SlotMap3DView';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import {
@@ -151,14 +151,15 @@ export function ManagerSlotsPage() {
       alert('Select a zone first');
       return;
     }
-    const payload = {
-      code: form.code.trim().toUpperCase(),
+    const payload: Record<string, unknown> = {
       floor: form.floor,
       zone: form.zone,
       status: form.status,
       reservable: form.reservable,
       note: form.note.trim(),
     };
+    // code chỉ gửi khi tạo và người dùng nhập; bỏ trống → BE tự sinh. Update: BE không cho đổi code.
+    if (!editing && form.code.trim()) payload.code = form.code.trim().toUpperCase();
     try {
       if (editing) {
         await managerApi.slots.update(buildingId, editing._id, payload as Partial<ParkingSlot>);
@@ -182,18 +183,9 @@ export function ManagerSlotsPage() {
     }
   };
 
-  const onMultiSlotSubmit = async (rows: SlotFormRow[]) => {
-    for (const row of rows) {
-      const payload = {
-        code: row.code.trim().toUpperCase(),
-        floor: row.floor,
-        zone: row.zone,
-        status: row.status,
-        reservable: row.reservable,
-        note: row.note.trim(),
-      };
-      await managerApi.slots.create(buildingId, payload as Partial<ParkingSlot> & { floor: string; zone: string });
-    }
+  // Tạo hàng loạt qua POST /slots/batch — BE tự sinh mã nối tiếp theo code zone.
+  const onMultiSlotSubmit = async (input: SlotBatchInput) => {
+    await managerApi.slots.createBatch(buildingId, input);
     refresh();
   };
 
@@ -277,7 +269,7 @@ export function ManagerSlotsPage() {
               { value: '', label: 'All floors' },
               ...floors.map((f) => ({
                 value: f._id,
-                label: f.code,
+                label: f.name ? `${f.code} — ${f.name}` : f.code,
               })),
             ]}
             className="w-40"
@@ -322,6 +314,13 @@ export function ManagerSlotsPage() {
         </div>
 
         <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            onClick={() => setMultiSlotModalOpen(true)}
+            className="rounded-xl font-black text-xs uppercase tracking-wider gap-2"
+          >
+            <Plus size={14} className="stroke-[3]" /> Add batch
+          </Button>
           <Button onClick={openCreate} className="rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider hover:shadow-[0_0_15px_rgba(249,115,22,0.3)] gap-2">
             <Plus size={14} className="stroke-[3]" /> Add slot
           </Button>
@@ -373,8 +372,13 @@ export function ManagerSlotsPage() {
             <Input
               value={form.code}
               onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
-              className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-orange-500/40"
+              placeholder={editing ? undefined : 'Leave blank to auto-generate (e.g. A-01)'}
+              disabled={!!editing}
+              className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-orange-500/40 disabled:opacity-60"
             />
+            {editing && (
+              <p className="text-[10px] text-slate-400 font-medium">The slot code is auto-generated and cannot be changed.</p>
+            )}
           </div>
           <div className="grid gap-1.5">
             <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Floor</label>
@@ -385,7 +389,7 @@ export function ManagerSlotsPage() {
                 { value: '', label: 'Select floor' },
                 ...floors.map((fl) => ({
                   value: fl._id,
-                  label: fl.code,
+                  label: fl.name ? `${fl.code} — ${fl.name}` : fl.code,
                 })),
               ]}
               placeholder="Select floor..."

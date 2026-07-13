@@ -10,14 +10,14 @@ import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { managerApi, type Floor, type VehicleType } from '@/services/manager/managerApi';
 
 interface FormState {
-  code: string;
+  name: string;
   capacity: string;
   status: Floor['status'];
   allowedVehicleTypes: string[];
 }
 
 const empty: FormState = {
-  code: '',
+  name: '',
   capacity: '0',
   status: 'active',
   allowedVehicleTypes: [],
@@ -63,7 +63,7 @@ export function ManagerFloorsPage() {
   const openEdit = (row: Floor) => {
     setEditing(row);
     setForm({
-      code: row.code,
+      name: row.name ?? '',
       capacity: String(row.capacity),
       status: row.status,
       allowedVehicleTypes: row.allowedVehicleTypes.map((v) => (typeof v === 'string' ? v : v._id)),
@@ -72,8 +72,10 @@ export function ManagerFloorsPage() {
   };
 
   const onSubmit = async () => {
+    if (!form.name.trim()) return alert('Please enter a floor name');
+    // Mã tầng do BE tự sinh từ name — chỉ gửi name.
     const payload = {
-      code: form.code.trim().toUpperCase(),
+      name: form.name.trim(),
       capacity: Number(form.capacity),
       status: form.status,
       allowedVehicleTypes: form.allowedVehicleTypes,
@@ -92,7 +94,7 @@ export function ManagerFloorsPage() {
   };
 
   const onDelete = async (row: Floor) => {
-    if (!window.confirm(`Delete floor ${row.code}? The floor must have no slots.`)) return;
+    if (!window.confirm(`Delete floor ${row.name || row.code}? The floor must have no slots.`)) return;
     try {
       await managerApi.floors.remove(buildingId, row._id);
       refresh();
@@ -113,6 +115,7 @@ export function ManagerFloorsPage() {
   const columns: DataColumn<Floor>[] = useMemo(
     () => [
       { key: 'code', title: 'Floor code' },
+      { key: 'name', title: 'Floor name', render: (row) => row.name || '—' },
       { key: 'capacity', title: 'Capacity' },
       {
         key: 'allowedVehicleTypes',
@@ -167,11 +170,17 @@ export function ManagerFloorsPage() {
       >
         <div className="grid gap-3 md:grid-cols-2">
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Floor code</label>
+            <label className="text-xs uppercase text-muted-foreground">Floor name</label>
             <Input
-              value={form.code}
-              onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
+              value={form.name}
+              placeholder="e.g. Floor 1, Basement B1"
+              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             />
+            <p className="text-[10px] text-muted-foreground">
+              {editing
+                ? `Floor code: ${editing.code} (auto-generated, cannot be changed)`
+                : 'The floor code is auto-generated from the name (e.g. "Floor 1" → F1).'}
+            </p>
           </div>
           <div className="grid gap-1.5">
             <label className="text-xs uppercase text-muted-foreground">Capacity</label>

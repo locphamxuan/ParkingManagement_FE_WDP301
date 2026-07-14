@@ -21,22 +21,23 @@ export function showToast(message: string, type: ToastType = 'success') {
   }
 }
 
+// Màu theo semantic token (globals.css) — đọc được trên theme sáng.
 const ICONS = {
-  success: <CheckCircle2 size={16} className="shrink-0 text-emerald-400" />,
-  error: <XCircle size={16} className="shrink-0 text-rose-400" />,
-  info: <Info size={16} className="shrink-0 text-sky-400" />,
+  success: <CheckCircle2 size={16} className="shrink-0 text-success" />,
+  error: <XCircle size={16} className="shrink-0 text-danger" />,
+  info: <Info size={16} className="shrink-0 text-info" />,
 };
 
 const BORDER_CLASS = {
-  success: 'border-emerald-500/20 bg-emerald-500/10',
-  error: 'border-rose-500/20 bg-rose-500/10',
-  info: 'border-sky-500/20 bg-sky-500/10',
+  success: 'border-success/30 bg-card',
+  error: 'border-danger/30 bg-card',
+  info: 'border-info/30 bg-card',
 };
 
 const TEXT_CLASS = {
-  success: 'text-emerald-200',
-  error: 'text-rose-200',
-  info: 'text-sky-200',
+  success: 'text-success',
+  error: 'text-danger',
+  info: 'text-info',
 };
 
 function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: number) => void }) {
@@ -55,7 +56,7 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: number) =
       <button
         type="button"
         onClick={() => onRemove(toast.id)}
-        className="ml-1 shrink-0 text-white/40 transition hover:text-white/80"
+        className="ml-1 shrink-0 text-muted-foreground/60 transition hover:text-foreground"
         aria-label="Dismiss"
       >
         <X size={14} />

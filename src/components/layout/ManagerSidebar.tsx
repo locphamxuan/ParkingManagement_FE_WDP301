@@ -25,6 +25,10 @@ import { cn } from '@/utils/cn';
 interface ManagerSidebarProps {
   collapsed: boolean;
   onToggle: () => void;
+  /** 'drawer' = render bên trong MobileNavDrawer (< lg) — bỏ sticky/hidden, full width. */
+  variant?: 'desktop' | 'drawer';
+  /** Gọi khi bấm 1 link (để drawer tự đóng). */
+  onNavigate?: () => void;
 }
 
 const groupedModules = [
@@ -72,12 +76,18 @@ const groupedModules = [
   },
 ];
 
-export function ManagerSidebar({ collapsed, onToggle }: ManagerSidebarProps) {
+export function ManagerSidebar({ collapsed, onToggle, variant = 'desktop', onNavigate }: ManagerSidebarProps) {
+  const isDrawer = variant === 'drawer';
   return (
     <aside
       className={cn(
-        'sticky top-0 hidden h-screen border-r border-sky-100 bg-white p-4 shadow-[4px_0_30px_rgba(14,165,233,0.015)] lg:block transition-all duration-350 ease-in-out shrink-0',
-        collapsed ? 'w-[84px]' : 'w-[264px]',
+        'border-sky-100 bg-white p-4 transition-all duration-350 ease-in-out shrink-0',
+        isDrawer
+          ? 'block h-full w-full'
+          : cn(
+              'sticky top-0 hidden h-screen border-r shadow-[4px_0_30px_rgba(14,165,233,0.015)] lg:block',
+              collapsed ? 'w-[84px]' : 'w-[264px]',
+            ),
       )}
     >
       <div className="mb-6 flex items-center justify-between rounded-2xl border border-sky-100 bg-sky-50/50 p-3 shadow-sm">
@@ -89,9 +99,11 @@ export function ManagerSidebar({ collapsed, onToggle }: ManagerSidebarProps) {
         ) : (
           <Fingerprint className="text-sky-500 h-5 w-5 mx-auto animate-pulse" />
         )}
-        <Button size="sm" variant="ghost" onClick={onToggle} className="h-7 w-7 rounded-lg p-0 hover:bg-sky-100/50 text-slate-400 hover:text-sky-600">
-          <ChevronLeft className={cn('h-3.5 w-3.5 transition-all duration-300', collapsed && 'rotate-180')} />
-        </Button>
+        {!isDrawer && (
+          <Button size="sm" variant="ghost" onClick={onToggle} className="h-7 w-7 rounded-lg p-0 hover:bg-sky-100/50 text-slate-400 hover:text-sky-600">
+            <ChevronLeft className={cn('h-3.5 w-3.5 transition-all duration-300', collapsed && 'rotate-180')} />
+          </Button>
+        )}
       </div>
 
       <nav className="space-y-4 overflow-y-auto max-h-[calc(100vh-100px)] pr-1 custom-scrollbar">
@@ -111,6 +123,7 @@ export function ManagerSidebar({ collapsed, onToggle }: ManagerSidebarProps) {
                   key={module.label}
                   to={module.to}
                   end={module.to === ''}
+                  onClick={onNavigate}
                   className={({ isActive }) =>
                     cn(
                       'flex items-center gap-3.5 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all duration-300',

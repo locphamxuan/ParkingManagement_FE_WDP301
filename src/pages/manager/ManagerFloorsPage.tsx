@@ -8,6 +8,8 @@ import { ModalForm } from '@/components/modals/ModalForm';
 import { CustomSelect } from '@/components/ui/select';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { managerApi, type Floor, type VehicleType } from '@/services/manager/managerApi';
+import { showToast } from '@/components/common/ToastNotification';
+import { ConfirmModal } from '@/components/modals/ConfirmModal';
 
 interface FormState {
   name: string;
@@ -72,7 +74,7 @@ export function ManagerFloorsPage() {
   };
 
   const onSubmit = async () => {
-    if (!form.name.trim()) return alert('Please enter a floor name');
+    if (!form.name.trim()) return showToast('Please enter a floor name', 'error');
     // Mã tầng do BE tự sinh từ name — chỉ gửi name.
     const payload = {
       name: form.name.trim(),
@@ -89,17 +91,26 @@ export function ManagerFloorsPage() {
       setModalOpen(false);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Save failed');
+      showToast(err instanceof Error ? err.message : 'Save failed', 'error');
     }
   };
 
-  const onDelete = async (row: Floor) => {
-    if (!window.confirm(`Delete floor ${row.name || row.code}? The floor must have no slots.`)) return;
+  // Xác nhận xóa qua ConfirmModal (bỏ window.confirm native).
+  const [deleteTarget, setDeleteTarget] = useState<Floor | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const onDelete = (row: Floor) => setDeleteTarget(row);
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      await managerApi.floors.remove(buildingId, row._id);
+      await managerApi.floors.remove(buildingId, deleteTarget._id);
+      showToast('Floor deleted', 'success');
+      setDeleteTarget(null);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Delete failed');
+      showToast(err instanceof Error ? err.message : 'Delete failed', 'error');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -231,6 +242,14 @@ export function ManagerFloorsPage() {
           </div>
         </div>
       </ModalForm>
+    <ConfirmModal
+        open={!!deleteTarget}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+        title="Delete floor"
+        description={`Delete floor ${deleteTarget?.name || deleteTarget?.code}? The floor must have no zones or slots.`}
+        onConfirm={confirmDelete}
+        isConfirming={deleting}
+      />
     </div>
   );
 }

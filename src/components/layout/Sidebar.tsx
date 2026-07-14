@@ -14,6 +14,10 @@ import { cn } from '@/utils/cn';
 interface SidebarProps {
   collapsed: boolean;
   onToggle: () => void;
+  /** 'drawer' = render bên trong MobileNavDrawer (< lg) — bỏ sticky/hidden, full width. */
+  variant?: 'desktop' | 'drawer';
+  /** Gọi khi bấm 1 link (để drawer tự đóng). */
+  onNavigate?: () => void;
 }
 
 const modules = [
@@ -24,12 +28,15 @@ const modules = [
   { to: 'audit-logs', label: 'Audit Logs', icon: FileSearch },
 ] as const;
 
-export function Sidebar({ collapsed, onToggle }: SidebarProps) {
+export function Sidebar({ collapsed, onToggle, variant = 'desktop', onNavigate }: SidebarProps) {
+  const isDrawer = variant === 'drawer';
   return (
     <aside
       className={cn(
-        'sticky top-0 hidden h-screen border-r border-slate-200/80 bg-gradient-to-b from-slate-50 to-slate-100/50 p-4 lg:block transition-all duration-300 ease-in-out shrink-0',
-        collapsed ? 'w-[84px]' : 'w-[260px]'
+        'border-slate-200/80 bg-gradient-to-b from-slate-50 to-slate-100/50 p-4 transition-all duration-300 ease-in-out shrink-0',
+        isDrawer
+          ? 'block h-full w-full'
+          : cn('sticky top-0 hidden h-screen border-r lg:block', collapsed ? 'w-[84px]' : 'w-[260px]')
       )}
     >
       {/* Brand Identity Header with Divider */}
@@ -50,14 +57,16 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
             </div>
           )}
         </div>
-        <Button 
-          size="sm" 
-          variant="ghost" 
-          onClick={onToggle} 
-          className="h-7 w-7 rounded-lg p-0 hover:bg-slate-200/60 text-slate-400 hover:text-slate-655 shrink-0"
-        >
-          <ChevronLeft className={cn('h-3.5 w-3.5 transition-all duration-300', collapsed && 'rotate-180')} />
-        </Button>
+        {!isDrawer && (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={onToggle}
+            className="h-7 w-7 rounded-lg p-0 hover:bg-slate-200/60 text-slate-400 hover:text-slate-655 shrink-0"
+          >
+            <ChevronLeft className={cn('h-3.5 w-3.5 transition-all duration-300', collapsed && 'rotate-180')} />
+          </Button>
+        )}
       </div>
 
       {/* Navigation Links */}
@@ -69,6 +78,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
               key={module.label}
               to={module.to}
               end={module.to === ''}
+              onClick={onNavigate}
               className={({ isActive }) =>
                 cn(
                   'flex items-center gap-3 py-2.5 transition-all duration-200 text-xs font-bold rounded-xl relative group',

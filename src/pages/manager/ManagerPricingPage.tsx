@@ -10,6 +10,8 @@ import { TimePicker } from '@/components/ui/time-picker';
 import { DatePicker } from '@/components/ui/date-picker';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { managerApi, type PricePolicy, type VehicleType } from '@/services/manager/managerApi';
+import { showToast } from '@/components/common/ToastNotification';
+import { ConfirmModal } from '@/components/modals/ConfirmModal';
 
 type PricingType = 'regular' | 'peak';
 
@@ -99,7 +101,7 @@ export function ManagerPricingPage() {
 
   const onSubmit = async () => {
     if (!form.vehicleType) {
-      alert('Select a vehicle type first');
+      showToast('Select a vehicle type first', 'error');
       return;
     }
     const payload = {
@@ -121,17 +123,26 @@ export function ManagerPricingPage() {
       setModalOpen(false);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Save failed');
+      showToast(err instanceof Error ? err.message : 'Save failed', 'error');
     }
   };
 
-  const deactivate = async (row: PricePolicy) => {
-    if (!window.confirm(`Disable policy "${row.name}"?`)) return;
+  // Xác nhận qua ConfirmModal (bỏ window.confirm native).
+  const [deleteTarget, setDeleteTarget] = useState<PricePolicy | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const deactivate = (row: PricePolicy) => setDeleteTarget(row);
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      await managerApi.pricePolicies.deactivate(buildingId, row._id);
+      await managerApi.pricePolicies.deactivate(buildingId, deleteTarget._id);
+      showToast('Policy disabled', 'success');
+      setDeleteTarget(null);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed');
+      showToast(err instanceof Error ? err.message : 'Delete failed', 'error');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -286,6 +297,15 @@ export function ManagerPricingPage() {
           </label>
         </div>
       </ModalForm>
+    <ConfirmModal
+        open={!!deleteTarget}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+        title="Disable price policy"
+        description={`Disable policy "${deleteTarget?.name}"?`}
+        confirmLabel="Disable"
+        onConfirm={confirmDelete}
+        isConfirming={deleting}
+      />
     </div>
   );
 }

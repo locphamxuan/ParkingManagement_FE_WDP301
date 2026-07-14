@@ -26,6 +26,28 @@ export default {
           DEFAULT: 'hsl(var(--app-card) / <alpha-value>)',
           foreground: 'hsl(var(--app-card-foreground) / <alpha-value>)',
         },
+        // Semantic tokens (globals.css) — dùng thay emerald/amber/rose/sky hardcode.
+        success: {
+          DEFAULT: 'hsl(var(--app-success) / <alpha-value>)',
+          foreground: 'hsl(var(--app-success-foreground) / <alpha-value>)',
+        },
+        warning: {
+          DEFAULT: 'hsl(var(--app-warning) / <alpha-value>)',
+          foreground: 'hsl(var(--app-warning-foreground) / <alpha-value>)',
+        },
+        danger: {
+          DEFAULT: 'hsl(var(--app-danger) / <alpha-value>)',
+          foreground: 'hsl(var(--app-danger-foreground) / <alpha-value>)',
+        },
+        info: {
+          DEFAULT: 'hsl(var(--app-info) / <alpha-value>)',
+          foreground: 'hsl(var(--app-info-foreground) / <alpha-value>)',
+        },
+        // Tile tối trong pattern "thẻ sáng + tile tối" (thay bg-slate-950/40).
+        tile: {
+          DEFAULT: 'hsl(var(--app-tile) / <alpha-value>)',
+          foreground: 'hsl(var(--app-tile-foreground) / <alpha-value>)',
+        },
       },
       borderRadius: {
         lg: '0.85rem',

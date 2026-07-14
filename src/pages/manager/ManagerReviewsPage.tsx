@@ -7,6 +7,7 @@ import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { managerApi } from '@/services/manager/managerApi';
 import type { Feedback } from '@/services/user/userApi';
 import { Modal } from '@/components/ui/modal';
+import { showToast } from '@/components/common/ToastNotification';
 
 interface ReplyFormState {
   reviewId: string;
@@ -55,11 +56,11 @@ export function ManagerReviewsPage() {
 
   const handleReplySubmit = async () => {
     if (!buildingId) {
-      alert('Building information not found');
+      showToast('Building information not found', 'error');
       return;
     }
     if (!replyForm.staffReply.trim()) {
-      alert('Please enter a reply');
+      showToast('Please enter a reply', 'error');
       return;
     }
 
@@ -75,7 +76,7 @@ export function ManagerReviewsPage() {
       setReplyForm({ reviewId: '', staffReply: '' });
       setSelectedReview(null);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to send reply');
+      showToast(err instanceof Error ? err.message : 'Failed to send reply', 'error');
     } finally {
       setReplying(false);
     }
@@ -98,7 +99,7 @@ export function ManagerReviewsPage() {
       title: 'User',
       render: (item) => (
         <div>
-          <p className="font-medium text-slate-100">{item.user?.fullName || 'Anonymous user'}</p>
+          <p className="font-medium text-foreground">{item.user?.fullName || 'Anonymous user'}</p>
           <p className="text-xs text-slate-400">{item.user?.email || 'N/A'}</p>
         </div>
       ),
@@ -185,7 +186,7 @@ export function ManagerReviewsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-100">Reviews</h1>
+          <h1 className="text-2xl font-bold text-foreground">Reviews</h1>
           <p className="mt-1 text-sm text-slate-400">Manage and reply to user reviews</p>
         </div>
         <div className="text-right">
@@ -258,12 +259,12 @@ export function ManagerReviewsPage() {
       <Modal isOpen={replyModalOpen} onClose={() => !replying && setReplyModalOpen(false)}>
         <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto">
           <div className="border-b border-white/8 p-6">
-            <h2 className="text-xl font-bold text-slate-100">Reply to review</h2>
+            <h2 className="text-xl font-bold text-foreground">Reply to review</h2>
             {selectedReview && (
               <div className="mt-4 space-y-3 rounded-lg bg-slate-800/40 p-4">
                 <div>
                   <p className="text-xs font-semibold text-slate-400">USER</p>
-                  <p className="mt-1 font-medium text-slate-100">{selectedReview.user?.fullName || 'Anonymous'}</p>
+                  <p className="mt-1 font-medium text-foreground">{selectedReview.user?.fullName || 'Anonymous'}</p>
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-slate-400">RATING</p>
@@ -290,7 +291,7 @@ export function ManagerReviewsPage() {
 
           <div className="space-y-4 p-6">
             <div>
-              <label className="block text-sm font-semibold text-slate-200 mb-2">
+              <label className="block text-sm font-semibold text-foreground mb-2">
                 Your reply *
               </label>
               <textarea
@@ -300,7 +301,7 @@ export function ManagerReviewsPage() {
                 }
                 placeholder="Enter a reply to this review..."
                 rows={5}
-                className="w-full rounded-lg border border-white/10 bg-slate-800/60 px-4 py-2 text-slate-100 placeholder-slate-500 focus:border-orange-500/50 focus:outline-none focus:ring-1 focus:ring-orange-500/20"
+                className="w-full rounded-lg border border-input bg-card px-4 py-2 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/20"
               />
             </div>
 

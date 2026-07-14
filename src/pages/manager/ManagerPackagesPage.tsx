@@ -9,6 +9,8 @@ import { CustomSelect } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { managerApi, type LongTermPackage, type VehicleType } from '@/services/manager/managerApi';
+import { showToast } from '@/components/common/ToastNotification';
+import { ConfirmModal } from '@/components/modals/ConfirmModal';
 
 interface FormState {
   code: string;
@@ -89,7 +91,7 @@ export function ManagerPackagesPage() {
 
   const onSubmit = async () => {
     if (!form.vehicleType) {
-      alert('Select a vehicle type first');
+      showToast('Select a vehicle type first', 'error');
       return;
     }
     const payload = {
@@ -116,17 +118,26 @@ export function ManagerPackagesPage() {
       setModalOpen(false);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Save failed');
+      showToast(err instanceof Error ? err.message : 'Save failed', 'error');
     }
   };
 
-  const onDelete = async (row: LongTermPackage) => {
-    if (!window.confirm(`Delete package "${row.name}"?`)) return;
+  // Xác nhận qua ConfirmModal (bỏ window.confirm native).
+  const [deleteTarget, setDeleteTarget] = useState<LongTermPackage | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const onDelete = (row: LongTermPackage) => setDeleteTarget(row);
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      await managerApi.packages.remove(buildingId, row._id);
+      await managerApi.packages.remove(buildingId, deleteTarget._id);
+      showToast('Package deleted', 'success');
+      setDeleteTarget(null);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Delete failed');
+      showToast(err instanceof Error ? err.message : 'Delete failed', 'error');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -304,6 +315,15 @@ export function ManagerPackagesPage() {
           </label>
         </div>
       </ModalForm>
+    <ConfirmModal
+        open={!!deleteTarget}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+        title="Delete package"
+        description={`Delete package "${deleteTarget?.name}"?`}
+        confirmLabel="Delete"
+        onConfirm={confirmDelete}
+        isConfirming={deleting}
+      />
     </div>
   );
 }

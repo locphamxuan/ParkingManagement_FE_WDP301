@@ -31,27 +31,32 @@
   --radius-xl: 28px;
   --radius-md: 16px;
   --radius-sm: 12px;
+
+  /* Semantic tokens (HSL, dùng qua tailwind: text-success, bg-danger/10…) —
+     một nguồn màu trạng thái cho badge/toast/alert/chart thay vì hardcode
+     emerald/amber/rose/sky rải rác từng trang. */
+  --app-success: 152 69% 36%;
+  --app-success-foreground: 0 0% 100%;
+  --app-warning: 38 92% 44%;
+  --app-warning-foreground: 26 83% 14%;
+  --app-danger: 350 79% 50%;
+  --app-danger-foreground: 0 0% 100%;
+  --app-info: 199 89% 42%;
+  --app-info-foreground: 0 0% 100%;
+  /* Tile tối trong pattern "thẻ sáng + tile tối" (CLAUDE.md) — thay bg-slate-950/40. */
+  --app-tile: 229 47% 8%;
+  --app-tile-foreground: 210 40% 98%;
+  /* Palette chart dùng chung (recharts) — series 1..5. */
+  --chart-1: 199 89% 48%;
+  --chart-2: 152 69% 40%;
+  --chart-3: 38 92% 50%;
+  --chart-4: 259 84% 62%;
+  --chart-5: 350 79% 56%;
 }
 
-/* Admin theme: nền sáng đồng nhất với manager/staff, giữ accent cam làm nhận diện admin. */
-.admin-theme {
-  color-scheme: light;
-  --app-background: 210 40% 98%; /* #f8fafc */
-  --app-foreground: 222 47% 11%; /* #0f172a */
-  --app-primary: 217 91% 60%; /* admin accent: blue */
-  --app-primary-foreground: 210 40% 98%;
-  --app-secondary: 200 30% 96%; /* #f0f4f8 */
-  --app-secondary-foreground: 222 47% 11%;
-  --app-muted: 210 40% 96.1%;
-  --app-muted-foreground: 215.4 16.3% 46.9%;
-  --app-card: 0 0% 100%; /* #ffffff */
-  --app-card-foreground: 222 47% 11%;
-  --app-border: 199 89% 90%; /* sky-100 */
-  --app-input: 199 89% 90%;
-  --app-ring: 217 91% 60%;
-  --text: #0f172a;
-  --shadow: 0 10px 30px rgba(14, 165, 233, 0.04);
-}
+/* Admin theme (accent BLUE): token định nghĩa DUY NHẤT ở section
+   "Admin Theme Overrides (Fluent Light Glassmorphism)" cuối file —
+   trước đây define 2 lần với giá trị lệch nhau gây khó lần theme. */
 
 .manager-theme {
   color-scheme: light;

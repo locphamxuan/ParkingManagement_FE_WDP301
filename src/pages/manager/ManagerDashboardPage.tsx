@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Building2, Car, Crown, Square, TrendingUp, Ticket } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { RevenueChart } from '@/components/charts/RevenueChart';
 import { useAuth } from '@/hooks/useAuth';
 import { useManagerBuildings } from '@/hooks/useManagerBuildings';
 import { managerApi, type DashboardOverview } from '@/services/manager/managerApi';
@@ -236,6 +237,18 @@ export function ManagerDashboardPage() {
               </CardContent>
             </Card>
           </motion.div>
+
+          {/* Xu hướng doanh thu 7 ngày — dùng chung RevenueChart với admin (BE trả revenue.weekly). */}
+          <motion.div variants={itemVariants}>
+            <RevenueChart
+              data={(overview?.revenue?.weekly ?? []).map((w) => ({
+                date: w.date,
+                revenue: w.revenue,
+                sessions: w.sessions,
+              }))}
+            />
+          </motion.div>
+
         </div>
 
         {/* Sidebar */}

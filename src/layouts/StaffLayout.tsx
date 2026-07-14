@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { Button } from '@/components/ui/button';
+import { MobileNavDrawer, MobileNavButton } from '@/components/layout/MobileNavDrawer';
 import { useAuth } from '@/hooks/useAuth';
 import { useAssignedGates } from '@/hooks/staff/useAssignedGates';
 import { staffApi, extractBuildings, type StaffBuilding } from '@/services/staff/staffApi';
@@ -41,6 +42,7 @@ export function StaffLayout() {
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
   const [bootstrapping, setBootstrapping] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   // Entry gate → check-in (only entry-gate staff see this tab). The "Parked vehicles" page is shown to
   // both staff types, but only exit-gate staff can process payments.
@@ -159,6 +161,46 @@ export function StaffLayout() {
             })}
           </nav>
         </aside>
+
+        {/* Điều hướng mobile (<lg): aside desktop bị hidden nên cần drawer + FAB. */}
+        <MobileNavButton onOpen={() => setMobileNavOpen(true)} />
+        <MobileNavDrawer open={mobileNavOpen} onClose={() => setMobileNavOpen(false)}>
+          <div className="p-4">
+            <div className="mb-5 rounded-2xl border border-sky-100 bg-sky-50/50 p-3">
+              <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-sky-600">PBMS Staff</p>
+              <p className="text-xs font-extrabold text-slate-800">Operations staff</p>
+              {selectedBuilding ? (
+                <p className="mt-0.5 truncate text-[10px] text-slate-500">
+                  {selectedBuilding.code} · {selectedBuilding.name}
+                </p>
+              ) : null}
+            </div>
+            <nav className="space-y-1">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.label}
+                    to={item.to}
+                    end={item.end}
+                    onClick={() => setMobileNavOpen(false)}
+                    className={({ isActive }) =>
+                      cn(
+                        'flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition-all duration-200',
+                        isActive
+                          ? 'bg-sky-500 text-white shadow-md shadow-sky-500/10'
+                          : 'text-slate-500 hover:bg-sky-50/50 hover:text-sky-600',
+                      )
+                    }
+                  >
+                    <Icon size={15} className="shrink-0" />
+                    <span className="tracking-wide">{item.label}</span>
+                  </NavLink>
+                );
+              })}
+            </nav>
+          </div>
+        </MobileNavDrawer>
 
         {/* ── Main area ── */}
         <div className="flex min-h-screen flex-1 flex-col">

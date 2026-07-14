@@ -8,6 +8,8 @@ import { ModalForm } from '@/components/modals/ModalForm';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { TimePicker } from '@/components/ui/time-picker';
 import { managerApi, type Shift } from '@/services/manager/managerApi';
+import { showToast } from '@/components/common/ToastNotification';
+import { ConfirmModal } from '@/components/modals/ConfirmModal';
 
 interface FormState {
   code: string;
@@ -82,17 +84,26 @@ export function ManagerShiftsPage() {
       setModalOpen(false);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Save failed');
+      showToast(err instanceof Error ? err.message : 'Save failed', 'error');
     }
   };
 
-  const onDelete = async (row: Shift) => {
-    if (!window.confirm(`Delete shift ${row.code}?`)) return;
+  // Xác nhận qua ConfirmModal (bỏ window.confirm native).
+  const [deleteTarget, setDeleteTarget] = useState<Shift | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const onDelete = (row: Shift) => setDeleteTarget(row);
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      await managerApi.shifts.remove(buildingId, row._id);
+      await managerApi.shifts.remove(buildingId, deleteTarget._id);
+      showToast('Shift deleted', 'success');
+      setDeleteTarget(null);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Delete failed');
+      showToast(err instanceof Error ? err.message : 'Delete failed', 'error');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -182,6 +193,15 @@ export function ManagerShiftsPage() {
           </label>
         </div>
       </ModalForm>
+    <ConfirmModal
+        open={!!deleteTarget}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+        title="Delete shift"
+        description={`Delete shift ${deleteTarget?.code}?`}
+        confirmLabel="Delete"
+        onConfirm={confirmDelete}
+        isConfirming={deleting}
+      />
     </div>
   );
 }

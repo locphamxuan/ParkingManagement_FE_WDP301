@@ -15,6 +15,8 @@ import {
   type VehicleType,
   type Zone,
 } from '@/services/manager/managerApi';
+import { showToast } from '@/components/common/ToastNotification';
+import { ConfirmModal } from '@/components/modals/ConfirmModal';
 
 interface FormState {
   code: string;
@@ -144,11 +146,11 @@ export function ManagerSlotsPage() {
 
   const onSubmit = async () => {
     if (!form.floor) {
-      alert('Select a floor first');
+      showToast('Select a floor first', 'error');
       return;
     }
     if (!form.zone) {
-      alert('Select a zone first');
+      showToast('Select a zone first', 'error');
       return;
     }
     const payload: Record<string, unknown> = {
@@ -169,17 +171,26 @@ export function ManagerSlotsPage() {
       setModalOpen(false);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Save failed');
+      showToast(err instanceof Error ? err.message : 'Save failed', 'error');
     }
   };
 
-  const onDelete = async (row: ParkingSlot) => {
-    if (!window.confirm(`Delete slot ${row.code}?`)) return;
+  // Xác nhận xóa qua ConfirmModal (bỏ window.confirm native).
+  const [deleteTarget, setDeleteTarget] = useState<ParkingSlot | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const onDelete = (row: ParkingSlot) => setDeleteTarget(row);
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      await managerApi.slots.remove(buildingId, row._id);
+      await managerApi.slots.remove(buildingId, deleteTarget._id);
+      showToast('Slot deleted', 'success');
+      setDeleteTarget(null);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Delete failed');
+      showToast(err instanceof Error ? err.message : 'Delete failed', 'error');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -194,7 +205,7 @@ export function ManagerSlotsPage() {
       await managerApi.slots.updateStatus(buildingId, row._id, status);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Update failed');
+      showToast(err instanceof Error ? err.message : 'Update failed', 'error');
     }
   };
 
@@ -245,10 +256,10 @@ export function ManagerSlotsPage() {
       title: '',
       render: (row) => (
         <div className="flex gap-1">
-          <Button size="sm" variant="ghost" onClick={() => openEdit(row)} className="hover:bg-orange-500/10 hover:text-orange-400">
+          <Button size="sm" variant="ghost" onClick={() => openEdit(row)} className="hover:bg-primary/10 hover:text-primary">
             <Pencil size={14} />
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => onDelete(row)} className="hover:bg-rose-500/10 hover:text-rose-400">
+          <Button size="sm" variant="ghost" onClick={() => onDelete(row)} className="hover:bg-danger/10 hover:text-danger">
             <Trash2 size={14} />
           </Button>
         </div>
@@ -260,7 +271,7 @@ export function ManagerSlotsPage() {
     <div className="grid gap-6 animate-fadeIn">
       
       {/* Sci-fi Controller & Toggle Row */}
-      <div className="relative z-30 flex flex-wrap items-center justify-between gap-4 glass-panel-dark p-4 rounded-3xl border border-white/5">
+      <div className="relative z-30 flex flex-wrap items-center justify-between gap-4 glass-premium p-4 rounded-3xl">
         <div className="flex flex-wrap items-center gap-3">
           <CustomSelect
             value={floorFilter}
@@ -290,13 +301,13 @@ export function ManagerSlotsPage() {
         </div>
 
         {/* View Toggle */}
-        <div className="inline-flex rounded-xl bg-slate-950/80 border border-white/5 p-1 backdrop-blur-md">
+        <div className="inline-flex rounded-xl bg-muted border border-border p-1">
           <button
             onClick={() => setViewMode('list')}
             className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
               viewMode === 'list' 
-                ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 shadow-[0_0_10px_rgba(249,115,22,0.25)]' 
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-primary text-primary-foreground shadow-sm' 
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             Table view
@@ -305,8 +316,8 @@ export function ManagerSlotsPage() {
             onClick={() => setViewMode('3d')}
             className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
               viewMode === '3d' 
-                ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 shadow-[0_0_10px_rgba(249,115,22,0.25)]' 
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-primary text-primary-foreground shadow-sm' 
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             3D Hologram map
@@ -321,23 +332,23 @@ export function ManagerSlotsPage() {
           >
             <Plus size={14} className="stroke-[3]" /> Add batch
           </Button>
-          <Button onClick={openCreate} className="rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider hover:shadow-[0_0_15px_rgba(249,115,22,0.3)] gap-2">
+          <Button onClick={openCreate} className="rounded-xl font-black text-xs uppercase tracking-wider gap-2">
             <Plus size={14} className="stroke-[3]" /> Add slot
           </Button>
         </div>
       </div>
 
       {loading ? (
-        <div className="text-sm text-slate-400 flex items-center justify-center p-24 glass-panel-dark rounded-3xl border border-white/5">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-orange-500 border-t-transparent mr-2" />
+        <div className="text-sm text-muted-foreground flex items-center justify-center p-24 glass-premium rounded-3xl">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent mr-2" />
           Loading slots...
         </div>
       ) : error ? (
-        <div className="text-sm text-rose-400 glass-panel-dark p-6 rounded-3xl border border-rose-500/10 bg-rose-950/15">{error}</div>
+        <div className="text-sm text-danger glass-premium p-6 rounded-3xl">{error}</div>
       ) : (
         <div>
           {viewMode === 'list' ? (
-            <div className="glass-panel-dark rounded-3xl border border-white/5 p-6 backdrop-blur-md shadow-2xl">
+            <div className="glass-premium rounded-3xl p-6">
               <DataTable title={`Slots (${items.length})`} rows={items} columns={columns} />
             </div>
           ) : (
@@ -366,22 +377,22 @@ export function ManagerSlotsPage() {
         title={editing ? 'Edit slot' : 'Add slot'}
         onSubmit={onSubmit}
       >
-        <div className="grid gap-4 md:grid-cols-2 text-slate-100">
+        <div className="grid gap-4 md:grid-cols-2">
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Slot code</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground font-mono">Slot code</label>
             <Input
               value={form.code}
               onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
               placeholder={editing ? undefined : 'Leave blank to auto-generate (e.g. A-01)'}
               disabled={!!editing}
-              className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-orange-500/40 disabled:opacity-60"
+              className="rounded-xl disabled:opacity-60"
             />
             {editing && (
-              <p className="text-[10px] text-slate-400 font-medium">The slot code is auto-generated and cannot be changed.</p>
+              <p className="text-[10px] text-muted-foreground font-medium">The slot code is auto-generated and cannot be changed.</p>
             )}
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Floor</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground font-mono">Floor</label>
             <CustomSelect
               value={form.floor}
               onChange={(val) => setForm((f) => ({ ...f, floor: val, zone: '' }))}
@@ -396,7 +407,7 @@ export function ManagerSlotsPage() {
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Zone</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground font-mono">Zone</label>
             <CustomSelect
               value={form.zone}
               onChange={(val) => setForm((f) => ({ ...f, zone: val }))}
@@ -414,12 +425,12 @@ export function ManagerSlotsPage() {
             />
           </div>
           <div className="grid gap-1.5 sm:col-span-2">
-            <p className="rounded-xl border border-sky-500/20 bg-sky-500/5 px-3 py-2 text-[11px] text-sky-300">
+            <p className="rounded-xl border border-info/20 bg-info/5 px-3 py-2 text-[11px] text-info">
               The slot vehicle type is <strong>taken automatically from the floor allowed types</strong> (configured in the Floors tab); no need to set it here.
             </p>
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Status</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground font-mono">Status</label>
             <CustomSelect
               value={form.status}
               onChange={(val) => setForm((f) => ({ ...f, status: val as ParkingSlot['status'] }))}
@@ -429,21 +440,21 @@ export function ManagerSlotsPage() {
               }))}
             />
           </div>
-          <label className="flex items-center gap-3 text-xs font-bold text-slate-300 md:col-span-2 select-none">
+          <label className="flex items-center gap-3 text-xs font-bold text-foreground md:col-span-2 select-none">
             <input
               type="checkbox"
               checked={form.reservable}
               onChange={(e) => setForm((f) => ({ ...f, reservable: e.target.checked }))}
-              className="w-4 h-4 rounded border-white/10 bg-slate-950 text-orange-500 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+              className="w-4 h-4 rounded border-border text-primary focus:ring-0 focus:ring-offset-0 cursor-pointer"
             />
             <span>Allow advance reservation</span>
           </label>
           <div className="grid gap-1.5 md:col-span-2">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Notes</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground font-mono">Notes</label>
             <Input
               value={form.note}
               onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
-              className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-orange-500/40"
+              className="rounded-xl"
             />
           </div>
         </div>
@@ -456,6 +467,14 @@ export function ManagerSlotsPage() {
         onSubmit={onMultiSlotSubmit}
         floors={floors}
         zones={zones}
+      />
+    <ConfirmModal
+        open={!!deleteTarget}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+        title="Delete slot"
+        description={`Delete slot ${deleteTarget?.code}?`}
+        onConfirm={confirmDelete}
+        isConfirming={deleting}
       />
     </div>
   );

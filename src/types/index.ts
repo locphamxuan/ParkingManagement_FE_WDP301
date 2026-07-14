@@ -26,7 +26,8 @@ export interface UserRecord {
 export interface RevenuePoint {
   date: string;
   revenue: number;
-  occupancy: number;
+  /** Không còn vẽ chung trục với revenue (2 thang đo 1 trục là anti-pattern) — chỉ để tham khảo data. */
+  occupancy?: number;
   sessions: number;
 }
 

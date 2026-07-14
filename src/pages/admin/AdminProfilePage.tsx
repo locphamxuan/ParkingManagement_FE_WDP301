@@ -18,6 +18,7 @@ import {
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { adminApi, type AdminUser } from '@/services/admin/adminApi';
+import { DataTable } from '@/components/common/DataTable';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { Button } from '@/components/ui/button';
 
@@ -149,7 +150,7 @@ export function AdminProfilePage() {
           </div>
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-500 font-mono">System administration</p>
-            <h1 className="text-xl font-bold text-white mt-0.5 tracking-tight">My profile</h1>
+            <h1 className="text-xl font-bold text-foreground mt-0.5 tracking-tight">My profile</h1>
           </div>
         </div>
         <div className="flex gap-2.5 relative z-10">
@@ -200,7 +201,7 @@ export function AdminProfilePage() {
                       setNameError(null);
                     }}
                     required
-                    className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-white placeholder:text-slate-600 outline-none focus:border-rose-500/40 focus:ring-1 focus:ring-rose-500/20 transition-all duration-300"
+                    className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-rose-500/40 focus:ring-1 focus:ring-rose-500/20 transition-all duration-300"
                     placeholder="John Doe"
                   />
                 </div>
@@ -243,7 +244,7 @@ export function AdminProfilePage() {
                     }}
                     maxLength={10}
                     required
-                    className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-white placeholder:text-slate-600 outline-none focus:border-rose-500/40 focus:ring-1 focus:ring-rose-500/20 transition-all duration-300"
+                    className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-rose-500/40 focus:ring-1 focus:ring-rose-500/20 transition-all duration-300"
                     placeholder="0901234567"
                   />
                 </div>
@@ -319,7 +320,7 @@ export function AdminProfilePage() {
               <Fingerprint size={10} /> Admin Portal
             </span>
 
-            <h2 className="mt-3 text-base font-extrabold text-white tracking-tight leading-snug truncate max-w-full">
+            <h2 className="mt-3 text-base font-extrabold text-foreground tracking-tight leading-snug truncate max-w-full">
               {displayName || 'Administrator'}
             </h2>
             <p className="text-xs text-slate-400 truncate max-w-full mt-0.5 font-medium">{session.email}</p>
@@ -339,7 +340,7 @@ export function AdminProfilePage() {
             </div>
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-sky-500 font-mono">List management</p>
-              <h2 className="text-lg font-bold text-white mt-0.5 tracking-tight">User list</h2>
+              <h2 className="text-lg font-bold text-foreground mt-0.5 tracking-tight">User list</h2>
             </div>
           </div>
           <Button
@@ -389,7 +390,7 @@ export function AdminProfilePage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={`Search by name, email, phone of ${activeTab.label}...`}
-            className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-white placeholder:text-slate-600 outline-none focus:border-rose-500/40 focus:ring-1 focus:ring-rose-500/20 transition-all duration-300"
+            className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-rose-500/40 focus:ring-1 focus:ring-rose-500/20 transition-all duration-300"
           />
         </div>
 
@@ -414,53 +415,41 @@ export function AdminProfilePage() {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-2xl border border-slate-100 bg-slate-50">
-              <table className="w-full text-sm border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-500 font-mono">
-                    <th className="py-4 px-5 text-left">Full name</th>
-                    <th className="py-4 px-5 text-left">Email</th>
-                    <th className="py-4 px-5 text-left">Phone</th>
-                    <th className="py-4 px-5 text-left">Status</th>
-                    <th className="py-4 px-5 text-left">Created</th>
-                    {activeRole === 'manager' || activeRole === 'staff' ? (
-                      <th className="py-4 px-5 text-left">Building</th>
-                    ) : null}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filteredUsers.map((u) => (
-                    <tr key={u._id} className="group hover:bg-slate-50 transition-colors duration-250">
-                      <td className="py-3.5 px-5">
-                        <div className="flex items-center gap-3">
-                          <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${activeTab.border} ${activeTab.bg}`}>
-                            <span className={`text-xs font-black ${activeTab.color}`}>
-                              {(u.fullName?.[0] ?? u.email[0] ?? '?').toUpperCase()}
-                            </span>
-                          </div>
-                          <span className="font-bold text-slate-700 group-hover:text-slate-900 transition-colors">
-                            {u.fullName || '—'}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="py-3.5 px-5 text-slate-450 font-medium">{u.email}</td>
-                      <td className="py-3.5 px-5 text-slate-450 font-mono text-xs">{u.phone || '—'}</td>
-                      <td className="py-3.5 px-5">
-                        <StatusBadge status={u.isActive ? 'active' : 'inactive'} />
-                      </td>
-                      <td className="py-3.5 px-5 text-slate-500 font-mono text-xs">{fmtDate(u.createdAt)}</td>
-                      {activeRole === 'manager' || activeRole === 'staff' ? (
-                        <td className="py-3.5 px-5 text-xs text-slate-400 font-semibold">
-                          {u.assignedBuildings?.length
-                            ? `${u.assignedBuildings.length} building(s)`
-                            : 'Not assigned'}
-                        </td>
-                      ) : null}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <DataTable
+              title={`${activeTab.label} (${filteredUsers.length})`}
+              rows={filteredUsers}
+              columns={[
+                {
+                  key: 'fullName',
+                  title: 'Full name',
+                  render: (u) => (
+                    <div className="flex items-center gap-3">
+                      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${activeTab.border} ${activeTab.bg}`}>
+                        <span className={`text-xs font-black ${activeTab.color}`}>
+                          {(u.fullName?.[0] ?? u.email[0] ?? '?').toUpperCase()}
+                        </span>
+                      </div>
+                      <span className="font-bold text-foreground">{u.fullName || '—'}</span>
+                    </div>
+                  ),
+                },
+                { key: 'email', title: 'Email' },
+                { key: 'phone', title: 'Phone', render: (u) => <span className="font-mono text-xs">{u.phone || '—'}</span> },
+                { key: 'isActive', title: 'Status', render: (u) => <StatusBadge status={u.isActive ? 'active' : 'inactive'} /> },
+                { key: 'createdAt', title: 'Created', render: (u) => <span className="font-mono text-xs">{fmtDate(u.createdAt)}</span> },
+                ...(activeRole === 'manager' || activeRole === 'staff'
+                  ? [{
+                      key: 'assignedBuildings',
+                      title: 'Building',
+                      render: (u: AdminUser) => (
+                        <span className="text-xs text-muted-foreground font-semibold">
+                          {u.assignedBuildings?.length ? `${u.assignedBuildings.length} building(s)` : 'Not assigned'}
+                        </span>
+                      ),
+                    }]
+                  : []),
+              ]}
+            />
           )}
         </div>
       </div>

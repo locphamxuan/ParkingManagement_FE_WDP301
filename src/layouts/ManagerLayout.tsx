@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate, useMatch } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
 import { ManagerSidebar } from '@/components/layout/ManagerSidebar';
+import { MobileNavDrawer, MobileNavButton } from '@/components/layout/MobileNavDrawer';
 import { useAuth } from '@/hooks/useAuth';
 import { ADMIN_EMAIL_FALLBACK } from '@/utils/constants';
 import { useManagerBuildings } from '@/hooks/useManagerBuildings';
@@ -29,6 +30,7 @@ const titles: Record<string, string> = {
 
 export function ManagerLayout() {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { session, logout } = useAuth();
   const { buildings, selectedBuildingId, setSelectedBuildingId, isLoading } = useManagerBuildings();
   const navigate = useNavigate();
@@ -54,6 +56,16 @@ export function ManagerLayout() {
       </div>
       <div className="relative z-10 flex min-h-screen">
         <ManagerSidebar collapsed={collapsed} onToggle={() => setCollapsed((prev) => !prev)} />
+        {/* Điều hướng mobile (<lg): sidebar desktop bị hidden nên cần drawer + FAB. */}
+        <MobileNavButton onOpen={() => setMobileNavOpen(true)} />
+        <MobileNavDrawer open={mobileNavOpen} onClose={() => setMobileNavOpen(false)}>
+          <ManagerSidebar
+            collapsed={false}
+            onToggle={() => {}}
+            variant="drawer"
+            onNavigate={() => setMobileNavOpen(false)}
+          />
+        </MobileNavDrawer>
         <div className="flex min-h-screen flex-1 flex-col">
           <Navbar
             title={title}

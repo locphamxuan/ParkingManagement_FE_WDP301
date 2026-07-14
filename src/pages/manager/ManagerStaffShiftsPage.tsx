@@ -6,6 +6,8 @@ import { StatusBadge } from '@/components/common/StatusBadge';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { managerApi, type StaffShift } from '@/services/manager/managerApi';
 import { AssignStaffModal } from '@/components/manager/AssignStaffModal';
+import { showToast } from '@/components/common/ToastNotification';
+import { ConfirmModal } from '@/components/modals/ConfirmModal';
 
 export function ManagerStaffShiftsPage() {
   const { buildingId } = useBuildingContext();
@@ -66,19 +68,28 @@ export function ManagerStaffShiftsPage() {
       setEditing(null);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Save failed');
+      showToast(err instanceof Error ? err.message : 'Save failed', 'error');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const onDelete = async (row: StaffShift) => {
-    if (!window.confirm(`Delete assignment for ${row.staff?.fullName ?? 'this staff'}?`)) return;
+  // Xác nhận qua ConfirmModal (bỏ window.confirm native).
+  const [deleteTarget, setDeleteTarget] = useState<StaffShift | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const onDelete = (row: StaffShift) => setDeleteTarget(row);
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      await managerApi.shifts.removeStaffShift(buildingId, row._id);
+      await managerApi.shifts.removeStaffShift(buildingId, deleteTarget._id);
+      showToast('Assignment deleted', 'success');
+      setDeleteTarget(null);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Delete failed');
+      showToast(err instanceof Error ? err.message : 'Delete failed', 'error');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -203,6 +214,15 @@ export function ManagerStaffShiftsPage() {
         buildingId={buildingId}
         editingData={editing}
         isSubmitting={isSubmitting}
+      />
+    <ConfirmModal
+        open={!!deleteTarget}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+        title="Delete shift assignment"
+        description={`Delete assignment for ${deleteTarget?.staff?.fullName ?? 'this staff'}?`}
+        confirmLabel="Delete"
+        onConfirm={confirmDelete}
+        isConfirming={deleting}
       />
     </div>
   );

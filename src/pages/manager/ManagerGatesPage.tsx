@@ -7,6 +7,8 @@ import { Modal } from '@/components/ui/modal';
 import { CustomSelect } from '@/components/ui/select';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { managerApi, type Gate } from '@/services/manager/managerApi';
+import { showToast } from '@/components/common/ToastNotification';
+import { ConfirmModal } from '@/components/modals/ConfirmModal';
 
 const directionLabel: Record<Gate['direction'], string> = {
   in: 'Entry gate',
@@ -86,7 +88,7 @@ export function ManagerGatesPage() {
     try {
       await managerApi.gates.updateStatus(buildingId, row._id, status);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to update status');
+      showToast(err instanceof Error ? err.message : 'Failed to update status', 'error');
       refresh();
     } finally {
       setSavingId(null);
@@ -123,13 +125,22 @@ export function ManagerGatesPage() {
     }
   };
 
-  const onDelete = async (row: Gate) => {
-    if (!window.confirm(`Delete gate ${row.code}?`)) return;
+  // Xác nhận qua ConfirmModal (bỏ window.confirm native).
+  const [deleteTarget, setDeleteTarget] = useState<Gate | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const onDelete = (row: Gate) => setDeleteTarget(row);
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      await managerApi.gates.remove(buildingId, row._id);
+      await managerApi.gates.remove(buildingId, deleteTarget._id);
+      showToast('Gate deleted', 'success');
+      setDeleteTarget(null);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Delete failed');
+      showToast(err instanceof Error ? err.message : 'Delete failed', 'error');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -274,6 +285,15 @@ export function ManagerGatesPage() {
           </form>
         </div>
       </Modal>
+    <ConfirmModal
+        open={!!deleteTarget}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+        title="Delete gate"
+        description={`Delete gate ${deleteTarget?.code}?`}
+        confirmLabel="Delete"
+        onConfirm={confirmDelete}
+        isConfirming={deleting}
+      />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar } from '@/components/layout/Sidebar';
+import { MobileNavDrawer, MobileNavButton } from '@/components/layout/MobileNavDrawer';
 import { Navbar } from '@/components/layout/Navbar';
 import { useAuth } from '@/hooks/useAuth';
 import { ADMIN_EMAIL_FALLBACK } from '@/utils/constants';
@@ -18,6 +19,7 @@ const titles: Record<string, string> = {
 
 export function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { session, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -42,6 +44,16 @@ export function AdminLayout() {
       </div>
       <div className="relative z-10 flex min-h-screen">
         <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((prev) => !prev)} />
+        {/* Điều hướng mobile (<lg): sidebar desktop bị hidden nên cần drawer + FAB. */}
+        <MobileNavButton onOpen={() => setMobileNavOpen(true)} />
+        <MobileNavDrawer open={mobileNavOpen} onClose={() => setMobileNavOpen(false)}>
+          <Sidebar
+            collapsed={false}
+            onToggle={() => {}}
+            variant="drawer"
+            onNavigate={() => setMobileNavOpen(false)}
+          />
+        </MobileNavDrawer>
         <div className="flex min-h-screen flex-1 flex-col">
           <Navbar
             title={title}

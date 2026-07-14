@@ -15,6 +15,8 @@ import {
   type Zone,
   type ZoneUsageType,
 } from '@/services/manager/managerApi';
+import { showToast } from '@/components/common/ToastNotification';
+import { ConfirmModal } from '@/components/modals/ConfirmModal';
 
 interface FormState {
   floor: string;
@@ -132,9 +134,9 @@ export function ManagerZonesPage() {
   };
 
   const onSubmit = async () => {
-    if (!form.floor) return alert('Please select a floor');
-    if (!form.name.trim()) return alert('Please enter a zone name');
-    if (!form.vehicleType) return alert('Please select a vehicle type');
+    if (!form.floor) return showToast('Please select a floor', 'error');
+    if (!form.name.trim()) return showToast('Please enter a zone name', 'error');
+    if (!form.vehicleType) return showToast('Please select a vehicle type', 'error');
     // Mã zone do BE tự sinh từ name — chỉ gửi name.
     const body = {
       floor: form.floor,
@@ -153,27 +155,37 @@ export function ManagerZonesPage() {
       setModalOpen(false);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Save failed');
+      showToast(err instanceof Error ? err.message : 'Save failed', 'error');
     }
   };
 
-  const onDelete = async (row: Zone) => {
-    if (!window.confirm(`Delete zone ${row.code}? The zone must not contain any slots.`)) return;
+  // Xác nhận xóa qua ConfirmModal (bỏ window.confirm native).
+  const [deleteTarget, setDeleteTarget] = useState<Zone | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const onDelete = (row: Zone) => setDeleteTarget(row);
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      await managerApi.zones.remove(buildingId, row._id);
+      await managerApi.zones.remove(buildingId, deleteTarget._id);
+      showToast('Zone deleted', 'success');
+      setDeleteTarget(null);
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Delete failed');
+      showToast(err instanceof Error ? err.message : 'Delete failed', 'error');
+    } finally {
+      setDeleting(false);
     }
   };
 
   // Status Badge Component
   const ZoneStatusBadge = ({ status }: { status: Zone['status'] }) => {
+    // Màu trạng thái theo semantic token (globals.css) — đọc được trên nền sáng.
     const config = {
-      active: { bg: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400', label: 'Active', dot: 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]' },
-      inactive: { bg: 'bg-rose-500/10 border-rose-500/30 text-rose-400', label: 'Locked', dot: 'bg-rose-400 shadow-[0_0_8px_rgba(248,113,113,0.5)]' },
-      maintenance: { bg: 'bg-amber-500/10 border-amber-500/30 text-amber-400', label: 'Maintenance', dot: 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]' },
-    }[status] || { bg: 'bg-slate-500/10 border-slate-500/30 text-slate-400', label: 'Unknown', dot: 'bg-slate-400' };
+      active: { bg: 'bg-success/10 border-success/30 text-success', label: 'Active', dot: 'bg-success' },
+      inactive: { bg: 'bg-danger/10 border-danger/30 text-danger', label: 'Locked', dot: 'bg-danger' },
+      maintenance: { bg: 'bg-warning/10 border-warning/30 text-warning', label: 'Maintenance', dot: 'bg-warning' },
+    }[status] || { bg: 'bg-muted border-border text-muted-foreground', label: 'Unknown', dot: 'bg-muted-foreground' };
 
     return (
       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-black uppercase tracking-wider font-mono ${config.bg}`}>
@@ -188,17 +200,17 @@ export function ManagerZonesPage() {
       key: 'code',
       title: 'Zone code',
       render: (r) => (
-        <span className="font-mono text-sm font-black tracking-wider text-slate-100">{r.code}</span>
+        <span className="font-mono text-sm font-black tracking-wider text-foreground">{r.code}</span>
       ),
     },
-    { key: 'name', title: 'Zone name', render: (r) => <span className="font-semibold text-slate-200">{r.name || '—'}</span> },
+    { key: 'name', title: 'Zone name', render: (r) => <span className="font-semibold text-foreground">{r.name || '—'}</span> },
     {
       key: 'floor',
       title: 'Floor',
       render: (r) => {
         const id = typeof r.floor === 'string' ? r.floor : r.floor._id;
         return (
-          <span className="inline-flex items-center gap-1.5 font-mono text-xs font-bold text-sky-400">
+          <span className="inline-flex items-center gap-1.5 font-mono text-xs font-bold text-info">
             <Layers size={12} />
             {floorMap.get(id)?.code ?? '?'}
           </span>
@@ -212,7 +224,7 @@ export function ManagerZonesPage() {
         const id = typeof r.vehicleType === 'string' ? r.vehicleType : r.vehicleType._id;
         const vt = vtMap.get(id);
         return vt ? (
-          <span className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 border border-white/5 px-2.5 py-1 text-xs font-bold text-slate-300">
+          <span className="inline-flex items-center gap-1.5 rounded-xl bg-muted border border-border px-2.5 py-1 text-xs font-bold text-foreground">
             {vt.name}
           </span>
         ) : '?';
@@ -222,7 +234,7 @@ export function ManagerZonesPage() {
       key: 'usageType',
       title: 'Usage type',
       render: (r) => (
-        <span className="inline-flex items-center gap-1 bg-sky-500/10 border border-sky-500/20 text-sky-400 px-2.5 py-1 rounded-xl text-xs font-bold">
+        <span className="inline-flex items-center gap-1 bg-info/10 border border-info/20 text-info px-2.5 py-1 rounded-xl text-xs font-bold">
           {ZONE_USAGE_LABELS[r.usageType]}
         </span>
       ),
@@ -237,15 +249,15 @@ export function ManagerZonesPage() {
         return (
           <div className="flex flex-col gap-1.5 min-w-[120px]">
             <div className="flex justify-between text-xs font-bold font-mono">
-              <span className={percent >= 100 ? 'text-amber-400' : 'text-slate-300'}>
+              <span className={percent >= 100 ? 'text-warning' : 'text-foreground'}>
                 {used} / {cap} slots
               </span>
-              <span className="text-slate-400 text-[10px]">{Math.round(percent)}%</span>
+              <span className="text-muted-foreground text-[10px]">{Math.round(percent)}%</span>
             </div>
-            <div className="w-full h-1.5 rounded-full bg-slate-900 border border-white/5 overflow-hidden">
+            <div className="w-full h-1.5 rounded-full bg-muted border border-border overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-500 ${
-                  percent >= 100 ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.5)]'
+                  percent >= 100 ? 'bg-warning' : 'bg-primary'
                 }`}
                 style={{ width: `${percent}%` }}
               />
@@ -268,7 +280,7 @@ export function ManagerZonesPage() {
             size="sm"
             variant="ghost"
             onClick={() => openEdit(row)}
-            className="h-8 w-8 rounded-lg p-0 text-slate-400 hover:bg-white/5 hover:text-white"
+            className="h-8 w-8 rounded-lg p-0 text-muted-foreground hover:bg-muted hover:text-foreground"
           >
             <Pencil size={14} />
           </Button>
@@ -276,7 +288,7 @@ export function ManagerZonesPage() {
             size="sm"
             variant="ghost"
             onClick={() => onDelete(row)}
-            className="h-8 w-8 rounded-lg p-0 text-slate-400 hover:bg-rose-500/10 hover:text-rose-400"
+            className="h-8 w-8 rounded-lg p-0 text-muted-foreground hover:bg-danger/10 hover:text-danger"
           >
             <Trash2 size={14} />
           </Button>
@@ -298,65 +310,65 @@ export function ManagerZonesPage() {
     <div className="space-y-6">
       {/* Overview Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="glass-panel-dark border border-white/10 rounded-2xl p-4 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 shadow-inner">
+        <div className="glass-premium rounded-2xl p-4 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-info/10 border border-info/20 flex items-center justify-center text-info shadow-inner">
             <LayoutGrid size={22} />
           </div>
           <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 font-mono">Total zones</p>
-            <p className="text-2xl font-black text-slate-100 mt-0.5 font-mono">{stats.total}</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground font-mono">Total zones</p>
+            <p className="text-2xl font-black text-foreground mt-0.5 font-mono">{stats.total}</p>
           </div>
         </div>
 
-        <div className="glass-panel-dark border border-white/10 rounded-2xl p-4 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shadow-inner">
+        <div className="glass-premium rounded-2xl p-4 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-success/10 border border-success/20 flex items-center justify-center text-success shadow-inner">
             <CheckCircle2 size={22} />
           </div>
           <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 font-mono">Active zones</p>
-            <p className="text-2xl font-black text-slate-100 mt-0.5 font-mono">{stats.active}</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground font-mono">Active zones</p>
+            <p className="text-2xl font-black text-foreground mt-0.5 font-mono">{stats.active}</p>
           </div>
         </div>
 
-        <div className="glass-panel-dark border border-white/10 rounded-2xl p-4 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shadow-inner">
+        <div className="glass-premium rounded-2xl p-4 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-inner">
             <ShieldCheck size={22} />
           </div>
           <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 font-mono">Max total slots</p>
-            <p className="text-2xl font-black text-slate-100 mt-0.5 font-mono">{stats.totalCapacity}</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground font-mono">Max total slots</p>
+            <p className="text-2xl font-black text-foreground mt-0.5 font-mono">{stats.totalCapacity}</p>
           </div>
         </div>
 
-        <div className="glass-panel-dark border border-white/10 rounded-2xl p-4 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shadow-inner">
+        <div className="glass-premium rounded-2xl p-4 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-warning/10 border border-warning/20 flex items-center justify-center text-warning shadow-inner">
             <Layers size={22} />
           </div>
           <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 font-mono">Configured slots</p>
-            <p className="text-2xl font-black text-slate-100 mt-0.5 font-mono">
-              {stats.totalUsed} <span className="text-xs font-bold text-slate-400">/ {stats.totalCapacity}</span>
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground font-mono">Configured slots</p>
+            <p className="text-2xl font-black text-foreground mt-0.5 font-mono">
+              {stats.totalUsed} <span className="text-xs font-bold text-muted-foreground">/ {stats.totalCapacity}</span>
             </p>
           </div>
         </div>
       </div>
 
       {/* Filter and Action Bar */}
-      <div className="glass-panel-dark border border-white/10 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg backdrop-blur-md">
+      <div className="glass-premium rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg backdrop-blur-md">
         <div className="flex items-center gap-3">
-          <span className="text-xs font-black uppercase tracking-wider text-slate-400 font-mono hidden sm:inline">Filter:</span>
+          <span className="text-xs font-black uppercase tracking-wider text-muted-foreground font-mono hidden sm:inline">Filter:</span>
           <CustomSelect
             value={floorFilter}
             onChange={setFloorFilter}
             options={[{ value: '', label: 'All floors' }, ...floors.map((f) => ({ value: f._id, label: f.name ? `${f.code} — ${f.name}` : `Floor ${f.code}` }))]}
-            className="w-48 bg-slate-950/40 border-white/10 text-white rounded-xl"
+            className="w-48 rounded-xl"
             placeholder="Filter by floor..."
           />
         </div>
 
         <Button
           onClick={openCreate}
-          className="bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl px-4 py-2.5 flex items-center gap-2 shadow-lg shadow-sky-500/20 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+          className="bg-primary hover:brightness-110 text-primary-foreground font-bold rounded-xl px-4 py-2.5 flex items-center gap-2 shadow-lg shadow-primary/20 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
         >
           <Plus size={16} />
           Add new zone
@@ -364,14 +376,14 @@ export function ManagerZonesPage() {
       </div>
 
       {/* Main Table */}
-      <div className="glass-panel-dark border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+      <div className="glass-premium rounded-2xl overflow-hidden shadow-2xl">
         {loading ? (
-          <div className="p-8 text-center text-sm text-slate-400 font-medium flex flex-col items-center justify-center gap-3">
+          <div className="p-8 text-center text-sm text-muted-foreground font-medium flex flex-col items-center justify-center gap-3">
             <div className="w-6 h-6 rounded-full border-2 border-sky-500/20 border-t-sky-500 animate-spin" />
             Loading zones...
           </div>
         ) : error ? (
-          <div className="p-8 text-center text-sm text-rose-400 font-medium flex items-center justify-center gap-2">
+          <div className="p-8 text-center text-sm text-danger font-medium flex items-center justify-center gap-2">
             <XCircle size={16} />
             {error}
           </div>
@@ -387,9 +399,9 @@ export function ManagerZonesPage() {
         title={editing ? 'Configure zone' : 'Create new zone'}
         onSubmit={onSubmit}
       >
-        <div className="grid gap-4 md:grid-cols-2 text-slate-100">
+        <div className="grid gap-4 md:grid-cols-2">
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Floor *</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground font-mono">Floor *</label>
             <CustomSelect
               value={form.floor}
               onChange={(val) => setForm((f) => ({ ...f, floor: val, vehicleType: '' }))}
@@ -398,21 +410,21 @@ export function ManagerZonesPage() {
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Zone name *</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground font-mono">Zone name *</label>
             <Input
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
               placeholder="e.g. Walk-in zone, VIP zone A"
-              className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-sky-500/40"
+              className="rounded-xl"
             />
-            <p className="text-[10px] text-slate-400 font-medium">
+            <p className="text-[10px] text-muted-foreground font-medium">
               {editing
                 ? `Zone code: ${editing.code} (auto-generated, cannot be changed)`
                 : 'The zone code is auto-generated from the name.'}
             </p>
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Vehicle type *</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground font-mono">Vehicle type *</label>
             <CustomSelect
               value={form.vehicleType}
               onChange={(val) => setForm((f) => ({ ...f, vehicleType: val }))}
@@ -420,12 +432,12 @@ export function ManagerZonesPage() {
               placeholder="Select vehicle type..."
               disabled={!form.floor}
             />
-            <p className="text-[10px] text-slate-400 font-medium">
+            <p className="text-[10px] text-muted-foreground font-medium">
               {form.floor ? 'Only vehicle types declared for the selected floor.' : 'Please select a floor first.'}
             </p>
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Usage type *</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground font-mono">Usage type *</label>
             <CustomSelect
               value={form.usageType}
               onChange={(val) => setForm((f) => ({ ...f, usageType: val as ZoneUsageType }))}
@@ -433,23 +445,23 @@ export function ManagerZonesPage() {
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Zone capacity (slots) *</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground font-mono">Zone capacity (slots) *</label>
             <Input
               type="number"
               min={1}
               value={form.capacity}
               onChange={(e) => setForm((f) => ({ ...f, capacity: e.target.value }))}
-              className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-sky-500/40"
+              className="rounded-xl"
             />
             {floorBudget && (
-              <p className="text-[10px] text-slate-400 font-medium flex items-center gap-1">
-                <AlertTriangle size={12} className="text-amber-400" />
+              <p className="text-[10px] text-muted-foreground font-medium flex items-center gap-1">
+                <AlertTriangle size={12} className="text-warning" />
                 Floor budget: {floorBudget.used}/{floorBudget.floorCap} slots allocated. Remaining: <strong>{floorBudget.remaining} slots</strong>.
               </p>
             )}
           </div>
           <div className="grid gap-1.5 md:col-span-2">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Zone status</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground font-mono">Zone status</label>
             <CustomSelect
               value={form.status}
               onChange={(val) => setForm((f) => ({ ...f, status: val as Zone['status'] }))}
@@ -461,6 +473,14 @@ export function ManagerZonesPage() {
           </div>
         </div>
       </ModalForm>
+    <ConfirmModal
+        open={!!deleteTarget}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+        title="Delete zone"
+        description={`Delete zone ${deleteTarget?.name || deleteTarget?.code}? The zone must not contain any slots.`}
+        onConfirm={confirmDelete}
+        isConfirming={deleting}
+      />
     </div>
   );
 }

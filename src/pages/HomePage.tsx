@@ -29,7 +29,6 @@ import { ModuleCard, moduleIcons } from '@/components/home/ModuleCard';
 import { PremiumCTABanner, PremiumFooter } from '@/components/home/HomeFooterSections';
 import { HomeHero } from '@/components/home/HomeHero';
 import back1 from '@/assets/back1.webp';
-import homeBg from '@/assets/back3.png';
 
 interface HomePageProps {
   modules: LegacyModule[];
@@ -133,12 +132,12 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
   return (
     <main id="top" className="min-h-screen text-slate-100 font-sans selection:bg-cyan-500 selection:text-white relative isolate">
 
-      {/* Background — fixed so they never cause scroll issues */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10 bg-[#0d1a1a]" aria-hidden="true">
-        {/* Dark teal abstract background */}
-        <div
-          className="absolute inset-0 opacity-[0.70] bg-cover bg-center pointer-events-none"
-          style={{ backgroundImage: `url(${homeBg})` }}
+      {/* Background Neon Glow Spheres — absolute so it scrolls naturally and doesn't overlap the header */}
+      <div className="absolute inset-x-0 top-0 h-[100vh] pointer-events-none overflow-hidden -z-10 bg-slate-950" aria-hidden="true">
+        {/* Subtle Blurred Background Image */}
+        <div 
+          className="absolute inset-0 opacity-[0.38] filter blur-[4px] bg-cover pointer-events-none"
+          style={{ backgroundImage: `url(${back1})`, backgroundPosition: 'center 80px' }}
         />
         {/* Radial dark gradient overlay */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(13,26,26,0.1)_0%,rgba(13,26,26,0.60)_100%)] pointer-events-none" />

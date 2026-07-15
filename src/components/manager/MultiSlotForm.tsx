@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Plus, X } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
@@ -84,40 +84,27 @@ export function MultiSlotForm({ isOpen, onClose, onSubmit, floors, zones }: Mult
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose}>
-      <div className="w-full max-w-lg">
-        {/* Header */}
-        <div className="border-b border-border bg-card px-6 py-4 flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-bold text-foreground">Add slots in batch</h2>
-            <p className="text-xs text-muted-foreground mt-1">
-              Slot codes are auto-generated from the zone code (e.g. A-01, A-02…)
-            </p>
-          </div>
-          <button
-            onClick={handleClose}
-            disabled={submitting}
-            className="text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
-          >
-            <X size={24} />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="p-6 space-y-4 text-foreground">
+    <Modal
+      title="Add slots in batch"
+      open={isOpen}
+      onOpenChange={handleClose}
+    >
+      <div className="flex flex-col gap-4 max-h-[75vh] text-slate-800">
+        
+        {/* Content Area */}
+        <div className="flex-1 overflow-y-auto pr-1.5 custom-scrollbar space-y-4">
           {error && (
-            <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+            <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-2.5 text-xs font-bold text-red-700">
               {error}
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide">Floor *</label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 items-start">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-slate-655 uppercase tracking-wide">Floor *</label>
               <CustomSelect
                 value={floor}
                 onChange={(val) => {
-                  // Đổi tầng thì reset zone (zone thuộc tầng).
                   setFloor(val);
                   setZone('');
                 }}
@@ -130,8 +117,8 @@ export function MultiSlotForm({ isOpen, onClose, onSubmit, floors, zones }: Mult
               />
             </div>
 
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide">Zone *</label>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-slate-655 uppercase tracking-wide">Zone *</label>
               <CustomSelect
                 value={zone}
                 onChange={setZone}
@@ -152,8 +139,8 @@ export function MultiSlotForm({ isOpen, onClose, onSubmit, floors, zones }: Mult
               />
             </div>
 
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide">Quantity *</label>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-slate-655 uppercase tracking-wide">Quantity *</label>
               <Input
                 type="number"
                 min={1}
@@ -161,17 +148,17 @@ export function MultiSlotForm({ isOpen, onClose, onSubmit, floors, zones }: Mult
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
                 disabled={submitting}
-                className="text-sm"
+                className="h-10 rounded-xl"
               />
               {zoneRemaining != null && (
-                <p className="text-[10px] text-muted-foreground">
+                <p className="text-[10px] font-bold text-slate-500 mt-0.5 leading-normal">
                   Zone {selectedZone?.code}: {zoneRemaining} slot(s) remaining in capacity.
                 </p>
               )}
             </div>
 
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide">Status</label>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-slate-655 uppercase tracking-wide">Status</label>
               <CustomSelect
                 value={status ?? 'available'}
                 onChange={(val) => setStatus(val as SlotBatchInput['status'])}
@@ -184,47 +171,52 @@ export function MultiSlotForm({ isOpen, onClose, onSubmit, floors, zones }: Mult
             </div>
           </div>
 
-          <label className="flex items-center gap-3 text-xs font-bold text-foreground select-none">
+          <label className="flex items-center gap-2.5 text-xs font-bold text-slate-700 select-none cursor-pointer">
             <input
               type="checkbox"
               checked={reservable}
               onChange={(e) => setReservable(e.target.checked)}
               disabled={submitting}
-              className="w-4 h-4 rounded border-border cursor-pointer"
+              className="w-4 h-4 rounded border-slate-200 text-blue-600 focus:ring-blue-500/20 cursor-pointer"
             />
             <span>Allow advance reservation</span>
           </label>
 
-          <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide">Note</label>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-bold text-slate-655 uppercase tracking-wide">Note</label>
             <Input
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="e.g. Near stairs, special location"
               disabled={submitting}
-              className="text-sm"
+              className="h-10 rounded-xl"
             />
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="border-t border-border bg-card px-6 py-4 flex gap-3 justify-end">
-          <Button variant="outline" onClick={handleClose} disabled={submitting} className="text-sm">
+        {/* Footer Area */}
+        <div className="flex justify-end gap-2.5 border-t border-border pt-4 mt-1 shrink-0">
+          <Button
+            variant="secondary"
+            onClick={handleClose}
+            disabled={submitting}
+            className="rounded-xl px-5 py-2 font-bold text-xs transition-all duration-200"
+          >
             Cancel
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={submitting}
-            className="bg-primary hover:brightness-110 text-primary-foreground font-semibold text-sm gap-2"
+            className="rounded-xl px-5 py-2 font-bold text-xs bg-primary text-primary-foreground hover:brightness-110 shadow-md shadow-primary/10 transition-all duration-200 hover:scale-[1.01]"
           >
             {submitting ? (
               <>
-                <div className="w-4 h-4 rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground animate-spin" />
+                <div className="w-3.5 h-3.5 rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground animate-spin mr-1.5" />
                 Creating...
               </>
             ) : (
               <>
-                <Plus size={16} />
+                <Plus size={13} className="mr-1" />
                 Create {Number(quantity) || 0} slot(s)
               </>
             )}

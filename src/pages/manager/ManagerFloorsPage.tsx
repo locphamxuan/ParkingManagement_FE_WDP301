@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pencil, Plus, Trash2, Layers, Car, CheckCircle2, Settings, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -247,32 +247,32 @@ export function ManagerFloorsPage() {
         title={editing ? 'Edit floor' : 'Add floor'}
         onSubmit={onSubmit}
       >
-        <div className="grid gap-3 md:grid-cols-2">
-          <div className="grid gap-1.5">
+        <div className="grid gap-3.5 md:grid-cols-2">
+          <div className="flex flex-col gap-1.5">
             <label className="text-xs font-bold text-slate-600 uppercase tracking-wide">Floor name</label>
             <Input
               value={form.name}
               placeholder="e.g. Floor 1, Basement B1"
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              className="h-11 rounded-xl"
+              className="h-10 rounded-xl"
             />
-            <p className="text-[10px] font-bold text-slate-500 mt-1">
+            <p className="text-[10px] font-bold text-slate-500 mt-0.5 leading-normal">
               {editing
                 ? `Floor code: ${editing.code} (auto-generated, cannot be changed)`
                 : 'The floor code is auto-generated from the name (e.g. "Floor 1" → F1).'}
             </p>
           </div>
-          <div className="grid gap-1.5">
+          <div className="flex flex-col gap-1.5">
             <label className="text-xs font-bold text-slate-600 uppercase tracking-wide">Capacity</label>
             <Input
               type="number"
               min={0}
               value={form.capacity}
               onChange={(e) => setForm((f) => ({ ...f, capacity: e.target.value }))}
-              className="h-11 rounded-xl"
+              className="h-10 rounded-xl"
             />
           </div>
-          <div className="grid gap-1.5 md:col-span-2">
+          <div className="flex flex-col gap-1.5 md:col-span-2">
             <label className="text-xs font-bold text-slate-600 uppercase tracking-wide">Status</label>
             <CustomSelect
               value={form.status}
@@ -284,7 +284,7 @@ export function ManagerFloorsPage() {
               ]}
             />
           </div>
-          <div className="grid gap-1.5 md:col-span-2">
+          <div className="flex flex-col gap-1.5 md:col-span-2">
             <label className="text-xs font-bold text-slate-600 uppercase tracking-wide">Allowed vehicle types</label>
             <div className="flex flex-wrap gap-2">
               {vehicleTypes.length === 0 ? (

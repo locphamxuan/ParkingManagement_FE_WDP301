@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { MessageSquare, Star, AlertCircle, CheckCircle, Clock, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -270,43 +270,37 @@ export function ManagerReviewsPage() {
       </div>
 
       {/* Reply Modal */}
-      <Modal isOpen={replyModalOpen} onClose={() => !replying && setReplyModalOpen(false)}>
-        <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto bg-white rounded-2xl p-6 text-slate-800">
-          <div className="border-b border-slate-100 pb-4">
-            <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
-              <MessageSquare size={16} className="text-blue-650" />
-              Reply to Review
-            </h2>
-            {selectedReview && (
-              <div className="mt-4 space-y-3 rounded-2xl bg-slate-50/50 border border-slate-100 p-4">
-                <div>
-                  <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">User</p>
-                  <p className="mt-1 text-sm font-semibold text-slate-800">{selectedReview.user?.fullName || 'Anonymous User'}</p>
-                </div>
-                <div>
-                  <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">Rating</p>
-                  <div className="mt-1 flex items-center gap-1.5">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star
-                        key={i}
-                        size={14}
-                        className={i < selectedReview.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}
-                      />
-                    ))}
-                    <span className="ml-2 text-xs font-bold text-slate-500 font-mono">
-                      {selectedReview.rating}/5
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">Comment</p>
-                  <p className="mt-1 text-xs font-medium text-slate-600 leading-relaxed italic">"{selectedReview.comment}"</p>
+      <Modal title="Reply to Review" open={replyModalOpen} onOpenChange={setReplyModalOpen}>
+        <div className="max-h-[75vh] overflow-y-auto pr-1.5 custom-scrollbar text-slate-800">
+          {selectedReview && (
+            <div className="mb-4 space-y-3 rounded-2xl bg-slate-50/50 border border-slate-100 p-4">
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">User</p>
+                <p className="mt-1 text-sm font-semibold text-slate-800">{selectedReview.user?.fullName || 'Anonymous User'}</p>
+              </div>
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">Rating</p>
+                <div className="mt-1 flex items-center gap-1.5">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      size={14}
+                      className={i < selectedReview.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}
+                    />
+                  ))}
+                  <span className="ml-2 text-xs font-bold text-slate-500 font-mono">
+                    {selectedReview.rating}/5
+                  </span>
                 </div>
               </div>
-            )}
-          </div>
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">Comment</p>
+                <p className="mt-1 text-xs font-medium text-slate-600 leading-relaxed italic">"{selectedReview.comment}"</p>
+              </div>
+            </div>
+          )}
 
-          <div className="space-y-4 pt-4">
+          <div className="space-y-4 pt-1">
             <div>
               <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono mb-2">
                 Your Reply *
@@ -325,7 +319,7 @@ export function ManagerReviewsPage() {
             <div className="flex justify-end gap-3 pt-2">
               <Button
                 variant="outline"
-                onClick={() => !replying && setReplyModalOpen(false)}
+                onClick={() => setReplyModalOpen(false)}
                 disabled={replying}
                 className="h-10 px-5 rounded-xl border-slate-200 bg-white text-slate-700 hover:bg-slate-50 font-black text-xs uppercase tracking-wider shadow-sm transition-all duration-200"
               >

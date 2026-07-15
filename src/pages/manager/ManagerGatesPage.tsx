@@ -1,9 +1,9 @@
-﻿import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ArrowRightLeft, LogIn, LogOut, Plus, Pencil, Trash2, X, Loader2, DoorOpen, CheckCircle2 } from 'lucide-react';
 import { DataTable, type DataColumn } from '@/components/common/DataTable';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Modal } from '@/components/ui/modal';
+import { ModalForm } from '@/components/modals/ModalForm';
 import { CustomSelect } from '@/components/ui/select';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { managerApi, type Gate } from '@/services/manager/managerApi';
@@ -268,79 +268,67 @@ export function ManagerGatesPage() {
         </div>
       )}
 
-      <Modal isOpen={modalOpen} onClose={() => !submitting && setModalOpen(false)}>
-        <div className="w-full max-w-md rounded-lg bg-card p-6 shadow-lg">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-foreground">{editing ? 'Edit gate' : 'Add gate'}</h2>
-            <button onClick={() => !submitting && setModalOpen(false)} className="text-muted-foreground hover:text-foreground">
-              <X size={20} />
-            </button>
+      <ModalForm
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        title={editing ? 'Edit gate' : 'Add gate'}
+        onSubmit={onSubmit}
+      >
+        <div className="grid gap-3">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-bold text-slate-600 uppercase tracking-wide">Gate code <span className="text-red-500">*</span></label>
+            <Input
+              value={form.code}
+              onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
+              placeholder="VD: IN, OUT, G1"
+              disabled={submitting}
+              className="h-10 rounded-xl"
+            />
           </div>
 
-          <form onSubmit={onSubmit} className="grid gap-4">
-            <div className="grid gap-2">
-              <label className="text-sm font-medium text-foreground">Gate code <span className="text-red-500">*</span></label>
-              <Input
-                value={form.code}
-                onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
-                placeholder="VD: IN, OUT, G1"
-                disabled={submitting}
-              />
-            </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-bold text-slate-600 uppercase tracking-wide">Gate name</label>
+            <Input
+              value={form.name}
+              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              placeholder="e.g. Main entry gate"
+              disabled={submitting}
+              className="h-10 rounded-xl"
+            />
+          </div>
 
-            <div className="grid gap-2">
-              <label className="text-sm font-medium text-foreground">Gate name</label>
-              <Input
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                placeholder="e.g. Main entry gate"
-                disabled={submitting}
-              />
-            </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-bold text-slate-600 uppercase tracking-wide">Gate type <span className="text-red-500">*</span></label>
+            <CustomSelect
+              value={form.direction}
+              onChange={(val) => setForm((f) => ({ ...f, direction: val as Gate['direction'] }))}
+              options={[
+                { value: 'in', label: 'Entry gate' },
+                { value: 'out', label: 'Exit gate' },
+                { value: 'both', label: 'Two-way' },
+              ]}
+              disabled={submitting}
+            />
+          </div>
 
-            <div className="grid gap-2">
-              <label className="text-sm font-medium text-foreground">Gate type <span className="text-red-500">*</span></label>
-              <CustomSelect
-                value={form.direction}
-                onChange={(val) => setForm((f) => ({ ...f, direction: val as Gate['direction'] }))}
-                options={[
-                  { value: 'in', label: 'Entry gate' },
-                  { value: 'out', label: 'Exit gate' },
-                  { value: 'both', label: 'Two-way' },
-                ]}
-                disabled={submitting}
-              />
-            </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-bold text-slate-600 uppercase tracking-wide">Status</label>
+            <CustomSelect
+              value={form.status}
+              onChange={(val) => setForm((f) => ({ ...f, status: val as Gate['status'] }))}
+              options={GATE_STATUSES.map((s) => ({
+                value: s,
+                label: statusLabel[s],
+              }))}
+              disabled={submitting}
+            />
+          </div>
 
-            <div className="grid gap-2">
-              <label className="text-sm font-medium text-foreground">Status</label>
-              <CustomSelect
-                value={form.status}
-                onChange={(val) => setForm((f) => ({ ...f, status: val as Gate['status'] }))}
-                options={GATE_STATUSES.map((s) => ({
-                  value: s,
-                  label: statusLabel[s],
-                }))}
-                disabled={submitting}
-              />
-            </div>
-
-            {formError && (
-              <div className="rounded-md bg-red-50 p-3 text-sm text-red-600 border border-red-200">{formError}</div>
-            )}
-
-            <div className="flex gap-3 pt-2">
-              <Button type="button" variant="outline" onClick={() => setModalOpen(false)} disabled={submitting} className="flex-1">
-                Cancel
-              </Button>
-              <Button type="submit" disabled={submitting} className="flex-1 gap-2">
-                {submitting && <Loader size={16} className="animate-spin" />}
-                {submitting ? 'Saving...' : editing ? 'Update' : 'Add gate'}
-              </Button>
-            </div>
-          </form>
+          {formError && (
+            <div className="rounded-xl bg-red-50 p-3 text-xs text-red-650 border border-red-200 mt-2">{formError}</div>
+          )}
         </div>
-      </Modal>
+      </ModalForm>
     <ConfirmModal
         open={!!deleteTarget}
         onOpenChange={(o) => !o && setDeleteTarget(null)}

@@ -12,7 +12,9 @@ import {
   Mail,
   Phone,
   Shield,
-  Fingerprint
+  Fingerprint,
+  QrCode,
+  MapPin
 } from 'lucide-react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -79,13 +81,17 @@ export function StaffProfilePage() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-      className="space-y-5 max-w-6xl mx-auto"
+      className="space-y-6 max-w-6xl mx-auto relative"
     >
+      {/* Decorative floating blur circles in background for visual depth */}
+      <div className="absolute top-10 left-10 w-72 h-72 rounded-full bg-sky-200/20 blur-3xl pointer-events-none -z-10" />
+      <div className="absolute bottom-10 right-10 w-80 h-80 rounded-full bg-blue-100/30 blur-3xl pointer-events-none -z-10" />
+
       {/* Success Notification Alert */}
       {success && (
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0, scale: 0.95, y: -10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
           className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3.5 text-xs font-bold text-emerald-700 shadow-md"
         >
           <CheckCircle2 size={15} className="text-emerald-500" />
@@ -97,29 +103,29 @@ export function StaffProfilePage() {
       <section
         className="relative overflow-hidden rounded-2xl p-5"
         style={{
-          background: 'linear-gradient(135deg, rgba(224,242,254,0.7) 0%, rgba(255,255,255,0.75) 50%, rgba(219,234,254,0.5) 100%)',
-          border: '1px solid rgba(14,165,233,0.18)',
-          boxShadow: '0 4px 24px rgba(14,165,233,0.06), inset 0 1px 0 rgba(255,255,255,0.9)',
-          backdropFilter: 'blur(16px)',
+          background: 'linear-gradient(135deg, rgba(224,242,254,0.72) 0%, rgba(255,255,255,0.8) 50%, rgba(219,234,254,0.55) 100%)',
+          border: '1px solid rgba(14,165,233,0.2)',
+          boxShadow: '0 8px 30px rgba(14,165,233,0.06), inset 0 1px 0 rgba(255,255,255,0.9)',
+          backdropFilter: 'blur(20px)',
         }}
       >
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between relative z-10">
           <div className="flex items-center gap-3.5">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl animate-pulse"
               style={{
                 background: 'linear-gradient(135deg, #e0f2fe, #bae6fd)',
-                border: '1px solid rgba(14,165,233,0.22)',
-                boxShadow: '0 4px 12px rgba(14,165,233,0.12)',
+                border: '1px solid rgba(14,165,233,0.25)',
+                boxShadow: '0 4px 12px rgba(14,165,233,0.15)',
               }}>
               <User className="text-sky-600" size={22} />
             </div>
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-sky-500">Security System</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-sky-500">Security System</p>
               <h2 className="text-lg font-extrabold text-slate-800 leading-tight">My Profile</h2>
-              <p className="text-xs text-slate-500 mt-0.5">Manage your personal information and assignment</p>
+              <p className="text-xs text-slate-500 mt-0.5">Manage your personal information and system access</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 self-start lg:self-auto">
+          <div className="flex items-center gap-2.5 self-start lg:self-auto">
             {!isEditing && (
               <Button
                 onClick={handleStartEdit}
@@ -145,7 +151,7 @@ export function StaffProfilePage() {
           style={{
             background: 'rgba(255,255,255,0.72)',
             border: '1px solid rgba(14,165,233,0.14)',
-            boxShadow: '0 10px 30px rgba(14,165,233,0.05), inset 0 1px 0 rgba(255,255,255,0.9)',
+            boxShadow: '0 10px 30px rgba(14,165,233,0.04), inset 0 1px 0 rgba(255,255,255,0.9)',
             backdropFilter: 'blur(20px)',
           }}
         >
@@ -153,7 +159,7 @@ export function StaffProfilePage() {
           <h3 className="text-sm font-extrabold text-slate-800 tracking-tight mb-5">Account Information</h3>
 
           {isEditing ? (
-            <form onSubmit={handleSave} className="grid gap-5 md:grid-cols-2 relative z-10">
+            <form onSubmit={handleSave} className="grid gap-5 md:grid-cols-2 relative z-10 animate-fadeIn">
               {/* Họ tên */}
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Full Name</label>
@@ -245,13 +251,14 @@ export function StaffProfilePage() {
               ].map((f) => {
                 const Icon = f.icon;
                 return (
-                  <div
+                  <motion.div
                     key={f.label}
-                    className="flex items-center gap-4 rounded-2xl p-4 transition-all duration-200"
+                    whileHover={{ y: -3 }}
+                    className="flex items-center gap-4 rounded-2xl p-4 transition-all duration-200 border"
                     style={{
-                      background: 'rgba(255,255,255,0.6)',
-                      border: '1px solid rgba(14,165,233,0.1)',
-                      boxShadow: '0 2px 10px rgba(14,165,233,0.03)',
+                      background: 'rgba(255,255,255,0.5)',
+                      borderColor: 'rgba(14,165,233,0.08)',
+                      boxShadow: '0 2px 10px rgba(14,165,233,0.02), inset 0 1px 0 rgba(255,255,255,0.9)',
                     }}
                   >
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600 border border-sky-100">
@@ -261,7 +268,7 @@ export function StaffProfilePage() {
                       <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">{f.label}</p>
                       <p className="mt-1 text-xs font-bold text-slate-700 truncate">{f.value}</p>
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>
@@ -274,30 +281,43 @@ export function StaffProfilePage() {
           <div
             className="relative overflow-hidden rounded-3xl p-5 text-center flex flex-col items-center"
             style={{
-              background: 'rgba(255,255,255,0.72)',
-              border: '1px solid rgba(14,165,233,0.14)',
-              boxShadow: '0 10px 30px rgba(14,165,233,0.05), inset 0 1px 0 rgba(255,255,255,0.9)',
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.95) 100%)',
+              border: '1px solid rgba(14,165,233,0.16)',
+              boxShadow: '0 12px 36px rgba(14,165,233,0.06), inset 0 1px 0 rgba(255,255,255,0.9)',
               backdropFilter: 'blur(20px)',
             }}
           >
-            <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-sky-400 via-sky-500 to-transparent" />
+            {/* Holographic header stripe */}
+            <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-sky-400 via-sky-500 to-sky-600" />
+            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-sky-500/10 to-transparent blur-xl pointer-events-none" />
 
             {/* Avatar container with hover glow */}
-            <div className="relative mt-2">
-              <div className="absolute inset-0 rounded-2xl bg-sky-500/20 blur-md opacity-40" />
-              <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-sky-300 bg-gradient-to-br from-slate-900 to-slate-950 text-2xl font-black text-sky-400 shadow-md">
+            <div className="relative mt-3">
+              <div className="absolute inset-0 rounded-2xl bg-sky-500/15 blur-md" />
+              <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-sky-300 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 text-2xl font-black text-sky-400 shadow-md">
                 {initials}
               </div>
             </div>
 
-            <span className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-3 py-1 text-[9px] font-black uppercase tracking-widest text-sky-600 border border-sky-100 font-mono">
+            <span className="mt-4 inline-flex items-center gap-1 rounded-full bg-sky-50 px-3 py-1 text-[9px] font-black uppercase tracking-widest text-sky-600 border border-sky-100 font-mono">
               <Fingerprint size={10} /> Staff Portal
             </span>
 
-            <h2 className="mt-3 text-sm font-extrabold text-slate-800 tracking-tight leading-snug truncate max-w-full">
+            <h2 className="mt-3.5 text-sm font-extrabold text-slate-800 tracking-tight leading-snug truncate max-w-full">
               {displayName || 'Staff'}
             </h2>
-            <p className="text-xs text-slate-400 truncate max-w-full mt-0.5 font-medium">{session.email}</p>
+            <p className="text-[11px] text-slate-400 truncate max-w-full mt-0.5 font-semibold">{session.email}</p>
+
+            {/* Futuristic barcode area representing a smart access pass */}
+            <div className="mt-5 pt-4 border-t border-slate-100 w-full flex flex-col items-center justify-center">
+              <div className="flex items-center gap-1.5 text-slate-300">
+                <QrCode size={26} className="text-slate-400/80" />
+                <div className="flex flex-col items-start leading-none">
+                  <span className="font-mono text-[9px] font-black tracking-widest text-slate-500">ID-{session.email.split('@')[0].toUpperCase()}</span>
+                  <span className="text-[8px] font-bold text-emerald-500 uppercase tracking-wider mt-0.5">Access Active</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Assigned Building Card */}
@@ -322,29 +342,34 @@ export function StaffProfilePage() {
                 <div
                   className="rounded-2xl p-3"
                   style={{
-                    background: 'rgba(255,255,255,0.6)',
-                    border: '1px solid rgba(14,165,233,0.1)',
+                    background: 'rgba(255,255,255,0.5)',
+                    border: '1px solid rgba(14,165,233,0.08)',
                   }}
                 >
                   <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Building Name</p>
                   <p className="mt-0.5 text-xs font-bold text-slate-700">{building.name}</p>
                 </div>
                 <div
-                  className="rounded-2xl p-3"
+                  className="rounded-2xl p-3 flex items-center justify-between"
                   style={{
-                    background: 'rgba(255,255,255,0.6)',
-                    border: '1px solid rgba(14,165,233,0.1)',
+                    background: 'rgba(255,255,255,0.5)',
+                    border: '1px solid rgba(14,165,233,0.08)',
                   }}
                 >
-                  <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Building Code</p>
-                  <p className="mt-0.5 font-mono text-xs text-sky-600 font-black">{building.code}</p>
+                  <div>
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Building Code</p>
+                    <p className="mt-0.5 font-mono text-xs text-sky-600 font-black">{building.code}</p>
+                  </div>
+                  <div className="h-7 w-7 rounded-lg bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-500">
+                    <MapPin size={14} />
+                  </div>
                 </div>
                 {building.operatingHours && (
                   <div
                     className="flex items-center gap-2.5 rounded-2xl p-3"
                     style={{
-                      background: 'rgba(255,255,255,0.6)',
-                      border: '1px solid rgba(14,165,233,0.1)',
+                      background: 'rgba(255,255,255,0.5)',
+                      border: '1px solid rgba(14,165,233,0.08)',
                     }}
                   >
                     <Clock size={13} className="text-sky-500" />

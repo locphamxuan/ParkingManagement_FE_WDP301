@@ -14,6 +14,27 @@ export type OperationMode = 'check-in' | 'check-out';
 // đè lựa chọn loại xe thủ công của nhân viên.
 const ALLOWED_TYPES = ['CAR', 'MOTORCYCLE'];
 
+// Chuỗi ưu tiên đối tượng cho slot (mirror BE helpers.js USAGE_FALLBACK_CHAIN):
+// hội viên/đặt chỗ có thể mượn tạm slot chung (walk_in) khi hết slot đúng đối tượng,
+// NHƯNG khách vãng lai KHÔNG lấn slot hội viên/gói/đặt chỗ. Index nhỏ = ưu tiên hơn.
+const USAGE_FALLBACK_CHAIN: Record<string, string[]> = {
+  walk_in: ['walk_in'],
+  registered: ['registered', 'walk_in'],
+  subscriber: ['subscriber', 'registered', 'walk_in'],
+  reserved: ['reserved', 'registered', 'walk_in'],
+};
+const acceptableUsageTypes = (u?: string | null): string[] =>
+  (u && USAGE_FALLBACK_CHAIN[u]) || (u ? [u] : []);
+
+// Nhãn đối tượng sử dụng slot (usageType) hiển thị cho staff.
+const USAGE_LABEL: Record<string, string> = {
+  walk_in: 'Walk-in',
+  registered: 'Registered',
+  subscriber: 'Subscriber',
+  reserved: 'Reserved',
+};
+export const usageLabel = (u?: string | null) => (u ? USAGE_LABEL[u] || u : '');
+
 /**
  * Toàn bộ state + logic của màn Check-in (Staff Operations). Tách khỏi component
  * để phần JSX thuần trình bày. Component destructure các giá trị trả về.
@@ -54,9 +75,34 @@ export function useStaffOperations() {
   const [freeSlots, setFreeSlots] = useState<{ _id: string; code: string; floor?: { name?: string; code?: string } | null; zone?: { _id: string; code: string; usageType: string } | string | null }[]>([]);
   const [selectedSlotId, setSelectedSlotId] = useState('');
   const [selectedZoneId, setSelectedZoneId] = useState('');
+  // Bối cảnh sức chứa toàn tòa (không lọc đối tượng) để phân biệt các trạng thái rỗng.
+  const [slotPoolStats, setSlotPoolStats] = useState<{ totalSlots: number; totalAvailable: number }>({ totalSlots: 0, totalAvailable: 0 });
+
+  // ── Đối tượng sử dụng (usageType) suy từ BE để gọi free-slots đúng pool + validate zone ──
+  const hasActivePackage = Boolean(plateAccountInfo?.hasActivePackage);
+  const hasActiveReservation = Boolean(plateAccountInfo?.hasActiveReservation);
+  const checkInKind: 'package' | 'reservation' | 'standard' = hasActivePackage
+    ? 'package'
+    : hasActiveReservation
+      ? 'reservation'
+      : 'standard';
+  const needsSlotSelection = hasActivePackage || checkInKind === 'standard';
+
+  // Đối tượng thật để lọc slot: gói → subscriber; biển có tài khoản (không gói/đặt chỗ)
+  // → registered; còn lại → walk_in. (reserved đã có slot cố định nên không chọn zone.)
+  const slotUsageType: 'walk_in' | 'registered' | 'subscriber' = hasActivePackage
+    ? 'subscriber'
+    : plateAccountInfo?.usageType === 'registered'
+      ? 'registered'
+      : 'walk_in';
+  const zoneChain = acceptableUsageTypes(slotUsageType);
 
   const availableZones = useMemo(() => {
-    const zonesMap = new Map<string, { _id: string; code: string; count: number }>();
+    const rank = (u?: string | null) => {
+      const i = u ? zoneChain.indexOf(u) : -1;
+      return i === -1 ? zoneChain.length : i;
+    };
+    const zonesMap = new Map<string, { _id: string; code: string; usageType?: string; count: number }>();
     freeSlots.forEach((slot) => {
       if (slot.zone && typeof slot.zone === 'object') {
         const existing = zonesMap.get(slot.zone._id);
@@ -64,8 +110,45 @@ export function useStaffOperations() {
         else zonesMap.set(slot.zone._id, { ...slot.zone, count: 1 });
       }
     });
-    return Array.from(zonesMap.values());
-  }, [freeSlots]);
+    // Ưu tiên dãy ĐÚNG đối tượng lên đầu, dãy "mượn tạm" (fallback) xuống dưới.
+    return Array.from(zonesMap.values()).sort(
+      (a, b) => rank(a.usageType) - rank(b.usageType) || String(a.code).localeCompare(String(b.code)),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [freeSlots, slotUsageType]);
+
+  // Zone đang chọn + trạng thái hợp lệ theo đối tượng.
+  const selectedZone = useMemo(
+    () => availableZones.find((z) => z._id === selectedZoneId) || null,
+    [availableZones, selectedZoneId],
+  );
+  const selectedZoneUsage = selectedZone?.usageType || null;
+  // Ngoài chuỗi fallback → chặn cứng (phòng thủ; pool từ BE đã lọc nên hiếm khi xảy ra,
+  // nhưng bảo vệ trước dữ liệu cũ/lệch, khớp guard SLOT_USAGE_MISMATCH của BE lúc submit).
+  const zoneUsageBlocked = Boolean(selectedZoneUsage && !zoneChain.includes(selectedZoneUsage));
+  // Hợp lệ nhưng là dãy mượn tạm (không đúng đối tượng) → cảnh báo mềm, vẫn cho check-in.
+  const zoneUsageFallback = Boolean(
+    selectedZoneUsage && selectedZoneUsage !== slotUsageType && zoneChain.includes(selectedZoneUsage),
+  );
+  // Còn dãy đúng đối tượng đang trống? (nhắc staff ưu tiên dãy đúng thay vì mượn tạm)
+  const hasExactZoneFree = availableZones.some((z) => z.usageType === slotUsageType);
+
+  // Trạng thái pool slot khi KHÔNG có slot hợp đối tượng để hiện — phân biệt 3 case:
+  //  - 'ok'        : còn slot hợp đối tượng để chọn (freeSlots > 0).
+  //  - 'capacity'  : tòa không có slot cố định → đỗ theo sức chứa (cho phép check-in).
+  //  - 'exhausted' : tòa còn slot trống NHƯNG thuộc đối tượng khác → không được lấn (chặn).
+  //  - 'full'      : hết sạch slot trống toàn tòa → đầy (chặn).
+  const slotPoolState: 'ok' | 'capacity' | 'exhausted' | 'full' =
+    freeSlots.length > 0
+      ? 'ok'
+      : slotPoolStats.totalSlots === 0
+        ? 'capacity'
+        : slotPoolStats.totalAvailable > 0
+          ? 'exhausted'
+          : 'full';
+  // Chặn check-in khi cần slot mà pool rỗng vì lý do không hợp lệ (đầy / chỉ còn slot
+  // đối tượng khác). 'capacity' KHÔNG chặn (đỗ theo sức chứa là hợp lệ).
+  const slotSelectionBlocked = needsSlotSelection && (slotPoolState === 'exhausted' || slotPoolState === 'full');
 
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
@@ -138,33 +221,36 @@ export function useStaffOperations() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [plateNumber]);
 
-  const hasActivePackage = Boolean(plateAccountInfo?.hasActivePackage);
-  const hasActiveReservation = Boolean(plateAccountInfo?.hasActiveReservation);
-  const checkInKind: 'package' | 'reservation' | 'standard' = hasActivePackage
-    ? 'package'
-    : hasActiveReservation
-      ? 'reservation'
-      : 'standard';
-  const needsSlotSelection = hasActivePackage || checkInKind === 'standard';
+  // Đổi ĐỐI TƯỢNG hoặc TÒA → pool slot hợp lệ đổi → bỏ lựa chọn cũ để không giữ lại
+  // zone/slot không còn hợp đối tượng mới (tránh submit slot sai pool → BE trả lỗi).
+  useEffect(() => {
+    setSelectedZoneId('');
+    setSelectedSlotId('');
+  }, [slotUsageType, buildingId]);
 
   useEffect(() => {
     if (!needsSlotSelection || !buildingId) {
       setFreeSlots([]);
       setSelectedSlotId('');
       setSelectedZoneId('');
+      setSlotPoolStats({ totalSlots: 0, totalAvailable: 0 });
       return;
     }
     let cancelled = false;
-    const usageType = hasActivePackage ? 'subscriber' : 'walk_in';
+    // Dùng đối tượng THẬT của biển số (subscriber/registered/walk_in) để BE trả đúng
+    // pool theo chuỗi fallback — không còn ép mọi biển có tài khoản về walk_in.
     staffApi
-      .freeSlots(buildingId, { vehicleType, usageType })
+      .freeSlots(buildingId, { vehicleType, usageType: slotUsageType })
       .then((res) => {
-        if (!cancelled) setFreeSlots((res as { data?: { items?: typeof freeSlots } })?.data?.items ?? []);
+        if (cancelled) return;
+        const data = (res as { data?: { items?: typeof freeSlots; totalSlots?: number; totalAvailable?: number } })?.data;
+        setFreeSlots(data?.items ?? []);
+        setSlotPoolStats({ totalSlots: data?.totalSlots ?? 0, totalAvailable: data?.totalAvailable ?? 0 });
       })
       .catch(() => undefined);
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [needsSlotSelection, buildingId, vehicleType, hasActivePackage]);
+  }, [needsSlotSelection, buildingId, vehicleType, slotUsageType]);
 
   const applyPlate = (plate: string, brand: string | null = null) => {
     const clean = normalizePlate(plate) || plate.trim().toUpperCase();
@@ -247,6 +333,19 @@ export function useStaffOperations() {
       setOpMessage({ type: 'err', text: 'This vehicle has a long-term package — please pick a free slot before checking in.' });
       return;
     }
+    if (zoneUsageBlocked) {
+      setOpMessage({ type: 'err', text: 'The selected zone is not allowed for this customer type. Please pick a compatible zone.' });
+      return;
+    }
+    if (slotSelectionBlocked) {
+      setOpMessage({
+        type: 'err',
+        text: slotPoolState === 'full'
+          ? 'The building is full — no free slots to assign.'
+          : 'No slots available for this customer type (remaining slots belong to other customer types).',
+      });
+      return;
+    }
     setLoading(true);
     const currentPlate = normalizePlate(plateNumber) || plateNumber.trim().toUpperCase();
     const plateImg = plateImage ?? plateCamRef.current?.capture() ?? null;
@@ -319,6 +418,8 @@ export function useStaffOperations() {
     selectedSlotId, setSelectedSlotId,
     selectedZoneId, setSelectedZoneId,
     availableZones,
+    slotUsageType, selectedZone, zoneUsageBlocked, zoneUsageFallback, hasExactZoneFree,
+    slotPoolState, slotSelectionBlocked, slotPoolStats,
     rejectOpen, setRejectOpen,
     rejectReason, setRejectReason,
     userQrInfo, setUserQrInfo,

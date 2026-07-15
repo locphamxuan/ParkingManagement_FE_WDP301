@@ -59,9 +59,7 @@ export function BuildingsPage() {
   const [form, setForm] = useState({
     name: '',
     code: '',
-    floors: '1',
     address: '',
-    hourlyRate: '0',
   });
 
   const filtered = useMemo(() => {
@@ -202,7 +200,7 @@ export function BuildingsPage() {
   const openCreateModal = () => {
     setActionError(null);
     setSelectedBuilding(null);
-    setForm({ name: '', code: '', floors: '1', address: '', hourlyRate: '0' });
+    setForm({ name: '', code: '', address: '' });
     setIsModalOpen(true);
   };
 
@@ -212,9 +210,7 @@ export function BuildingsPage() {
     setForm({
       name: building.name,
       code: building.id,
-      floors: String(building.floors),
       address: building.address,
-      hourlyRate: '0',
     });
     setIsModalOpen(true);
   };
@@ -235,16 +231,14 @@ export function BuildingsPage() {
         await updateBuilding(token, selectedBuilding.backendId || selectedBuilding.id, {
           name: form.name,
           code: form.code,
-          totalFloors: Number(form.floors),
           fullAddress: form.address,
         });
       } else {
+        // Floors & pricing: manager tự thiết lập (tạo floor + PricePolicy), admin không nhập.
         await createBuilding(token, {
           name: form.name,
           code: form.code,
-          totalFloors: Number(form.floors),
           fullAddress: form.address,
-          hourlyRate: Number(form.hourlyRate),
         });
       }
       await refresh();
@@ -443,24 +437,6 @@ export function BuildingsPage() {
               onChange={(e) => setForm((prev) => ({ ...prev, address: e.target.value }))}
             />
           </div>
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Number of floors</label>
-            <Input
-              placeholder="Enter number of floors"
-              value={form.floors}
-              onChange={(e) => setForm((prev) => ({ ...prev, floors: e.target.value }))}
-            />
-          </div>
-          {!selectedBuilding ? (
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Hourly rate (VND)</label>
-              <Input
-                placeholder="Enter hourly rate"
-                value={form.hourlyRate}
-                onChange={(e) => setForm((prev) => ({ ...prev, hourlyRate: e.target.value }))}
-              />
-            </div>
-          ) : null}
         </div>
         {isSaving ? <p className="text-xs text-muted-foreground">Saving...</p> : null}
       </ModalForm>

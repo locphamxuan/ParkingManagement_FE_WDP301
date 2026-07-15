@@ -18,7 +18,7 @@ import { LivePlateCamera } from '@/components/staff/LivePlateCamera';
 import { LiveQRCamera } from '@/components/staff/LiveQRCamera';
 import { LivePortraitCamera } from '@/components/staff/LivePortraitCamera';
 import { normalizePlate } from '@/utils/plate';
-import { useStaffOperations } from '@/hooks/staff/useStaffOperations';
+import { useStaffOperations, usageLabel } from '@/hooks/staff/useStaffOperations';
 import { MultiCamCheckIn } from '@/components/staff/operations/MultiCamCheckIn';
 import { CameraSettingsModal } from '@/components/staff/operations/CameraSettingsModal';
 import { RejectCheckInModal } from '@/components/staff/operations/RejectCheckInModal';
@@ -36,6 +36,8 @@ export function StaffOperationsPage() {
     step, setStep, identifyMode, setIdentifyMode,
     plateAccountInfo, freeSlots, selectedSlotId, setSelectedSlotId, selectedZoneId, setSelectedZoneId,
     availableZones, setRejectOpen,
+    slotUsageType, selectedZone, zoneUsageBlocked, zoneUsageFallback, hasExactZoneFree,
+    slotPoolState, slotSelectionBlocked,
     allowedTypes, plateTypeWarning, buildingSupportWarning,
     hasActivePackage, checkInKind, needsSlotSelection,
     handlePlateDetected, proceedFromIdentify, capturePortraitAndNext,
@@ -410,6 +412,9 @@ export function StaffOperationsPage() {
                       {hasActivePackage
                         ? `Vehicle has a long-term package${plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''}${plateAccountInfo?.activePackage?.maxHoursPerDay ? ` · free ${plateAccountInfo.activePackage.maxHoursPerDay}h/day` : ''} — pick a zone & free slot:`
                         : 'Pick a zone & slot for the guest (required if the building has slots):'}
+                      <span className="ml-1 inline-flex items-center rounded-full border border-white/15 bg-slate-950/40 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider text-slate-300">
+                        {usageLabel(slotUsageType)}
+                      </span>
                     </p>
 
                     {freeSlots.length > 0 ? (
@@ -427,7 +432,7 @@ export function StaffOperationsPage() {
                             <option value="">-- Zone --</option>
                             {availableZones.map((z) => (
                               <option key={z._id} value={z._id}>
-                                Zone {z.code} ({z.count} free)
+                                Zone {z.code}{z.usageType ? ` · ${usageLabel(z.usageType)}` : ''} ({z.count} free){z.usageType && z.usageType !== slotUsageType ? ' — fallback' : ''}
                               </option>
                             ))}
                           </select>
@@ -451,8 +456,28 @@ export function StaffOperationsPage() {
                           </select>
                         </div>
                       </div>
-                    ) : (
+                    ) : slotPoolState === 'capacity' ? (
                       <p className="text-[11px] text-slate-500">This building has no fixed slots — vehicles park by shared capacity.</p>
+                    ) : slotPoolState === 'full' ? (
+                      <p className="text-[11px] text-rose-600 flex items-center gap-1">
+                        <AlertCircle size={12} className="text-rose-500" /> The building is full — no free slots to assign.
+                      </p>
+                    ) : (
+                      <p className="text-[11px] text-rose-600 flex items-center gap-1">
+                        <AlertCircle size={12} className="text-rose-500" /> No <strong>{usageLabel(slotUsageType)}</strong> slots free right now — remaining slots belong to other customer types, so this vehicle cannot check in.
+                      </p>
+                    )}
+
+                    {/* Cảnh báo đối tượng của zone đang chọn */}
+                    {zoneUsageBlocked && (
+                      <p className="text-[11px] text-rose-600 flex items-center gap-1">
+                        <AlertCircle size={12} className="text-rose-500" /> This zone ({usageLabel(selectedZone?.usageType)}) is not allowed for a <strong>{usageLabel(slotUsageType)}</strong> vehicle. Pick a compatible zone.
+                      </p>
+                    )}
+                    {!zoneUsageBlocked && zoneUsageFallback && (
+                      <p className="text-[11px] text-amber-600 flex items-center gap-1">
+                        <AlertCircle size={12} className="text-amber-500" /> This is a <strong>{usageLabel(selectedZone?.usageType)}</strong> zone used as fallback for a {usageLabel(slotUsageType)} vehicle{hasExactZoneFree ? ` — ${usageLabel(slotUsageType)} zones are still free, prefer those.` : '.'}
+                      </p>
                     )}
                   </div>
                 )}
@@ -472,7 +497,7 @@ export function StaffOperationsPage() {
                   </Button>
                   <Button
                     onClick={onCheckIn}
-                    disabled={!plateNumber.trim() || loading || !!buildingSupportWarning || !portraitImage || (hasActivePackage && !selectedSlotId) || (checkInKind === 'standard' && !plateImage) || (checkInKind === 'standard' && freeSlots.length > 0 && !selectedSlotId)}
+                    disabled={!plateNumber.trim() || loading || !!buildingSupportWarning || zoneUsageBlocked || slotSelectionBlocked || !portraitImage || (hasActivePackage && !selectedSlotId) || (checkInKind === 'standard' && !plateImage) || (checkInKind === 'standard' && freeSlots.length > 0 && !selectedSlotId)}
                     className="flex-1 h-11 gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-extrabold hover:brightness-110 disabled:opacity-60 rounded-xl shadow-md shadow-emerald-500/10"
                   >
                     <ScanLine size={16} /> Confirm &amp; Admit

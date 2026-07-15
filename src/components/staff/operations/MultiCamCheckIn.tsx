@@ -7,7 +7,7 @@ import { LivePlateCamera } from '@/components/staff/LivePlateCamera';
 import { LiveQRCamera } from '@/components/staff/LiveQRCamera';
 import { LivePortraitCamera } from '@/components/staff/LivePortraitCamera';
 import { normalizePlate } from '@/utils/plate';
-import type { StaffOperations } from '@/hooks/staff/useStaffOperations';
+import { usageLabel, type StaffOperations } from '@/hooks/staff/useStaffOperations';
 
 export function MultiCamCheckIn({ ops }: { ops: StaffOperations }) {
   const {
@@ -16,6 +16,8 @@ export function MultiCamCheckIn({ ops }: { ops: StaffOperations }) {
     plateAccountInfo, freeSlots, selectedSlotId, setSelectedSlotId, selectedZoneId, setSelectedZoneId,
     availableZones, setRejectOpen, allowedTypes, plateTypeWarning, buildingSupportWarning,
     hasActivePackage, checkInKind, needsSlotSelection,
+    slotUsageType, selectedZone, zoneUsageBlocked, zoneUsageFallback, hasExactZoneFree,
+    slotPoolState, slotSelectionBlocked,
     handlePlateDetected, handleResolveIdQr, onCheckIn, vehicleTypeMismatch,
   } = ops;
 
@@ -43,7 +45,7 @@ export function MultiCamCheckIn({ ops }: { ops: StaffOperations }) {
           onChange={(e) => setPlateNumber(e.target.value)}
           onBlur={(e) => { const n = normalizePlate(e.target.value); if (n) setPlateNumber(n); }}
           placeholder="59G2-038.80"
-          onKeyDown={(e) => { if (e.key === 'Enter' && !(!plateNumber.trim() || loading || !!buildingSupportWarning || (hasActivePackage && !selectedSlotId))) onCheckIn(); }}
+          onKeyDown={(e) => { if (e.key === 'Enter' && !(!plateNumber.trim() || loading || !!buildingSupportWarning || zoneUsageBlocked || slotSelectionBlocked || (hasActivePackage && !selectedSlotId))) onCheckIn(); }}
         />
         {vehicleBrand && (
           <span className="inline-flex w-fit items-center gap-1 rounded-full border border-sky-500/30 bg-sky-500/10 px-2.5 py-1 text-[11px] font-semibold text-sky-300">
@@ -100,6 +102,9 @@ export function MultiCamCheckIn({ ops }: { ops: StaffOperations }) {
           <p className={`text-[11px] font-bold flex items-center gap-1 ${hasActivePackage ? 'text-amber-300' : 'text-sky-300'}`}>
             <AlertCircle size={12} />
             {hasActivePackage ? 'Vehicle has a long-term package — pick a zone & free slot:' : 'Pick a zone & slot for the guest:'}
+            <span className="ml-1 inline-flex items-center rounded-full border border-white/15 bg-slate-950/40 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider text-slate-300">
+              {usageLabel(slotUsageType)}
+            </span>
           </p>
 
           {freeSlots.length > 0 ? (
@@ -117,7 +122,7 @@ export function MultiCamCheckIn({ ops }: { ops: StaffOperations }) {
                   <option value="">-- Zone --</option>
                   {availableZones.map((z) => (
                     <option key={z._id} value={z._id}>
-                      Zone {z.code} ({z.count} free)
+                      Zone {z.code}{z.usageType ? ` · ${usageLabel(z.usageType)}` : ''} ({z.count} free){z.usageType && z.usageType !== slotUsageType ? ' — fallback' : ''}
                     </option>
                   ))}
                 </select>
@@ -141,8 +146,28 @@ export function MultiCamCheckIn({ ops }: { ops: StaffOperations }) {
                 </select>
               </div>
             </div>
-          ) : (
+          ) : slotPoolState === 'capacity' ? (
             <p className="text-[11px] text-slate-400">This building has no fixed slots — vehicles park by shared capacity.</p>
+          ) : slotPoolState === 'full' ? (
+            <p className="text-[11px] text-rose-300 flex items-center gap-1">
+              <AlertCircle size={12} /> The building is full — no free slots to assign.
+            </p>
+          ) : (
+            <p className="text-[11px] text-rose-300 flex items-center gap-1">
+              <AlertCircle size={12} /> No <strong>{usageLabel(slotUsageType)}</strong> slots free right now — remaining slots belong to other customer types, so this vehicle cannot check in.
+            </p>
+          )}
+
+          {/* Cảnh báo đối tượng của zone đang chọn */}
+          {zoneUsageBlocked && (
+            <p className="text-[11px] text-rose-300 flex items-center gap-1">
+              <AlertCircle size={12} /> This zone ({usageLabel(selectedZone?.usageType)}) is not allowed for a <strong>{usageLabel(slotUsageType)}</strong> vehicle. Pick a compatible zone.
+            </p>
+          )}
+          {!zoneUsageBlocked && zoneUsageFallback && (
+            <p className="text-[11px] text-amber-300 flex items-center gap-1">
+              <AlertCircle size={12} /> This is a <strong>{usageLabel(selectedZone?.usageType)}</strong> zone used as fallback for a {usageLabel(slotUsageType)} vehicle{hasExactZoneFree ? ` — ${usageLabel(slotUsageType)} zones are still free, prefer those.` : '.'}
+            </p>
           )}
 
           {/* Xem trước ô đỗ 3D được chọn */}
@@ -187,6 +212,8 @@ export function MultiCamCheckIn({ ops }: { ops: StaffOperations }) {
             !plateNumber.trim() ||
             loading ||
             !!buildingSupportWarning ||
+            zoneUsageBlocked ||
+            slotSelectionBlocked ||
             (hasActivePackage && !selectedSlotId) ||
             (checkInKind === 'standard' && !plateImage) ||
             (checkInKind === 'standard' && freeSlots.length > 0 && !selectedSlotId)

@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -20,10 +20,14 @@ import {
   type BuildingWallet,
   type BuildingWalletTransaction,
   type DailyRevenueResult,
+  type RevenueBreakdown,
 } from '@/services/manager/managerApi';
 
 const fmtVnd = (n: number | null | undefined) =>
   n != null ? `${n.toLocaleString('vi-VN')} ₫` : '—';
+
+const fmtDay = (s: string) =>
+  new Date(`${s}T00:00:00`).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
 
 const fmtTime = (iso: string) =>
   new Date(iso).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' });
@@ -40,6 +44,7 @@ export function ManagerWalletPage() {
 
   const [wallet, setWallet] = useState<BuildingWallet | null>(null);
   const [daily, setDaily] = useState<DailyRevenueResult | null>(null);
+  const [breakdown, setBreakdown] = useState<RevenueBreakdown | null>(null);
   const [transactions, setTransactions] = useState<BuildingWalletTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,13 +60,15 @@ export function ManagerWalletPage() {
     setLoading(true);
     setError(null);
     try {
-      const [walletRes, dailyRes, txRes] = await Promise.all([
+      const [walletRes, dailyRes, breakdownRes, txRes] = await Promise.all([
         managerApi.wallet.get(buildingId),
         managerApi.wallet.getDailyRevenue(buildingId),
+        managerApi.wallet.getRevenueBreakdown(buildingId),
         managerApi.wallet.listTransactions(buildingId),
       ]);
       setWallet((walletRes as { data?: { wallet: BuildingWallet } })?.data?.wallet ?? null);
       setDaily((dailyRes as { data?: DailyRevenueResult })?.data ?? null);
+      setBreakdown((breakdownRes as { data?: RevenueBreakdown })?.data ?? null);
       setTransactions((txRes as { data?: { items: BuildingWalletTransaction[] } })?.data?.items ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load wallet data');
@@ -237,7 +244,7 @@ export function ManagerWalletPage() {
       )}
 
       {/* Thẻ tổng quan */}
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-3">
         <div className="rounded-2xl border border-slate-200/80 border-l-4 border-l-blue-500 bg-white p-5 shadow-sm hover:scale-[1.01] hover:shadow-md transition-all duration-300 flex items-center justify-between group select-none">
           <div>
             <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">Current balance</p>
@@ -246,6 +253,21 @@ export function ManagerWalletPage() {
           <div className="p-2.5 rounded-xl border border-blue-100 bg-blue-50/50 text-blue-650 shrink-0">
             <Wallet size={16} className="stroke-[2.5]" />
           </div>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200/80 border-l-4 border-l-sky-500 bg-white p-5 shadow-sm hover:scale-[1.01] hover:shadow-md transition-all duration-300 flex flex-col justify-between group select-none">
+          <div className="flex items-center justify-between w-full">
+            <div>
+              <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">Total revenue</p>
+              <p className="mt-1.5 text-xl font-black text-sky-600 font-mono group-hover:text-sky-755 transition-colors">{fmtVnd(breakdown?.allTimeTotal)}</p>
+            </div>
+            <div className="p-2.5 rounded-xl border border-sky-100 bg-sky-50/50 text-sky-650 shrink-0">
+              <TrendingUp size={16} className="stroke-[2.5]" />
+            </div>
+          </div>
+          <p className="mt-2 text-[9px] font-semibold text-slate-400 leading-normal">
+            All-time parking revenue (excludes top-ups)
+          </p>
         </div>
 
         <div className="rounded-2xl border border-slate-200/80 border-l-4 border-l-emerald-500 bg-white p-5 shadow-sm hover:scale-[1.01] hover:shadow-md transition-all duration-300 flex items-center justify-between group select-none">
@@ -258,6 +280,46 @@ export function ManagerWalletPage() {
           </div>
         </div>
       </div>
+
+      {/* Doanh thu theo NGÀY × phương thức thanh toán */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <TrendingUp size={15} className="text-primary" />
+            Daily revenue by payment method
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {!breakdown || breakdown.days.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4 text-center">No revenue in the last 14 days.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[520px] text-sm">
+                <thead>
+                  <tr className="border-b border-border text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                    <th className="py-2 text-left">Date</th>
+                    <th className="py-2 text-right">Cash</th>
+                    <th className="py-2 text-right">Wallet</th>
+                    <th className="py-2 text-right">Bank / QR</th>
+                    <th className="py-2 text-right">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {breakdown.days.map((d) => (
+                    <tr key={d.date} className="border-b border-border/50 last:border-0">
+                      <td className="py-2 font-medium text-foreground">{fmtDay(d.date)}</td>
+                      <td className="py-2 text-right font-mono text-emerald-600">{fmtVnd(d.byMethod.cash)}</td>
+                      <td className="py-2 text-right font-mono text-purple-600">{fmtVnd(d.byMethod.wallet)}</td>
+                      <td className="py-2 text-right font-mono text-sky-600">{fmtVnd(d.byMethod.online)}</td>
+                      <td className="py-2 text-right font-mono font-bold text-foreground">{fmtVnd(d.total)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Lịch sử giao dịch */}
       <Card className="border border-slate-200/80 bg-white shadow-sm overflow-hidden rounded-2xl">

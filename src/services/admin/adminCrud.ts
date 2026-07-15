@@ -25,9 +25,11 @@ export interface UpdateAdminUserInput {
 export interface CreateBuildingInput {
   name: string;
   code: string;
-  totalFloors: number;
-  hourlyRate: number;
   fullAddress?: string;
+  // Floors & pricing do managers set up themselves (floors + PricePolicy). Admin chỉ
+  // tạo khung tòa nhà; BE vẫn yêu cầu 2 field này nên gửi giá trị khởi tạo tối thiểu.
+  totalFloors?: number;
+  hourlyRate?: number;
 }
 
 export interface UpdateBuildingInput {
@@ -133,9 +135,10 @@ export async function createBuilding(token: string, payload: CreateBuildingInput
     body: {
       name: payload.name,
       code: payload.code,
-      totalFloors: Number(payload.totalFloors),
+      // Khởi tạo tối thiểu để qua validator BE; manager sẽ tạo floor thật + PricePolicy.
+      totalFloors: Number(payload.totalFloors ?? 1),
       pricing: {
-        hourlyRate: Number(payload.hourlyRate),
+        hourlyRate: Number(payload.hourlyRate ?? 0),
       },
       operatingHours: {
         open: '06:00',

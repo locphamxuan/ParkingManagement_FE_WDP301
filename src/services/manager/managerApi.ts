@@ -207,7 +207,19 @@ export interface BuildingWallet {
   _id: string;
   building: string;
   balance: number;
+  /** Tổng tiền vào ví (gồm cả top-up) — KHÔNG dùng làm "tổng doanh thu". */
+  totalReceived?: number;
   updatedAt: string;
+}
+
+/** Doanh thu theo ngày × phương thức + tổng doanh thu all-time (loại top-up). */
+export interface RevenueBreakdown {
+  allTimeTotal: number;
+  days: {
+    date: string;
+    total: number;
+    byMethod: { cash: number; wallet: number; online: number };
+  }[];
 }
 
 export interface BuildingWalletTransaction {
@@ -390,6 +402,8 @@ export const managerApi = {
       api.get<Wrap<DailyRevenueResult>>(path(b, '/wallet/daily-revenue'), {
         query: date ? { date } : undefined,
       }),
+    getRevenueBreakdown: (b: string, q?: { from?: string; to?: string }) =>
+      api.get<Wrap<RevenueBreakdown>>(path(b, '/wallet/revenue-breakdown'), { query: q }),
     listTransactions: (b: string, q?: Record<string, string | undefined>) =>
       api.get<Wrap<{ items: BuildingWalletTransaction[] }>>(path(b, '/wallet/transactions'), { query: q }),
 

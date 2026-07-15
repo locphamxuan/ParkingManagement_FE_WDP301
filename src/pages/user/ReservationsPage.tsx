@@ -456,7 +456,14 @@ export default function ReservationsPage() {
 
   /* ── Render ── */
   return (
-    <main className="min-h-screen bg-[#060a11] text-slate-100">
+    <main className="min-h-screen text-slate-100 relative isolate">
+      {/* Background */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10 bg-[#060a11]" aria-hidden="true">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(6,10,17,0.1)_0%,rgba(6,10,17,0.60)_100%)] pointer-events-none" />
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[55%] rounded-full bg-[radial-gradient(circle_at_center,hsla(24,95%,53%,0.08),transparent_55%)] blur-3xl" />
+        <div className="absolute top-[35%] right-[-15%] w-[60%] h-[60%] rounded-full bg-[radial-gradient(circle_at_center,hsla(263,90%,51%,0.07),transparent_55%)] blur-3xl" />
+        <div className="absolute bottom-[-10%] left-[20%] w-[50%] h-[50%] rounded-full bg-[radial-gradient(circle_at_center,hsla(142,76%,45%,0.04),transparent_50%)] blur-3xl" />
+      </div>
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
 
         {/* ── Header ── */}

@@ -418,12 +418,12 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
   return (
     <main id="top" className="min-h-screen text-slate-100 font-sans selection:bg-orange-500 selection:text-white relative isolate">
 
-      {/* Background Neon Glow Spheres — fixed so they never cause scroll issues */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10 bg-slate-950" aria-hidden="true">
+      {/* Background Neon Glow Spheres — absolute so it scrolls naturally and doesn't overlap the header */}
+      <div className="absolute inset-x-0 top-0 h-[100vh] pointer-events-none overflow-hidden -z-10 bg-slate-950" aria-hidden="true">
         {/* Subtle Blurred Background Image */}
         <div 
           className="absolute inset-0 opacity-[0.38] filter blur-[4px] bg-cover pointer-events-none"
-          style={{ backgroundImage: `url(${back1})`, backgroundPosition: 'center 85%' }}
+          style={{ backgroundImage: `url(${back1})`, backgroundPosition: 'center 80px' }}
         />
         {/* Radial dark gradient overlay to ensure text readability in the center */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(2,6,23,0.3)_0%,rgba(2,6,23,0.85)_100%)] pointer-events-none" />

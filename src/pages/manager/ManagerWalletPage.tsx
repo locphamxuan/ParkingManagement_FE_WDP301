@@ -19,10 +19,14 @@ import {
   type BuildingWallet,
   type BuildingWalletTransaction,
   type DailyRevenueResult,
+  type RevenueBreakdown,
 } from '@/services/manager/managerApi';
 
 const fmtVnd = (n: number | null | undefined) =>
   n != null ? `${n.toLocaleString('vi-VN')} ₫` : '—';
+
+const fmtDay = (s: string) =>
+  new Date(`${s}T00:00:00`).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
 
 const fmtTime = (iso: string) =>
   new Date(iso).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' });
@@ -39,6 +43,7 @@ export function ManagerWalletPage() {
 
   const [wallet, setWallet] = useState<BuildingWallet | null>(null);
   const [daily, setDaily] = useState<DailyRevenueResult | null>(null);
+  const [breakdown, setBreakdown] = useState<RevenueBreakdown | null>(null);
   const [transactions, setTransactions] = useState<BuildingWalletTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,13 +59,15 @@ export function ManagerWalletPage() {
     setLoading(true);
     setError(null);
     try {
-      const [walletRes, dailyRes, txRes] = await Promise.all([
+      const [walletRes, dailyRes, breakdownRes, txRes] = await Promise.all([
         managerApi.wallet.get(buildingId),
         managerApi.wallet.getDailyRevenue(buildingId),
+        managerApi.wallet.getRevenueBreakdown(buildingId),
         managerApi.wallet.listTransactions(buildingId),
       ]);
       setWallet((walletRes as { data?: { wallet: BuildingWallet } })?.data?.wallet ?? null);
       setDaily((dailyRes as { data?: DailyRevenueResult })?.data ?? null);
+      setBreakdown((breakdownRes as { data?: RevenueBreakdown })?.data ?? null);
       setTransactions((txRes as { data?: { items: BuildingWalletTransaction[] } })?.data?.items ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load wallet data');
@@ -209,7 +216,7 @@ export function ManagerWalletPage() {
       )}
 
       {/* Thẻ tổng quan */}
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-3">
         <Card>
           <CardContent className="p-5">
             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
@@ -222,12 +229,62 @@ export function ManagerWalletPage() {
         <Card>
           <CardContent className="p-5">
             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+              Total revenue
+            </p>
+            <p className="mt-2 text-2xl font-bold text-sky-500">{fmtVnd(breakdown?.allTimeTotal)}</p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">All-time parking revenue (excludes top-ups)</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-5">
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               Revenue today
             </p>
             <p className="mt-2 text-2xl font-bold text-emerald-400">{fmtVnd(daily?.totalRevenue)}</p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Doanh thu theo NGÀY × phương thức thanh toán */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <TrendingUp size={15} className="text-primary" />
+            Daily revenue by payment method
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {!breakdown || breakdown.days.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4 text-center">No revenue in the last 14 days.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[520px] text-sm">
+                <thead>
+                  <tr className="border-b border-border text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                    <th className="py-2 text-left">Date</th>
+                    <th className="py-2 text-right">Cash</th>
+                    <th className="py-2 text-right">Wallet</th>
+                    <th className="py-2 text-right">Bank / QR</th>
+                    <th className="py-2 text-right">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {breakdown.days.map((d) => (
+                    <tr key={d.date} className="border-b border-border/50 last:border-0">
+                      <td className="py-2 font-medium text-foreground">{fmtDay(d.date)}</td>
+                      <td className="py-2 text-right font-mono text-emerald-600">{fmtVnd(d.byMethod.cash)}</td>
+                      <td className="py-2 text-right font-mono text-purple-600">{fmtVnd(d.byMethod.wallet)}</td>
+                      <td className="py-2 text-right font-mono text-sky-600">{fmtVnd(d.byMethod.online)}</td>
+                      <td className="py-2 text-right font-mono font-bold text-foreground">{fmtVnd(d.total)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Lịch sử giao dịch */}
       <Card>

@@ -21,6 +21,13 @@ export interface MyShift {
   workDate: string;
   status: 'scheduled' | 'active' | 'completed' | 'cancelled';
   note?: string;
+  /** Báo cáo doanh thu cuối ca (staff tự gửi cho manager). */
+  revenueReport?: {
+    submittedAt: string;
+    total: number;
+    count: number;
+    byMethod: { cash: number; wallet: number; online: number };
+  } | null;
 }
 
 export interface ParkingSession {
@@ -241,7 +248,7 @@ export const staffApi = {
   // Slot trống của tòa nhà — có thể lọc theo loại xe + đối tượng để chỉ hiện slot
   // tương thích lúc check-in; trả kèm suggestedSlotId (slot gợi ý) để FE highlight.
   freeSlots: (buildingId: string, opts?: { vehicleType?: string; usageType?: string }) =>
-    api.get<Wrap<{ items: FreeSlot[]; suggestedSlotId: string | null }>>(
+    api.get<Wrap<{ items: FreeSlot[]; suggestedSlotId: string | null; totalSlots?: number; totalAvailable?: number }>>(
       '/staff/parking-sessions/free-slots',
       { query: { building: buildingId, vehicleType: opts?.vehicleType, usageType: opts?.usageType } }
     ),

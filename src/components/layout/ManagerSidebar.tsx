@@ -81,26 +81,34 @@ export function ManagerSidebar({ collapsed, onToggle, variant = 'desktop', onNav
   return (
     <aside
       className={cn(
-        'border-sky-100 bg-white p-4 transition-all duration-350 ease-in-out shrink-0',
+        'border-slate-200/80 bg-gradient-to-b from-slate-50 to-slate-100/50 p-4 transition-all duration-350 ease-in-out shrink-0',
         isDrawer
           ? 'block h-full w-full'
           : cn(
-              'sticky top-0 hidden h-screen border-r shadow-[4px_0_30px_rgba(14,165,233,0.015)] lg:block',
+              'sticky top-0 hidden h-screen border-r shadow-[4px_0_30px_rgba(37,99,235,0.015)] lg:block',
               collapsed ? 'w-[84px]' : 'w-[264px]',
             ),
       )}
     >
-      <div className="mb-6 flex items-center justify-between rounded-2xl border border-sky-100 bg-sky-50/50 p-3 shadow-sm">
-        {!collapsed ? (
-          <div className="pl-1">
-            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-sky-600">Environment</p>
-            <p className="text-xs font-extrabold text-slate-800">MANAGER PORTAL</p>
+      <div className={cn(
+        "flex items-center justify-between mb-6 pb-4 border-b border-slate-200/50",
+        collapsed ? "px-1 flex-col gap-3" : "px-2"
+      )}>
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-650 flex items-center justify-center text-white shadow-md shadow-blue-500/15 shrink-0">
+            <Fingerprint size={18} className="animate-pulse" />
           </div>
-        ) : (
-          <Fingerprint className="text-sky-500 h-5 w-5 mx-auto animate-pulse" />
-        )}
+          {!collapsed && (
+            <div>
+              <span className="font-extrabold text-xs text-slate-800 tracking-tight block leading-tight">Operations System</span>
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider bg-blue-50 text-blue-600 border border-blue-100 mt-1">
+                MANAGER PORTAL
+              </span>
+            </div>
+          )}
+        </div>
         {!isDrawer && (
-          <Button size="sm" variant="ghost" onClick={onToggle} className="h-7 w-7 rounded-lg p-0 hover:bg-sky-100/50 text-slate-400 hover:text-sky-600">
+          <Button size="sm" variant="ghost" onClick={onToggle} className="h-7 w-7 rounded-lg p-0 hover:bg-slate-200/60 text-slate-400 hover:text-slate-655 shrink-0">
             <ChevronLeft className={cn('h-3.5 w-3.5 transition-all duration-300', collapsed && 'rotate-180')} />
           </Button>
         )}
@@ -114,7 +122,7 @@ export function ManagerSidebar({ collapsed, onToggle, variant = 'desktop', onNav
                 {group.category}
               </p>
             ) : gIdx > 0 ? (
-              <div className="my-2 border-t border-sky-100/50 mx-2" />
+              <div className="my-2 border-t border-slate-200/50 mx-2" />
             ) : null}
             {group.items.map((module) => {
               const Icon = module.icon;
@@ -126,15 +134,29 @@ export function ManagerSidebar({ collapsed, onToggle, variant = 'desktop', onNav
                   onClick={onNavigate}
                   className={({ isActive }) =>
                     cn(
-                      'flex items-center gap-3.5 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all duration-300',
+                      'flex items-center gap-3.5 rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all duration-300 relative group',
                       isActive
-                        ? 'bg-sky-500 text-white shadow-md shadow-sky-500/10'
-                        : 'text-slate-500 hover:bg-sky-50/50 hover:text-sky-600',
+                        ? 'bg-blue-500/10 text-blue-650 scale-[1.01] pl-4'
+                        : 'text-slate-500 hover:bg-slate-200/50 hover:text-blue-600 pl-4 hover:translate-x-0.5',
                     )
                   }
                 >
-                  <Icon size={15} className="shrink-0" />
-                  {!collapsed ? <span className="tracking-wide">{module.label}</span> : null}
+                  {({ isActive }) => (
+                    <>
+                      <Icon 
+                        size={15} 
+                        className={cn(
+                          "shrink-0 transition-transform duration-200 group-hover:scale-110",
+                          isActive ? "text-blue-600" : "text-slate-400 group-hover:text-blue-600"
+                        )} 
+                      />
+                      {!collapsed ? (
+                        <span className={cn('tracking-wide transition-all duration-200', isActive ? 'text-blue-600 font-extrabold' : 'text-slate-600 font-bold group-hover:text-blue-600')}>
+                          {module.label}
+                        </span>
+                      ) : null}
+                    </>
+                  )}
                 </NavLink>
               );
             })}

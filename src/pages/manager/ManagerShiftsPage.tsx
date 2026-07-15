@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+﻿import { useCallback, useEffect, useState } from 'react';
+import { Pencil, Plus, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DataTable, type DataColumn } from '@/components/common/DataTable';
@@ -134,18 +134,28 @@ export function ManagerShiftsPage() {
   ];
 
   return (
-    <div className="grid gap-4">
+    <div className="space-y-4">
+      {/* Top action row */}
       <div className="flex justify-end">
-        <Button onClick={openCreate} className="gap-2">
-          <Plus size={14} /> Add shift
+        <Button
+          onClick={openCreate}
+          className="h-10 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-wider shadow-sm transition-all duration-200 active:scale-[0.98]"
+        >
+          <Plus size={14} className="stroke-[3] mr-1.5" /> Add shift
         </Button>
       </div>
+
       {loading ? (
-        <div className="text-sm text-muted-foreground">Loading...</div>
+        <div className="flex items-center gap-2 text-slate-650 text-xs font-bold p-8 justify-center bg-white rounded-2xl border border-slate-200/80 shadow-sm">
+          <Loader2 className="animate-spin mr-2" size={16} />
+          <span>Loading shift templates...</span>
+        </div>
       ) : error ? (
-        <div className="text-sm text-red-600">{error}</div>
+        <p className="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 p-3.5 rounded-2xl">{error}</p>
       ) : (
-        <DataTable title="Shifts" rows={items} columns={columns} />
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm">
+          <DataTable title="Shifts" rows={items} columns={columns} />
+        </div>
       )}
 
       <ModalForm

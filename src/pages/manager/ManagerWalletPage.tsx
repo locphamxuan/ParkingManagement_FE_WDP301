@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+﻿import { useCallback, useEffect, useState } from 'react';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -9,6 +9,7 @@ import {
   Wallet,
   Plus,
   ExternalLink,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -120,40 +121,55 @@ export function ManagerWalletPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <RefreshCw size={14} className="animate-spin" /> Loading building wallet...
+      <div className="flex items-center gap-2 text-slate-650 text-xs font-bold p-8 justify-center bg-white rounded-2xl border border-slate-200/80 shadow-sm max-w-6xl mx-auto">
+        <Loader2 size={16} className="animate-spin mr-2" /> Loading building wallet...
       </div>
     );
   }
 
   return (
-    <div className="grid gap-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Wallet size={22} className="text-primary" />
+    <div className="space-y-6 max-w-6xl mx-auto">
+      {/* Premium Header Hero Card */}
+      <div className="premium-hero-card relative overflow-hidden rounded-3xl border-2 border-blue-100 bg-gradient-to-br from-white via-blue-50/5 to-indigo-50/10 p-6 shadow-md transition-all duration-300">
+        {/* Ambient Glows */}
+        <div className="absolute -right-16 -top-16 h-36 w-36 rounded-full bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.06),transparent_70%)] pointer-events-none blur-2xl animate-pulse" />
+        
+        <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-base font-bold text-foreground">Building wallet</h2>
-            <p className="text-xs text-muted-foreground">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-blue-600 text-[9px] font-black uppercase tracking-widest text-white shadow-sm font-mono">
+              Finance & Balance
+            </div>
+            <h1 className="mt-2 text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+              <Wallet size={20} className="text-blue-600 animate-pulse stroke-[2.5]" />
+              Building Wallet
+            </h1>
+            <p className="mt-1 text-xs font-bold text-slate-500">
               All parking revenue is retained 100% in the building wallet.
             </p>
           </div>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="secondary" onClick={refresh} className="gap-2 text-xs">
-            <RefreshCw size={13} /> Refresh
-          </Button>
-          <Button onClick={() => setTopupOpen((v) => !v)} className="gap-2 text-xs">
-            <Plus size={13} /> Top up
-          </Button>
+          <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+            <Button
+              variant="outline"
+              onClick={refresh}
+              className="h-11 px-5 rounded-xl border-slate-200 bg-white text-slate-700 hover:bg-slate-50 font-black text-xs uppercase tracking-wider shadow-sm transition-all duration-200"
+            >
+              <RefreshCw size={13} className="mr-1.5" /> Refresh
+            </Button>
+            <Button
+              onClick={() => setTopupOpen((v) => !v)}
+              className="h-11 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-wider shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+            >
+              <Plus size={13} className="stroke-[3] mr-1.5" /> Top up
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Nạp ví tòa nhà (PayOS) */}
       {topupOpen && (
-        <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card/50 p-4">
+        <div className="flex flex-wrap items-end gap-4 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">
               Top-up amount (VND)
             </label>
             <Input
@@ -161,28 +177,42 @@ export function ManagerWalletPage() {
               min={1}
               value={topupAmount}
               onChange={(e) => setTopupAmount(e.target.value)}
-              placeholder="VD: 500000"
-              className="w-48"
+              placeholder="e.g. 500000"
+              className="w-56 h-11 rounded-xl bg-white border-blue-105 text-slate-800 focus:border-blue-500/40"
             />
           </div>
-          <Button onClick={handleInitiateTopup} disabled={topupBusy} className="gap-2">
-            {topupBusy ? <RefreshCw size={13} className="animate-spin" /> : <ExternalLink size={13} />}
+          <Button
+            onClick={handleInitiateTopup}
+            disabled={topupBusy}
+            className="h-11 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-wider shadow-sm transition-all duration-200 active:scale-[0.98] gap-2"
+          >
+            {topupBusy ? <Loader2 size={13} className="animate-spin" /> : <ExternalLink size={13} />}
             Create PayOS payment code
           </Button>
         </div>
       )}
 
       {pendingTopup && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-500/25 bg-amber-500/5 px-4 py-3">
-          <p className="text-sm text-amber-300">
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-amber-250 bg-amber-50 px-5 py-4 shadow-sm text-slate-850">
+          <p className="text-xs font-bold text-amber-800">
             Awaiting payment {fmtVnd(pendingTopup.amount)}. Complete it on the PayOS gateway then confirm.
           </p>
           <div className="flex gap-2">
-            <Button variant="secondary" size="sm" onClick={() => window.open(pendingTopup.checkoutUrl, '_blank', 'noopener')} className="gap-1.5">
-              <ExternalLink size={13} /> Reopen gateway
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.open(pendingTopup.checkoutUrl, '_blank', 'noopener')}
+              className="h-10 px-4 rounded-xl border-amber-200 bg-white text-amber-700 hover:bg-amber-100/50 font-black text-[10px] uppercase tracking-wider shadow-sm"
+            >
+              <ExternalLink size={12} className="mr-1.5" /> Reopen gateway
             </Button>
-            <Button size="sm" onClick={handleVerifyTopup} disabled={topupBusy} className="gap-1.5">
-              {topupBusy ? <RefreshCw size={13} className="animate-spin" /> : <CheckCircle2 size={13} />}
+            <Button
+              size="sm"
+              onClick={handleVerifyTopup}
+              disabled={topupBusy}
+              className="h-10 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-black text-[10px] uppercase tracking-wider shadow-sm"
+            >
+              {topupBusy ? <Loader2 size={12} className="animate-spin mr-1.5" /> : <CheckCircle2 size={12} className="mr-1.5" />}
               I have paid
             </Button>
           </div>
@@ -190,17 +220,15 @@ export function ManagerWalletPage() {
       )}
 
       {error && (
-        <div className="flex items-center gap-2 rounded-lg border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-400">
-          <AlertTriangle size={14} className="shrink-0" /> {error}
-        </div>
+        <p className="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 p-3.5 rounded-2xl">{error}</p>
       )}
 
       {message && (
         <div
-          className={`flex items-center gap-2 rounded-lg border px-4 py-3 text-sm ${
+          className={`flex items-center gap-2 rounded-2xl border px-4 py-3.5 text-xs font-bold ${
             message.type === 'ok'
-              ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
-              : 'border-rose-500/30 bg-rose-500/10 text-rose-400'
+              ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+              : 'border-rose-200 bg-rose-50 text-rose-700'
           }`}
         >
           {message.type === 'ok' ? <CheckCircle2 size={14} /> : <AlertTriangle size={14} />}
@@ -210,68 +238,70 @@ export function ManagerWalletPage() {
 
       {/* Thẻ tổng quan */}
       <div className="grid gap-4 sm:grid-cols-2">
-        <Card>
-          <CardContent className="p-5">
-            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              Current balance
-            </p>
-            <p className="mt-2 text-2xl font-bold text-foreground">{fmtVnd(wallet?.balance)}</p>
-          </CardContent>
-        </Card>
+        <div className="rounded-2xl border border-slate-200/80 border-l-4 border-l-blue-500 bg-white p-5 shadow-sm hover:scale-[1.01] hover:shadow-md transition-all duration-300 flex items-center justify-between group select-none">
+          <div>
+            <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">Current balance</p>
+            <p className="mt-1.5 text-xl font-black text-slate-800 font-mono group-hover:text-blue-755 transition-colors">{fmtVnd(wallet?.balance)}</p>
+          </div>
+          <div className="p-2.5 rounded-xl border border-blue-100 bg-blue-50/50 text-blue-650 shrink-0">
+            <Wallet size={16} className="stroke-[2.5]" />
+          </div>
+        </div>
 
-        <Card>
-          <CardContent className="p-5">
-            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              Revenue today
-            </p>
-            <p className="mt-2 text-2xl font-bold text-emerald-400">{fmtVnd(daily?.totalRevenue)}</p>
-          </CardContent>
-        </Card>
+        <div className="rounded-2xl border border-slate-200/80 border-l-4 border-l-emerald-500 bg-white p-5 shadow-sm hover:scale-[1.01] hover:shadow-md transition-all duration-300 flex items-center justify-between group select-none">
+          <div>
+            <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">Revenue today</p>
+            <p className="mt-1.5 text-xl font-black text-emerald-755 font-mono group-hover:text-emerald-800 transition-colors">{fmtVnd(daily?.totalRevenue)}</p>
+          </div>
+          <div className="p-2.5 rounded-xl border border-emerald-100 bg-emerald-50/50 text-emerald-650 shrink-0">
+            <TrendingUp size={16} className="stroke-[2.5]" />
+          </div>
+        </div>
       </div>
 
       {/* Lịch sử giao dịch */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-sm">
-            <Clock size={15} className="text-primary" />
-            Recent transactions
+      <Card className="border border-slate-200/80 bg-white shadow-sm overflow-hidden rounded-2xl">
+        <CardHeader className="border-b border-slate-100 bg-slate-50/30 p-5">
+          <CardTitle className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-2">
+            <Clock size={14} className="text-blue-600 stroke-[2.5]" />
+            Recent Transactions
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           {transactions.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-4 text-center">No transactions.</p>
+            <p className="text-xs text-slate-500 italic py-6 text-center">No transactions recorded yet.</p>
           ) : (
-            <div className="grid gap-2">
+            <div className="grid gap-3">
               {transactions.map((tx) => {
                 const isCredit = tx.type === 'credit';
                 return (
                   <div
                     key={tx._id}
-                    className="flex items-center justify-between rounded-lg border border-border bg-card/50 px-4 py-3"
+                    className="flex items-center justify-between rounded-xl border border-slate-100 bg-white px-4 py-3 text-slate-800"
                   >
                     <div className="flex items-center gap-3">
                       <div
                         className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
-                          isCredit ? 'bg-emerald-500/15 text-emerald-400' : 'bg-rose-500/15 text-rose-400'
+                          isCredit ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
                         }`}
                       >
-                        {isCredit ? <TrendingUp size={13} /> : <ArrowUpRight size={13} />}
+                        {isCredit ? <TrendingUp size={12} className="stroke-[2.5]" /> : <ArrowUpRight size={12} className="stroke-[2.5]" />}
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-foreground">
+                        <p className="text-sm font-bold text-slate-800">
                           {TX_REASON_LABELS[tx.reason] ?? tx.reason}
                         </p>
-                        {tx.note && <p className="text-xs text-muted-foreground">{tx.note}</p>}
-                        <p className="text-xs text-muted-foreground">
-                          Balance after: {fmtVnd(tx.balanceAfter)}
+                        {tx.note && <p className="text-xs text-slate-450 font-medium">{tx.note}</p>}
+                        <p className="text-[10px] text-slate-400 font-bold font-mono">
+                          Balance: {fmtVnd(tx.balanceAfter)}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className={`font-mono font-bold ${isCredit ? 'text-emerald-400' : 'text-rose-400'}`}>
+                      <p className={`font-mono font-black ${isCredit ? 'text-emerald-700' : 'text-rose-700'}`}>
                         {isCredit ? '+' : '-'}{fmtVnd(tx.amount)}
                       </p>
-                      <p className="text-xs text-muted-foreground">{fmtTime(tx.createdAt)}</p>
+                      <p className="text-[10px] text-slate-450 font-bold font-mono">{fmtTime(tx.createdAt)}</p>
                     </div>
                   </div>
                 );

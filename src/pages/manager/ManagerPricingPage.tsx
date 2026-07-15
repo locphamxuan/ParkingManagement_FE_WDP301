@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Pencil, Plus, PowerOff } from 'lucide-react';
+﻿import { useCallback, useEffect, useState } from 'react';
+import { Pencil, Plus, PowerOff, Banknote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DataTable, type DataColumn } from '@/components/common/DataTable';
@@ -191,18 +191,47 @@ export function ManagerPricingPage() {
   ];
 
   return (
-    <div className="grid gap-4">
-      <div className="flex justify-end">
-        <Button onClick={openCreate} className="gap-2">
-          <Plus size={14} /> Create price policy
-        </Button>
+    <div className="space-y-6 max-w-6xl mx-auto">
+      {/* Premium Header Hero Card */}
+      <div className="premium-hero-card relative overflow-hidden rounded-3xl border-2 border-blue-100 bg-gradient-to-br from-white via-blue-50/5 to-indigo-50/10 p-6 shadow-md transition-all duration-300">
+        {/* Ambient Glows */}
+        <div className="absolute -right-16 -top-16 h-36 w-36 rounded-full bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.06),transparent_70%)] pointer-events-none blur-2xl animate-pulse" />
+        
+        <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-blue-600 text-[9px] font-black uppercase tracking-widest text-white shadow-sm font-mono">
+              Billing & Pricing
+            </div>
+            <h1 className="mt-2 text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+              <Banknote size={20} className="text-blue-600 animate-pulse stroke-[2.5]" />
+              Price Policies
+            </h1>
+            <p className="mt-1 text-xs font-bold text-slate-500">
+              Manage hourly rates, peak hours, and custom vehicle tariff rules.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+            <Button
+              onClick={openCreate}
+              className="h-11 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-wider shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+            >
+              <Plus size={14} className="stroke-[3] mr-1.5" /> Create price policy
+            </Button>
+          </div>
+        </div>
       </div>
+
       {loading ? (
-        <div className="text-sm text-muted-foreground">Loading...</div>
+        <div className="flex items-center gap-2 text-slate-650 text-xs font-bold p-8 justify-center bg-white rounded-2xl border-2 border-blue-100 shadow-sm">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent mr-2" />
+          <span>Loading pricing policies...</span>
+        </div>
       ) : error ? (
-        <div className="text-sm text-red-600">{error}</div>
+        <p className="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 p-3.5 rounded-2xl">{error}</p>
       ) : (
-        <DataTable title="Price policies" rows={items} columns={columns} />
+        <div className="bg-white rounded-2xl border-2 border-blue-100 p-6 shadow-sm">
+          <DataTable title="Price policies" rows={items} columns={columns} />
+        </div>
       )}
 
       <ModalForm

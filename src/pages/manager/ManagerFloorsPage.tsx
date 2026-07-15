@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+﻿import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Pencil, Plus, Trash2, Layers, Car, CheckCircle2, Settings, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DataTable, type DataColumn } from '@/components/common/DataTable';
@@ -159,20 +159,88 @@ export function ManagerFloorsPage() {
     [vehicleTypes]
   );
 
+  const totalCapacity = useMemo(() => items.reduce((acc, x) => acc + (x.capacity || 0), 0), [items]);
+  const activeFloorsCount = useMemo(() => items.filter((x) => x.status === 'active').length, [items]);
+  const uniqueVehicleTypesCount = useMemo(() => {
+    const ids = new Set<string>();
+    items.forEach((item) => {
+      item.allowedVehicleTypes?.forEach((v) => {
+        ids.add(typeof v === 'string' ? v : v._id);
+      });
+    });
+    return ids.size;
+  }, [items]);
+
   return (
-    <div className="grid gap-4">
-      <div className="flex justify-end">
-        <Button onClick={openCreate} className="gap-2">
-          <Plus size={14} /> Add floor
-        </Button>
+    <div className="space-y-6 max-w-6xl mx-auto">
+      {/* Premium Header Hero Card */}
+      <div className="premium-hero-card relative overflow-hidden rounded-3xl border-2 border-blue-100 bg-gradient-to-br from-white via-blue-50/5 to-indigo-50/10 p-6 shadow-md transition-all duration-300">
+        {/* Ambient Glows */}
+        <div className="absolute -right-16 -top-16 h-36 w-36 rounded-full bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.06),transparent_70%)] pointer-events-none blur-2xl animate-pulse" />
+        
+        <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-blue-600 text-[9px] font-black uppercase tracking-widest text-white shadow-sm font-mono">
+              Facility Structure
+            </div>
+            <h1 className="mt-2 text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+              <Layers size={20} className="text-blue-600 animate-pulse stroke-[2.5]" />
+              Floors & Levels
+            </h1>
+            <p className="mt-1 text-xs font-bold text-slate-500">
+              Configure building levels, slot capacities, and permitted vehicle classes.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+            <Button
+              onClick={openCreate}
+              className="h-11 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-wider shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+            >
+              <Plus size={14} className="stroke-[3] mr-1.5" /> Add floor
+            </Button>
+          </div>
+        </div>
       </div>
-      {loading ? (
-        <div className="text-sm text-muted-foreground">Loading...</div>
-      ) : error ? (
-        <div className="text-sm text-red-600">{error}</div>
-      ) : (
-        <DataTable title="Floors" rows={items} columns={columns} />
+
+      {/* Modern Low-Profile Summary Row (API Data Powered) */}
+      {!loading && !error && items.length > 0 && (
+        <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+          {[
+            { label: 'Total Levels', val: `${items.length} levels`, icon: Layers, borderLeft: 'border-l-blue-500', color: 'text-blue-650 bg-blue-50/50 border-blue-100' },
+            { label: 'Total Capacity', val: `${totalCapacity} slots`, icon: Car, borderLeft: 'border-l-indigo-500', color: 'text-indigo-650 bg-indigo-50/50 border-indigo-100' },
+            { label: 'Active Levels', val: `${activeFloorsCount} active`, icon: CheckCircle2, borderLeft: 'border-l-emerald-500', color: 'text-emerald-650 bg-emerald-50/50 border-emerald-100' },
+            { label: 'Vehicle Classes', val: `${uniqueVehicleTypesCount} classes`, icon: Settings, borderLeft: 'border-l-purple-500', color: 'text-purple-650 bg-purple-50/50 border-purple-100' },
+          ].map((stat, idx) => {
+            const Icon = stat.icon;
+            return (
+              <div key={idx} className={`rounded-2xl border border-slate-200/80 border-l-4 ${stat.borderLeft} bg-white p-4 shadow-sm hover:scale-[1.01] hover:shadow-md transition-all duration-300 flex items-center justify-between group select-none`}>
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">{stat.label}</p>
+                  <p className="mt-1.5 text-base font-black text-slate-800 font-mono group-hover:text-blue-755 transition-colors">{stat.val}</p>
+                </div>
+                <div className={`p-2.5 rounded-xl border ${stat.color} group-hover:scale-105 transition-transform duration-355 shrink-0`}>
+                  <Icon size={15} className="stroke-[2.5]" />
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
+
+      {/* Main Table Card */}
+      {loading ? (
+        <div className="flex items-center gap-2 text-slate-650 text-xs font-bold p-8 justify-center bg-white rounded-2xl border border-slate-200/80 shadow-sm">
+          <Loader2 className="animate-spin mr-2" size={16} />
+          <span>Loading floor configurations...</span>
+        </div>
+      ) : error ? (
+        <p className="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 p-3.5 rounded-2xl">{error}</p>
+      ) : (
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm">
+          <DataTable title="Floors" rows={items} columns={columns} />
+        </div>
+      )}
+
       <ModalForm
         open={modalOpen}
         onOpenChange={setModalOpen}
@@ -181,29 +249,31 @@ export function ManagerFloorsPage() {
       >
         <div className="grid gap-3 md:grid-cols-2">
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Floor name</label>
+            <label className="text-xs font-bold text-slate-600 uppercase tracking-wide">Floor name</label>
             <Input
               value={form.name}
               placeholder="e.g. Floor 1, Basement B1"
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              className="h-11 rounded-xl"
             />
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-[10px] font-bold text-slate-500 mt-1">
               {editing
                 ? `Floor code: ${editing.code} (auto-generated, cannot be changed)`
                 : 'The floor code is auto-generated from the name (e.g. "Floor 1" → F1).'}
             </p>
           </div>
           <div className="grid gap-1.5">
-            <label className="text-xs uppercase text-muted-foreground">Capacity</label>
+            <label className="text-xs font-bold text-slate-600 uppercase tracking-wide">Capacity</label>
             <Input
               type="number"
               min={0}
               value={form.capacity}
               onChange={(e) => setForm((f) => ({ ...f, capacity: e.target.value }))}
+              className="h-11 rounded-xl"
             />
           </div>
           <div className="grid gap-1.5 md:col-span-2">
-            <label className="text-xs uppercase text-muted-foreground">Status</label>
+            <label className="text-xs font-bold text-slate-600 uppercase tracking-wide">Status</label>
             <CustomSelect
               value={form.status}
               onChange={(val) => setForm((f) => ({ ...f, status: val as Floor['status'] }))}
@@ -215,10 +285,10 @@ export function ManagerFloorsPage() {
             />
           </div>
           <div className="grid gap-1.5 md:col-span-2">
-            <label className="text-xs uppercase text-muted-foreground">Allowed vehicle types</label>
+            <label className="text-xs font-bold text-slate-600 uppercase tracking-wide">Allowed vehicle types</label>
             <div className="flex flex-wrap gap-2">
               {vehicleTypes.length === 0 ? (
-                <p className="text-xs text-muted-foreground">No vehicle types. Create them first.</p>
+                <p className="text-xs text-slate-500 italic">No vehicle types. Create them first.</p>
               ) : (
                 vehicleTypes.map((vt) => {
                   const active = form.allowedVehicleTypes.includes(vt._id);
@@ -227,10 +297,10 @@ export function ManagerFloorsPage() {
                       type="button"
                       key={vt._id}
                       onClick={() => toggleType(vt._id)}
-                      className={`rounded-full border px-3 py-1 text-xs ${
+                      className={`rounded-full border px-3.5 py-1.5 text-xs font-bold transition-all duration-200 ${
                         active
-                          ? 'border-primary bg-primary/15 text-primary'
-                          : 'border-border bg-muted/40 text-muted-foreground'
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-slate-200 bg-slate-50/50 text-slate-500 hover:border-slate-350'
                       }`}
                     >
                       {vt.code} - {vt.name}
@@ -242,7 +312,7 @@ export function ManagerFloorsPage() {
           </div>
         </div>
       </ModalForm>
-    <ConfirmModal
+      <ConfirmModal
         open={!!deleteTarget}
         onOpenChange={(o) => !o && setDeleteTarget(null)}
         title="Delete floor"

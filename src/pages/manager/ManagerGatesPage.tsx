@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
-import { ArrowRightLeft, LogIn, LogOut, Plus, Pencil, Trash2, X, Loader } from 'lucide-react';
+﻿import { useCallback, useEffect, useState } from 'react';
+import { ArrowRightLeft, LogIn, LogOut, Plus, Pencil, Trash2, X, Loader2, DoorOpen, CheckCircle2 } from 'lucide-react';
 import { DataTable, type DataColumn } from '@/components/common/DataTable';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -188,28 +188,84 @@ export function ManagerGatesPage() {
     },
   ];
 
+  const totalGates = items.length;
+  const entryGates = items.filter((x) => x.direction === 'in' || x.direction === 'both').length;
+  const exitGates = items.filter((x) => x.direction === 'out' || x.direction === 'both').length;
+  const activeGates = items.filter((x) => x.status === 'active').length;
+
   return (
-    <div className="grid gap-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Gates</h1>
-          <p className="text-sm text-muted-foreground">Create gates and choose a type: entry, exit or two-way.</p>
+    <div className="space-y-6 max-w-6xl mx-auto">
+      {/* Premium Header Hero Card */}
+      <div className="premium-hero-card relative overflow-hidden rounded-3xl border-2 border-blue-100 bg-gradient-to-br from-white via-blue-50/5 to-indigo-50/10 p-6 shadow-md transition-all duration-300">
+        {/* Ambient Glows */}
+        <div className="absolute -right-16 -top-16 h-36 w-36 rounded-full bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.06),transparent_70%)] pointer-events-none blur-2xl animate-pulse" />
+        
+        <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-blue-600 text-[9px] font-black uppercase tracking-widest text-white shadow-sm font-mono">
+              Facility Gates
+            </div>
+            <h1 className="mt-2 text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+              <DoorOpen size={20} className="text-blue-600 animate-pulse stroke-[2.5]" />
+              Gates & Gateways
+            </h1>
+            <p className="mt-1 text-xs font-bold text-slate-500">
+              Create gates and choose direction types: entry, exit, or two-way.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+            <Button
+              onClick={openCreate}
+              disabled={loading}
+              className="h-11 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-wider shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+            >
+              <Plus size={14} className="stroke-[3] mr-1.5" /> Add gate
+            </Button>
+          </div>
         </div>
-        <Button onClick={openCreate} className="gap-2" disabled={loading}>
-          <Plus size={16} /> Add gate
-        </Button>
       </div>
 
+      {/* Modern Low-Profile Summary Row (API Data Powered) */}
+      {!loading && !error && items.length > 0 && (
+        <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+          {[
+            { label: 'Total Gateways', val: `${totalGates} gates`, icon: DoorOpen, borderLeft: 'border-l-blue-500', color: 'text-blue-655 bg-blue-50/50 border-blue-105' },
+            { label: 'Entry Points', val: `${entryGates} lanes`, icon: LogIn, borderLeft: 'border-l-emerald-500', color: 'text-emerald-655 bg-emerald-50/50 border-emerald-105' },
+            { label: 'Exit Points', val: `${exitGates} lanes`, icon: LogOut, borderLeft: 'border-l-rose-500', color: 'text-rose-655 bg-rose-50/50 border-rose-105' },
+            { label: 'Active Status', val: `${activeGates} active`, icon: CheckCircle2, borderLeft: 'border-l-indigo-500', color: 'text-indigo-655 bg-indigo-50/50 border-indigo-105' },
+          ].map((stat, idx) => {
+            const Icon = stat.icon;
+            return (
+              <div key={idx} className={`rounded-2xl border border-slate-200/80 border-l-4 ${stat.borderLeft} bg-white p-4 shadow-sm hover:scale-[1.01] hover:shadow-md transition-all duration-300 flex items-center justify-between group select-none`}>
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">{stat.label}</p>
+                  <p className="mt-1.5 text-base font-black text-slate-800 font-mono group-hover:text-blue-755 transition-colors">{stat.val}</p>
+                </div>
+                <div className={`p-2.5 rounded-xl border ${stat.color} group-hover:scale-105 transition-transform duration-355 shrink-0`}>
+                  <Icon size={15} className="stroke-[2.5]" />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Main Table Card */}
       {loading ? (
-        <div className="text-sm text-muted-foreground">Loading...</div>
+        <div className="flex items-center gap-2 text-slate-650 text-xs font-bold p-8 justify-center bg-white rounded-2xl border border-slate-200/80 shadow-sm">
+          <Loader2 className="animate-spin mr-2" size={16} />
+          <span>Loading gate configurations...</span>
+        </div>
       ) : error ? (
-        <div className="text-sm text-red-600">{error}</div>
+        <p className="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 p-3.5 rounded-2xl">{error}</p>
       ) : items.length === 0 ? (
-        <div className="rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
-          No gates yet. Tap “Add gate” to create one.
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-8 text-center text-xs font-bold text-slate-500 italic shadow-sm">
+          No gates configured yet. Tap “Add gate” to create one.
         </div>
       ) : (
-        <DataTable title="Gates" rows={items} columns={columns} />
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm">
+          <DataTable title="Gates" rows={items} columns={columns} />
+        </div>
       )}
 
       <Modal isOpen={modalOpen} onClose={() => !submitting && setModalOpen(false)}>

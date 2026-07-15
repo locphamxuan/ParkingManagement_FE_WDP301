@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle,
   ArrowRight,
@@ -14,7 +14,7 @@ import {
   ShieldAlert,
   Ticket,
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
@@ -27,66 +27,198 @@ import {
   type StaffReservation,
 } from '@/services/staff/staffApi';
 
+/* ─── helpers ─── */
 function fmtTime(iso: string) {
   return new Date(iso).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
 }
-
 function fmtDateFull() {
   return new Date().toLocaleDateString('vi-VN', {
-    weekday: 'long',
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
+    weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric',
   });
 }
-
-function Skeleton({ className = '' }: { className?: string }) {
-  return <div className={`animate-pulse rounded bg-white/10 ${className}`} />;
-}
-
-interface StatCardProps {
-  label: string;
-  value: number | string;
-  icon: React.ElementType;
-  accent: string;
-  loading?: boolean;
-}
-
-function StatCard({ label, value, icon: Icon, accent, loading }: StatCardProps) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-slate-900/40 p-4">
-      <div className="flex items-center justify-between">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{label}</p>
-        <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${accent}`}>
-          <Icon size={15} />
-        </span>
-      </div>
-      {loading ? (
-        <Skeleton className="mt-2 h-8 w-12" />
-      ) : (
-        <p className="mt-1.5 text-3xl font-bold tabular-nums text-white">{value}</p>
-      )}
-    </div>
-  );
-}
-
 function formatSlotLocation(session: ParkingSession): string {
-  const floor = session.slot?.floor?.name || session.slot?.floor?.code || null;
+  const floor    = session.slot?.floor?.name || session.slot?.floor?.code || null;
   const slotCode = session.slot?.code || null;
   if (!floor && !slotCode) return 'Location —';
   if (!floor) return `Slot ${slotCode}`;
   if (!slotCode) return `Floor ${floor}`;
-  return `Floor ${floor} • Slot ${slotCode}`;
+  return `${floor} · Slot ${slotCode}`;
 }
 
+/* ─── Skeleton ─── */
+function Skeleton({ className = '' }: { className?: string }) {
+  return <div className={`animate-pulse rounded-lg bg-slate-200/70 ${className}`} />;
+}
+
+/* ─── 3D Tilt Action Card ─── */
+interface TiltCardProps {
+  to: string;
+  title: string;
+  subtitle: string;
+  gradFrom: string;
+  gradTo: string;
+  border: string;
+  shadow: string;
+  iconStyle: React.CSSProperties;
+  arrowColor: string;
+  icon: React.ElementType;
+}
+
+function TiltActionCard({ to, title, subtitle, gradFrom, gradTo, border, shadow, iconStyle, arrowColor, icon: Icon }: TiltCardProps) {
+  const ref = useRef<HTMLAnchorElement>(null);
+  const mx  = useMotionValue(0);
+  const my  = useMotionValue(0);
+  const sx  = useSpring(mx, { stiffness: 200, damping: 20 });
+  const sy  = useSpring(my, { stiffness: 200, damping: 20 });
+  const rx  = useTransform(sy, [-0.5, 0.5], [5, -5]);
+  const ry  = useTransform(sx, [-0.5, 0.5], [-5, 5]);
+
+  return (
+    <motion.a
+      ref={ref}
+      href={to}
+      style={{ rotateX: rx, rotateY: ry, transformPerspective: 900,
+        background: `linear-gradient(135deg, ${gradFrom}, ${gradTo})`,
+        border,
+      }}
+      whileHover={{ y: -6, boxShadow: shadow }}
+      transition={{ type: 'spring', stiffness: 280, damping: 22 }}
+      onMouseMove={e => {
+        const r = ref.current?.getBoundingClientRect();
+        if (!r) return;
+        mx.set((e.clientX - r.left) / r.width - 0.5);
+        my.set((e.clientY - r.top) / r.height - 0.5);
+      }}
+      onMouseLeave={() => { mx.set(0); my.set(0); }}
+      className="group relative block overflow-hidden rounded-2xl p-5 cursor-pointer"
+    >
+      {/* Shimmer */}
+      <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+        style={{ background: 'linear-gradient(108deg, transparent 36%, rgba(255,255,255,0.35) 50%, transparent 64%)' }} />
+
+      <div className="relative z-10 flex items-center gap-4">
+        <span className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-xl" style={iconStyle}>
+          <Icon size={23} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h3 className="text-[15px] font-extrabold text-slate-800 tracking-tight">{title}</h3>
+          <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p>
+        </div>
+        <ArrowRight size={18} style={{ color: arrowColor, flexShrink: 0 }}
+          className="transition-all duration-300 group-hover:translate-x-1.5 group-hover:scale-110" />
+      </div>
+    </motion.a>
+  );
+}
+
+/* ─── Stat Card ─── */
+interface StatCardProps {
+  label: string;
+  value: number | string;
+  icon: React.ElementType;
+  topLine: string;
+  iconBg: string;
+  iconColor: string;
+  valueColor: string;
+  loading?: boolean;
+  delay?: number;
+}
+
+function StatCard({ label, value, icon: Icon, topLine, iconBg, iconColor, valueColor, loading, delay = 0 }: StatCardProps) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
+      whileHover={{ y: -5, scale: 1.025 }}
+      className="relative overflow-hidden rounded-2xl p-4"
+      style={{
+        background: 'rgba(255,255,255,0.75)',
+        border: '1px solid rgba(14,165,233,0.1)',
+        boxShadow: '0 2px 16px rgba(14,165,233,0.05), inset 0 1px 0 rgba(255,255,255,0.9)',
+        backdropFilter: 'blur(12px)',
+      }}
+    >
+      {/* Top colour line */}
+      <div className="absolute top-0 left-4 right-4 h-0.5 rounded-full" style={{ background: topLine }} />
+
+      <div className="flex items-center justify-between">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ background: iconBg }}>
+          <Icon size={14} style={{ color: iconColor }} />
+        </span>
+      </div>
+
+      {loading ? (
+        <Skeleton className="mt-3 h-10 w-14" />
+      ) : (
+        <p className="mt-2 text-4xl font-black tabular-nums leading-none" style={{ color: valueColor }}>
+          {value}
+        </p>
+      )}
+    </motion.div>
+  );
+}
+
+import { LicensePlate } from '@/components/common/LicensePlate';
+
+/* ─── License Plate Box ─── */
+function PlateBox({ session }: { session: ParkingSession }) {
+  const isMotor = session.vehicleType?.name?.toLowerCase().includes('xe máy') ||
+    session.vehicleType?.name?.toLowerCase().includes('motor') ||
+    session.vehicleType?.name?.toLowerCase().includes('motorbike');
+
+  return (
+    <motion.div
+      whileHover={{ y: -3, scale: 1.015 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+      className="flex items-center gap-3 rounded-xl p-3"
+      style={{
+        background: 'rgba(255,255,255,0.6)',
+        border: '1px solid rgba(14,165,233,0.1)',
+        boxShadow: '0 1px 8px rgba(14,165,233,0.05)',
+      }}
+    >
+      <LicensePlate plateNumber={session.plateNumber} />
+
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          {isMotor ? '— Motorcycle' : '— Car'}
+        </p>
+        <p className="truncate text-xs font-semibold text-slate-700">{formatSlotLocation(session)}</p>
+        <p className="text-[11px] text-slate-400">In at {fmtTime(session.entryTime)}</p>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ─── Glass Section ─── */
+function GlassCard({ children, accentLine, className = '' }: { children: React.ReactNode; accentLine: string; className?: string }) {
+  return (
+    <div
+      className={`relative overflow-hidden rounded-2xl p-5 ${className}`}
+      style={{
+        background: 'rgba(255,255,255,0.72)',
+        border: '1px solid rgba(14,165,233,0.1)',
+        boxShadow: '0 4px 24px rgba(14,165,233,0.06), inset 0 1px 0 rgba(255,255,255,0.9)',
+        backdropFilter: 'blur(14px)',
+      }}
+    >
+      <div className="absolute top-0 left-0 right-0 h-0.5 rounded-full" style={{ background: accentLine }} />
+      {children}
+    </div>
+  );
+}
+
+/* ─── Main Page ─── */
 export function StaffDashboardPage() {
   const { building } = useBuildingContext();
-  const [shifts, setShifts] = useState<MyShift[]>([]);
-  const [sessions, setSessions] = useState<ParkingSession[]>([]);
-  const [incidents, setIncidents] = useState<StaffIncident[]>([]);
+  const [shifts, setShifts]             = useState<MyShift[]>([]);
+  const [sessions, setSessions]         = useState<ParkingSession[]>([]);
+  const [incidents, setIncidents]       = useState<StaffIncident[]>([]);
   const [reservations, setReservations] = useState<StaffReservation[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading]           = useState(true);
+  const [error, setError]               = useState<string | null>(null);
 
   useEffect(() => {
     const buildingId = building?._id;
@@ -98,93 +230,82 @@ export function StaffDashboardPage() {
     ])
       .then(([shiftRes, sessionRes, incidentRes, resRes]) => {
         setShifts(extractShifts(shiftRes as Parameters<typeof extractShifts>[0]));
-
-        const rawSessions =
-          (sessionRes as { data?: { items?: ParkingSession[] } | ParkingSession[] })?.data;
-        setSessions(
-          Array.isArray(rawSessions)
-            ? rawSessions
-            : (rawSessions as { items?: ParkingSession[] })?.items ?? [],
-        );
-
-        const rawInc =
-          (incidentRes as { data?: { items?: StaffIncident[] } | StaffIncident[] })?.data;
-        setIncidents(
-          Array.isArray(rawInc) ? rawInc : (rawInc as { items?: StaffIncident[] })?.items ?? [],
-        );
-
-        const rawRes = (resRes as { data?: { items?: StaffReservation[] } })?.data?.items ?? [];
-        setReservations(Array.isArray(rawRes) ? rawRes : []);
-
+        const rawS = (sessionRes as { data?: { items?: ParkingSession[] } | ParkingSession[] })?.data;
+        setSessions(Array.isArray(rawS) ? rawS : (rawS as { items?: ParkingSession[] })?.items ?? []);
+        const rawI = (incidentRes as { data?: { items?: StaffIncident[] } | StaffIncident[] })?.data;
+        setIncidents(Array.isArray(rawI) ? rawI : (rawI as { items?: StaffIncident[] })?.items ?? []);
+        const rawR = (resRes as { data?: { items?: StaffReservation[] } })?.data?.items ?? [];
+        setReservations(Array.isArray(rawR) ? rawR : []);
         setError(null);
       })
-      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load data'))
+      .catch(e => setError(e instanceof Error ? e.message : 'Failed to load data'))
       .finally(() => setLoading(false));
   }, [building]);
 
   const todayShifts = useMemo(() => {
     const now = new Date();
-    const sameDay = (iso: string) => {
-      const d = new Date(iso);
-      return (
-        d.getFullYear() === now.getFullYear() &&
-        d.getMonth() === now.getMonth() &&
-        d.getDate() === now.getDate()
-      );
-    };
-    return shifts.filter((s) => sameDay(s.workDate));
+    return shifts.filter(s => {
+      const d = new Date(s.workDate);
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+    });
   }, [shifts]);
 
-  const activeSessions = useMemo(() => sessions.filter((s) => s.status === 'active'), [sessions]);
-  const openIncidents = useMemo(
-    () => incidents.filter((i) => ['open', 'investigating', 'escalated'].includes(i.status ?? '')),
-    [incidents],
-  );
-  const pendingReservations = useMemo(
-    () => reservations.filter((r) => r.status === 'confirmed'),
-    [reservations],
-  );
+  const activeSessions = useMemo(() => sessions.filter(s => s.status === 'active'), [sessions]);
+  const openIncidents  = useMemo(() => incidents.filter(i => ['open','investigating','escalated'].includes(i.status ?? '')), [incidents]);
+  const pendingRes     = useMemo(() => reservations.filter(r => r.status === 'confirmed'), [reservations]);
 
   const assignedGates = useMemo(() => {
-    const pickFrom = todayShifts.length > 0 ? todayShifts : shifts.slice(0, 1);
+    const src = todayShifts.length > 0 ? todayShifts : shifts.slice(0, 1);
     const map = new Map<string, NonNullable<MyShift['gate']>>();
-    pickFrom.forEach((s) => {
-      if (s.gate?._id) map.set(s.gate._id, s.gate);
-    });
+    src.forEach(s => { if (s.gate?._id) map.set(s.gate._id, s.gate); });
     return Array.from(map.values());
   }, [todayShifts, shifts]);
 
-  const directionText = (d: 'in' | 'out' | 'both') =>
-    d === 'in' ? 'Entry gate' : d === 'out' ? 'Exit gate' : 'Two-way';
+  const dirText = (d: 'in' | 'out' | 'both') => d === 'in' ? 'Entry' : d === 'out' ? 'Exit' : 'Two-way';
 
-  const showCheckIn = assignedGates.some((g) => g.direction === 'in' || g.direction === 'both') || assignedGates.length === 0;
-  const showCheckOut = assignedGates.some((g) => g.direction === 'out' || g.direction === 'both') || assignedGates.length === 0;
-  const taskCount = (showCheckIn ? 1 : 0) + (showCheckOut ? 1 : 0);
+  const showIn    = assignedGates.some(g => g.direction === 'in'  || g.direction === 'both') || assignedGates.length === 0;
+  const showOut   = assignedGates.some(g => g.direction === 'out' || g.direction === 'both') || assignedGates.length === 0;
+  const taskCount = (showIn ? 1 : 0) + (showOut ? 1 : 0);
 
-  const stats = [
-    { label: 'Shifts today', value: todayShifts.length, icon: CalendarClock, accent: 'border border-teal-500/20 bg-teal-500/10 text-teal-400', loading },
-    { label: 'Parked vehicles', value: activeSessions.length, icon: Gauge, accent: 'border border-emerald-500/20 bg-emerald-500/10 text-emerald-400', loading },
-    { label: 'Reservations to serve', value: pendingReservations.length, icon: Ticket, accent: 'border border-amber-500/20 bg-amber-500/10 text-amber-400', loading },
+  const stats: StatCardProps[] = [
     {
-      label: 'Open incidents',
-      value: openIncidents.length,
-      icon: ShieldAlert,
-      accent: openIncidents.length > 0
-        ? 'border border-rose-500/30 bg-rose-500/10 text-rose-400'
-        : 'border border-white/10 bg-slate-950/40 text-slate-400',
-      loading,
+      label: 'Shifts today',          value: todayShifts.length,    icon: CalendarClock, loading,
+      topLine:    'linear-gradient(90deg, transparent, #0ea5e9, transparent)',
+      iconBg:     'rgba(14,165,233,0.1)',  iconColor: '#0ea5e9',
+      valueColor: '#0284c7', delay: 0,
+    },
+    {
+      label: 'Parked vehicles',       value: activeSessions.length, icon: Gauge,         loading,
+      topLine:    'linear-gradient(90deg, transparent, #10b981, transparent)',
+      iconBg:     'rgba(16,185,129,0.1)', iconColor: '#10b981',
+      valueColor: '#059669', delay: 0.06,
+    },
+    {
+      label: 'Reservations to serve', value: pendingRes.length,     icon: Ticket,        loading,
+      topLine:    'linear-gradient(90deg, transparent, #f59e0b, transparent)',
+      iconBg:     'rgba(245,158,11,0.1)', iconColor: '#f59e0b',
+      valueColor: '#d97706', delay: 0.12,
+    },
+    {
+      label: 'Open incidents',        value: openIncidents.length,  icon: ShieldAlert,   loading,
+      topLine:    openIncidents.length > 0
+        ? 'linear-gradient(90deg, transparent, #f43f5e, transparent)'
+        : 'linear-gradient(90deg, transparent, #cbd5e1, transparent)',
+      iconBg:     openIncidents.length > 0 ? 'rgba(244,63,94,0.1)' : 'rgba(203,213,225,0.3)',
+      iconColor:  openIncidents.length > 0 ? '#f43f5e' : '#94a3b8',
+      valueColor: openIncidents.length > 0 ? '#e11d48' : '#94a3b8',
+      delay: 0.18,
     },
   ];
 
   if (!loading && !building) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="max-w-sm rounded-2xl border border-amber-500/30 bg-amber-500/10 p-8 text-center">
-          <Building2 size={36} className="mx-auto mb-3 text-amber-400" />
-          <p className="text-base font-bold text-amber-300">No building selected</p>
-          <p className="mt-1 text-sm text-slate-400">
-            Please select a building from the left menu to start your shift.
-          </p>
+        <div className="max-w-sm rounded-2xl p-8 text-center"
+          style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)', boxShadow: '0 4px 20px rgba(245,158,11,0.06)' }}>
+          <Building2 size={36} className="mx-auto mb-3 text-amber-500" />
+          <p className="text-base font-bold text-amber-700">No building selected</p>
+          <p className="mt-1 text-sm text-slate-500">Please select a building from the left menu.</p>
         </div>
       </div>
     );
@@ -192,213 +313,277 @@ export function StaffDashboardPage() {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="space-y-5"
+      transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+      className="space-y-4"
     >
-      {/* ── Header ── */}
-      <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-slate-900/40 p-5 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-teal-500/20 bg-teal-500/10">
-            <Building2 size={20} className="text-teal-400" />
-          </div>
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Operations staff</p>
-            <h1 className="text-xl font-bold leading-tight text-white">
-              {building ? building.name : <Skeleton className="h-6 w-44" />}
-            </h1>
-            <p className="mt-0.5 text-xs text-slate-400">{fmtDateFull()}</p>
-          </div>
-        </div>
+      {/* ── ROW 1: Building Banner ── */}
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.04, duration: 0.36 }}
+        className="relative overflow-hidden rounded-2xl p-5"
+        style={{
+          background: 'linear-gradient(135deg, rgba(224,242,254,0.9) 0%, rgba(255,255,255,0.85) 50%, rgba(219,234,254,0.7) 100%)',
+          border: '1px solid rgba(14,165,233,0.18)',
+          boxShadow: '0 4px 24px rgba(14,165,233,0.08), inset 0 1px 0 rgba(255,255,255,0.9)',
+          backdropFilter: 'blur(12px)',
+        }}
+      >
+        {/* Corner glow */}
+        <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(14,165,233,0.12) 0%, transparent 70%)', filter: 'blur(16px)' }} />
 
-        <div className="flex flex-wrap items-center gap-2">
-          {!loading &&
-            (assignedGates.length > 0 ? (
-              assignedGates.map((g) => (
-                <span
-                  key={g._id}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-teal-500/20 bg-teal-500/10 px-3 py-1.5 text-xs font-semibold text-teal-300"
-                >
-                  <DoorOpen size={13} /> Gate {g.code}
-                  {g.name ? ` · ${g.name}` : ''} · {directionText(g.direction)}
-                </span>
-              ))
-            ) : (
-              <span className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-slate-950/40 px-3 py-1.5 text-xs font-semibold text-slate-400">
-                <DoorOpen size={13} /> No gate assigned
+        <div className="relative z-10 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-4">
+            {/* Icon with sky gradient */}
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
+              style={{
+                background: 'linear-gradient(135deg, #e0f2fe, #bae6fd)',
+                border: '1px solid rgba(14,165,233,0.22)',
+                boxShadow: '0 4px 12px rgba(14,165,233,0.12)',
+              }}>
+              <Building2 size={22} className="text-sky-600" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-sky-500">Operations Staff</p>
+              <h1 className="text-xl font-extrabold leading-tight text-slate-800 tracking-tight">
+                {building ? building.name : <Skeleton className="h-6 w-44 inline-block" />}
+              </h1>
+              <p className="mt-0.5 text-xs text-slate-400">{fmtDateFull()}</p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {!loading && (
+              assignedGates.length > 0
+                ? assignedGates.map(g => (
+                    <span key={g._id} className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold"
+                      style={{ background: 'rgba(14,165,233,0.08)', border: '1px solid rgba(14,165,233,0.18)', color: '#0284c7' }}>
+                      <DoorOpen size={12} /> Gate {g.code}{g.name ? ` · ${g.name}` : ''} · {dirText(g.direction)}
+                    </span>
+                  ))
+                : (
+                  <span className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold"
+                    style={{ background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(203,213,225,0.6)', color: '#64748b' }}>
+                    <DoorOpen size={12} /> No gate assigned
+                  </span>
+                )
+            )}
+            {building?.operatingHours && (
+              <span className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold"
+                style={{ background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(203,213,225,0.6)', color: '#475569' }}>
+                <Clock size={12} /> {building.operatingHours.open} – {building.operatingHours.close}
               </span>
-            ))}
-          {building?.operatingHours && (
-            <span className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-slate-950/40 px-3 py-1.5 text-xs font-semibold text-slate-400">
-              <Clock size={12} /> {building.operatingHours.open} – {building.operatingHours.close}
+            )}
+            {/* Active badge — emerald with ping */}
+            <span className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold"
+              style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.25)', color: '#059669' }}>
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              </span>
+              Active
             </span>
-          )}
-          <StatusBadge status={building?.status ?? 'active'} />
+          </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* ── Thao tác chính ── */}
+      {/* ── ROW 2: Action Cards (3D Tilt) ── */}
       {!loading && (
-        <div className={`grid gap-3 ${taskCount === 2 ? 'sm:grid-cols-2' : 'grid-cols-1'}`}>
-          {showCheckIn && (
-            <Link
+        <div className={`grid gap-4 ${taskCount === 2 ? 'sm:grid-cols-2' : 'grid-cols-1'}`}>
+          {showIn && (
+            <TiltActionCard
               to="/staff/operations"
-              className="group flex items-center gap-4 rounded-2xl border border-emerald-500/25 bg-emerald-500/[0.06] p-5 transition-colors hover:bg-emerald-500/10"
-            >
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-emerald-500/25 bg-emerald-500/10">
-                <ScanLine size={22} className="text-emerald-400" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <h3 className="text-base font-bold text-white">Vehicle check-in</h3>
-                <p className="text-xs text-slate-400">Scan plate / QR for entering vehicles</p>
-              </div>
-              <ArrowRight size={18} className="shrink-0 text-emerald-400 transition-transform group-hover:translate-x-1" />
-            </Link>
+              title="Vehicle check-in"
+              subtitle="Scan plate / QR for entering vehicles"
+              gradFrom="rgba(236,253,245,0.95)"
+              gradTo="rgba(209,250,229,0.8)"
+              border="1px solid rgba(16,185,129,0.2)"
+              shadow="0 16px 40px rgba(16,185,129,0.15), 0 0 0 1px rgba(16,185,129,0.18)"
+              iconStyle={{
+                background: 'linear-gradient(135deg, rgba(16,185,129,0.15), rgba(5,150,105,0.1))',
+                border: '1px solid rgba(16,185,129,0.25)',
+                color: '#059669',
+                boxShadow: '0 4px 12px rgba(16,185,129,0.1)',
+              }}
+              arrowColor="#059669"
+              icon={ScanLine}
+            />
           )}
-          {showCheckOut && (
-            <Link
+          {showOut && (
+            <TiltActionCard
               to="/staff/checkout"
-              className="group flex items-center gap-4 rounded-2xl border border-orange-500/25 bg-orange-500/[0.06] p-5 transition-colors hover:bg-orange-500/10"
-            >
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-orange-500/25 bg-orange-500/10">
-                <ScanLine size={22} className="text-orange-400" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <h3 className="text-base font-bold text-white">Check-out xe ra</h3>
-                <p className="text-xs text-slate-400">Scan → compare photos → collect fee & release</p>
-              </div>
-              <ArrowRight size={18} className="shrink-0 text-orange-400 transition-transform group-hover:translate-x-1" />
-            </Link>
+              title="Check-out xe ra"
+              subtitle="Scan → compare photos → collect fee & release"
+              gradFrom="rgba(255,247,237,0.95)"
+              gradTo="rgba(254,243,199,0.8)"
+              border="1px solid rgba(245,158,11,0.2)"
+              shadow="0 16px 40px rgba(245,158,11,0.15), 0 0 0 1px rgba(245,158,11,0.18)"
+              iconStyle={{
+                background: 'linear-gradient(135deg, rgba(245,158,11,0.15), rgba(217,119,6,0.1))',
+                border: '1px solid rgba(245,158,11,0.25)',
+                color: '#d97706',
+                boxShadow: '0 4px 12px rgba(245,158,11,0.1)',
+              }}
+              arrowColor="#d97706"
+              icon={ScanLine}
+            />
           )}
         </div>
       )}
 
-      {/* ── Thống kê ── */}
+      {/* ── ROW 3: Stat Grid ── */}
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-        {stats.map((s) => (
-          <StatCard key={s.label} {...s} />
-        ))}
+        {stats.map(s => <StatCard key={s.label} {...s} />)}
       </div>
 
-      {/* ── Banners ── */}
+      {/* Error/incident banners */}
       {error && (
-        <div className="flex items-center gap-3 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-400">
+        <div className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold"
+          style={{ background: 'rgba(244,63,94,0.06)', border: '1px solid rgba(244,63,94,0.18)', color: '#e11d48' }}>
           <AlertTriangle size={16} className="shrink-0" /> {error}
         </div>
       )}
       {!loading && openIncidents.length > 0 && (
-        <Link
-          to="/staff/incidents"
-          className="flex items-center gap-3 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 transition-colors hover:bg-rose-500/15"
-        >
-          <ShieldAlert size={16} className="shrink-0 text-rose-400" />
-          <p className="flex-1 text-sm text-rose-300">
+        <Link to="/staff/incidents"
+          className="flex items-center gap-3 rounded-2xl px-4 py-3 transition-all hover:shadow-md"
+          style={{ background: 'rgba(244,63,94,0.05)', border: '1px solid rgba(244,63,94,0.16)', boxShadow: '0 2px 8px rgba(244,63,94,0.05)' }}>
+          <ShieldAlert size={16} className="shrink-0" style={{ color: '#f43f5e' }} />
+          <p className="flex-1 text-sm" style={{ color: '#be123c' }}>
             <strong>{openIncidents.length} open incidents</strong> — tap to view and handle.
           </p>
-          <ArrowRight size={16} className="shrink-0 text-rose-400" />
+          <ArrowRight size={16} style={{ color: '#f43f5e' }} />
         </Link>
       )}
 
-      {/* ── Danh sách: Xe đang đỗ (2/3) · Ca làm việc (1/3) ── */}
-      <div className="grid items-start gap-5 xl:grid-cols-3">
-        {/* Xe đang đỗ */}
-        <section className="rounded-2xl border border-white/10 bg-slate-900/40 p-5 xl:col-span-2">
-          <div className="mb-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Car size={16} className="text-emerald-400" />
-              <h2 className="text-sm font-bold text-white">Parked vehicles</h2>
-              <span className="rounded-md bg-white/5 px-2 py-0.5 text-[11px] font-bold text-slate-400">
-                {loading ? '…' : activeSessions.length}
+      {/* ── ROW 4: Parked Vehicles + Shifts ── */}
+      <div className="grid items-start gap-4 xl:grid-cols-3">
+
+        {/* Parked vehicles — 2/3 */}
+        <motion.div
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2, duration: 0.36 }}
+          className="xl:col-span-2"
+        >
+          <GlassCard accentLine="linear-gradient(90deg, transparent, #10b981, transparent)">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg"
+                  style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)' }}>
+                  <Car size={14} className="text-emerald-600" />
+                </div>
+                <h2 className="text-sm font-bold text-slate-800">Parked vehicles</h2>
+                <span className="rounded-md px-2 py-0.5 text-[11px] font-bold"
+                  style={{ background: 'rgba(14,165,233,0.07)', color: '#64748b', border: '1px solid rgba(14,165,233,0.1)' }}>
+                  {loading ? '…' : activeSessions.length}
+                </span>
+              </div>
+              <Link to="/staff/parked"
+                className="inline-flex items-center gap-1 text-xs font-semibold transition-colors text-emerald-600 hover:text-emerald-700">
+                View all <ArrowRight size={12} />
+              </Link>
+            </div>
+
+            {loading ? (
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Skeleton className="h-16 w-full rounded-xl" />
+                <Skeleton className="h-16 w-full rounded-xl" />
+              </div>
+            ) : activeSessions.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 rounded-xl py-8 text-center"
+                style={{ background: 'rgba(241,245,249,0.6)', border: '1px dashed rgba(203,213,225,0.8)' }}>
+                <CheckCircle2 size={28} className="text-slate-300" />
+                <p className="text-sm text-slate-400">No vehicles parked</p>
+              </div>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {activeSessions.slice(0, 6).map(s => <PlateBox key={s._id} session={s} />)}
+              </div>
+            )}
+
+            {!loading && activeSessions.length > 6 && (
+              <p className="mt-3 text-center text-xs font-semibold text-slate-400">
+                +{activeSessions.length - 6} more
+              </p>
+            )}
+          </GlassCard>
+        </motion.div>
+
+        {/* Shifts today — 1/3 */}
+        <motion.div
+          initial={{ opacity: 0, x: 10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.24, duration: 0.36 }}
+        >
+          <GlassCard accentLine="linear-gradient(90deg, transparent, #0ea5e9, transparent)">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg"
+                  style={{ background: 'rgba(14,165,233,0.1)', border: '1px solid rgba(14,165,233,0.2)' }}>
+                  <CalendarClock size={14} className="text-sky-600" />
+                </div>
+                <h2 className="text-sm font-bold text-slate-800">Shifts today</h2>
+              </div>
+              <span className="rounded-md px-2 py-0.5 text-[11px] font-bold"
+                style={{ background: 'rgba(14,165,233,0.07)', color: '#64748b', border: '1px solid rgba(14,165,233,0.1)' }}>
+                {loading ? '…' : todayShifts.length}
               </span>
             </div>
-            <Link to="/staff/parked" className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-400 hover:text-emerald-300">
-              View all <ArrowRight size={12} />
-            </Link>
-          </div>
 
-          {loading ? (
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Skeleton className="h-16 w-full rounded-xl" />
-              <Skeleton className="h-16 w-full rounded-xl" />
-            </div>
-          ) : activeSessions.length === 0 ? (
-            <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-white/10 bg-slate-950/20 py-8 text-center">
-              <CheckCircle2 size={26} className="text-slate-700" />
-              <p className="text-sm text-slate-500">No vehicles parked</p>
-            </div>
-          ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
-              {activeSessions.slice(0, 6).map((session) => (
-                <div
-                  key={session._id}
-                  className="flex items-center gap-3 rounded-xl border border-white/5 bg-slate-950/35 px-3.5 py-3"
-                >
-                  <span className="flex h-9 min-w-[88px] items-center justify-center rounded-lg border border-amber-500/20 bg-amber-500/5 px-2 font-mono text-xs font-bold tracking-wide text-amber-300">
-                    {session.plateNumber}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs text-slate-400">
-                      {session.entryGate?.name ?? session.entryGate?.code ?? '—'}
-                      {session.vehicleType ? ` · ${session.vehicleType.name}` : ''}
-                    </p>
-                    <p className="truncate text-xs font-semibold text-orange-300">{formatSlotLocation(session)}</p>
-                    <p className="text-[11px] text-slate-500">Entered at {fmtTime(session.entryTime)}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-          {!loading && activeSessions.length > 6 && (
-            <p className="mt-3 text-center text-xs font-semibold text-slate-500">
-              +{activeSessions.length - 6} more
-            </p>
-          )}
-        </section>
-
-        {/* Ca làm việc hôm nay */}
-        <section className="rounded-2xl border border-white/10 bg-slate-900/40 p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <CalendarClock size={16} className="text-teal-400" />
-              <h2 className="text-sm font-bold text-white">Shifts today</h2>
-            </div>
-            <span className="rounded-md bg-white/5 px-2 py-0.5 text-[11px] font-bold text-slate-400">
-              {loading ? '…' : todayShifts.length}
-            </span>
-          </div>
-
-          {loading ? (
-            <div className="space-y-3">
-              <Skeleton className="h-16 w-full rounded-xl" />
-            </div>
-          ) : todayShifts.length === 0 ? (
-            <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-white/10 bg-slate-950/20 py-8 text-center">
-              <Circle size={26} className="text-slate-700" />
-              <p className="text-sm text-slate-500">No shifts today</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {todayShifts.map((s) => (
-                <div key={s._id} className="rounded-xl border border-white/5 bg-slate-950/35 p-3.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-sm font-bold text-slate-200">{s.shift.code} — {s.shift.name}</p>
-                    <StatusBadge status={s.status} />
-                  </div>
-                  <p className="mt-1 font-mono text-xs text-teal-400">{s.shift.startTime} – {s.shift.endTime}</p>
-                  {s.gate ? (
-                    <p className="mt-2 inline-flex items-center gap-1 rounded-md border border-teal-500/20 bg-teal-500/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-teal-400">
-                      <DoorOpen size={10} /> Gate {s.gate.code}{s.gate.name ? ` · ${s.gate.name}` : ''} · {directionText(s.gate.direction)}
-                    </p>
-                  ) : (
-                    <p className="mt-2 text-[10px] font-semibold uppercase tracking-wide text-slate-500 italic">No gate assigned</p>
-                  )}
-                  {s.note && <p className="mt-1 truncate text-[11px] text-slate-500 italic">Note: {s.note}</p>}
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
+            {loading ? (
+              <Skeleton className="h-24 w-full rounded-xl" />
+            ) : todayShifts.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 rounded-xl py-8 text-center"
+                style={{ background: 'rgba(241,245,249,0.6)', border: '1px dashed rgba(203,213,225,0.8)' }}>
+                <Circle size={28} className="text-slate-300" />
+                <p className="text-sm text-slate-400">No shifts today</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {todayShifts.map(s => (
+                  <motion.div
+                    key={s._id}
+                    whileHover={{ x: 3 }}
+                    className="relative overflow-hidden rounded-xl p-3.5"
+                    style={{
+                      background: 'rgba(255,255,255,0.7)',
+                      border: '1px solid rgba(14,165,233,0.1)',
+                      boxShadow: '0 2px 8px rgba(14,165,233,0.04)',
+                    }}
+                  >
+                    {/* Left accent bar — sky gradient */}
+                    <div className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full"
+                      style={{ background: 'linear-gradient(180deg, #0ea5e9, #0284c7)', boxShadow: '0 0 6px rgba(14,165,233,0.4)' }} />
+                    <div className="pl-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-sm font-extrabold text-slate-800 tracking-tight">
+                          {s.shift.code} — {s.shift.name}
+                        </p>
+                        <StatusBadge status={s.status} />
+                      </div>
+                      <p className="mt-1 font-mono text-sm font-bold text-sky-600">
+                        {s.shift.startTime} – {s.shift.endTime}
+                      </p>
+                      {s.gate ? (
+                        <p className="mt-2 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+                          style={{ background: 'rgba(14,165,233,0.08)', border: '1px solid rgba(14,165,233,0.18)', color: '#0284c7' }}>
+                          <DoorOpen size={10} />
+                          Gate {s.gate.code}{s.gate.name ? ` · ${s.gate.name}` : ''} · {dirText(s.gate.direction)}
+                        </p>
+                      ) : (
+                        <p className="mt-2 text-[10px] font-semibold uppercase tracking-wide italic text-slate-400">No gate assigned</p>
+                      )}
+                      {s.note && <p className="mt-1 truncate text-[11px] italic text-slate-400">Note: {s.note}</p>}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </GlassCard>
+        </motion.div>
       </div>
     </motion.div>
   );

@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Pencil, Plus, Trash2, Loader } from 'lucide-react';
+﻿import { useCallback, useEffect, useState } from 'react';
+import { Pencil, Plus, Trash2, Loader2, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable, type DataColumn } from '@/components/common/DataTable';
 import { StatusBadge } from '@/components/common/StatusBadge';
@@ -176,32 +176,36 @@ export function ManagerStaffShiftsPage() {
   ];
 
   return (
-    <div className="grid gap-4">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Assign staff to shifts</h1>
-        <Button onClick={openCreate} className="gap-2" disabled={loading}>
-          <Plus size={16} /> Assign staff
+    <div className="space-y-4">
+      {/* Top action row */}
+      <div className="flex justify-end">
+        <Button
+          onClick={openCreate}
+          disabled={loading}
+          className="h-10 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-wider shadow-sm transition-all duration-200 active:scale-[0.98]"
+        >
+          <Plus size={14} className="stroke-[3] mr-1.5" /> Assign staff
         </Button>
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader className="animate-spin mr-2" size={20} />
-          <span className="text-muted-foreground">Loading...</span>
+        <div className="flex items-center gap-2 text-slate-650 text-xs font-bold p-8 justify-center bg-white rounded-2xl border border-slate-200/80 shadow-sm">
+          <Loader2 className="animate-spin mr-2" size={16} />
+          <span>Loading shift configurations...</span>
         </div>
       ) : error ? (
-        <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-400">
-          {error}
-        </div>
+        <p className="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 p-3.5 rounded-2xl">{error}</p>
       ) : items.length === 0 ? (
-        <div className="rounded-lg border border-border bg-card p-8 text-center">
-          <p className="text-muted-foreground mb-4">No staff assigned to shifts yet</p>
-          <Button onClick={openCreate} className="gap-2">
-            <Plus size={16} /> Assign first staff
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-8 text-center text-slate-800 shadow-sm flex flex-col items-center justify-center">
+          <p className="text-slate-500 font-semibold mb-4 text-xs">No staff members assigned to shifts yet.</p>
+          <Button onClick={openCreate} className="h-10 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-wider shadow-sm transition-all duration-200 active:scale-[0.98]">
+            <Plus size={14} className="stroke-[3] mr-1.5" /> Assign first staff
           </Button>
         </div>
       ) : (
-        <DataTable title="Shift assignments" rows={items} columns={columns} />
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm">
+          <DataTable title="Shift assignments" rows={items} columns={columns} />
+        </div>
       )}
 
       <AssignStaffModal

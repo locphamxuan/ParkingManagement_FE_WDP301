@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+﻿import { useCallback, useEffect, useState } from 'react';
+import { Pencil, Plus, Trash2, Ticket, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DataTable, type DataColumn } from '@/components/common/DataTable';
@@ -192,20 +192,47 @@ export function ManagerPackagesPage() {
   ];
 
   return (
-    <div className="grid gap-4">
-      <div className="flex justify-end">
-        <Button onClick={openCreate} className="gap-2">
-          <Plus size={14} /> Add package
-        </Button>
+    <div className="space-y-6 max-w-6xl mx-auto">
+      {/* Premium Header Hero Card */}
+      <div className="premium-hero-card relative overflow-hidden rounded-3xl border-2 border-blue-100 bg-gradient-to-br from-white via-blue-50/5 to-indigo-50/10 p-6 shadow-md transition-all duration-300">
+        {/* Ambient Glows */}
+        <div className="absolute -right-16 -top-16 h-36 w-36 rounded-full bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.06),transparent_70%)] pointer-events-none blur-2xl animate-pulse" />
+        
+        <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-blue-600 text-[9px] font-black uppercase tracking-widest text-white shadow-sm font-mono">
+              Policies & Subscriptions
+            </div>
+            <h1 className="mt-2 text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+              <Ticket size={20} className="text-blue-600 animate-pulse stroke-[2.5]" />
+              Subscription Packages
+            </h1>
+            <p className="mt-1 text-xs font-bold text-slate-500">
+              Configure long-term parking passes, custom durations, and multi-vehicle bundle discounts.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+            <Button
+              onClick={openCreate}
+              className="h-11 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-wider shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+            >
+              <Plus size={14} className="stroke-[3] mr-1.5" /> Add package
+            </Button>
+          </div>
+        </div>
       </div>
+
       {loading ? (
-        <div className="flex justify-center py-10">
-          <Spinner label="Loading packages..." />
+        <div className="flex items-center gap-2 text-slate-650 text-xs font-bold p-8 justify-center bg-white rounded-2xl border-2 border-blue-100 shadow-sm">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent mr-2" />
+          <span>Loading packages...</span>
         </div>
       ) : error ? (
-        <div className="text-sm text-red-600">{error}</div>
+        <p className="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 p-3.5 rounded-2xl">{error}</p>
       ) : (
-        <DataTable title="Long-term packages" rows={items} columns={columns} />
+        <div className="bg-white rounded-2xl border-2 border-blue-100 p-6 shadow-sm">
+          <DataTable title="Long-term packages" rows={items} columns={columns} />
+        </div>
       )}
 
       <ModalForm
@@ -214,25 +241,25 @@ export function ManagerPackagesPage() {
         title={editing ? 'Edit long-term package' : 'Add long-term package'}
         onSubmit={onSubmit}
       >
-        <div className="grid gap-3 md:grid-cols-2 text-slate-100">
+        <div className="grid gap-3 md:grid-cols-2 text-slate-800">
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Code</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Code</label>
             <Input
               value={form.code}
               onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
-              className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-orange-500/40"
+              className="bg-white border-blue-100 text-slate-800 rounded-xl focus:border-blue-500/40"
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Name</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Name</label>
             <Input
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-orange-500/40"
+              className="bg-white border-blue-100 text-slate-800 rounded-xl focus:border-blue-500/40"
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">Vehicle type</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Vehicle type</label>
             <CustomSelect
               value={form.vehicleType}
               onChange={(val) => setForm((f) => ({ ...f, vehicleType: val }))}
@@ -247,50 +274,50 @@ export function ManagerPackagesPage() {
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Duration (days)</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Duration (days)</label>
             <Input
               type="number"
               min={1}
               value={form.durationDays}
               onChange={(e) => setForm((f) => ({ ...f, durationDays: e.target.value }))}
-              className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-orange-500/40"
+              className="bg-white border-blue-100 text-slate-800 rounded-xl focus:border-blue-500/40"
             />
           </div>
           <div className="grid gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Price (VND)</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Price (VND)</label>
             <Input
               type="number"
               min={0}
               value={form.price}
               onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
-              className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-orange-500/40"
+              className="bg-white border-blue-100 text-slate-800 rounded-xl focus:border-blue-500/40"
             />
           </div>
           <div className="grid gap-1.5 md:col-span-2">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Free hours / day</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Free hours / day</label>
             <Input
               type="number"
               min={0}
               placeholder="Leave empty = auto by duration"
               value={form.maxHoursPerDay}
               onChange={(e) => setForm((f) => ({ ...f, maxHoursPerDay: e.target.value }))}
-              className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-orange-500/40 placeholder-slate-600"
+              className="bg-white border-blue-100 text-slate-800 rounded-xl focus:border-blue-500/40 placeholder-slate-400"
             />
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-slate-500">
               Free parking hours/day. Overage is charged at the regular rate. Leave empty → default weekly 5h / monthly 7h / yearly 10h. 0 = unlimited.
               The package does NOT reserve a fixed slot — staff assign a free slot on entry.
             </p>
           </div>
           <div className="grid gap-1.5 md:col-span-2">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">Description</label>
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Description</label>
             <Input
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-              className="bg-slate-950 border-white/10 text-white rounded-xl focus:border-orange-500/40"
+              className="bg-white border-blue-100 text-slate-800 rounded-xl focus:border-blue-500/40"
             />
           </div>
           <div className="grid gap-1.5 md:col-span-2">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">
+            <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">
               Package benefits (one per line)
             </label>
             <textarea
@@ -298,18 +325,18 @@ export function ManagerPackagesPage() {
               onChange={(e) => setForm((f) => ({ ...f, benefits: e.target.value }))}
               rows={4}
               placeholder={'Unlimited free parking entries\nPriority slots near the elevator\nOne free car wash per month'}
-              className="rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-orange-500/40 placeholder-slate-600"
+              className="rounded-xl border border-blue-100 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-blue-500/40 placeholder-slate-400"
             />
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-slate-500">
               These benefits are shown to customers when purchasing the package.
             </p>
           </div>
-          <label className="flex items-center gap-3 text-xs font-bold text-slate-300 md:col-span-2 select-none">
+          <label className="flex items-center gap-3 text-xs font-bold text-slate-700 md:col-span-2 select-none">
             <input
               type="checkbox"
               checked={form.isActive}
               onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))}
-              className="w-4 h-4 rounded border-white/10 bg-slate-950 text-orange-500 focus:ring-0 cursor-pointer"
+              className="w-4 h-4 rounded border-blue-150 bg-white text-blue-500 focus:ring-0 cursor-pointer"
             />
             <span>On sale</span>
           </label>

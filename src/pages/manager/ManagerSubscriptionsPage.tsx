@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+﻿import { useCallback, useEffect, useState } from 'react';
+import { CreditCard, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
@@ -145,23 +146,49 @@ export function ManagerSubscriptionsPage() {
   ];
 
   return (
-    <>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-3">
-          <CardTitle>Customer long-term packages</CardTitle>
-          <CustomSelect
-            value={status}
-            onChange={setStatus}
-            options={STATUS_FILTERS.map((s) => ({ value: s.value, label: s.label }))}
-            className="w-48"
-          />
-        </CardHeader>
-        <CardContent>
-          {error ? <p className="text-sm text-danger">{error}</p> : null}
+    <div className="space-y-6 max-w-6xl mx-auto">
+      {/* Premium Header Hero Card */}
+      <div className="premium-hero-card relative overflow-hidden rounded-3xl border-2 border-blue-100 bg-gradient-to-br from-white via-blue-50/5 to-indigo-50/10 p-6 shadow-md transition-all duration-300">
+        {/* Ambient Glows */}
+        <div className="absolute -right-16 -top-16 h-36 w-36 rounded-full bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.06),transparent_70%)] pointer-events-none blur-2xl animate-pulse" />
+        
+        <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-blue-600 text-[9px] font-black uppercase tracking-widest text-white shadow-sm font-mono">
+              Policies & Subscriptions
+            </div>
+            <h1 className="mt-2 text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+              <CreditCard size={20} className="text-blue-600 animate-pulse stroke-[2.5]" />
+              Customer Packages
+            </h1>
+            <p className="mt-1 text-xs font-bold text-slate-500">
+              Monitor active customer packages, registrations, duration limits, and manage package cancellations.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 self-end sm:self-auto shrink-0 z-20">
+            <CustomSelect
+              value={status}
+              onChange={setStatus}
+              options={STATUS_FILTERS.map((s) => ({ value: s.value, label: s.label === 'All' ? 'All statuses' : s.label }))}
+              className="w-48 bg-white border-blue-100 text-slate-800 rounded-xl"
+            />
+          </div>
+        </div>
+      </div>
+
+      <Card className="border border-slate-200/80 bg-white shadow-sm overflow-hidden rounded-2xl">
+        <CardContent className="p-6">
+          {error ? (
+            <p className="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 p-3.5 rounded-2xl">{error}</p>
+          ) : null}
+          
           {loading ? (
-            <p className="text-sm text-muted-foreground">Loading...</p>
+            <div className="flex items-center gap-2 text-slate-650 text-xs font-bold p-8 justify-center bg-white rounded-2xl">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent mr-2" />
+              <span>Loading customer subscriptions...</span>
+            </div>
           ) : items.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No packages yet.</p>
+            <p className="text-xs text-slate-500 italic py-6 text-center">No active or pending package subscriptions found.</p>
           ) : (
             <DataTable title={`Subscriptions (${items.length})`} rows={items} columns={columns} />
           )}
@@ -227,6 +254,6 @@ export function ManagerSubscriptionsPage() {
           </div>
         )}
       </Modal>
-    </>
+    </div>
   );
 }

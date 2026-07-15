@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
-import { MessageSquare, Star, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+﻿import { useCallback, useEffect, useState } from 'react';
+import { MessageSquare, Star, AlertCircle, CheckCircle, Clock, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DataTable, type DataColumn } from '@/components/common/DataTable';
@@ -98,9 +98,9 @@ export function ManagerReviewsPage() {
       key: 'user',
       title: 'User',
       render: (item) => (
-        <div>
-          <p className="font-medium text-foreground">{item.user?.fullName || 'Anonymous user'}</p>
-          <p className="text-xs text-slate-400">{item.user?.email || 'N/A'}</p>
+        <div className="text-slate-800">
+          <p className="font-semibold text-slate-800">{item.user?.fullName || 'Anonymous User'}</p>
+          <p className="text-xs text-slate-400 font-medium">{item.user?.email || 'N/A'}</p>
         </div>
       ),
     },
@@ -108,8 +108,8 @@ export function ManagerReviewsPage() {
       key: 'plateNumber',
       title: 'Plate',
       render: (item) => (
-        <span className="inline-block rounded bg-slate-800/50 px-2.5 py-1 font-mono text-sm text-amber-300">
-          {item.parkingSession?.plateNumber || 'N/A'}
+        <span className="inline-block rounded-md bg-slate-100 border border-slate-200 px-2.5 py-0.5 font-mono text-xs font-bold text-slate-700">
+          {item.parkingSession?.plateNumber || '—'}
         </span>
       ),
     },
@@ -121,11 +121,11 @@ export function ManagerReviewsPage() {
           {Array.from({ length: 5 }).map((_, i) => (
             <Star
               key={i}
-              size={14}
-              className={i < item.rating ? 'fill-yellow-400 text-yellow-400' : 'text-slate-600'}
+              size={13}
+              className={i < item.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}
             />
           ))}
-          <span className="ml-2 text-xs font-semibold text-slate-300">{item.rating}/5</span>
+          <span className="ml-1.5 text-xs font-bold text-slate-500 font-mono">{item.rating}/5</span>
         </div>
       ),
     },
@@ -133,7 +133,9 @@ export function ManagerReviewsPage() {
       key: 'comment',
       title: 'Comment',
       render: (item) => (
-        <p className="line-clamp-2 text-sm text-slate-300">{item.comment}</p>
+        <p className="line-clamp-2 text-xs font-semibold text-slate-600 max-w-xs" title={item.comment}>
+          {item.comment || '—'}
+        </p>
       ),
     },
     {
@@ -144,13 +146,14 @@ export function ManagerReviewsPage() {
         const Icon = resolved ? CheckCircle : Clock;
         return (
           <span
-            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold border ${resolved
-                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25'
-                : 'bg-amber-500/10 text-amber-400 border-amber-500/25'
-              }`}
+            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider select-none border ${
+              resolved
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                : 'bg-amber-50 text-amber-700 border-amber-200'
+            }`}
           >
-            <Icon size={12} />
-            {resolved ? 'Replied' : 'Awaiting reply'}
+            <Icon size={10} className="stroke-[2.5]" />
+            {resolved ? 'Replied' : 'Pending'}
           </span>
         );
       },
@@ -159,7 +162,7 @@ export function ManagerReviewsPage() {
       key: 'createdAt',
       title: 'Date',
       render: (item) => (
-        <span className="text-xs text-slate-400">
+        <span className="text-xs font-bold text-slate-550 font-mono">
           {new Date(item.createdAt).toLocaleDateString('vi-VN')}
         </span>
       ),
@@ -172,9 +175,9 @@ export function ManagerReviewsPage() {
           size="sm"
           variant="ghost"
           onClick={() => handleReplyClick(item)}
-          className="text-xs hover:bg-orange-500/10"
+          className="text-xs font-black uppercase tracking-wider text-blue-600 hover:text-blue-700 hover:bg-blue-50/50"
         >
-          <MessageSquare size={14} className="mr-1" />
+          <MessageSquare size={13} className="mr-1.5" />
           {item.status === 'resolved' ? 'Edit' : 'Reply'}
         </Button>
       ),
@@ -182,73 +185,84 @@ export function ManagerReviewsPage() {
   ];
 
   return (
-    <div className="space-y-6 p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Reviews</h1>
-          <p className="mt-1 text-sm text-slate-400">Manage and reply to user reviews</p>
-        </div>
-        <div className="text-right">
-          <div className="text-3xl font-bold text-orange-500">{filteredReviews.length}</div>
-          <p className="text-xs text-slate-400">total reviews</p>
+    <div className="space-y-6 max-w-6xl mx-auto">
+      {/* Premium Header Hero Card */}
+      <div className="premium-hero-card relative overflow-hidden rounded-3xl border-2 border-blue-100 bg-gradient-to-br from-white via-blue-50/5 to-indigo-50/10 p-6 shadow-md transition-all duration-300">
+        {/* Ambient Glows */}
+        <div className="absolute -right-16 -top-16 h-36 w-36 rounded-full bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.06),transparent_70%)] pointer-events-none blur-2xl animate-pulse" />
+        
+        <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-blue-600 text-[9px] font-black uppercase tracking-widest text-white shadow-sm font-mono">
+              Audience Feedback
+            </div>
+            <h1 className="mt-2 text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+              <MessageSquare size={20} className="text-blue-600 animate-pulse stroke-[2.5]" />
+              Customer Reviews
+            </h1>
+            <p className="mt-1 text-xs font-bold text-slate-500">
+              Manage, audit, and reply to user feedback, star ratings, and parking experiences.
+            </p>
+          </div>
+          <div className="flex flex-col items-end shrink-0">
+            <span className="text-3xl font-mono font-black text-blue-600">{filteredReviews.length}</span>
+            <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">total reviews</span>
+          </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col gap-4 rounded-xl border border-white/8 bg-slate-800/30 p-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex-1">
+      <div className="flex flex-col gap-4 rounded-2xl border border-slate-200/80 bg-white p-5 md:flex-row md:items-center md:justify-between shadow-sm">
+        <div className="flex-1 w-full">
           <Input
             placeholder="Search by name, email, plate or content..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-md"
+            className="max-w-md h-11 rounded-xl bg-white border-blue-100 text-slate-800 focus:border-blue-500/40"
           />
         </div>
-        <div className="flex gap-2">
-          <Button
-            variant={statusFilter === 'all' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setStatusFilter('all')}
-            className="text-xs"
-          >
-            All
-          </Button>
-          <Button
-            variant={statusFilter === 'pending' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setStatusFilter('pending')}
-            className="text-xs"
-          >
-            Awaiting reply
-          </Button>
-          <Button
-            variant={statusFilter === 'resolved' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setStatusFilter('resolved')}
-            className="text-xs"
-          >
-            Replied
-          </Button>
+        <div className="flex gap-2 self-start md:self-auto">
+          {[
+            { value: 'all', label: 'All' },
+            { value: 'pending', label: 'Pending' },
+            { value: 'resolved', label: 'Replied' },
+          ].map((btn) => {
+            const isActive = statusFilter === btn.value;
+            return (
+              <Button
+                key={btn.value}
+                variant={isActive ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setStatusFilter(btn.value as typeof statusFilter)}
+                className={`text-xs font-black uppercase tracking-wider rounded-xl h-10 px-5 transition-all duration-200 ${
+                  isActive
+                    ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm'
+                    : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                {btn.label}
+              </Button>
+            );
+          })}
         </div>
       </div>
 
       {/* Error */}
       {error && (
-        <div className="flex items-center gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
-          <AlertCircle size={18} />
-          {error}
-        </div>
+        <p className="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 p-3.5 rounded-2xl">{error}</p>
       )}
 
       {/* Data Table */}
-      <div className="rounded-xl border border-white/8 bg-slate-800/20 overflow-hidden">
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm overflow-hidden">
         {loading ? (
-          <div className="py-8 text-center text-slate-400">Loading...</div>
+          <div className="flex items-center gap-2 text-slate-650 text-xs font-bold p-8 justify-center bg-white rounded-2xl">
+            <Loader2 className="animate-spin mr-2" size={16} />
+            <span>Loading reviews and feedback...</span>
+          </div>
         ) : filteredReviews.length === 0 ? (
-          <div className="py-12 text-center">
-            <MessageSquare size={32} className="mx-auto mb-2 text-slate-600" />
-            <p className="text-slate-400">No reviews</p>
+          <div className="py-12 text-center text-slate-800">
+            <MessageSquare size={32} className="mx-auto mb-2 text-slate-300" />
+            <p className="text-slate-500 font-semibold text-xs">No reviews found matching this filter.</p>
           </div>
         ) : (
           <DataTable title="Reviews" columns={columns} rows={filteredReviews} />
@@ -257,42 +271,45 @@ export function ManagerReviewsPage() {
 
       {/* Reply Modal */}
       <Modal isOpen={replyModalOpen} onClose={() => !replying && setReplyModalOpen(false)}>
-        <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto">
-          <div className="border-b border-white/8 p-6">
-            <h2 className="text-xl font-bold text-foreground">Reply to review</h2>
+        <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto bg-white rounded-2xl p-6 text-slate-800">
+          <div className="border-b border-slate-100 pb-4">
+            <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
+              <MessageSquare size={16} className="text-blue-650" />
+              Reply to Review
+            </h2>
             {selectedReview && (
-              <div className="mt-4 space-y-3 rounded-lg bg-slate-800/40 p-4">
+              <div className="mt-4 space-y-3 rounded-2xl bg-slate-50/50 border border-slate-100 p-4">
                 <div>
-                  <p className="text-xs font-semibold text-slate-400">USER</p>
-                  <p className="mt-1 font-medium text-foreground">{selectedReview.user?.fullName || 'Anonymous'}</p>
+                  <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">User</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-800">{selectedReview.user?.fullName || 'Anonymous User'}</p>
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-slate-400">RATING</p>
-                  <div className="mt-1 flex items-center gap-2">
+                  <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">Rating</p>
+                  <div className="mt-1 flex items-center gap-1.5">
                     {Array.from({ length: 5 }).map((_, i) => (
                       <Star
                         key={i}
-                        size={16}
-                        className={i < selectedReview.rating ? 'fill-yellow-400 text-yellow-400' : 'text-slate-600'}
+                        size={14}
+                        className={i < selectedReview.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}
                       />
                     ))}
-                    <span className="ml-2 text-sm font-semibold text-slate-300">
+                    <span className="ml-2 text-xs font-bold text-slate-500 font-mono">
                       {selectedReview.rating}/5
                     </span>
                   </div>
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-slate-400">COMMENT</p>
-                  <p className="mt-1 text-sm text-slate-300">{selectedReview.comment}</p>
+                  <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">Comment</p>
+                  <p className="mt-1 text-xs font-medium text-slate-600 leading-relaxed italic">"{selectedReview.comment}"</p>
                 </div>
               </div>
             )}
           </div>
 
-          <div className="space-y-4 p-6">
+          <div className="space-y-4 pt-4">
             <div>
-              <label className="block text-sm font-semibold text-foreground mb-2">
-                Your reply *
+              <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono mb-2">
+                Your Reply *
               </label>
               <textarea
                 value={replyForm.staffReply}
@@ -300,23 +317,24 @@ export function ManagerReviewsPage() {
                   setReplyForm({ ...replyForm, staffReply: e.target.value })
                 }
                 placeholder="Enter a reply to this review..."
-                rows={5}
-                className="w-full rounded-lg border border-input bg-card px-4 py-2 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/20"
+                rows={4}
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:border-blue-500/40"
               />
             </div>
 
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-3 pt-2">
               <Button
                 variant="outline"
                 onClick={() => !replying && setReplyModalOpen(false)}
                 disabled={replying}
+                className="h-10 px-5 rounded-xl border-slate-200 bg-white text-slate-700 hover:bg-slate-50 font-black text-xs uppercase tracking-wider shadow-sm transition-all duration-200"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleReplySubmit}
                 disabled={replying || !replyForm.staffReply.trim()}
-                className="bg-orange-500 hover:bg-orange-600"
+                className="h-10 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-wider shadow-sm transition-all duration-200 active:scale-[0.98]"
               >
                 {replying ? 'Sending...' : 'Send reply'}
               </Button>

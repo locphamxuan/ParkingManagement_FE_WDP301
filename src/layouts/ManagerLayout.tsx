@@ -49,10 +49,10 @@ export function ManagerLayout() {
 
   return (
     <div className="relative min-h-screen bg-background text-foreground transition-colors duration-200">
-      {/* Subtle blue/cyan ambient glow for manager theme */}
+      {/* Subtle blue/indigo ambient glow for manager theme */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.04),transparent_65%)] blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-[radial-gradient(circle_at_center,rgba(56,189,248,0.03),transparent_60%)] blur-3xl" />
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.04),transparent_65%)] blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.03),transparent_60%)] blur-3xl" />
       </div>
       <div className="relative z-10 flex min-h-screen">
         <ManagerSidebar collapsed={collapsed} onToggle={() => setCollapsed((prev) => !prev)} />

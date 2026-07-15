@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Banknote, Wallet, QrCode, CircleDollarSign, RefreshCw, Car, MapPin, Clock } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Banknote, Wallet, QrCode, CircleDollarSign, RefreshCw, Car, MapPin, Clock, ArrowUpRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { useAssignedGates } from '@/hooks/staff/useAssignedGates';
+import { LicensePlate } from '@/components/common/LicensePlate';
 import { staffApi, type ShiftRevenueSummary, type ParkingSession } from '@/services/staff/staffApi';
 
 const fmtMoney = (n?: number | null) => (n != null ? `${n.toLocaleString('vi-VN')} ₫` : '—');
@@ -48,90 +49,130 @@ function CheckInHistory({ buildingId }: { buildingId: string }) {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Car size={18} className="text-primary" />
-          <div>
-            <h2 className="text-base font-semibold text-foreground">Entry history</h2>
-            <p className="text-xs text-muted-foreground">
-              Vehicles you have admitted — today {fmtDate(new Date().toISOString())}
-            </p>
+      {/* Header Banner */}
+      <section
+        className="relative overflow-hidden rounded-2xl p-5"
+        style={{
+          background: 'linear-gradient(135deg, rgba(224,242,254,0.7) 0%, rgba(255,255,255,0.75) 50%, rgba(219,234,254,0.5) 100%)',
+          border: '1px solid rgba(14,165,233,0.18)',
+          boxShadow: '0 4px 24px rgba(14,165,233,0.06), inset 0 1px 0 rgba(255,255,255,0.9)',
+          backdropFilter: 'blur(16px)',
+        }}
+      >
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-3.5">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
+              style={{
+                background: 'linear-gradient(135deg, #e0f2fe, #bae6fd)',
+                border: '1px solid rgba(14,165,233,0.22)',
+                boxShadow: '0 4px 12px rgba(14,165,233,0.12)',
+              }}>
+              <Car className="text-sky-600" size={22} />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-sky-500">History Log</p>
+              <h2 className="text-lg font-extrabold text-slate-800 leading-tight">Entry History</h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Vehicles admitted today {fmtDate(new Date().toISOString())}
+              </p>
+            </div>
           </div>
+          <Button
+            onClick={refresh}
+            className="gap-2 h-9 rounded-xl border border-sky-100 bg-sky-50 text-sky-700 hover:bg-sky-100/70 font-bold text-xs self-start lg:self-auto"
+          >
+            <RefreshCw size={13} className={loading ? 'animate-spin' : ''} /> Refresh
+          </Button>
         </div>
-        <Button variant="secondary" size="sm" onClick={refresh} className="gap-1.5">
-          <RefreshCw size={13} className={loading ? 'animate-spin' : ''} /> Refresh
-        </Button>
-      </div>
+      </section>
 
       {error && (
-        <div className="rounded-lg border border-rose-500/25 bg-rose-500/10 px-3 py-2 text-sm text-rose-500">{error}</div>
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800">
+          ⚠️ {error}
+        </div>
       )}
 
-      <div className="grid gap-2 sm:grid-cols-2">
-        <Card className="border border-primary/25 bg-primary/5">
-          <CardContent className="p-5">
-            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total entries</p>
-            <p className="mt-2 text-3xl font-black text-primary">{loading ? '—' : items.length}</p>
-          </CardContent>
-        </Card>
+      {/* Stats Card */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div
+          className="relative overflow-hidden rounded-2xl p-5"
+          style={{
+            background: 'linear-gradient(135deg, rgba(14,165,233,0.1) 0%, rgba(255,255,255,0.7) 100%)',
+            border: '1px solid rgba(14,165,233,0.15)',
+            boxShadow: '0 4px 16px rgba(14,165,233,0.04)',
+            backdropFilter: 'blur(10px)',
+          }}
+        >
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-sky-400 via-sky-500 to-transparent" />
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Total Entries Today</p>
+          <p className="mt-2 text-3xl font-black text-sky-600">{loading ? '—' : items.length}</p>
+        </div>
       </div>
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-sm">
-            <Car size={14} className="text-primary" /> Entries today
-            <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
-              {items.length}
-            </span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">Loading...</p>
-          ) : items.length === 0 ? (
-            <div className="py-8 text-center">
-              <Car size={28} className="mx-auto mb-2 text-muted-foreground/40" />
-              <p className="text-sm text-muted-foreground">No entries in this shift yet.</p>
-            </div>
-          ) : (
-            <div className="grid gap-2">
-              {items.map((s) => (
-                <div key={s._id} className="rounded-xl border border-border bg-card/50 px-4 py-3 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="rounded border border-amber-500/25 bg-amber-500/10 px-2 py-0.5 font-mono text-xs font-bold text-amber-300">
-                      {s.plateNumber}
-                    </span>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Clock size={11} />
-                      {fmtTime(s.entryTime)}
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
-                    <span className="flex items-center gap-1 text-muted-foreground">
-                      <MapPin size={11} className="text-primary" />
-                      Entry gate: <strong className="text-foreground ml-1">{s.entryGate?.code ?? '—'}</strong>
-                    </span>
-                    <span className="text-muted-foreground">
-                      Floor: <strong className="text-foreground">{(s.slot as any)?.floor?.name ?? (s.slot as any)?.floor?.code ?? '—'}</strong>
-                    </span>
-                    <span className="text-muted-foreground">
-                      Slot: <strong className="text-foreground">{s.slot?.code ?? '—'}</strong>
-                    </span>
+      {/* Data Container */}
+      <div
+        className="relative overflow-hidden rounded-3xl p-5 md:p-6"
+        style={{
+          background: 'rgba(255,255,255,0.72)',
+          border: '1px solid rgba(14,165,233,0.14)',
+          boxShadow: '0 10px 30px rgba(14,165,233,0.05), inset 0 1px 0 rgba(255,255,255,0.9)',
+          backdropFilter: 'blur(20px)',
+        }}
+      >
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-sky-400 via-sky-500 to-transparent" />
+        <div className="mb-4">
+          <h3 className="text-base font-extrabold text-slate-800 tracking-tight">Entries Logs</h3>
+          <p className="text-xs text-slate-400 mt-0.5">Records of all checked-in vehicles during this shift</p>
+        </div>
+
+        {loading ? (
+          <p className="text-xs text-slate-400 py-10 text-center">Loading entry records...</p>
+        ) : items.length === 0 ? (
+          <div className="py-12 text-center border border-dashed border-sky-100 rounded-2xl bg-sky-50/20">
+            <Car size={32} className="mx-auto mb-2 text-slate-300 animate-pulse" />
+            <p className="text-sm text-slate-400 font-medium">No vehicles admitted in this shift yet.</p>
+          </div>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {items.map((s) => (
+              <motion.div
+                key={s._id}
+                whileHover={{ y: -3 }}
+                className="flex flex-col gap-2 rounded-xl p-3.5"
+                style={{
+                  background: 'rgba(255,255,255,0.6)',
+                  border: '1px solid rgba(14,165,233,0.1)',
+                  boxShadow: '0 2px 10px rgba(14,165,233,0.03)',
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <LicensePlate plateNumber={s.plateNumber} />
+                  <div className="flex items-center gap-1 text-[11px] text-slate-400 font-semibold">
+                    <Clock size={12} />
+                    {fmtTime(s.entryTime)}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs border-t border-sky-50 pt-2.5 mt-1 font-semibold text-slate-500">
+                  <span className="flex items-center gap-1">
+                    <MapPin size={12} className="text-sky-500" />
+                    Gate: <strong className="text-slate-700">{s.entryGate?.code ?? '—'}</strong>
+                  </span>
+                  <span>
+                    Floor: <strong className="text-slate-700">{(s.slot as any)?.floor?.name ?? (s.slot as any)?.floor?.code ?? '—'}</strong>
+                  </span>
+                  <span>
+                    Slot: <strong className="text-slate-700">{s.slot?.code ?? '—'}</strong>
+                  </span>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
-/**
- * Check-in staff: lịch sử xe vào hôm nay (có location).
- * Check-out staff: doanh thu ca (tiền đã thu theo phương thức).
- */
 export function StaffSessionsPage() {
   const { buildingId } = useBuildingContext();
   const { showCheckOut } = useAssignedGates();
@@ -160,108 +201,175 @@ export function StaffSessionsPage() {
     return () => clearInterval(timer);
   }, [refresh, showCheckOut]);
 
-  // Check-in staff: show check-in history
   if (!showCheckOut) {
     return <CheckInHistory buildingId={buildingId} />;
   }
 
-  // Check-out staff: show revenue summary
   const stats = [
-    { label: 'Cash', value: data?.byMethod.cash ?? 0, icon: Banknote, border: 'border-emerald-500/20 bg-emerald-500/5', color: 'text-emerald-500' },
-    { label: 'Wallet', value: data?.byMethod.wallet ?? 0, icon: Wallet, border: 'border-violet-500/20 bg-violet-500/5', color: 'text-violet-500' },
-    { label: 'Bank transfer / QR', value: data?.byMethod.online ?? 0, icon: QrCode, border: 'border-sky-500/20 bg-sky-500/5', color: 'text-sky-500' },
+    { label: 'Cash Payment', value: data?.byMethod.cash ?? 0, icon: Banknote, border: 'border-emerald-100', color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Wallet Pay', value: data?.byMethod.wallet ?? 0, icon: Wallet, border: 'border-indigo-100', color: 'text-indigo-600', bg: 'bg-indigo-50' },
+    { label: 'Bank QR Code', value: data?.byMethod.online ?? 0, icon: QrCode, border: 'border-sky-100', color: 'text-sky-600', bg: 'bg-sky-50' },
   ];
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <CircleDollarSign size={18} className="text-primary" />
-          <div>
-            <h2 className="text-base font-semibold text-foreground">Doanh thu ca</h2>
-            <p className="text-xs text-muted-foreground">
-              Fees you collected on exit — today {fmtDate(data?.date)}
-            </p>
+      {/* Header Banner */}
+      <section
+        className="relative overflow-hidden rounded-2xl p-5"
+        style={{
+          background: 'linear-gradient(135deg, rgba(224,242,254,0.7) 0%, rgba(255,255,255,0.75) 50%, rgba(219,234,254,0.5) 100%)',
+          border: '1px solid rgba(14,165,233,0.18)',
+          boxShadow: '0 4px 24px rgba(14,165,233,0.06), inset 0 1px 0 rgba(255,255,255,0.9)',
+          backdropFilter: 'blur(16px)',
+        }}
+      >
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-3.5">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
+              style={{
+                background: 'linear-gradient(135deg, #e0f2fe, #bae6fd)',
+                border: '1px solid rgba(14,165,233,0.22)',
+                boxShadow: '0 4px 12px rgba(14,165,233,0.12)',
+              }}>
+              <CircleDollarSign className="text-sky-600" size={22} />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-sky-500">Revenue</p>
+              <h2 className="text-lg font-extrabold text-slate-800 leading-tight">Shift Revenue</h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Fees collected on exit — today {fmtDate(data?.date)}
+              </p>
+            </div>
           </div>
+          <Button
+            onClick={refresh}
+            className="gap-2 h-9 rounded-xl border border-sky-100 bg-sky-50 text-sky-700 hover:bg-sky-100/70 font-bold text-xs self-start lg:self-auto"
+          >
+            <RefreshCw size={13} className={loading ? 'animate-spin' : ''} /> Refresh
+          </Button>
         </div>
-        <Button variant="secondary" size="sm" onClick={refresh} className="gap-1.5">
-          <RefreshCw size={13} className={loading ? 'animate-spin' : ''} /> Refresh
-        </Button>
-      </div>
+      </section>
 
       {error && (
-        <div className="rounded-lg border border-rose-500/25 bg-rose-500/10 px-3 py-2 text-sm text-rose-500">{error}</div>
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800">
+          ⚠️ {error}
+        </div>
       )}
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Card className="border border-primary/25 bg-primary/5">
-          <CardContent className="p-5">
-            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total collected today</p>
-            <p className="mt-2 text-3xl font-black text-primary">{loading ? '—' : fmtMoney(data?.total)}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-5">
-            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Number of releases</p>
-            <p className="mt-2 text-3xl font-black text-foreground">{loading ? '—' : (data?.count ?? 0)}</p>
-          </CardContent>
-        </Card>
+      {/* Main KPI Grid */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div
+          className="relative overflow-hidden rounded-2xl p-5"
+          style={{
+            background: 'linear-gradient(135deg, rgba(14,165,233,0.12) 0%, rgba(255,255,255,0.7) 100%)',
+            border: '1px solid rgba(14,165,233,0.16)',
+            boxShadow: '0 4px 16px rgba(14,165,233,0.04)',
+            backdropFilter: 'blur(10px)',
+          }}
+        >
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-sky-400 via-sky-500 to-transparent" />
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Total Collected Today</p>
+          <p className="mt-2 text-3xl font-black text-sky-600">{loading ? '—' : fmtMoney(data?.total)}</p>
+        </div>
+        <div
+          className="relative overflow-hidden rounded-2xl p-5"
+          style={{
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.7) 100%)',
+            border: '1px solid rgba(14,165,233,0.1)',
+            boxShadow: '0 2px 12px rgba(14,165,233,0.03)',
+            backdropFilter: 'blur(10px)',
+          }}
+        >
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-emerald-400 via-emerald-500 to-transparent" />
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Number of Releases</p>
+          <p className="mt-2 text-3xl font-black text-slate-700">{loading ? '—' : (data?.count ?? 0)}</p>
+        </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      {/* Payment methods - Credit card styles */}
+      <div className="grid gap-4 sm:grid-cols-3">
         {stats.map((s) => {
           const Icon = s.icon;
           return (
-            <Card key={s.label} className={`border ${s.border}`}>
-              <CardContent className="p-4">
-                <div className="mb-2 flex items-center gap-2">
-                  <Icon size={14} className={s.color} />
-                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{s.label}</p>
-                </div>
-                <p className="text-xl font-bold text-foreground">{loading ? '—' : fmtMoney(s.value)}</p>
-              </CardContent>
-            </Card>
+            <motion.div
+              key={s.label}
+              whileHover={{ y: -4, scale: 1.02 }}
+              className="relative overflow-hidden rounded-2xl p-4 flex items-center justify-between"
+              style={{
+                background: 'rgba(255,255,255,0.75)',
+                border: '1px solid rgba(14,165,233,0.1)',
+                boxShadow: '0 2px 12px rgba(14,165,233,0.03), inset 0 1px 0 rgba(255,255,255,0.9)',
+                backdropFilter: 'blur(10px)',
+              }}
+            >
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{s.label}</p>
+                <p className="mt-2 text-xl font-extrabold text-slate-800">{loading ? '—' : fmtMoney(s.value)}</p>
+              </div>
+              <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${s.border} ${s.bg}`}>
+                <Icon size={16} className={s.color} />
+              </span>
+            </motion.div>
           );
         })}
       </div>
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-sm">
-            <Car size={14} className="text-primary" /> Collected transactions
-            <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
-              {data?.items.length ?? 0}
-            </span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">Loading...</p>
-          ) : !data || data.items.length === 0 ? (
-            <div className="py-8 text-center">
-              <CircleDollarSign size={28} className="mx-auto mb-2 text-muted-foreground/40" />
-              <p className="text-sm text-muted-foreground">No collections in this shift yet.</p>
-            </div>
-          ) : (
-            <div className="grid gap-2">
-              {data.items.map((it) => (
-                <div key={it._id} className="flex items-center justify-between rounded-lg border border-border bg-card/50 px-4 py-2.5">
-                  <div className="flex items-center gap-3">
-                    <span className="rounded border border-amber-500/25 bg-amber-500/10 px-2 py-0.5 font-mono text-xs font-bold text-amber-300">
-                      {it.plateNumber ?? '—'}
-                    </span>
-                    <span className="text-xs text-muted-foreground">{METHOD_LABELS[it.method] ?? it.method}</span>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-mono font-bold text-emerald-400">+{fmtMoney(it.amount)}</p>
-                    <p className="text-[11px] text-muted-foreground">{fmtTime(it.createdAt)}</p>
-                  </div>
+      {/* History Transactions List */}
+      <div
+        className="relative overflow-hidden rounded-3xl p-5 md:p-6"
+        style={{
+          background: 'rgba(255,255,255,0.72)',
+          border: '1px solid rgba(14,165,233,0.14)',
+          boxShadow: '0 10px 30px rgba(14,165,233,0.05), inset 0 1px 0 rgba(255,255,255,0.9)',
+          backdropFilter: 'blur(20px)',
+        }}
+      >
+        {/* Top border line */}
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-sky-400 via-sky-500 to-transparent" />
+
+        <div className="mb-4">
+          <h3 className="text-base font-extrabold text-slate-800 tracking-tight">Collected Transactions</h3>
+          <p className="text-xs text-slate-400 mt-0.5">List of checkout invoices processed in this shift</p>
+        </div>
+
+        {loading ? (
+          <p className="text-xs text-slate-400 py-10 text-center">Loading transactions...</p>
+        ) : !data || data.items.length === 0 ? (
+          <div className="py-12 text-center border border-dashed border-sky-100 rounded-2xl bg-sky-50/20">
+            <CircleDollarSign size={32} className="mx-auto mb-2 text-slate-300" />
+            <p className="text-sm text-slate-400 font-medium">No collections in this shift yet.</p>
+          </div>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {data.items.map((it) => (
+              <motion.div
+                key={it._id}
+                whileHover={{ y: -2 }}
+                className="flex items-center justify-between rounded-xl p-3.5"
+                style={{
+                  background: 'rgba(255,255,255,0.6)',
+                  border: '1px solid rgba(14,165,233,0.1)',
+                  boxShadow: '0 2px 10px rgba(14,165,233,0.03)',
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <LicensePlate plateNumber={it.plateNumber ?? ''} />
+                  <span className="inline-flex items-center gap-1 rounded-lg bg-sky-50 border border-sky-100 px-2 py-0.5 text-[10px] font-bold text-sky-700">
+                    {METHOD_LABELS[it.method] ?? it.method}
+                  </span>
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                <div className="text-right">
+                  <p className="font-mono font-extrabold text-emerald-600 flex items-center gap-0.5 justify-end">
+                    <ArrowUpRight size={13} className="text-emerald-500" />
+                    {fmtMoney(it.amount)}
+                  </p>
+                  <p className="text-[10px] text-slate-400 mt-0.5 font-semibold">{fmtTime(it.createdAt)}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

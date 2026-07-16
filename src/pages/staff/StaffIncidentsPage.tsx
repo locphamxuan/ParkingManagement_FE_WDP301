@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, ArrowRight, CheckCircle2, Clock3, Plus, RefreshCw, ShieldAlert, Search } from 'lucide-react';
+import { AlertTriangle, ArrowRight, CheckCircle2, Clock3, Plus, RefreshCw, ShieldAlert, Search, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +17,7 @@ interface IncidentRow {
   status: IncidentStatus;
   timestamp: string;
   note: string;
+  raw: StaffIncident;
 }
 
 const SEVERITY_LABELS: Record<string, string> = {
@@ -62,6 +63,55 @@ export function StaffIncidentsPage() {
   const [incidentMessage, setIncidentMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
   const [isCreating, setIsCreating] = useState(false);
 
+  // Resolution Modal states
+  const [selectedIncident, setSelectedIncident] = useState<StaffIncident | null>(null);
+  const [status, setStatus] = useState('resolved');
+  const [resolutionNote, setResolutionNote] = useState('');
+  const [penalizeViolator, setPenalizeViolator] = useState(false);
+  const [violatorPlate, setViolatorPlate] = useState('');
+  const [penaltyFee, setPenaltyFee] = useState('50000');
+  const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [saving, setSaving] = useState(false);
+  const [resolveMessage, setResolveMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+
+  const handleOpenResolve = (raw: StaffIncident) => {
+    setSelectedIncident(raw);
+    setStatus(raw.status === 'open' || raw.status === 'investigating' ? 'resolved' : raw.status || 'resolved');
+    setResolutionNote(raw.resolutionNote || '');
+    setViolatorPlate(raw.violatorPlate || '');
+    setPenalizeViolator(false);
+    setResolveMessage(null);
+  };
+
+  const handleResolve = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedIncident) return;
+    setSaving(true);
+    setResolveMessage(null);
+    try {
+      const payload: any = {
+        status,
+        resolutionNote: resolutionNote.trim(),
+        violatorPlate: violatorPlate.trim(),
+      };
+
+      if (penalizeViolator) {
+        payload.action = 'penalize_violator';
+        payload.penaltyFee = Number(penaltyFee);
+        payload.paymentMethod = paymentMethod;
+      }
+
+      await staffApi.incidents.resolve(selectedIncident._id, payload);
+      setResolveMessage({ type: 'ok', text: 'Incident resolved successfully.' });
+      refresh();
+      setTimeout(() => setSelectedIncident(null), 1000);
+    } catch (err) {
+      setResolveMessage({ type: 'err', text: err instanceof Error ? err.message : 'Resolve failed' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const mapIncident = (item: StaffIncident, index: number): IncidentRow => ({
     id: item.code || item._id || `INC-${1000 + index}`,
     type: item.type || 'Incident',
@@ -72,6 +122,7 @@ export function StaffIncidentsPage() {
       ? new Date(item.createdAt).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })
       : '—',
     note: item.note || '—',
+    raw: item,
   });
 
   const refresh = useCallback(() => {
@@ -378,7 +429,12 @@ export function StaffIncidentsPage() {
                       <div className="rounded-xl border border-sky-100 bg-white px-3 py-1.5 text-[11px] font-bold text-slate-500 flex items-center gap-1">
                         <Clock3 size={12} className="text-sky-500" /> {incident.timestamp}
                       </div>
-                      <Button variant="secondary" size="sm" className="gap-1 h-8 rounded-lg bg-sky-50 border border-sky-100 text-sky-700 font-bold text-xs hover:bg-sky-100/70">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => handleOpenResolve(incident.raw)}
+                        className="gap-1 h-8 rounded-lg bg-sky-50 border border-sky-100 text-sky-700 font-bold text-xs hover:bg-sky-100/70"
+                      >
                         <ArrowRight size={12} /> Details
                       </Button>
                     </div>
@@ -423,6 +479,146 @@ export function StaffIncidentsPage() {
           );
         })}
       </section>
+
+      {/* Resolution Dialog */}
+      {selectedIncident && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-lg overflow-y-auto max-h-[90vh] rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-black text-slate-800 tracking-tight">Resolve Incident {selectedIncident.code}</h3>
+            <p className="text-xs font-semibold text-slate-400 mt-0.5">Reporter: {selectedIncident.reportedBy?.fullName || 'User'}</p>
+
+            {resolveMessage && (
+              <div className={`mt-4 p-3 rounded-xl border text-xs font-bold ${resolveMessage.type === 'ok' ? 'bg-emerald-50 border-emerald-250 text-emerald-800' : 'bg-rose-50 border-rose-250 text-rose-800'}`}>
+                {resolveMessage.text}
+              </div>
+            )}
+
+            <form onSubmit={handleResolve} className="mt-4 space-y-4">
+              <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4 space-y-2 text-xs">
+                <div>
+                  <span className="text-slate-450 font-bold block uppercase tracking-wider text-[9px] mb-1">Customer Description</span>
+                  <p className="text-slate-800 font-semibold italic bg-white p-2.5 rounded-xl border border-slate-100">{selectedIncident.note || '(No descriptive note provided)'}</p>
+                </div>
+                {selectedIncident.target && (
+                  <div className="flex justify-between pt-1">
+                    <span className="text-slate-550 font-semibold">Incident Target (Plate/Zone)</span>
+                    <span className="font-extrabold font-mono text-slate-800">{selectedIncident.target}</span>
+                  </div>
+                )}
+                {selectedIncident.slot && typeof selectedIncident.slot === 'object' && (
+                  <div className="flex justify-between">
+                    <span className="text-slate-550 font-semibold">Related Slot</span>
+                    <span className="font-extrabold text-blue-600">Slot {selectedIncident.slot.code}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Status Select */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-450 block">Incident Status</label>
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-800 outline-none focus:border-blue-500"
+                >
+                  <option value="investigating">Investigating</option>
+                  <option value="escalated">Escalated</option>
+                  <option value="resolved">Resolved</option>
+                  <option value="closed">Closed</option>
+                </select>
+              </div>
+
+              {/* Resolution Note */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-450 block">Resolution Note</label>
+                <textarea
+                  value={resolutionNote}
+                  onChange={(e) => setResolutionNote(e.target.value)}
+                  placeholder="Describe details of the resolution/investigation..."
+                  className="w-full min-h-[80px] p-3 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-800 focus:border-blue-500 focus:outline-none"
+                  required
+                />
+              </div>
+
+              {/* Penalize Violator (for occupied slot) */}
+              {selectedIncident.type === 'slot_occupied' && (
+                <div className="rounded-2xl border border-rose-100 bg-rose-50/30 p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="penalize"
+                      checked={penalizeViolator}
+                      onChange={(e) => setPenalizeViolator(e.target.checked)}
+                      className="h-4 w-4 rounded border-rose-300 text-rose-600 focus:ring-rose-500"
+                    />
+                    <label htmlFor="penalize" className="text-xs font-black text-rose-800 select-none">
+                      Penalize Offending Vehicle (Force Checkout)
+                    </label>
+                  </div>
+
+                  {penalizeViolator && (
+                    <div className="grid gap-3 pt-1">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-[9px] font-black tracking-wider text-rose-600 block mb-1">Violator Plate</label>
+                          <Input
+                            placeholder="E.g. 59G2-038.80"
+                            value={violatorPlate}
+                            onChange={(e) => setViolatorPlate(e.target.value)}
+                            className="h-9 rounded-lg border-rose-200 bg-white text-xs font-bold text-slate-800"
+                            required={penalizeViolator}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[9px] font-black tracking-wider text-rose-600 block mb-1">Fine Amount (VND)</label>
+                          <Input
+                            type="number"
+                            placeholder="E.g. 50000"
+                            value={penaltyFee}
+                            onChange={(e) => setPenaltyFee(e.target.value)}
+                            className="h-9 rounded-lg border-rose-200 bg-white text-xs font-bold text-slate-800"
+                            required={penalizeViolator}
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-[9px] font-black tracking-wider text-rose-600 block mb-1">Payment Method</label>
+                        <select
+                          value={paymentMethod}
+                          onChange={(e) => setPaymentMethod(e.target.value)}
+                          className="h-9 w-full rounded-lg border border-rose-200 bg-white px-2 text-xs font-bold text-slate-800 outline-none"
+                        >
+                          <option value="cash">Cash (Staff collects cash)</option>
+                          <option value="wallet">Wallet (Deduct from user wallet)</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="pt-2 flex justify-end gap-2.5">
+                <Button
+                  type="button"
+                  onClick={() => setSelectedIncident(null)}
+                  variant="outline"
+                  className="h-10 px-5 rounded-xl border-slate-200 bg-white text-slate-600 text-xs font-bold hover:bg-slate-50"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={saving}
+                  className="h-10 px-5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-650 text-white font-extrabold text-xs uppercase tracking-wider shadow-sm"
+                >
+                  {saving ? <Loader2 size={12} className="animate-spin" /> : 'Apply Resolution'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }

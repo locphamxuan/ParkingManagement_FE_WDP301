@@ -21,6 +21,7 @@ import {
   type BuildingWalletTransaction,
   type DailyRevenueResult,
   type RevenueBreakdown,
+  type PendingCashPayment,
 } from '@/services/manager/managerApi';
 
 const fmtVnd = (n: number | null | undefined) =>
@@ -46,9 +47,11 @@ export function ManagerWalletPage() {
   const [daily, setDaily] = useState<DailyRevenueResult | null>(null);
   const [breakdown, setBreakdown] = useState<RevenueBreakdown | null>(null);
   const [transactions, setTransactions] = useState<BuildingWalletTransaction[]>([]);
+  const [pendingCash, setPendingCash] = useState<PendingCashPayment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
 
   const [topupOpen, setTopupOpen] = useState(false);
   const [topupAmount, setTopupAmount] = useState('');
@@ -60,16 +63,18 @@ export function ManagerWalletPage() {
     setLoading(true);
     setError(null);
     try {
-      const [walletRes, dailyRes, breakdownRes, txRes] = await Promise.all([
+      const [walletRes, dailyRes, breakdownRes, txRes, pendingCashRes] = await Promise.all([
         managerApi.wallet.get(buildingId),
         managerApi.wallet.getDailyRevenue(buildingId),
         managerApi.wallet.getRevenueBreakdown(buildingId),
         managerApi.wallet.listTransactions(buildingId),
+        managerApi.wallet.listPendingCash(buildingId),
       ]);
       setWallet((walletRes as { data?: { wallet: BuildingWallet } })?.data?.wallet ?? null);
       setDaily((dailyRes as { data?: DailyRevenueResult })?.data ?? null);
       setBreakdown((breakdownRes as { data?: RevenueBreakdown })?.data ?? null);
       setTransactions((txRes as { data?: { items: BuildingWalletTransaction[] } })?.data?.items ?? []);
+      setPendingCash((pendingCashRes as { data?: { items: PendingCashPayment[] } })?.data?.items ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load wallet data');
     } finally {
@@ -107,24 +112,40 @@ export function ManagerWalletPage() {
   }, [buildingId, topupAmount]);
 
   const handleVerifyTopup = useCallback(async () => {
-    if (!buildingId || !pendingTopup) return;
+    if (!pendingTopup || !buildingId) return;
     setTopupBusy(true);
+    setMessage(null);
     try {
       const res = await managerApi.wallet.verifyTopup(buildingId, pendingTopup.orderCode);
-      const status = (res as { data?: { status?: string } })?.data?.status;
-      if (status === 'success') {
-        setMessage({ type: 'ok', text: `Topped up ${fmtVnd(pendingTopup.amount)} into the building wallet.` });
+      const data = (res as { data?: { credited?: boolean; status?: string } })?.data;
+      if (data?.credited) {
+        setMessage({ type: 'ok', text: 'Top-up succeeded! Wallet balance updated.' });
         setPendingTopup(null);
-        await refresh();
+        refresh();
       } else {
-        setMessage({ type: 'err', text: 'Payment not received yet. Complete the transaction and try again.' });
+        setMessage({ type: 'err', text: `Verify status: ${data?.status || 'unknown'}. Try again after a moment.` });
       }
     } catch (err) {
-      setMessage({ type: 'err', text: err instanceof Error ? err.message : 'Top-up confirmation failed.' });
+      setMessage({ type: 'err', text: err instanceof Error ? err.message : 'Verify failed' });
     } finally {
       setTopupBusy(false);
     }
-  }, [buildingId, pendingTopup, refresh]);
+  }, [pendingTopup, buildingId, refresh]);
+
+  const handleConfirmCash = async (paymentId: string) => {
+    if (!buildingId) return;
+    setConfirmingId(paymentId);
+    setMessage(null);
+    try {
+      await managerApi.wallet.confirmCash(buildingId, paymentId);
+      setMessage({ type: 'ok', text: 'Cash confirmed successfully and added to building wallet!' });
+      refresh();
+    } catch (err) {
+      setMessage({ type: 'err', text: err instanceof Error ? err.message : 'Confirm cash failed' });
+    } finally {
+      setConfirmingId(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -280,6 +301,66 @@ export function ManagerWalletPage() {
           </div>
         </div>
       </div>
+
+      {/* Tiền mặt chờ Manager thu nhận */}
+      <Card className="border border-slate-200/80 bg-white shadow-sm overflow-hidden rounded-2xl">
+        <CardHeader className="border-b border-slate-100 bg-slate-50/30 p-5">
+          <CardTitle className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-2">
+            <CheckCircle2 size={14} className="text-blue-600 stroke-[2.5]" />
+            Pending Cash Confirmation
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          {pendingCash.length === 0 ? (
+            <p className="text-xs text-slate-500 italic py-4 text-center">No pending cash collections to approve.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-100 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                    <th className="py-2 text-left">Staff Name</th>
+                    <th className="py-2 text-left">Collection Details</th>
+                    <th className="py-2 text-right">Amount</th>
+                    <th className="py-2 text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pendingCash.map((pay) => (
+                    <tr key={pay._id} className="border-b border-slate-100/50 last:border-0">
+                      <td className="py-3 font-semibold text-slate-800">
+                        {pay.staff?.fullName || 'Shift Staff'}
+                        <p className="text-[10px] text-slate-400 font-mono font-normal">{pay.staff?.email}</p>
+                      </td>
+                      <td className="py-3 text-slate-600 text-xs">
+                        <span className="inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-black uppercase text-slate-600 mr-2">
+                          {pay.type === 'session' ? 'Parking' : pay.type}
+                        </span>
+                        {pay.note || 'Cash payment at gate'}
+                        <p className="text-[10px] text-slate-400 font-mono mt-0.5">{fmtTime(pay.createdAt)}</p>
+                      </td>
+                      <td className="py-3 text-right font-mono font-bold text-slate-800">{fmtVnd(pay.amount)}</td>
+                      <td className="py-3 text-center">
+                        <Button
+                          size="sm"
+                          disabled={confirmingId === pay._id}
+                          onClick={() => handleConfirmCash(pay._id)}
+                          className="h-8 px-3 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-650 text-white font-extrabold text-[10px] uppercase tracking-wider shadow-sm hover:brightness-110"
+                        >
+                          {confirmingId === pay._id ? (
+                            <Loader2 size={10} className="animate-spin" />
+                          ) : (
+                            'Confirm Receipt'
+                          )}
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Doanh thu theo NGÀY × phương thức thanh toán */}
       <Card>

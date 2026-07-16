@@ -58,7 +58,6 @@ export function StaffLayout() {
       ...(showCheckIn  ? [{ to: 'operations', label: 'Check-in',  icon: ScanLine }]  : []),
       ...(showCheckOut ? [{ to: 'checkout',   label: 'Check-out', icon: LogOut }]    : []),
       { to: 'parked',       label: 'Parked vehicles', icon: Car             },
-      { to: 'reservations', label: 'Reservations',    icon: CalendarCheck2  },
       { to: 'sessions',     label: 'Revenue',          icon: CircleDollarSign },
       { to: 'my-shifts',    label: 'My shifts',        icon: CalendarClock   },
       { to: 'incidents',    label: 'Incidents',        icon: ShieldAlert     },

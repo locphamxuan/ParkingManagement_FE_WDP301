@@ -56,6 +56,7 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
   const [paymentMethod, setPaymentMethod] = useState<PaymentKind>('cash');
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
+  const [barrierState, setBarrierState] = useState<'closed' | 'opening' | 'open' | 'closing'>('closed');
 
   const [identifyMode, setIdentifyMode] = useState<'plate' | 'qr'>('plate');
   const [coStep, setCoStep] = useState<1 | 2>(1);
@@ -159,7 +160,17 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
     const target = checkoutTarget;
     if (!target) return;
     setOpMessage(null);
-    const dueFee = target.currentFee ?? target.fee ?? 0;
+    
+    let entry = new Date();
+    try {
+      entry = new Date(target.entryTime);
+    } catch {
+      // fallback
+    }
+    const diffMin = Math.max(0, Math.floor((Date.now() - entry.getTime()) / 60000));
+    const isUnderGracePeriod = diffMin < 10;
+    const dueFee = isUnderGracePeriod ? 0 : (target.currentFee ?? target.fee ?? 0);
+
     try {
       if (paymentMethod === 'bank_transfer' && dueFee > 0) {
         const res = await staffApi.initiateSessionPayment(target._id);
@@ -181,13 +192,27 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
         exitPlateImage: capturedPlateImage,
         exitPortraitImage: exitPortrait,
       });
+
+      setBarrierState('opening');
+      setTimeout(() => {
+        setBarrierState('open');
+        setTimeout(() => {
+          setBarrierState('closing');
+          setTimeout(() => {
+            setBarrierState('closed');
+          }, 1000);
+        }, 3000);
+      }, 1000);
+
       setOpMessage({
         type: 'ok',
         text: target.isReservation
           ? `Vehicle ${target.plateNumber} released — wallet auto-charged.`
-          : dueFee > 0
-            ? `Fee collected & vehicle ${target.plateNumber} released.`
-            : `Vehicle ${target.plateNumber} released (free under package).`,
+          : isUnderGracePeriod
+            ? `Vehicle ${target.plateNumber} released under 10-minute Grace Period (free).`
+            : dueFee > 0
+              ? `Fee collected & vehicle ${target.plateNumber} released.`
+              : `Vehicle ${target.plateNumber} released (free under package).`,
       });
       setPaymentMethod('cash');
       setCheckoutTarget(null);
@@ -530,37 +555,56 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
                   </div>
                 ) : (
                   <>
-                    <div className="mt-4 rounded-2xl border border-sky-100 bg-sky-50/50 p-4 flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Amount due</span>
-                      <span className="font-mono text-2xl font-black text-sky-600">
-                        {(checkoutTarget.currentFee ?? checkoutTarget.fee ?? 0) > 0
-                          ? fmtMoney(checkoutTarget.currentFee ?? checkoutTarget.fee)
-                          : 'Free'}
-                      </span>
-                    </div>
+                    {(() => {
+                      let entry = new Date();
+                      try { entry = new Date(checkoutTarget.entryTime); } catch { }
+                      const diffMin = Math.max(0, Math.floor((Date.now() - entry.getTime()) / 60000));
+                      const isUnderGracePeriod = diffMin < 10;
+                      return (
+                        <>
+                          <div className="mt-4 rounded-2xl border border-sky-100 bg-sky-50/50 p-4 flex flex-col gap-1">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Amount due</span>
+                              <span className="font-mono text-2xl font-black text-sky-600">
+                                {isUnderGracePeriod
+                                  ? '0 ₫'
+                                  : (checkoutTarget.currentFee ?? checkoutTarget.fee ?? 0) > 0
+                                    ? fmtMoney(checkoutTarget.currentFee ?? checkoutTarget.fee)
+                                    : 'Free'}
+                              </span>
+                            </div>
+                            {isUnderGracePeriod && (
+                              <p className="text-[10px] text-emerald-600 font-bold mt-0.5 flex items-center gap-1.5">
+                                <CheckCircle2 size={11} className="text-emerald-500" /> Free parking under 10-minute Grace Period
+                              </p>
+                            )}
+                          </div>
 
-                    {(checkoutTarget.currentFee ?? checkoutTarget.fee ?? 0) > 0 && (
-                      <div className="mt-4 space-y-2">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Payment method</p>
-                        <div className="grid gap-2 grid-cols-3">
-                          {[
-                            { value: 'cash', label: 'Cash', icon: Banknote },
-                            { value: 'bank_transfer', label: 'Transfer', icon: QrIcon },
-                            { value: 'wallet', label: 'Wallet', icon: Wallet }
-                          ].map((m) => (
-                            <button
-                              key={m.value}
-                              type="button"
-                              onClick={() => setPaymentMethod(m.value as PaymentKind)}
-                              className={`rounded-xl border p-2.5 flex flex-col items-center justify-center gap-1.5 text-xs font-bold transition-all duration-200 ${paymentMethod === m.value ? 'border-sky-300 bg-sky-50 text-sky-700 shadow-sm' : 'border-sky-100 bg-white text-slate-500 hover:border-sky-200'}`}
-                            >
-                              <m.icon size={16} />
-                              <span>{m.label}</span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                          {(checkoutTarget.currentFee ?? checkoutTarget.fee ?? 0) > 0 && !isUnderGracePeriod && (
+                            <div className="mt-4 space-y-2">
+                              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Payment method</p>
+                              <div className="grid gap-2 grid-cols-3">
+                                {[
+                                  { value: 'cash', label: 'Cash', icon: Banknote },
+                                  { value: 'bank_transfer', label: 'Transfer', icon: QrIcon },
+                                  { value: 'wallet', label: 'Wallet', icon: Wallet }
+                                ].map((m) => (
+                                  <button
+                                    key={m.value}
+                                    type="button"
+                                    onClick={() => setPaymentMethod(m.value as PaymentKind)}
+                                    className={`rounded-xl border p-2.5 flex flex-col items-center justify-center gap-1.5 text-xs font-bold transition-all duration-200 ${paymentMethod === m.value ? 'border-sky-300 bg-sky-50 text-sky-700 shadow-sm' : 'border-sky-100 bg-white text-slate-500 hover:border-sky-200'}`}
+                                  >
+                                    <m.icon size={16} />
+                                    <span>{m.label}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
                   </>
                 )}
 
@@ -613,6 +657,77 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
         onVerify={onVerifyBankTransfer}
         onClose={() => setBankTransfer(null)}
       />
+      {/* Barrier Gate IoT Simulation Overlay */}
+      <AnimatePresence>
+        {barrierState !== 'closed' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="w-full max-w-md rounded-3xl border border-slate-800 bg-slate-900 p-8 text-center shadow-2xl space-y-6"
+            >
+              {/* Barrier Arm Animation Container */}
+              <div className="relative h-32 w-full flex items-center justify-center overflow-hidden bg-slate-950/50 rounded-2xl border border-slate-800">
+                {/* Gate Post */}
+                <div className="absolute bottom-4 left-1/4 w-6 h-16 bg-slate-700 rounded-md border border-slate-600 z-10 flex flex-col justify-around items-center py-2">
+                  <div className={`w-3.5 h-3.5 rounded-full ${barrierState === 'open' ? 'bg-emerald-500 shadow-[0_0_12px_#10b981]' : 'bg-amber-500 shadow-[0_0_12px_#f59e0b]'} transition-all duration-300`} />
+                  <div className="w-1.5 h-6 bg-slate-900 rounded" />
+                </div>
+                
+                {/* Barrier Arm (Pole) */}
+                <motion.div
+                  style={{ originX: 0.1, originY: 0.5 }}
+                  animate={{
+                    rotate: barrierState === 'open' ? -90 : barrierState === 'opening' ? -45 : barrierState === 'closing' ? -45 : 0
+                  }}
+                  transition={{ duration: 0.8, ease: "easeInOut" }}
+                  className="absolute bottom-10 left-1/4 w-40 h-3 bg-gradient-to-r from-slate-200 via-rose-500 to-rose-600 rounded-full border border-slate-900 z-20 origin-left flex justify-around animate-pulse"
+                >
+                  <div className="w-4 h-full bg-white" />
+                  <div className="w-4 h-full bg-white" />
+                  <div className="w-4 h-full bg-white" />
+                </motion.div>
+
+                {/* Ground Line */}
+                <div className="absolute bottom-4 left-0 right-0 h-1 bg-slate-800" />
+              </div>
+
+              {/* Status Message */}
+              <div className="space-y-2">
+                <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-black uppercase tracking-wider ${
+                  barrierState === 'open' 
+                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                    : barrierState === 'opening' 
+                      ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                      : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                }`}>
+                  {barrierState === 'opening' && 'Gate opening...'}
+                  {barrierState === 'open' && 'Barrier Raised - Pass through'}
+                  {barrierState === 'closing' && 'Closing barrier...'}
+                </span>
+                
+                <h3 className="text-lg font-black text-slate-100 uppercase tracking-wide">
+                  {barrierState === 'opening' && 'Releasing Vehicle...'}
+                  {barrierState === 'open' && 'Gate barrier open'}
+                  {barrierState === 'closing' && 'Security Gate warning'}
+                </h3>
+                
+                <p className="text-xs text-slate-400 px-4">
+                  {barrierState === 'opening' && 'Triggering IoT controller. Gate is opening.'}
+                  {barrierState === 'open' && 'Please drive the vehicle forward slowly. The barrier will automatically close.'}
+                  {barrierState === 'closing' && 'Safety check complete. Closing gate arm.'}
+                </p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

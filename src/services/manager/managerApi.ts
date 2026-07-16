@@ -356,11 +356,11 @@ export const managerApi = {
       api.delete<Wrap<{ message: string }>>(path(b, `/subscriptions/${subscriptionId}`), { body: { reason } }),
   },
 
-  reservationPolicy: {
+  refundPolicy: {
     get: (b: string) =>
-      api.get<Wrap<{ item: ReservationPolicy }>>(path(b, '/reservation-policy')),
+      api.get<Wrap<{ item: ReservationPolicy }>>(path(b, '/refund-policy')),
     update: (b: string, body: Partial<ReservationPolicy>) =>
-      api.put<Wrap<{ item: ReservationPolicy }>>(path(b, '/reservation-policy'), body),
+      api.put<Wrap<{ item: ReservationPolicy }>>(path(b, '/refund-policy'), body),
   },
 
   shifts: {
@@ -414,6 +414,28 @@ export const managerApi = {
     /** Manually verify a PayOS top-up (GET /wallet/topup/:orderCode/verify). */
     verifyTopup: (b: string, orderCode: number) =>
       api.get<Wrap<{ status: string; credited: boolean }>>(path(b, `/wallet/topup/${orderCode}/verify`)),
+
+    /** Tiền mặt chờ xác nhận (GET /wallet/pending-cash). */
+    listPendingCash: (b: string, q?: Record<string, string | undefined>) =>
+      api.get<Wrap<{ items: PendingCashPayment[] }>>(path(b, '/wallet/pending-cash'), { query: q }),
+
+    /** Xác nhận nhận tiền mặt từ staff (POST /wallet/pending-cash/:paymentId/confirm). */
+    confirmCash: (b: string, paymentId: string) =>
+      api.post<Wrap<{ payment: PendingCashPayment }>>(path(b, `/wallet/pending-cash/${paymentId}/confirm`)),
+  },
+
+  incidents: {
+    list: (b: string, q?: Record<string, string | undefined>) =>
+      api.get<Wrap<{ items: Incident[] }>>(path(b, '/incidents'), { query: q }),
+    resolve: (b: string, id: string, body: { status?: string; resolutionNote?: string; violatorPlate?: string; action?: string; penaltyFee?: number; paymentMethod?: string }) =>
+      api.patch<Wrap<{ item: Incident }>>(path(b, `/incidents/${id}`), body),
+  },
+
+  sessions: {
+    listActive: (b: string, q?: Record<string, string | undefined>) =>
+      api.get<Wrap<{ items: ActiveSession[] }>>(path(b, '/sessions/active'), { query: q }),
+    getDetail: (b: string, id: string) =>
+      api.get<Wrap<ActiveSession>>(path(b, `/sessions/${id}`)),
   },
 };
 
@@ -439,3 +461,47 @@ export const unwrapItems = <T,>(payload: Wrap<{ items: T[] }> | Wrap<T[]> | unde
   if (Array.isArray(d)) return d as unknown as T[];
   return d.items ?? [];
 };
+
+export interface Incident {
+  _id: string;
+  code: string;
+  type: string;
+  target?: string;
+  note?: string;
+  building?: { _id: string; code: string; name: string } | string | null;
+  slot?: { _id: string; code: string } | string | null;
+  violatorPlate?: string;
+  resolutionNote?: string;
+  severity: 'medium' | 'high' | 'critical';
+  status: 'open' | 'investigating' | 'escalated' | 'resolved' | 'closed';
+  reportedBy: { _id: string; fullName: string; email: string };
+  resolvedBy?: { _id: string; fullName: string; email: string } | null;
+  resolvedAt?: string | null;
+  createdAt: string;
+}
+
+export interface ActiveSession {
+  _id: string;
+  plateNumber: string;
+  building: { _id: string; name: string } | string;
+  vehicleType: { _id: string; code: string; name: string } | string;
+  vehicleBrand?: string;
+  plateImage?: string;
+  portraitImage?: string;
+  entryTime: string;
+  slot?: { _id: string; code: string; floor?: { name: string; code: string } } | null;
+  status: 'active' | 'completed';
+}
+
+export interface PendingCashPayment {
+  _id: string;
+  building: string;
+  type: 'session' | 'subscription' | 'topup';
+  method: 'cash';
+  amount: number;
+  status: 'pending' | 'success';
+  createdAt: string;
+  staff?: { _id: string; fullName: string; email: string } | null;
+  user?: { _id: string; fullName: string; email: string } | null;
+  note?: string;
+}

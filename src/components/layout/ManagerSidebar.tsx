@@ -18,6 +18,7 @@ import {
   Wallet,
   Fingerprint,
   MessageSquare,
+  ShieldAlert,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/utils/cn';
@@ -36,6 +37,7 @@ const groupedModules = [
     category: 'Dashboard',
     items: [
       { to: '', label: 'Overview', icon: LayoutDashboard },
+      { to: 'active-sessions', label: 'Active Sessions', icon: Clock },
     ],
   },
   {
@@ -54,7 +56,7 @@ const groupedModules = [
     items: [
       { to: 'operating-hours', label: 'Operating hours', icon: Clock },
       { to: 'price-policies', label: 'Price', icon: SlidersHorizontal },
-      { to: 'reservation-policy', label: 'Reservation', icon: MapPin },
+      { to: 'refund-policy', label: 'Refund Policy', icon: MapPin },
       { to: 'packages', label: 'Package', icon: Package },
       { to: 'subscriptions', label: 'Customer packages', icon: Fingerprint },
     ],
@@ -65,6 +67,7 @@ const groupedModules = [
       { to: 'shifts', label: 'Shifts & Assignments', icon: Users },
       { to: 'shift-reports', label: 'Shift reports', icon: ClipboardCheck },
       { to: 'staff', label: 'Staff', icon: User },
+      { to: 'incidents', label: 'User Incidents', icon: ShieldAlert },
       { to: 'reviews', label: 'Reviews', icon: MessageSquare },
     ],
   },

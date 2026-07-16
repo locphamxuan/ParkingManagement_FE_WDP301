@@ -9,6 +9,7 @@ import {
   QrCode,
   Settings,
   Image as ImageIcon,
+  CheckCircle2,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -38,7 +39,7 @@ export function StaffOperationsPage() {
     availableZones, setRejectOpen,
     slotUsageType, selectedZone, zoneUsageBlocked, zoneUsageFallback, hasExactZoneFree,
     slotPoolState, slotSelectionBlocked,
-    allowedTypes, plateTypeWarning, buildingSupportWarning,
+    allowedTypes, plateTypeWarning, buildingSupportWarning, isBlacklisted, barrierState,
     hasActivePackage, checkInKind, needsSlotSelection,
     handlePlateDetected, proceedFromIdentify, capturePortraitAndNext,
     handleResolveIdQr, onCheckIn, vehicleTypeMismatch,
@@ -402,6 +403,17 @@ export function StaffOperationsPage() {
                       </button>
                     </div>
                   )}
+                  {isBlacklisted && (
+                    <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-[11px] text-rose-700 flex flex-col gap-1.5 animate-pulse">
+                      <span className="flex items-center gap-1.5 font-bold">
+                        <AlertCircle size={14} className="text-rose-500 shrink-0 animate-bounce" />
+                        [ALERT] VEHICLE WATCH LIST / OUTSTANDING VIOLATIONS
+                      </span>
+                      <p className="text-rose-600 font-medium leading-relaxed">
+                        This license plate is marked in the blacklist directory (unpaid fees or slot occupancy violation). Guard warning: Verify driver identity and settle balance before admission.
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Parking slot selection */}
@@ -417,7 +429,17 @@ export function StaffOperationsPage() {
                       </span>
                     </p>
 
-                    {freeSlots.length > 0 ? (
+                    {plateAccountInfo?.activePackage?.slot ? (
+                      <div className="rounded-xl bg-amber-500/10 border border-amber-500/25 p-3 flex items-center justify-between text-xs text-amber-900 font-bold">
+                        <div>
+                          <p>Fixed Slot Assigned:</p>
+                          <p className="text-[10px] text-amber-700 font-medium">This customer has pre-selected a fixed slot during subscription.</p>
+                        </div>
+                        <span className="inline-flex items-center rounded-lg bg-amber-500 text-white px-3 py-1.5 font-black text-xs uppercase shadow-sm">
+                          {plateAccountInfo.activePackage.slot.code} {plateAccountInfo.activePackage.slot.floor && `· Floor ${plateAccountInfo.activePackage.slot.floor.name || plateAccountInfo.activePackage.slot.floor.code}`}
+                        </span>
+                      </div>
+                    ) : freeSlots.length > 0 ? (
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <label className="block text-[9px] font-bold text-slate-400 mb-1 uppercase tracking-wider font-mono">Zone</label>
@@ -551,6 +573,78 @@ export function StaffOperationsPage() {
       <CameraSettingsModal ops={ops} />
       <RejectCheckInModal ops={ops} />
       <UserQrInfoModal ops={ops} />
+
+      {/* Barrier Gate IoT Simulation Overlay */}
+      <AnimatePresence>
+        {barrierState !== 'closed' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="w-full max-w-md rounded-3xl border border-slate-800 bg-slate-900 p-8 text-center shadow-2xl space-y-6"
+            >
+              {/* Barrier Arm Animation Container */}
+              <div className="relative h-32 w-full flex items-center justify-center overflow-hidden bg-slate-950/50 rounded-2xl border border-slate-800">
+                {/* Gate Post */}
+                <div className="absolute bottom-4 left-1/4 w-6 h-16 bg-slate-700 rounded-md border border-slate-600 z-10 flex flex-col justify-around items-center py-2">
+                  <div className={`w-3.5 h-3.5 rounded-full ${barrierState === 'open' ? 'bg-emerald-500 shadow-[0_0_12px_#10b981]' : 'bg-amber-500 shadow-[0_0_12px_#f59e0b]'} transition-all duration-300`} />
+                  <div className="w-1.5 h-6 bg-slate-900 rounded" />
+                </div>
+                
+                {/* Barrier Arm (Pole) */}
+                <motion.div
+                  style={{ originX: 0.1, originY: 0.5 }}
+                  animate={{
+                    rotate: barrierState === 'open' ? -90 : barrierState === 'opening' ? -45 : barrierState === 'closing' ? -45 : 0
+                  }}
+                  transition={{ duration: 0.8, ease: "easeInOut" }}
+                  className="absolute bottom-10 left-1/4 w-40 h-3 bg-gradient-to-r from-slate-200 via-rose-500 to-rose-600 rounded-full border border-slate-900 z-20 origin-left flex justify-around animate-pulse"
+                >
+                  <div className="w-4 h-full bg-white" />
+                  <div className="w-4 h-full bg-white" />
+                  <div className="w-4 h-full bg-white" />
+                </motion.div>
+
+                {/* Ground Line */}
+                <div className="absolute bottom-4 left-0 right-0 h-1 bg-slate-800" />
+              </div>
+
+              {/* Status Message */}
+              <div className="space-y-2">
+                <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-black uppercase tracking-wider ${
+                  barrierState === 'open' 
+                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                    : barrierState === 'opening' 
+                      ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                      : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                }`}>
+                  {barrierState === 'opening' && 'Gate opening...'}
+                  {barrierState === 'open' && 'Barrier Raised - Pass through'}
+                  {barrierState === 'closing' && 'Closing barrier...'}
+                </span>
+                
+                <h3 className="text-lg font-black text-slate-100 uppercase tracking-wide">
+                  {barrierState === 'opening' && 'Admitting Vehicle...'}
+                  {barrierState === 'open' && 'Gate barrier open'}
+                  {barrierState === 'closing' && 'Security Gate warning'}
+                </h3>
+                
+                <p className="text-xs text-slate-400 px-4">
+                  {barrierState === 'opening' && 'Triggering IoT controller. Gate is opening.'}
+                  {barrierState === 'open' && 'Please drive the vehicle forward slowly. The barrier will automatically close.'}
+                  {barrierState === 'closing' && 'Safety check complete. Closing gate arm.'}
+                </p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

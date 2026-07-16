@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { CreditCard, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -46,7 +46,7 @@ export function ManagerSubscriptionsPage() {
   }, [buildingId, status]);
 
   useEffect(() => {
-    managerApi.reservationPolicy
+    managerApi.refundPolicy
       .get(buildingId)
       .then((res) => {
         const p = res.data.item?.refundPercent;

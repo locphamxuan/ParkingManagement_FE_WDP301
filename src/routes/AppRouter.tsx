@@ -28,7 +28,9 @@ const ManagerGatesPage = lazy(() => import('@/pages/manager/ManagerGatesPage').t
 const ManagerZonesPage = lazy(() => import('@/pages/manager/ManagerZonesPage').then((m) => ({ default: m.ManagerZonesPage })));
 const ManagerSlotsPage = lazy(() => import('@/pages/manager/ManagerSlotsPage').then((m) => ({ default: m.ManagerSlotsPage })));
 const ManagerPricingPage = lazy(() => import('@/pages/manager/ManagerPricingPage').then((m) => ({ default: m.ManagerPricingPage })));
-const ManagerReservationPolicyPage = lazy(() => import('@/pages/manager/ManagerReservationPolicyPage').then((m) => ({ default: m.ManagerReservationPolicyPage })));
+const ManagerRefundPolicyPage = lazy(() => import('@/pages/manager/ManagerRefundPolicyPage').then((m) => ({ default: m.ManagerRefundPolicyPage })));
+const ManagerActiveSessionsPage = lazy(() => import('@/pages/manager/ManagerActiveSessionsPage').then((m) => ({ default: m.ManagerActiveSessionsPage })));
+const ManagerIncidentsPage = lazy(() => import('@/pages/manager/ManagerIncidentsPage').then((m) => ({ default: m.ManagerIncidentsPage })));
 const ManagerPackagesPage = lazy(() => import('@/pages/manager/ManagerPackagesPage').then((m) => ({ default: m.ManagerPackagesPage })));
 const ManagerSubscriptionsPage = lazy(() => import('@/pages/manager/ManagerSubscriptionsPage').then((m) => ({ default: m.ManagerSubscriptionsPage })));
 const ManagerShiftManagementPage = lazy(() => import('@/pages/manager/ManagerShiftManagementPage').then((m) => ({ default: m.ManagerShiftManagementPage })));
@@ -42,7 +44,6 @@ const ManagerReviewsPage = lazy(() => import('@/pages/manager/ManagerReviewsPage
 const StaffDashboardPage = lazy(() => import('@/pages/staff/StaffDashboardPage').then((m) => ({ default: m.StaffDashboardPage })));
 const StaffOperationsPage = lazy(() => import('@/pages/staff/StaffOperationsPage').then((m) => ({ default: m.StaffOperationsPage })));
 const StaffParkedPage = lazy(() => import('@/pages/staff/StaffParkedPage').then((m) => ({ default: m.StaffParkedPage })));
-const StaffReservationsPage = lazy(() => import('@/pages/staff/StaffReservationsPage').then((m) => ({ default: m.StaffReservationsPage })));
 const StaffSessionsPage = lazy(() => import('@/pages/staff/StaffSessionsPage').then((m) => ({ default: m.StaffSessionsPage })));
 const StaffShiftsPage = lazy(() => import('@/pages/staff/StaffShiftsPage').then((m) => ({ default: m.StaffShiftsPage })));
 const StaffIncidentsPage = lazy(() => import('@/pages/staff/StaffIncidentsPage').then((m) => ({ default: m.StaffIncidentsPage })));
@@ -93,7 +94,9 @@ export function AppRouter() {
           <Route path="zones" element={<ManagerZonesPage />} />
           <Route path="slots" element={<ManagerSlotsPage />} />
           <Route path="price-policies" element={<ManagerPricingPage />} />
-          <Route path="reservation-policy" element={<ManagerReservationPolicyPage />} />
+          <Route path="refund-policy" element={<ManagerRefundPolicyPage />} />
+          <Route path="active-sessions" element={<ManagerActiveSessionsPage />} />
+          <Route path="incidents" element={<ManagerIncidentsPage />} />
           <Route path="packages" element={<ManagerPackagesPage />} />
           <Route path="subscriptions" element={<ManagerSubscriptionsPage />} />
           <Route path="shifts" element={<ManagerShiftManagementPage />} />
@@ -124,7 +127,6 @@ export function AppRouter() {
           <Route path="operations" element={<StaffOperationsPage />} />
           <Route path="checkout" element={<StaffParkedPage view="scanner" />} />
           <Route path="parked" element={<StaffParkedPage view="list" />} />
-          <Route path="reservations" element={<StaffReservationsPage />} />
           <Route path="my-shifts" element={<StaffShiftsPage />} />
           <Route path="sessions" element={<StaffSessionsPage />} />
           <Route path="incidents" element={<StaffIncidentsPage />} />

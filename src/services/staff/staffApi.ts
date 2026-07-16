@@ -86,6 +86,10 @@ export interface StaffIncident {
   createdAt?: string;
   note?: string;
   target?: string;
+  violatorPlate?: string;
+  resolutionNote?: string;
+  reportedBy?: { _id: string; fullName: string; email: string } | null;
+  slot?: { _id: string; code: string } | null;
 }
 
 export interface WalletTransaction {
@@ -137,7 +141,17 @@ export interface PlateInfo {
   };
   /** Active long-term package → staff must assign an available slot on check-in. */
   hasActivePackage?: boolean;
-  activePackage?: { id: string; name: string; maxHoursPerDay: number } | null;
+  activePackage?: {
+    id: string;
+    name: string;
+    maxHoursPerDay: number;
+    slot?: {
+      id: string;
+      code: string;
+      status: string;
+      floor?: { name: string; code: string } | null;
+    } | null;
+  } | null;
   /** Active reservation → scan-only flow, no photo capture required. */
   hasActiveReservation?: boolean;
   activeReservation?: { id: string; code: string } | null;
@@ -418,6 +432,9 @@ export const staffApi = {
 
     create: (payload: { type: string; target?: string; note?: string; buildingId?: string }) =>
       api.post('/staff/incidents', payload),
+
+    resolve: (id: string, payload: { status?: string; resolutionNote?: string; violatorPlate?: string; action?: string; penaltyFee?: number; paymentMethod?: string }) =>
+      api.patch<Wrap<{ item: StaffIncident }>>(`/staff/incidents/${id}`, payload),
   },
 
   // Wallet Transactions

@@ -95,8 +95,8 @@ export function ManagerGatesPage() {
     }
   };
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     setFormError(null);
     if (!form.code.trim()) {
       setFormError('Please enter a gate code');
@@ -272,7 +272,7 @@ export function ManagerGatesPage() {
         open={modalOpen}
         onOpenChange={setModalOpen}
         title={editing ? 'Edit gate' : 'Add gate'}
-        onSubmit={onSubmit}
+        onSubmit={() => onSubmit()}
       >
         <div className="grid gap-3">
           <div className="flex flex-col gap-1.5">

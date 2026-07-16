@@ -66,6 +66,7 @@ export function useStaffOperations() {
     [assignment.plate, assignment.portrait, assignment.qr].filter(Boolean),
   ).size;
   const [multiCamMode, setMultiCamMode] = useState(() => distinctDeviceCount >= 2);
+  const [barrierState, setBarrierState] = useState<'closed' | 'opening' | 'open' | 'closing'>('closed');
 
   // Wizard tuần tự: 1: Nhận diện xe · 2: Chụp chân dung · 3: Xác nhận & check-in
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -150,6 +151,11 @@ export function useStaffOperations() {
   // đối tượng khác). 'capacity' KHÔNG chặn (đỗ theo sức chứa là hợp lệ).
   const slotSelectionBlocked = needsSlotSelection && (slotPoolState === 'exhausted' || slotPoolState === 'full');
 
+  const isBlacklisted = useMemo(() => {
+    const clean = plateNumber.trim().toUpperCase();
+    return clean.startsWith('99') || clean === '59G2-999.99' || clean.startsWith('XX');
+  }, [plateNumber]);
+
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [userQrInfo, setUserQrInfo] = useState<{
@@ -211,7 +217,13 @@ export function useStaffOperations() {
       staffApi
         .lookupPlate(clean, buildingId)
         .then((res) => {
-          if (!cancelled) setPlateAccountInfo((res as { data?: PlateInfo })?.data ?? null);
+          if (cancelled) return;
+          const info = (res as { data?: PlateInfo })?.data ?? null;
+          setPlateAccountInfo(info);
+          // Auto fill fixed slot if available
+          if (info?.hasActivePackage && info?.activePackage?.slot) {
+            setSelectedSlotId(info.activePackage.slot.id);
+          }
         })
         .catch(() => undefined);
       return () => { cancelled = true; };
@@ -219,7 +231,7 @@ export function useStaffOperations() {
       setPlateAccountInfo(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [plateNumber]);
+  }, [plateNumber, buildingId]);
 
   // Đổi ĐỐI TƯỢNG hoặc TÒA → pool slot hợp lệ đổi → bỏ lựa chọn cũ để không giữ lại
   // zone/slot không còn hợp đối tượng mới (tránh submit slot sai pool → BE trả lỗi).
@@ -243,14 +255,25 @@ export function useStaffOperations() {
       .freeSlots(buildingId, { vehicleType, usageType: slotUsageType })
       .then((res) => {
         if (cancelled) return;
-        const data = (res as { data?: { items?: typeof freeSlots; totalSlots?: number; totalAvailable?: number } })?.data;
-        setFreeSlots(data?.items ?? []);
+        const data = (res as { data?: { items?: typeof freeSlots; suggestedSlotId?: string; totalSlots?: number; totalAvailable?: number } })?.data;
+        const itemsList = data?.items ?? [];
+        setFreeSlots(itemsList);
         setSlotPoolStats({ totalSlots: data?.totalSlots ?? 0, totalAvailable: data?.totalAvailable ?? 0 });
+        
+        // Auto select suggested slot if no fixed slot is present
+        const hasFixed = plateAccountInfo?.hasActivePackage && plateAccountInfo?.activePackage?.slot;
+        if (!hasFixed && data?.suggestedSlotId) {
+          setSelectedSlotId(data.suggestedSlotId);
+          const matchedSlot = itemsList.find(s => s._id === data.suggestedSlotId);
+          if (matchedSlot && matchedSlot.zone) {
+            setSelectedZoneId(typeof matchedSlot.zone === 'object' ? matchedSlot.zone._id : matchedSlot.zone);
+          }
+        }
       })
       .catch(() => undefined);
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [needsSlotSelection, buildingId, vehicleType, slotUsageType]);
+  }, [needsSlotSelection, buildingId, vehicleType, slotUsageType, plateAccountInfo]);
 
   const applyPlate = (plate: string, brand: string | null = null) => {
     const clean = normalizePlate(plate) || plate.trim().toUpperCase();
@@ -361,6 +384,18 @@ export function useStaffOperations() {
         slot: selectedSlotId || undefined,
         gate: entryGateId || undefined,
       });
+      
+      setBarrierState('opening');
+      setTimeout(() => {
+        setBarrierState('open');
+        setTimeout(() => {
+          setBarrierState('closing');
+          setTimeout(() => {
+            setBarrierState('closed');
+          }, 1000);
+        }, 3000);
+      }, 1000);
+
       setOpMessage({ type: 'ok', text: `Parking session created for plate ${currentPlate}.` });
       resetForm();
     } catch (err) {
@@ -421,6 +456,8 @@ export function useStaffOperations() {
     slotUsageType, selectedZone, zoneUsageBlocked, zoneUsageFallback, hasExactZoneFree,
     slotPoolState, slotSelectionBlocked, slotPoolStats,
     rejectOpen, setRejectOpen,
+    isBlacklisted,
+    barrierState,
     rejectReason, setRejectReason,
     userQrInfo, setUserQrInfo,
     allowedTypes,

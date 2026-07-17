@@ -1,4 +1,5 @@
-﻿import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { showToast } from '@/components/common/ToastNotification';
 import { Pencil, Plus, Trash2, LayoutGrid, Layers, ShieldCheck, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -132,9 +133,9 @@ export function ManagerZonesPage() {
   };
 
   const onSubmit = async () => {
-    if (!form.floor) return alert('Please select a floor');
-    if (!form.name.trim()) return alert('Please enter a zone name');
-    if (!form.vehicleType) return alert('Please select a vehicle type');
+    if (!form.floor) return showToast('Please select a floor', 'error');
+    if (!form.name.trim()) return showToast('Please enter a zone name', 'error');
+    if (!form.vehicleType) return showToast('Please select a vehicle type', 'error');
     // Mã zone do BE tự sinh từ name — chỉ gửi name.
     const body = {
       floor: form.floor,
@@ -152,8 +153,9 @@ export function ManagerZonesPage() {
       }
       setModalOpen(false);
       refresh();
+      showToast('Zone saved successfully', 'success');
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Save failed');
+      showToast(err instanceof Error ? err.message : 'Save failed', 'error');
     }
   };
 
@@ -162,8 +164,9 @@ export function ManagerZonesPage() {
     try {
       await managerApi.zones.remove(buildingId, row._id);
       refresh();
+      showToast('Zone deleted successfully', 'success');
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Delete failed');
+      showToast(err instanceof Error ? err.message : 'Delete failed', 'error');
     }
   };
 

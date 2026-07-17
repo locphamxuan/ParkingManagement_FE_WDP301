@@ -1,4 +1,5 @@
-﻿import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { showToast } from '@/components/common/ToastNotification';
 import { Pencil, Plus, Trash2, LayoutGrid, CheckCircle2, Car, ShieldCheck, Layers, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -144,11 +145,11 @@ export function ManagerSlotsPage() {
 
   const onSubmit = async () => {
     if (!form.floor) {
-      alert('Select a floor first');
+      showToast('Select a floor first', 'error');
       return;
     }
     if (!form.zone) {
-      alert('Select a zone first');
+      showToast('Select a zone first', 'error');
       return;
     }
     const payload: Record<string, unknown> = {
@@ -168,8 +169,9 @@ export function ManagerSlotsPage() {
       }
       setModalOpen(false);
       refresh();
+      showToast('Slot saved successfully', 'success');
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Save failed');
+      showToast(err instanceof Error ? err.message : 'Save failed', 'error');
     }
   };
 
@@ -178,23 +180,30 @@ export function ManagerSlotsPage() {
     try {
       await managerApi.slots.remove(buildingId, row._id);
       refresh();
+      showToast('Slot deleted successfully', 'success');
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Delete failed');
+      showToast(err instanceof Error ? err.message : 'Delete failed', 'error');
     }
   };
 
   // Tạo hàng loạt qua POST /slots/batch — BE tự sinh mã nối tiếp theo code zone.
   const onMultiSlotSubmit = async (input: SlotBatchInput) => {
-    await managerApi.slots.createBatch(buildingId, input);
-    refresh();
+    try {
+      await managerApi.slots.createBatch(buildingId, input);
+      refresh();
+      showToast('Batch slots created successfully', 'success');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Batch creation failed', 'error');
+    }
   };
 
   const onStatusChange = async (row: ParkingSlot, status: ParkingSlot['status']) => {
     try {
       await managerApi.slots.updateStatus(buildingId, row._id, status);
       refresh();
+      showToast('Slot status updated', 'success');
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Update failed');
+      showToast(err instanceof Error ? err.message : 'Update failed', 'error');
     }
   };
 

@@ -477,6 +477,14 @@ export function StaffOperationsPage() {
                               ))}
                           </select>
                         </div>
+                        {selectedSlotId && (
+                          <div className="col-span-2 p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-2 mt-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            <span className="text-[10px] font-semibold text-emerald-600">
+                              System Recommended Spot: <strong className="text-emerald-800">{freeSlots.find(s => s._id === selectedSlotId)?.code}</strong> ({freeSlots.find(s => s._id === selectedSlotId)?.floor?.name || 'Floor 1'})
+                            </span>
+                          </div>
+                        )}
                       </div>
                     ) : slotPoolState === 'capacity' ? (
                       <p className="text-[11px] text-slate-500">This building has no fixed slots — vehicles park by shared capacity.</p>

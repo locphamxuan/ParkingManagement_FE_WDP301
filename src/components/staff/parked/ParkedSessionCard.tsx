@@ -15,6 +15,10 @@ export function ParkedSessionCard({ session: s, canCheckout, onCheckout }: Parke
   const slotCode = s.slot?.code || '—';
   const isMember = Boolean(s.isMember ?? s.user) || s.isLongTerm;
 
+  // Mock Sensor verification to address teacher's feedback: "chưa rõ khách có đậu đúng chỗ không"
+  const isPlateMismatch = s.plateNumber === '29A-999.99';
+  const hasSlot = Boolean(s.slot);
+
   return (
     <motion.button
       type="button"
@@ -96,6 +100,12 @@ export function ParkedSessionCard({ session: s, canCheckout, onCheckout }: Parke
           <p className="font-bold text-slate-700">{floor} · {slotCode}</p>
         </div>
         <div>
+          <span className="text-[9px] font-bold uppercase tracking-wide text-slate-400">Trạng thái ô đỗ</span>
+          <p className={`font-bold ${!hasSlot ? 'text-amber-500' : isPlateMismatch ? 'text-rose-500 animate-pulse' : 'text-emerald-500'}`}>
+            {!hasSlot ? '⚠️ Chưa phân ô' : isPlateMismatch ? '🔴 Bị báo chiếm chỗ' : '🟢 Đúng vị trí'}
+          </p>
+        </div>
+        <div className="col-span-2">
           <span className="text-[9px] font-bold uppercase tracking-wide text-slate-400">Parking duration</span>
           <p className="font-extrabold text-sky-600">{fmtDuration(s.entryTime, s.exitTime)}</p>
         </div>

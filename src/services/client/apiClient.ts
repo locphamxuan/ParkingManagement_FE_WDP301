@@ -8,12 +8,25 @@ const API_BASE =
   'http://localhost:5000/api';
 
 export function setStoredToken(token: string | null): void {
-  if (token) localStorage.setItem(STORAGE_TOKEN, token);
-  else localStorage.removeItem(STORAGE_TOKEN);
+  if (token) {
+    try { sessionStorage.setItem(STORAGE_TOKEN, token); } catch {}
+    try { localStorage.setItem(STORAGE_TOKEN, token); } catch {}
+  } else {
+    try { sessionStorage.removeItem(STORAGE_TOKEN); } catch {}
+    try { localStorage.removeItem(STORAGE_TOKEN); } catch {}
+  }
 }
 
 export function getStoredToken(): string | null {
-  return localStorage.getItem(STORAGE_TOKEN);
+  try {
+    const s = sessionStorage.getItem(STORAGE_TOKEN);
+    if (s) return s;
+  } catch {}
+  try {
+    return localStorage.getItem(STORAGE_TOKEN);
+  } catch {
+    return null;
+  }
 }
 
 type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';

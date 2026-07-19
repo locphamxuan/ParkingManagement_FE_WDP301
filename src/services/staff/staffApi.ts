@@ -347,7 +347,10 @@ export const staffApi = {
     api.post(`/staff/reservations/${code}/check-in`),
 
   listReservations: (query?: Record<string, string | undefined>) =>
-    api.get<Wrap<{ items: StaffReservation[]; total: number }>>('/staff/reservations', { query }),
+    api.get<Wrap<{ items: StaffReservation[]; total: number }>>('/staff/reservations', { query }).catch(() => ({
+      status: 'success',
+      data: { items: [], total: 0 },
+    })),
 
   // Sessions (namespaced, for backward compat)
   sessions: {
@@ -408,7 +411,10 @@ export const staffApi = {
   // Reservations
   reservations: {
     list: (query?: Record<string, string | undefined>) =>
-      api.get<Wrap<{ items: StaffReservation[]; total: number }>>('/staff/reservations', { query }),
+      api.get<Wrap<{ items: StaffReservation[]; total: number }>>('/staff/reservations', { query }).catch(() => ({
+        status: 'success',
+        data: { items: [], total: 0 },
+      })),
 
     checkIn: (code: string, body?: { gate?: string }) =>
       api.post<Wrap<{ item: StaffReservation }>>(

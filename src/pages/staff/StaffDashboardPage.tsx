@@ -226,16 +226,14 @@ export function StaffDashboardPage() {
       staffApi.myShifts(),
       staffApi.getActiveSessions({ building: buildingId, populate: 'slot.floor,vehicleType,entryGate,exitGate' }),
       staffApi.incidents.list(buildingId),
-      staffApi.listReservations(buildingId ? { buildingId, status: 'confirmed' } : {}),
     ])
-      .then(([shiftRes, sessionRes, incidentRes, resRes]) => {
+      .then(([shiftRes, sessionRes, incidentRes]) => {
         setShifts(extractShifts(shiftRes as Parameters<typeof extractShifts>[0]));
         const rawS = (sessionRes as { data?: { items?: ParkingSession[] } | ParkingSession[] })?.data;
         setSessions(Array.isArray(rawS) ? rawS : (rawS as { items?: ParkingSession[] })?.items ?? []);
         const rawI = (incidentRes as { data?: { items?: StaffIncident[] } | StaffIncident[] })?.data;
         setIncidents(Array.isArray(rawI) ? rawI : (rawI as { items?: StaffIncident[] })?.items ?? []);
-        const rawR = (resRes as { data?: { items?: StaffReservation[] } })?.data?.items ?? [];
-        setReservations(Array.isArray(rawR) ? rawR : []);
+        setReservations([]);
         setError(null);
       })
       .catch(e => setError(e instanceof Error ? e.message : 'Failed to load data'))

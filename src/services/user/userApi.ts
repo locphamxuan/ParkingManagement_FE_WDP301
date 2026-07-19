@@ -367,9 +367,10 @@ export const userApi = {
       ),
 
     /** Get parking slots for a building floor (BE returns { floor, slots }). */
-    slots: (buildingId: string, floorId: string) =>
+    slots: (buildingId: string, floorId: string, query?: Record<string, string | undefined>) =>
       api.get<Wrap<{ floor: { _id: string; name: string; code: string }; slots: ParkingSlot[] }>>(
-        `/users/buildings/${buildingId}/floors/${floorId}/slots`
+        `/users/buildings/${buildingId}/floors/${floorId}/slots`,
+        { query: { usage: 'subscriber', ...query } }
       ),
   },
 

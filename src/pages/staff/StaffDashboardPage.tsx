@@ -281,12 +281,6 @@ export function StaffDashboardPage() {
       valueColor: '#059669', delay: 0.06,
     },
     {
-      label: 'Reservations to serve', value: pendingRes.length,     icon: Ticket,        loading,
-      topLine:    'linear-gradient(90deg, transparent, #f59e0b, transparent)',
-      iconBg:     'rgba(245,158,11,0.1)', iconColor: '#f59e0b',
-      valueColor: '#d97706', delay: 0.12,
-    },
-    {
       label: 'Open incidents',        value: openIncidents.length,  icon: ShieldAlert,   loading,
       topLine:    openIncidents.length > 0
         ? 'linear-gradient(90deg, transparent, #f43f5e, transparent)'

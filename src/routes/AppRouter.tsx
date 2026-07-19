@@ -100,7 +100,7 @@ export function AppRouter() {
           <Route path="packages" element={<ManagerPackagesPage />} />
           <Route path="subscriptions" element={<ManagerSubscriptionsPage />} />
           <Route path="shifts" element={<ManagerShiftManagementPage />} />
-          <Route path="shift-reports" element={<ManagerShiftReportsPage />} />
+          <Route path="shift-reports" element={<Navigate to="/manager/wallet" replace />} />
           <Route path="staff-shifts" element={<Navigate to="/manager/shifts" replace />} />
           <Route path="operating-hours" element={<ManagerOperatingHoursPage />} />
           <Route path="staff" element={<ManagerStaffPage />} />
@@ -128,7 +128,8 @@ export function AppRouter() {
           <Route path="checkout" element={<StaffParkedPage view="scanner" />} />
           <Route path="parked" element={<StaffParkedPage view="list" />} />
           <Route path="my-shifts" element={<StaffShiftsPage />} />
-          <Route path="sessions" element={<StaffSessionsPage />} />
+          <Route path="sessions" element={<Navigate to="/staff/dashboard" replace />} />
+          <Route path="reservations" element={<Navigate to="/staff/dashboard" replace />} />
           <Route path="incidents" element={<StaffIncidentsPage />} />
           <Route path="profile" element={<StaffProfilePage />} />
         </Route>

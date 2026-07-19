@@ -65,7 +65,6 @@ const groupedModules = [
     category: 'Staff & Reviews',
     items: [
       { to: 'shifts', label: 'Shifts & Assignments', icon: Users },
-      { to: 'shift-reports', label: 'Shift reports', icon: ClipboardCheck },
       { to: 'staff', label: 'Staff', icon: User },
       { to: 'incidents', label: 'User Incidents', icon: ShieldAlert },
       { to: 'reviews', label: 'Reviews', icon: MessageSquare },

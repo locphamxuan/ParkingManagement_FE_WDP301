@@ -14,6 +14,14 @@ export interface AnimatedParkingMap3DProps {
   activeReservations?: Array<{ slotCode: string; plateNumber: string; vehicleType: 'car' | 'motorcycle' }>;
   interactiveUnavailableSlots?: string[];
   onSlotClick?: (slotCode: string) => void;
+  slots?: Array<{
+    _id?: string;
+    code: string;
+    status: 'available' | 'occupied' | 'reserved' | 'maintenance' | string;
+    vehicleType?: any;
+    note?: string;
+  }>;
+  onEditSlot?: (slot: any) => void;
 }
 
 export function AnimatedParkingMap3D({
@@ -26,7 +34,9 @@ export function AnimatedParkingMap3D({
   selectedSlot = null,
   activeReservations = [],
   interactiveUnavailableSlots = [],
-  onSlotClick
+  onSlotClick,
+  slots = [],
+  onEditSlot,
 }: AnimatedParkingMap3DProps = {}) {
   const {
     hudMessage, simPhase,
@@ -37,7 +47,7 @@ export function AnimatedParkingMap3D({
   } = useParkingSimulation(interactive);
 
   return (
-    <div className="relative w-full rounded-3xl bg-slate-950 border border-white/5 shadow-2xl p-6 overflow-hidden flex flex-col justify-between h-[420px]">
+    <div className="relative w-full h-full min-h-[460px] rounded-3xl bg-slate-950 border border-white/5 shadow-2xl p-6 overflow-hidden flex flex-col justify-between">
       
       {/* Blueprint Grid Lines Backing */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:15px_15px] pointer-events-none" />
@@ -153,13 +163,18 @@ export function AnimatedParkingMap3D({
             {/* Lanes markings (dashed white-ish lines with subtle glowing drop shadows) */}
             <line x1="0" y1="135" x2="450" y2="135" stroke="rgba(255,255,255,0.18)" strokeWidth="2" strokeDasharray="6 8" />
 
+            {/* Road Lane Ground Labels (Entry Lane & Exit Lane) */}
+            <text x="25" y="150" fill="#06b6d4" fontSize="8" fontWeight="bold" fontFamily="monospace" letterSpacing="1.2" opacity="0.9">ENTRY LANE ➔</text>
+            <text x="330" y="150" fill="#f43f5e" fontSize="8" fontWeight="bold" fontFamily="monospace" letterSpacing="1.2" opacity="0.9">➔ EXIT LANE</text>
+
             {/* Yellow parking lane boundaries */}
             {[20, 105, 190, 275, 360, 445].map((xPos) => (
               <path key={xPos} d={`M ${xPos},20 L ${xPos},85`} stroke="#fbbf24" strokeWidth="2.5" opacity="0.85" />
             ))}
             
             {/* White ground directional arrows */}
-            <path d="M 160,170 L 190,170 M 180,165 L 190,170 L 180,175" stroke="rgba(255,255,255,0.3)" strokeWidth="2" fill="none" strokeLinecap="round" />
+            <path d="M 160,170 L 190,170 M 180,165 L 190,170 L 180,175" stroke="rgba(255,255,255,0.35)" strokeWidth="2" fill="none" strokeLinecap="round" />
+            <path d="M 260,170 L 290,170 M 280,165 L 290,170 L 280,175" stroke="rgba(255,255,255,0.35)" strokeWidth="2" fill="none" strokeLinecap="round" />
 
             {/* Curved trajectory guide arrow (Teal Sedan reversing path into Slot 3) */}
             {simPhase === 1 && (
@@ -230,6 +245,15 @@ export function AnimatedParkingMap3D({
               transformStyle: 'preserve-3d'
             }}
           >
+            {/* Floating Entry Gate Label Badge */}
+            <div 
+              className="absolute left-[-30px] top-[-25px] z-30 font-mono text-[8px] font-black uppercase text-emerald-300 bg-slate-950/90 border border-emerald-500/40 px-2 py-0.5 rounded shadow-[0_0_10px_rgba(16,185,129,0.3)] flex items-center gap-1 pointer-events-none"
+              style={{ transform: 'translateZ(35px)' }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+              <span>CỔNG VÀO (IN)</span>
+            </div>
+
             {/* Volumetric black scanner body */}
             <div 
               className="box-3d w-full h-full preserve-3d"
@@ -274,26 +298,15 @@ export function AnimatedParkingMap3D({
               transformStyle: 'preserve-3d'
             }}
           >
+            {/* Floating Exit Gate Label Badge */}
             <div 
-              className="box-3d w-full h-full preserve-3d"
-              style={{
-                '--box-w': '12px',
-                '--box-d': '12px',
-                '--box-h': '36px',
-                transformStyle: 'preserve-3d'
-              } as React.CSSProperties}
+              className="absolute right-[-30px] top-[-25px] z-30 font-mono text-[8px] font-black uppercase text-rose-300 bg-slate-950/90 border border-rose-500/40 px-2 py-0.5 rounded shadow-[0_0_10px_rgba(244,63,94,0.3)] flex items-center gap-1 pointer-events-none"
+              style={{ transform: 'translateZ(35px)' }}
             >
-              {/* Top Face (Glowing red status bulb) */}
-              <div className="box-3d-face box-3d-top bg-slate-950 border border-slate-800 rounded-sm flex items-center justify-center">
-                <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_#ef4444]" />
-              </div>
-              <div className="box-3d-face box-3d-front bg-slate-900 border-b border-black/40" />
-              <div className="box-3d-face box-3d-right bg-slate-900" />
-              <div className="box-3d-face box-3d-back bg-slate-900" />
-              <div className="box-3d-face box-3d-left bg-slate-900" />
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping" />
+              <span>CỔNG RA (OUT)</span>
             </div>
 
-            {/* Red/White striped gate arm (exit gate closed horizontal 0 degrees) */}
             <div 
               className="absolute right-3.5 top-1.5 w-[50px] h-2.5 bg-red-500 origin-right transition-transform duration-500 shadow-lg preserve-3d"
               style={{ 
@@ -306,42 +319,54 @@ export function AnimatedParkingMap3D({
             />
           </div>
 
-          {/* Render 5 volumetric Parking slots with stoppers */}
-          <div className="absolute top-[20px] left-[20px] right-[20px] h-[70px] grid grid-cols-5 gap-4 items-center justify-items-center">
-            {[1, 2, 3, 4, 5].map((id) => {
-              const slotCode = `A-0${id}`;
-              const isEV = id === 3;
+          {/* Render Parking slots with stoppers & visual 3D cars */}
+          <div className="absolute top-[20px] left-[20px] right-[20px] h-[70px] flex flex-wrap items-center justify-center gap-3.5 preserve-3d">
+            {(slots && slots.length > 0 ? slots.slice(0, 10) : [1, 2, 3, 4, 5]).map((item, index) => {
+              const id = index + 1;
+              const isRawSlot = typeof item === 'object' && item !== null;
+              const rawSlot = isRawSlot ? (item as any) : null;
+              const slotCode = rawSlot ? rawSlot.code : `A-0${id}`;
+              const isEV = id === 3 || slotCode.toLowerCase().includes('ev');
               
-              // If interactive mode, check if slot is reserved in activeReservations
               const reservation = interactive && activeReservations?.find((r) => r.slotCode === slotCode);
               const blockedBySlotStatus = interactiveUnavailableSlots.includes(slotCode);
-              const isOccupied = interactive 
-                ? Boolean(reservation || blockedBySlotStatus)
-                : (id === 1 || id === 2 || (id === 3 && carAState === 'parked') || (id === 4 && carBState === 'parked') || id === 5);
               
+              const isOccupied = rawSlot 
+                ? rawSlot.status === 'occupied' 
+                : (interactive 
+                  ? Boolean(reservation || blockedBySlotStatus)
+                  : (id === 1 || id === 2 || (id === 3 && carAState === 'parked') || (id === 4 && carBState === 'parked') || id === 5));
+              const isReserved = rawSlot ? rawSlot.status === 'reserved' : false;
+              const isMaintenance = rawSlot ? rawSlot.status === 'maintenance' : false;
               const isSelected = interactive && selectedSlot === slotCode;
+
+              const carTypes: Array<'sedan' | 'suv' | 'offroad' | 'crossover'> = ['sedan', 'suv', 'offroad', 'crossover'];
+              const carColors = ['#0e7490', '#be185d', '#334155', '#eab308', '#059669', '#d97706'];
 
               return (
                 <motion.div 
-                  key={id}
+                  key={rawSlot?._id || slotCode || id}
                   onClick={() => {
-                    if (interactive && !isOccupied && onSlotClick) {
+                    if (onEditSlot && rawSlot) {
+                      onEditSlot(rawSlot);
+                    } else if (interactive && !isOccupied && onSlotClick) {
                       onSlotClick(slotCode);
                     }
                   }}
-                  whileHover={interactive && !isOccupied ? { 
-                    scale: 1.05, 
-                    boxShadow: '0 0 15px rgba(16,185,129,0.5)',
-                    borderColor: 'rgba(16,185,129,0.5)'
-                  } : {}}
-                  whileTap={interactive && !isOccupied ? { scale: 0.95, y: 1 } : {}}
-                  className={`w-[66px] h-[46px] rounded-xl border flex flex-col justify-between p-1.5 relative shadow-2xl transition-all duration-300 ${
-                    interactive && !isOccupied ? 'cursor-pointer' : ''
-                  } ${
+                  whileHover={{ 
+                    scale: 1.06, 
+                    boxShadow: isOccupied ? '0 0 15px rgba(244,63,94,0.5)' : '0 0 15px rgba(16,185,129,0.5)',
+                  }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`w-[66px] h-[46px] rounded-xl border flex flex-col justify-between p-1.5 relative shadow-2xl transition-all duration-300 cursor-pointer ${
                     isSelected
                       ? 'border-orange-500 bg-orange-500/10 shadow-[0_0_15px_rgba(249,115,22,0.6)] scale-105 z-20'
                       : isOccupied
-                      ? 'border-rose-500/80 bg-rose-500/5 shadow-[0_0_10px_rgba(244,63,94,0.3)]'
+                      ? 'border-rose-500/80 bg-rose-500/10 shadow-[0_0_10px_rgba(244,63,94,0.3)]'
+                      : isReserved
+                      ? 'border-purple-500/80 bg-purple-500/10 shadow-[0_0_10px_rgba(168,85,247,0.3)]'
+                      : isMaintenance
+                      ? 'border-amber-500/80 bg-amber-500/10 shadow-[0_0_10px_rgba(245,158,11,0.3)]'
                       : 'border-emerald-500 bg-emerald-500/5 shadow-[0_0_10px_rgba(16,185,129,0.3)] hover:border-emerald-400 hover:bg-emerald-500/10'
                   }`}
                 >
@@ -363,17 +388,19 @@ export function AnimatedParkingMap3D({
                   />
                   
                   <div className="flex justify-between items-center z-10 font-mono text-[8px] text-slate-500 font-extrabold uppercase mt-2 pointer-events-none">
-                    <span>{slotCode}</span>
+                    <span className="truncate max-w-[42px]">{slotCode}</span>
                     {isOccupied && <span className="text-rose-400 font-bold text-[7px] uppercase tracking-normal">FULL</span>}
-                    {!isOccupied && <span className="text-emerald-400 font-bold text-[7px] uppercase tracking-normal">FREE</span>}
+                    {isReserved && <span className="text-purple-400 font-bold text-[7px] uppercase tracking-normal">RSVD</span>}
+                    {isMaintenance && <span className="text-amber-400 font-bold text-[7px] uppercase tracking-normal">MAINT</span>}
+                    {!isOccupied && !isReserved && !isMaintenance && <span className="text-emerald-400 font-bold text-[7px] uppercase tracking-normal">FREE</span>}
                   </div>
                   
-                  {/* Render visual cars in slots */}
+                  {/* Render visual cars in occupied slots */}
                   {isOccupied && (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ transform: 'translateZ(4px)' }}>
                       <CartoonCar3D 
-                        type={id === 1 ? 'offroad' : id === 5 ? 'crossover' : 'sedan'} 
-                        color={id === 1 ? '#334155' : id === 5 ? '#eab308' : (reservation && reservation.vehicleType === 'motorcycle') ? '#be185d' : '#0e7490'} 
+                        type={carTypes[index % carTypes.length]} 
+                        color={carColors[index % carColors.length]} 
                         state="parked" 
                       />
                     </div>

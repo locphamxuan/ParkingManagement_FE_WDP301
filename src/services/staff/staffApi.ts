@@ -241,6 +241,9 @@ export const staffApi = {
   buildingDetail: (buildingId: string) =>
     api.get<Wrap<StaffBuilding>>(`/staff/buildings/${buildingId}`),
 
+  getBuildingPolicy: (buildingId: string) =>
+    api.get<Wrap<{ lostTicketFee?: number; ruleViolationFee?: number; refundPercent?: number }>>(`/staff/buildings/${buildingId}/policy`),
+
   // My Shifts
   myShifts: (q?: Record<string, string | undefined>) =>
     api.get<Wrap<{ items: MyShift[] } | MyShift[]>>('/staff/my-shifts', { query: q }),

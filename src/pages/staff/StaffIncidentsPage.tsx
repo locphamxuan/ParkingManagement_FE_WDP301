@@ -570,17 +570,21 @@ export function StaffIncidentsPage() {
                           />
                         </div>
                         <div>
-                          <label className="text-[9px] font-black tracking-wider text-rose-600 block mb-1">Fine Amount (VND)</label>
+                          <label className="text-[9px] font-black tracking-wider text-rose-600 block mb-1">
+                            Fine Amount (VND) <span className="text-[9px] font-semibold text-slate-400">(🔒 Manager Set)</span>
+                          </label>
                           <Input
                             type="number"
-                            placeholder="E.g. 50000"
                             value={penaltyFee}
-                            onChange={(e) => setPenaltyFee(e.target.value)}
-                            className="h-9 rounded-lg border-rose-200 bg-white text-xs font-bold text-slate-800"
-                            required={penalizeViolator}
+                            readOnly
+                            disabled
+                            className="h-9 rounded-lg border-rose-200 bg-slate-100 text-xs font-black text-rose-700 cursor-not-allowed shadow-inner"
                           />
                         </div>
                       </div>
+                      <p className="text-[10px] text-slate-500 font-bold flex items-center gap-1 bg-white/80 p-2 rounded-lg border border-rose-100">
+                        🔒 Mức phạt được Manager ấn định theo chính sách tòa nhà. Staff chỉ xem và thu tiền phạt.
+                      </p>
 
                       <div>
                         <label className="text-[9px] font-black tracking-wider text-rose-600 block mb-1">Payment Method</label>

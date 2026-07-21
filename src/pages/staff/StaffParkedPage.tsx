@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RefreshCcw, CheckCircle2, Car, ScanLine, QrCode, UserSquare, ArrowLeft, ArrowRight, Wallet, Banknote, QrCode as QrIcon } from 'lucide-react';
+import { RefreshCcw, CheckCircle2, Car, ScanLine, QrCode, UserSquare, ArrowLeft, ArrowRight, Wallet, Banknote, QrCode as QrIcon, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useAssignedGates } from '@/hooks/staff/useAssignedGates';
@@ -58,6 +59,9 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
   const [rejectReason, setRejectReason] = useState('');
   const [barrierState, setBarrierState] = useState<'closed' | 'opening' | 'open' | 'closing'>('closed');
 
+  const [penaltyFee, setPenaltyFee] = useState<number>(0);
+  const [penaltyReason, setPenaltyReason] = useState<string>('');
+
   const [identifyMode, setIdentifyMode] = useState<'plate' | 'qr'>('plate');
   const [coStep, setCoStep] = useState<1 | 2>(1);
 
@@ -98,6 +102,8 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
     setCheckoutTarget(session);
     setPaymentMethod('cash');
     setCoStep(1);
+    setPenaltyFee(0);
+    setPenaltyReason('');
     setCapturedPlateImage(exitPlateImage);
     setCapturedPortraitImage(null);
     try {
@@ -170,16 +176,18 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
     const diffMin = Math.max(0, Math.floor((Date.now() - entry.getTime()) / 60000));
     const isUnderGracePeriod = diffMin < 10;
     const dueFee = isUnderGracePeriod ? 0 : (target.currentFee ?? target.fee ?? 0);
+    const extraPenalty = Math.max(0, penaltyFee || 0);
+    const totalToCollect = dueFee + extraPenalty;
 
     try {
-      if (paymentMethod === 'bank_transfer' && dueFee > 0) {
+      if (paymentMethod === 'bank_transfer' && totalToCollect > 0) {
         const res = await staffApi.initiateSessionPayment(target._id);
         const d = (res as unknown as { data?: { orderCode: number; checkoutUrl: string; amount: number; plateNumber?: string } })?.data;
         if (d) {
           setBankTransfer({
             orderCode: d.orderCode,
             checkoutUrl: d.checkoutUrl,
-            amount: d.amount,
+            amount: extraPenalty > 0 ? totalToCollect : d.amount,
             plate: d.plateNumber || target.plateNumber,
           });
           setCheckoutTarget(null);
@@ -187,11 +195,38 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
         return;
       }
       const exitPortrait = capturedPortraitImage ?? portraitCamRef.current?.capture() ?? null;
-      await staffApi.checkOut(target._id, {
-        ...(target.isReservation ? {} : { paymentMethod: dueFee > 0 ? paymentMethod : 'cash' }),
+      
+      const payload: any = {
+        ...(target.isReservation ? {} : { paymentMethod: totalToCollect > 0 ? paymentMethod : 'cash' }),
         exitPlateImage: capturedPlateImage,
         exitPortraitImage: exitPortrait,
-      });
+      };
+
+      if (extraPenalty > 0) {
+        payload.adjustedFee = totalToCollect;
+        payload.adjustmentReason = penaltyReason.trim() || 'Thu tiền phạt vi phạm / Mất vé';
+      }
+
+      await staffApi.checkOut(target._id, payload);
+
+      // Nếu có tiền phạt vi phạm, tự động ghi nhận phiếu sự cố công khai
+      if (extraPenalty > 0) {
+        try {
+          const typeStr = (penaltyReason.toLowerCase().includes('vé') || penaltyReason.toLowerCase().includes('ve'))
+            ? 'lost_ticket'
+            : 'rule_violation';
+          await staffApi.incidents.create({
+            type: typeStr,
+            buildingId: buildingId || undefined,
+            target: target.plateNumber,
+            severity: 'high',
+            note: `Phạt tiền khách: ${extraPenalty.toLocaleString('vi-VN')} VNĐ. Lý do: ${penaltyReason || 'Mất vé / Vi phạm nội quy'}`,
+            parkingSessionId: target._id,
+          });
+        } catch {
+          // Ignored
+        }
+      }
 
       setBarrierState('opening');
       setTimeout(() => {
@@ -208,14 +243,16 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
         type: 'ok',
         text: target.isReservation
           ? `Vehicle ${target.plateNumber} released — wallet auto-charged.`
-          : isUnderGracePeriod
+          : isUnderGracePeriod && extraPenalty <= 0
             ? `Vehicle ${target.plateNumber} released under 10-minute Grace Period (free).`
-            : dueFee > 0
-              ? `Fee collected & vehicle ${target.plateNumber} released.`
+            : totalToCollect > 0
+              ? `Fee & penalty collected (${totalToCollect.toLocaleString('vi-VN')} ₫). Vehicle ${target.plateNumber} released.`
               : `Vehicle ${target.plateNumber} released (free under package).`,
       });
       setPaymentMethod('cash');
       setCheckoutTarget(null);
+      setPenaltyFee(0);
+      setPenaltyReason('');
       setCapturedPlateImage(null);
       setCapturedPortraitImage(null);
       setReloadTick((n) => n + 1);
@@ -560,27 +597,77 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
                       try { entry = new Date(checkoutTarget.entryTime); } catch { }
                       const diffMin = Math.max(0, Math.floor((Date.now() - entry.getTime()) / 60000));
                       const isUnderGracePeriod = diffMin < 10;
+                      const baseFee = isUnderGracePeriod ? 0 : (checkoutTarget.currentFee ?? checkoutTarget.fee ?? 0);
+                      const extraFine = Math.max(0, penaltyFee || 0);
+                      const grandTotal = baseFee + extraFine;
+
                       return (
                         <>
+                          {/* Penalty & Fine Box */}
+                          <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50/40 p-3.5 space-y-2.5">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[11px] font-bold text-rose-700 flex items-center gap-1.5 uppercase tracking-wider">
+                                <ShieldAlert size={14} className="text-rose-500" /> Phạt vi phạm / Mất thẻ xe
+                              </span>
+                              {extraFine > 0 && (
+                                <span className="text-[10px] font-extrabold text-rose-600 bg-rose-100 px-2 py-0.5 rounded-full">
+                                  + {fmtMoney(extraFine)}
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              <div>
+                                <label className="text-[9px] font-bold text-slate-500 uppercase">Tiền phạt (VNĐ)</label>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  step="10000"
+                                  placeholder="VD: 50000"
+                                  value={penaltyFee || ''}
+                                  onChange={(e) => setPenaltyFee(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                                  className="h-8 text-xs font-bold text-rose-700 border-rose-200 focus:border-rose-500 bg-white shadow-xs"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[9px] font-bold text-slate-500 uppercase">Lý do phạt</label>
+                                <select
+                                  value={penaltyReason}
+                                  onChange={(e) => setPenaltyReason(e.target.value)}
+                                  className="h-8 w-full rounded-md border border-rose-200 bg-white px-2.5 text-xs font-semibold text-slate-700 outline-none focus:border-rose-500 shadow-xs"
+                                >
+                                  <option value="">-- Chọn lý do --</option>
+                                  <option value="Mất vé / Mất thẻ xe">Mất vé / Mất thẻ xe</option>
+                                  <option value="Đỗ sai slot / Lấn làn">Đỗ sai slot / Lấn làn</option>
+                                  <option value="Làm hỏng thẻ / Bãi đỗ">Làm hỏng thẻ / Bãi đỗ</option>
+                                  <option value="Vi phạm nội quy chung">Vi phạm nội quy chung</option>
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+
                           <div className="mt-4 rounded-2xl border border-sky-100 bg-sky-50/50 p-4 flex flex-col gap-1">
                             <div className="flex items-center justify-between">
-                              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Amount due</span>
+                              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tổng tiền cần thu</span>
                               <span className="font-mono text-2xl font-black text-sky-600">
-                                {isUnderGracePeriod
-                                  ? '0 ₫'
-                                  : (checkoutTarget.currentFee ?? checkoutTarget.fee ?? 0) > 0
-                                    ? fmtMoney(checkoutTarget.currentFee ?? checkoutTarget.fee)
-                                    : 'Free'}
+                                {grandTotal <= 0
+                                  ? 'Free (0 ₫)'
+                                  : fmtMoney(grandTotal)}
                               </span>
                             </div>
-                            {isUnderGracePeriod && (
+                            {extraFine > 0 && (
+                              <p className="text-[10px] text-rose-600 font-bold mt-0.5 flex items-center gap-1">
+                                ⚠️ Đã bao gồm {fmtMoney(extraFine)} tiền phạt ({penaltyReason || 'Vi phạm / Mất vé'})
+                              </p>
+                            )}
+                            {isUnderGracePeriod && extraFine <= 0 && (
                               <p className="text-[10px] text-emerald-600 font-bold mt-0.5 flex items-center gap-1.5">
                                 <CheckCircle2 size={11} className="text-emerald-500" /> Free parking under 10-minute Grace Period
                               </p>
                             )}
                           </div>
 
-                          {(checkoutTarget.currentFee ?? checkoutTarget.fee ?? 0) > 0 && !isUnderGracePeriod && (
+                          {grandTotal > 0 && (
                             <div className="mt-4 space-y-2">
                               <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Payment method</p>
                               <div className="grid gap-2 grid-cols-3">
@@ -620,11 +707,11 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
                     <CheckCircle2 size={16} />
                     {checkoutTarget.isReservation
                       ? 'Release (auto wallet charge)'
-                      : (checkoutTarget.currentFee ?? checkoutTarget.fee ?? 0) <= 0
+                      : ((checkoutTarget.currentFee ?? checkoutTarget.fee ?? 0) + penaltyFee) <= 0
                         ? 'Release (Free)'
                         : paymentMethod === 'bank_transfer'
                         ? 'Create payment QR'
-                        : `Collect ${fmtMoney(checkoutTarget.currentFee ?? checkoutTarget.fee)} & release`}
+                        : `Collect ${fmtMoney((checkoutTarget.currentFee ?? checkoutTarget.fee ?? 0) + penaltyFee)} & release`}
                   </Button>
                   <Button
                     type="button"

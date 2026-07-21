@@ -269,6 +269,8 @@ export const staffApi = {
       /** Ảnh lúc xe RA để lưu bằng chứng / đối chiếu. */
       exitPlateImage?: string | null;
       exitPortraitImage?: string | null;
+      adjustedFee?: number;
+      adjustmentReason?: string;
     },
   ) =>
     api.patch<Wrap<{ item: ParkingSession }>>(`/staff/parking-sessions/${sessionId}/check-out`, body ?? {}),
@@ -422,7 +424,7 @@ export const staffApi = {
         query: buildingId ? { buildingId } : undefined,
       }),
 
-    create: (payload: { type: string; target?: string; note?: string; buildingId?: string }) =>
+    create: (payload: { type: string; target?: string; note?: string; buildingId?: string; severity?: string; parkingSessionId?: string }) =>
       api.post('/staff/incidents', payload),
 
     update: (id: string, payload: StaffIncidentUpdatePayload) =>

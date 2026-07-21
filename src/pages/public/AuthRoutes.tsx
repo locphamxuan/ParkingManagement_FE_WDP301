@@ -1,17 +1,8 @@
 import { useCallback, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import AuthPage, { AuthMode } from '@/pages/AuthPage';
-import { requestJson } from '@/services/client/apiClient';
+import { registerWithBackend } from '@/services/authService';
 import { useAuth } from '@/hooks/useAuth';
-
-interface AuthApiResponse {
-  success: boolean;
-  message?: string;
-  data?: {
-    token?: string;
-    user?: Record<string, unknown>;
-  };
-}
 
 function mapAuthErrorMessage(message: string): string {
   const normalized = message.trim().toLowerCase();
@@ -20,16 +11,16 @@ function mapAuthErrorMessage(message: string): string {
     return 'Incorrect email or password.';
   }
   if (normalized.includes('account is deactivated')) {
-    return 'This account has been disabled. Please contact an administrator.';
+    return 'This account has been deactivated. Please contact an administrator.';
   }
   if (normalized.includes('email already registered')) {
-    return 'Email is already registered.';
+    return 'This email is already registered.';
   }
   if (normalized.includes('password must be at least 6 characters')) {
     return 'Password must be at least 6 characters.';
   }
   if (normalized.includes('valid email is required')) {
-    return 'Invalid email.';
+    return 'Please enter a valid email address.';
   }
   if (normalized.includes('full name is required')) {
     return 'Please enter your full name.';
@@ -38,7 +29,7 @@ function mapAuthErrorMessage(message: string): string {
     return 'Invalid phone number.';
   }
 
-  return message || 'Unable to process the request, please try again.';
+  return message || 'Unable to process your request, please try again.';
 }
 
 function usePublicAuthFlow(initialMode: 'login' | 'register') {
@@ -73,7 +64,7 @@ function usePublicAuthFlow(initialMode: 'login' | 'register') {
           const session = await login(payload.email, payload.password);
 
           setNotice({
-            message: 'Signed in successfully.',
+            message: 'Login successful.',
             type: 'success',
           });
 
@@ -87,28 +78,21 @@ function usePublicAuthFlow(initialMode: 'login' | 'register') {
             navigate('/', { replace: true });
           }
         } else {
-          const path = '/users/auth/register';
-          const response = await requestJson<AuthApiResponse>({
-            path,
-            method: 'POST',
-            body: payload,
+          await registerWithBackend({
+            email: payload.email,
+            password: payload.password,
+            fullName: payload.fullName,
+            phone: payload.phone || undefined,
           });
 
-          const token = response?.data?.token;
-          const user = response?.data?.user;
-
-          if (!token || !user) {
-            throw new Error('Invalid authentication response from server.');
-          }
-
           setNotice({
-            message: 'Registered successfully.',
+            message: 'Registration successful.',
             type: 'success',
           });
           navigate('/', { replace: true });
         }
       } catch (error) {
-        const message = error instanceof Error ? mapAuthErrorMessage(error.message) : 'unable to process the request';
+        const message = error instanceof Error ? mapAuthErrorMessage(error.message) : 'Unable to process your request.';
         setNotice({ message, type: 'error' });
         throw error;
       } finally {
@@ -139,7 +123,7 @@ export function PublicRegisterRoute() {
 }
 
 export function PublicResetPasswordRoute() {
-  const flow = usePublicAuthFlow('login'); // AuthPage will automatically read the token from the URL and switch to reset-password mode
+  const flow = usePublicAuthFlow('login'); // AuthPage sẽ tự động đọc token từ URL và chuyển sang chế độ đặt lại mật khẩu
   return <AuthPage {...flow} />;
 }
 

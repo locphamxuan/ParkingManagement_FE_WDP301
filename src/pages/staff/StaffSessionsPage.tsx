@@ -243,9 +243,9 @@ export function StaffSessionsPage() {
   }
 
   const stats = [
-    { label: 'Cash Payment', value: data?.byMethod.cash ?? 0, icon: Banknote, border: 'border-emerald-100', color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { label: 'Wallet Pay', value: data?.byMethod.wallet ?? 0, icon: Wallet, border: 'border-indigo-100', color: 'text-indigo-600', bg: 'bg-indigo-50' },
-    { label: 'Bank QR Code', value: data?.byMethod.online ?? 0, icon: QrCode, border: 'border-sky-100', color: 'text-sky-600', bg: 'bg-sky-50' },
+    { label: 'Cash Payment', value: data?.byMethod?.cash ?? data?.cash ?? 0, icon: Banknote, border: 'border-emerald-100', color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Wallet Pay', value: data?.byMethod?.wallet ?? data?.wallet ?? 0, icon: Wallet, border: 'border-indigo-100', color: 'text-indigo-600', bg: 'bg-indigo-50' },
+    { label: 'Bank QR Code', value: data?.byMethod?.qr ?? data?.qr ?? 0, icon: QrCode, border: 'border-sky-100', color: 'text-sky-600', bg: 'bg-sky-50' },
   ];
 
   return (
@@ -393,14 +393,14 @@ export function StaffSessionsPage() {
 
         {loading ? (
           <p className="text-xs text-slate-400 py-10 text-center">Loading transactions...</p>
-        ) : !data || data.items.length === 0 ? (
+        ) : !data || !data.items || data.items.length === 0 ? (
           <div className="py-12 text-center border border-dashed border-sky-100 rounded-2xl bg-sky-50/20">
             <CircleDollarSign size={32} className="mx-auto mb-2 text-slate-300" />
             <p className="text-sm text-slate-400 font-medium">No collections in this shift yet.</p>
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
-            {data.items.map((it) => (
+            {data.items.map((it: any) => (
               <motion.div
                 key={it._id}
                 whileHover={{ y: -2 }}

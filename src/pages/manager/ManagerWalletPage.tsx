@@ -371,7 +371,7 @@ export function ManagerWalletPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {!breakdown || breakdown.days.length === 0 ? (
+          {!breakdown || !breakdown.days || breakdown.days.length === 0 ? (
             <p className="text-sm text-muted-foreground py-4 text-center">No revenue in the last 14 days.</p>
           ) : (
             <div className="overflow-x-auto">
@@ -386,7 +386,7 @@ export function ManagerWalletPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {breakdown.days.map((d) => (
+                  {breakdown.days.map((d: any) => (
                     <tr key={d.date} className="border-b border-border/50 last:border-0">
                       <td className="py-2 font-medium text-foreground">{fmtDay(d.date)}</td>
                       <td className="py-2 text-right font-mono text-emerald-600">{fmtVnd(d.byMethod.cash)}</td>

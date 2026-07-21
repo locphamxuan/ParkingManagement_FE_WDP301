@@ -7,8 +7,8 @@ export type AppNotificationType =
   | 'subscription_expired'
   | 'subscription_slot_released'
   | 'subscription_overage'
-  | 'reservation_expired'
-  | 'reservation_overstay'
+  | 'incident_update'
+  | 'incident_resolved'
   | 'feedback_reply'
   | 'general';
 
@@ -22,18 +22,18 @@ export interface AppNotification {
   createdAt: string;
 }
 
-/** Short labels by notification type (shared by the bell + notifications page). */
+/** Short label by notification type (used for notification bell and notifications page). */
 export const NOTIFICATION_TYPE_LABEL: Record<AppNotificationType, string> = {
-  checkin_rejected: 'Reject entry',
-  checkout_rejected: 'Reject exit',
-  subscription_expiring: 'Package expiring soon',
-  subscription_expired: 'Package expired',
-  subscription_slot_released: 'Slot released',
-  subscription_overage: 'Package overage',
-  reservation_expired: 'Reservation expired',
-  reservation_overstay: 'Overstay',
-  feedback_reply: 'Review reply',
-  general: 'Notifications',
+  checkin_rejected: 'Check-in Rejected',
+  checkout_rejected: 'Check-out Rejected',
+  subscription_expiring: 'Sub Expiring',
+  subscription_expired: 'Sub Expired',
+  subscription_slot_released: 'Slot Released',
+  subscription_overage: 'Sub Overage',
+  incident_update: 'Incident Update',
+  incident_resolved: 'Incident Resolved',
+  feedback_reply: 'Feedback Reply',
+  general: 'General',
 };
 
 type Wrap<T> = { data?: T };

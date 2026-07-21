@@ -89,7 +89,7 @@ export function ManagerIncidentsPage() {
 
   const handleOpenResolve = (inc: Incident) => {
     setSelectedIncident(inc);
-    setStatus(inc.status === 'open' || inc.status === 'investigating' ? 'resolved' : inc.status);
+    setStatus((inc.status === 'open' || inc.status === 'investigating' ? 'resolved' : inc.status) || 'resolved');
     setResolutionNote(inc.resolutionNote || '');
     setViolatorPlate(inc.violatorPlate || '');
     setPenalizeViolator(false);
@@ -129,7 +129,7 @@ export function ManagerIncidentsPage() {
     const q = searchQuery.toLowerCase().trim();
     if (!q) return true;
     return (
-      inc.code.toLowerCase().includes(q) ||
+      (inc.code || '').toLowerCase().includes(q) ||
       (inc.reportedBy?.fullName || '').toLowerCase().includes(q) ||
       (inc.target || '').toLowerCase().includes(q) ||
       (inc.note || '').toLowerCase().includes(q)
@@ -226,11 +226,11 @@ export function ManagerIncidentsPage() {
                     <tr key={inc._id} className="border-b border-slate-100/50 last:border-0 hover:bg-slate-50/20 transition-colors">
                       <td className="py-3 font-mono font-bold text-slate-800">
                         {inc.code}
-                        <p className="text-[9px] text-slate-400 font-normal">{fmtTime(inc.createdAt)}</p>
+                        <p className="text-[9px] text-slate-400 font-normal">{fmtTime(inc.createdAt || '')}</p>
                       </td>
                       <td className="py-3 text-slate-800 font-bold text-xs">
-                        <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-black uppercase ${SEVERITY_COLORS[inc.severity] || 'bg-slate-100'}`}>
-                          {INCIDENT_TYPE_LABELS[inc.type] || inc.type}
+                        <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-black uppercase ${inc.severity ? SEVERITY_COLORS[inc.severity] : 'bg-slate-100'}`}>
+                          {(inc.type && INCIDENT_TYPE_LABELS[inc.type]) || inc.type || 'Incident'}
                         </span>
                       </td>
                       <td className="py-3 text-slate-700 font-semibold text-xs">
@@ -246,8 +246,8 @@ export function ManagerIncidentsPage() {
                         {inc.note && <p className="text-[10px] text-slate-450 mt-1 truncate max-w-xs">{inc.note}</p>}
                       </td>
                       <td className="py-3 text-center">
-                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase ${STATUS_COLORS[inc.status] || 'bg-slate-100'}`}>
-                          {STATUS_LABELS[inc.status] || inc.status}
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase ${inc.status ? (STATUS_COLORS as Record<string, string>)[inc.status] : 'bg-slate-100'}`}>
+                          {inc.status ? ((STATUS_LABELS as Record<string, string>)[inc.status] || inc.status) : '—'}
                         </span>
                       </td>
                       <td className="py-3 text-center">

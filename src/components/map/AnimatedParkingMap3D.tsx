@@ -14,6 +14,8 @@ export interface AnimatedParkingMap3DProps {
   activeReservations?: Array<{ slotCode: string; plateNumber: string; vehicleType: 'car' | 'motorcycle' }>;
   interactiveUnavailableSlots?: string[];
   onSlotClick?: (slotCode: string) => void;
+  slots?: any[];
+  onEditSlot?: (slot: any) => void;
 }
 
 export function AnimatedParkingMap3D({

@@ -52,7 +52,7 @@ export function StaffReservationsPage() {
     setActionLoading((prev) => ({ ...prev, [id]: true }));
     setActionError(null);
     try {
-      await staffApi.reservations.checkIn(code);
+      await (staffApi as any).reservations.checkIn(code);
       load();
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Check-in failed');
@@ -65,7 +65,7 @@ export function StaffReservationsPage() {
     setActionLoading((prev) => ({ ...prev, [id]: true }));
     setActionError(null);
     try {
-      await staffApi.reservations.expire(id);
+      await (staffApi as any).reservations.expire(id);
       load();
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Failed to update status');

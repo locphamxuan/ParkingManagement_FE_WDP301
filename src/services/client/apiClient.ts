@@ -1,32 +1,19 @@
 const STORAGE_TOKEN = 'pbms.token';
 
-// Support both env var names used previously (VITE_API_BASE and VITE_API_BASE_URL)
-// to stay compatible after merging the two HTTP clients into one.
+// Hỗ trợ cả hai tên biến môi trường từng dùng (VITE_API_BASE và VITE_API_BASE_URL)
+// để giữ tương thích sau khi hợp nhất 2 HTTP client về một.
 const API_BASE =
   (import.meta.env.VITE_API_BASE as string | undefined) ||
   (import.meta.env.VITE_API_BASE_URL as string | undefined) ||
   'http://localhost:5000/api';
 
 export function setStoredToken(token: string | null): void {
-  if (token) {
-    try { sessionStorage.setItem(STORAGE_TOKEN, token); } catch {}
-    try { localStorage.setItem(STORAGE_TOKEN, token); } catch {}
-  } else {
-    try { sessionStorage.removeItem(STORAGE_TOKEN); } catch {}
-    try { localStorage.removeItem(STORAGE_TOKEN); } catch {}
-  }
+  if (token) localStorage.setItem(STORAGE_TOKEN, token);
+  else localStorage.removeItem(STORAGE_TOKEN);
 }
 
 export function getStoredToken(): string | null {
-  try {
-    const s = sessionStorage.getItem(STORAGE_TOKEN);
-    if (s) return s;
-  } catch {}
-  try {
-    return localStorage.getItem(STORAGE_TOKEN);
-  } catch {
-    return null;
-  }
+  return localStorage.getItem(STORAGE_TOKEN);
 }
 
 type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -35,7 +22,7 @@ interface ApiOptions {
   body?: unknown;
   query?: Record<string, string | number | boolean | undefined | null>;
   signal?: AbortSignal;
-  /** Override token (falls back to localStorage if not provided). */
+  /** Ghi đè token (nếu không truyền sẽ lấy từ localStorage). */
   token?: string;
 }
 
@@ -117,9 +104,9 @@ export const api = {
 
 export const API_BASE_URL = API_BASE;
 
-// ── Compatibility adapter (replaces the old services/client/pbmsApi) ────────────────
-// Keep the requestJson signature so callers (auth, admin) do not need changes,
-// but internally share apiRequest → only ONE HTTP implementation.
+// ── Adapter tương thích (thay cho services/client/pbmsApi cũ) ────────────────
+// Giữ nguyên chữ ký `requestJson` để các caller (auth, admin) không phải đổi,
+// nhưng nội bộ dùng chung `apiRequest` → chỉ còn MỘT triển khai HTTP.
 export const DEFAULT_API_BASE = API_BASE;
 
 export function normalizeApiBase(value: string = DEFAULT_API_BASE): string {
@@ -127,7 +114,7 @@ export function normalizeApiBase(value: string = DEFAULT_API_BASE): string {
 }
 
 interface RequestJsonOptions {
-  /** No longer used (all calls go through the shared API_BASE); kept for signature compatibility. */
+  /** Không còn dùng (mọi call đi qua API_BASE chung); giữ để tương thích chữ ký. */
   apiBase?: string;
   path: string;
   method?: Method;

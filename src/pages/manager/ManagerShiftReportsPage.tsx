@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ClipboardCheck, RefreshCw, TrendingUp, Banknote, Wallet, QrCode, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -42,7 +42,7 @@ export function ManagerShiftReportsPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await managerApi.shifts.listReports(buildingId);
+      const res = await (managerApi.shifts as any).listReports(buildingId);
       const raw = (res as { data?: { items?: ShiftReportSubmission[] } })?.data?.items ?? [];
       setReports(raw);
     } catch (err) {

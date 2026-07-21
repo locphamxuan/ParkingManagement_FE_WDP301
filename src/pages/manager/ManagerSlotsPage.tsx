@@ -163,9 +163,9 @@ export function ManagerSlotsPage() {
     if (!editing && form.code.trim()) payload.code = form.code.trim().toUpperCase();
     try {
       if (editing) {
-        await managerApi.slots.update(buildingId, editing._id, payload as Partial<ParkingSlot>);
+        await managerApi.slots.update(buildingId, editing._id, payload as any);
       } else {
-        await managerApi.slots.create(buildingId, payload as Partial<ParkingSlot> & { floor: string; zone: string });
+        await managerApi.slots.create(buildingId, payload as any);
       }
       setModalOpen(false);
       refresh();

@@ -424,7 +424,7 @@ export const staffApi = {
         query: buildingId ? { buildingId } : undefined,
       }),
 
-    create: (payload: { type: string; target?: string; note?: string; buildingId?: string; severity?: string; parkingSessionId?: string }) =>
+    create: (payload: { type: string; target?: string; note?: string; buildingId?: string; severity?: string; parkingSessionId?: string; status?: string; resolutionNote?: string }) =>
       api.post('/staff/incidents', payload),
 
     update: (id: string, payload: StaffIncidentUpdatePayload) =>

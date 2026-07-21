@@ -209,7 +209,7 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
 
       await staffApi.checkOut(target._id, payload);
 
-      // Nếu có tiền phạt vi phạm, tự động ghi nhận phiếu sự cố công khai
+      // Nếu có tiền phạt vi phạm, tự động ghi nhận phiếu sự cố đã xử lý (resolved) ngay tại cổng
       if (extraPenalty > 0) {
         try {
           const typeStr = (penaltyReason.toLowerCase().includes('vé') || penaltyReason.toLowerCase().includes('ve'))
@@ -219,7 +219,9 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
             type: typeStr,
             buildingId: buildingId || undefined,
             target: target.plateNumber,
-            severity: 'high',
+            severity: 'medium',
+            status: 'resolved',
+            resolutionNote: `Thu tiền phạt tại cổng: ${extraPenalty.toLocaleString('vi-VN')} VNĐ. Lý do: ${penaltyReason || 'Mất vé / Vi phạm nội quy'}`,
             note: `Phạt tiền khách: ${extraPenalty.toLocaleString('vi-VN')} VNĐ. Lý do: ${penaltyReason || 'Mất vé / Vi phạm nội quy'}`,
             parkingSessionId: target._id,
           });

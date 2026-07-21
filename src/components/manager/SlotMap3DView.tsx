@@ -1,6 +1,5 @@
-import { motion } from 'framer-motion';
-import { Layers, RotateCcw } from 'lucide-react';
-import { Slot3DBox } from '@/components/parking/Slot3DBox';
+import { Plus, RotateCcw, Zap } from 'lucide-react';
+import { AnimatedParkingMap3D } from '@/components/map/AnimatedParkingMap3D';
 import type { Floor, ParkingSlot, VehicleType } from '@/services/manager/managerApi';
 
 interface SlotMap3DViewProps {
@@ -15,103 +14,64 @@ interface SlotMap3DViewProps {
   vehicleTypes: VehicleType[];
   items: ParkingSlot[];
   onEditSlot: (slot: ParkingSlot) => void;
+  onOpenMultiSlot?: (qty?: number) => void;
 }
 
-/** Chế độ sơ đồ 3D của màn quản lý ô đỗ (viewport 3D xếp tầng + cockpit chỉnh góc nhìn). */
+/** Chế độ sơ đồ 3D của màn quản lý ô đỗ (hiển thị đồng nhất mô hình 3D Hologram với User). */
 export function SlotMap3DView({
-  floors, floorFilter, slotsByFloor, rx, rz, setRx, setRz, statusFilter, vehicleTypes, items, onEditSlot,
+  floors,
+  floorFilter,
+  slotsByFloor,
+  rx,
+  rz,
+  setRx,
+  setRz,
+  statusFilter,
+  vehicleTypes,
+  items,
+  onEditSlot,
+  onOpenMultiSlot,
 }: SlotMap3DViewProps) {
+  const displayedSlots = floorFilter ? (slotsByFloor[floorFilter] || []) : items;
+
   return (
     <div className="grid gap-6 xl:grid-cols-[1fr,300px]">
+      {/* 3D Map Viewport (Identical high-fidelity 3D Hologram Map model as User side) */}
+      <div className="h-[620px] relative rounded-3xl overflow-hidden shadow-2xl group">
+        <AnimatedParkingMap3D
+          rotateX={rx}
+          rotateZ={rz}
+          interactive={true}
+          slots={displayedSlots}
+          onEditSlot={onEditSlot}
+        />
 
-      {/* 3D Map Viewport */}
-      <div className="h-[620px] relative rounded-3xl border border-blue-500/15 bg-slate-950 shadow-[0_0_60px_rgba(0,0,0,0.9),inset_0_0_30px_rgba(0,0,0,0.6)] overflow-hidden flex items-center justify-center glass-premium cyber-scanline">
-
-        {/* Multi-layer space backing grid */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(37,99,235,0.018)_1px,transparent_1px),linear-gradient(90deg,rgba(37,99,235,0.018)_1px,transparent_1px)] bg-[size:28px_28px] pointer-events-none" />
-        {/* Radial dot texture */}
-        <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:14px_14px] pointer-events-none" />
-        {/* Central blue halo */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(37,99,235,0.07),rgba(99,102,241,0.035)_50%,transparent_75%)] pointer-events-none" />
-
-        {/* 3D Render Stack Container */}
-        <div className="perspective-1000 w-full h-full flex items-center justify-center preserve-3d">
-          <motion.div
-            style={{
-              rotateX: rx,
-              rotateZ: rz,
-              transformStyle: 'preserve-3d',
-            }}
-            className="isometric-mesh relative w-[500px] h-[400px] preserve-3d transition-transform duration-200"
-          >
-            {/* Render Floors stacked dynamically */}
-            {floors.map((floor, fIdx) => {
-              // Apply filter check
-              if (floorFilter && floor._id !== floorFilter) return null;
-
-              const floorSlots = slotsByFloor[floor._id] || [];
-              // Vertical offset layout for vertical stacking
-              const zOffset = floorFilter ? 0 : (fIdx * 130);
-
-              return (
-                <motion.div
-                  key={floor._id}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: fIdx * 0.06, type: 'spring', stiffness: 120, damping: 18 }}
-                  style={{
-                    transform: `translateZ(${zOffset}px)`,
-                    transformStyle: 'preserve-3d',
-                  }}
-                  className="absolute inset-0 rounded-3xl border border-cyan-500/25 bg-slate-900/55 shadow-[0_0_30px_rgba(6,182,212,0.08),0_8px_32px_rgba(0,0,0,0.6)] preserve-3d p-6 flex flex-col justify-between overflow-hidden"
-                >
-                  {/* Floor plate cyan scan stripe — stays behind content */}
-                  <div className="absolute inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent pointer-events-none"
-                    style={{ top: `${((fIdx % 3) + 1) * 25}%` }}
-                  />
-                  {/* Floor label badge */}
-                  <div className="flex justify-between items-center mb-4 z-10 preserve-3d" style={{ transform: 'translateZ(15px)' }}>
-                    <span className="text-[10px] font-black tracking-widest text-blue-400 uppercase font-mono bg-slate-950/80 px-2.5 py-1 rounded-lg border border-white/5">
-                      FLOOR {floor.code}
-                    </span>
-                    <span className="text-[9px] font-bold text-slate-500 font-mono">
-                      CAPACITY: {floorSlots.filter(s => s.status === 'occupied').length}/{floorSlots.length} SLOTS
-                    </span>
-                  </div>
-
-                  {/* Grid Layout of Slot blocks */}
-                  <div className="grid grid-cols-4 sm:grid-cols-5 gap-6 my-auto items-center justify-items-center preserve-3d" style={{ transform: 'translateZ(10px)' }}>
-                    {floorSlots.length === 0 ? (
-                      <div className="col-span-full text-center text-slate-600 text-xs py-10 uppercase tracking-widest font-mono">No slots configured</div>
-                    ) : (
-                      floorSlots.map((slot) => (
-                        <Slot3DBox
-                          key={slot._id}
-                          slot={slot}
-                          onClick={() => onEditSlot(slot)}
-                          statusFilter={statusFilter}
-                          vehicleTypes={vehicleTypes}
-                        />
-                      ))
-                    )}
-                  </div>
-
-                  <div className="text-[8px] text-slate-600 font-black tracking-widest uppercase font-mono text-right preserve-3d mt-4" style={{ transform: 'translateZ(5px)' }}>
-                    {floor.code} ARCHITECTURE
-                  </div>
-                </motion.div>
-              );
-            })}
-          </motion.div>
-        </div>
-
-        {/* Ambient occlusion glow labels */}
-        <div className="absolute left-6 top-6 flex flex-col gap-1.5 z-20 pointer-events-none">
-          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-slate-400">
-            <Layers size={12} className="text-blue-400" />
-            <span>3D Zone Map ({items.length} slots)</span>
+        {/* Quick Batch Creator Overlay Action Bar directly on 3D Map */}
+        {onOpenMultiSlot && (
+          <div className="absolute top-16 left-6 z-20 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => onOpenMultiSlot(5)}
+              className="px-3.5 py-2 rounded-xl bg-blue-600/90 border border-blue-400/40 text-white font-mono text-[10px] font-black uppercase tracking-wider backdrop-blur-md shadow-lg hover:bg-blue-500 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-1.5 cursor-pointer"
+            >
+              <Plus size={12} className="stroke-[3]" /> +5 Slots
+            </button>
+            <button
+              type="button"
+              onClick={() => onOpenMultiSlot(10)}
+              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 border border-blue-400/40 text-white font-mono text-[10px] font-black uppercase tracking-wider backdrop-blur-md shadow-lg hover:brightness-110 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-1.5 cursor-pointer"
+            >
+              <Zap size={12} className="text-amber-300 fill-amber-300" /> +10 Slots
+            </button>
+            <button
+              type="button"
+              onClick={() => onOpenMultiSlot(20)}
+              className="px-3.5 py-2 rounded-xl bg-slate-900/80 border border-white/10 text-slate-200 font-mono text-[10px] font-black uppercase tracking-wider backdrop-blur-md shadow-lg hover:bg-slate-800 hover:border-white/20 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
+            >
+              +20 Batch
+            </button>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Sci-Fi Right Cockpit Control Panel */}
@@ -155,8 +115,9 @@ export function SlotMap3DView({
             </div>
 
             <button
+              type="button"
               onClick={() => { setRx(60); setRz(-45); }}
-              className="w-full py-2.5 rounded-xl border border-white/10 hover:border-blue-500/30 text-white font-mono text-[9px] font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 hover:bg-slate-950/50"
+              className="w-full py-2.5 rounded-xl border border-white/10 hover:border-blue-500/30 text-white font-mono text-[9px] font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 hover:bg-slate-950/50 cursor-pointer"
             >
               <RotateCcw size={12} /> Reset View
             </button>
@@ -172,7 +133,7 @@ export function SlotMap3DView({
               Available
             </span>
             <span className="font-mono text-emerald-600 font-black">
-              {items.filter(s => s.status === 'available').length}
+              {displayedSlots.filter(s => s.status === 'available').length}
             </span>
           </div>
 
@@ -182,7 +143,7 @@ export function SlotMap3DView({
               Occupied
             </span>
             <span className="font-mono text-red-600 font-black">
-              {items.filter(s => s.status === 'occupied').length}
+              {displayedSlots.filter(s => s.status === 'occupied').length}
             </span>
           </div>
 
@@ -192,7 +153,7 @@ export function SlotMap3DView({
               Reserved
             </span>
             <span className="font-mono text-purple-600 font-black">
-              {items.filter(s => s.status === 'reserved').length}
+              {displayedSlots.filter(s => s.status === 'reserved').length}
             </span>
           </div>
 
@@ -202,13 +163,11 @@ export function SlotMap3DView({
               Maintenance
             </span>
             <span className="font-mono text-amber-600 font-black">
-              {items.filter(s => s.status === 'maintenance').length}
+              {displayedSlots.filter(s => s.status === 'maintenance').length}
             </span>
           </div>
         </div>
-
       </div>
-
     </div>
   );
 }

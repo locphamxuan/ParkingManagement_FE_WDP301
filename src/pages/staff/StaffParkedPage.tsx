@@ -14,7 +14,7 @@ import { ParkedSessionCard } from '@/components/staff/parked/ParkedSessionCard';
 import { ParkedRejectModal } from '@/components/staff/parked/ParkedRejectModal';
 import { BankTransferModal } from '@/components/staff/parked/BankTransferModal';
 import { CheckoutModal, type PaymentKind } from '@/components/staff/parked/CheckoutModal';
-import { BarrierGateOverlay, type BarrierState } from '@/components/staff/parked/BarrierGateOverlay';
+import { BarrierGateOverlay, type BarrierState } from '@/components/staff/BarrierGateOverlay';
 import styles from './StaffParkedPage.module.css';
 
 interface BankTransferState {

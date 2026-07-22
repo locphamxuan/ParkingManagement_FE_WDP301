@@ -2,8 +2,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export type BarrierState = 'closed' | 'opening' | 'open' | 'closing';
 
-/** Full-screen IoT barrier-gate simulation shown while a vehicle is released. */
-export function BarrierGateOverlay({ barrierState }: { barrierState: BarrierState }) {
+/** Full-screen IoT barrier-gate simulation shown while a vehicle is admitted or released. */
+export function BarrierGateOverlay({
+  barrierState,
+  action = 'release',
+}: {
+  barrierState: BarrierState;
+  /** Which flow triggered the gate — changes the "opening" headline only. */
+  action?: 'admit' | 'release';
+}) {
+  const openingHeadline = action === 'admit' ? 'Admitting Vehicle...' : 'Releasing Vehicle...';
   return (
     <AnimatePresence>
       {barrierState !== 'closed' && (
@@ -60,7 +68,7 @@ export function BarrierGateOverlay({ barrierState }: { barrierState: BarrierStat
               </span>
 
               <h3 className="text-lg font-black text-slate-100 uppercase tracking-wide">
-                {barrierState === 'opening' && 'Releasing Vehicle...'}
+                {barrierState === 'opening' && openingHeadline}
                 {barrierState === 'open' && 'Gate barrier open'}
                 {barrierState === 'closing' && 'Security Gate warning'}
               </h3>

@@ -8,7 +8,10 @@ export interface ManagerBuilding {
   _id: string;
   name: string;
   code: string;
+  /** @deprecated Nhập tay, dễ lệch thực tế — dùng `floorCount` (số Floor thật đã tạo). */
   totalFloors: number;
+  /** Số Floor THẬT đã tạo qua trang Floor management (BE tính, không nhập tay được). */
+  floorCount: number;
   status: 'active' | 'inactive' | 'maintenance';
   operatingHours: { open: string; close: string };
   pricing: { hourlyRate: number; dailyCap?: number | null; motorcycleMultiplier?: number };
@@ -151,16 +154,38 @@ export interface Subscription {
   refundAmount?: number | null;
 }
 
+/** One long-term subscription, as embedded in a ManagerCustomer row. */
+export interface CustomerSubscription {
+  _id: string;
+  plateNumber: string;
+  startDate: string;
+  endDate: string;
+  status: 'pending' | 'active' | 'expired' | 'cancelled';
+  package: { _id: string; name: string; price: number } | null;
+  refundPercent?: number | null;
+  refundAmount?: number | null;
+}
+
 /** Registered user (non-walk-in) who has used the building, with package-registration status. */
 export interface ManagerCustomer {
   _id: string;
   fullName: string;
   email: string;
   phone?: string | null;
+  isActive: boolean;
+  walletBalance: number;
+  createdAt: string;
+  licensePlates: { plateNumber: string; vehicleType?: string }[];
+  /** Number of parking sessions in THIS building. */
+  sessionCount: number;
+  /** Most recent entryTime in this building; null if never parked here (subscription-only). */
+  lastVisitAt?: string | null;
   /** Has at least one subscription with status 'active' in this building. */
   hasActivePackage: boolean;
   /** Has ever registered a subscription (any status) in this building. */
   hasAnyPackage: boolean;
+  /** Every subscription this user has in this building, newest first (merged in from the old "Subscribers" tab). */
+  subscriptions: CustomerSubscription[];
 }
 
 /** Chính sách hoàn tiền khi hủy gói dài hạn (per building). */
@@ -406,8 +431,6 @@ export const managerApi = {
     update: (b: string, id: string, body: Partial<LongTermPackage>) =>
       api.put<Wrap<{ item: LongTermPackage }>>(path(b, `/packages/${id}`), body),
     remove: (b: string, id: string) => api.delete(path(b, `/packages/${id}`)),
-    subscriptions: (b: string, q?: Record<string, string | undefined>) =>
-      api.get<Wrap<{ items: Subscription[]; pagination: unknown }>>(path(b, '/subscriptions'), { query: q }),
     cancelSubscription: (b: string, id: string, reason?: string) =>
       api.delete<Wrap<{ subscription: Subscription; refundAmount: number; refundPercent: number }>>(path(b, `/subscriptions/${id}`), { body: { reason } }),
   },

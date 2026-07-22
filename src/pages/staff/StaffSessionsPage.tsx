@@ -6,7 +6,7 @@ import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { useAssignedGates } from '@/hooks/staff/useAssignedGates';
 import { LicensePlate } from '@/components/common/LicensePlate';
 import { staffApi, type ParkingSession } from '@/services/staff/staffApi';
-import styles from './StaffSessionsPage.module.css';
+import styles from '@/styles/modules/StaffSessionsPage.module.css';
 
 const fmtTime = (s?: string | null) =>
   s ? new Date(s).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '—';

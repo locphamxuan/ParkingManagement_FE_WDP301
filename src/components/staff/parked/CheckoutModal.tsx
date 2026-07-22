@@ -7,7 +7,7 @@ import { LicensePlate } from '@/components/common/LicensePlate';
 import { normalizePlate } from '@/utils/plate';
 import { fmtTime, fmtMoney, fmtDuration } from '@/components/staff/parked/staffParkedFormat';
 import type { ParkingSession } from '@/services/staff/staffApi';
-import styles from '@/pages/staff/StaffParkedPage.module.css';
+import styles from '@/styles/modules/StaffParkedPage.module.css';
 
 export type PaymentKind = 'cash' | 'bank_transfer' | 'wallet';
 

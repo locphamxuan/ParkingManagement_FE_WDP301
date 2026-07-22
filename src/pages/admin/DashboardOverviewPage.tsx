@@ -5,7 +5,7 @@ import { ActivityTimeline } from '@/components/charts/ActivityTimeline';
 import { RevenueChart } from '@/components/charts/RevenueChart';
 import { useAdminDataset } from '@/hooks/admin/useAdminDataset';
 import { Activity, CreditCard, ShieldCheck, TrendingUp } from 'lucide-react';
-import styles from './DashboardOverviewPage.module.css';
+import styles from '@/styles/modules/DashboardOverviewPage.module.css';
 
 const pieColors = ['#2563eb', '#10b981', '#8b5cf6', '#f59e0b']; // Blue, Green, Purple, Amber
 const STAT_ICONS = [

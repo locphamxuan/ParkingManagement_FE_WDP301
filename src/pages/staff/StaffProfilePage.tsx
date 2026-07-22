@@ -21,7 +21,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
-import styles from './StaffProfilePage.module.css';
+import styles from '@/styles/modules/StaffProfilePage.module.css';
 
 export function StaffProfilePage() {
   const { session, user, logout, updateProfile } = useAuth();

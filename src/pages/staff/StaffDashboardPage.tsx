@@ -25,7 +25,7 @@ import {
   type ParkingSession,
   type StaffIncident,
 } from '@/services/staff/staffApi';
-import styles from './StaffDashboardPage.module.css';
+import styles from '@/styles/modules/StaffDashboardPage.module.css';
 
 /* ─── helpers ─── */
 function fmtTime(iso: string) {

@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { motion, useMotionValue, useMotionTemplate, useSpring, useTransform } from 'framer-motion';
-import styles from './AnalyticsCard.module.css';
+import styles from '@/styles/modules/AnalyticsCard.module.css';
 
 interface AnalyticsCardProps {
   label: string;

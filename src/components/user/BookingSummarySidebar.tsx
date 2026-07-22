@@ -1,6 +1,6 @@
 import { CalendarClock, Bike, Car } from 'lucide-react';
-import type { BookingMode, VehicleKind } from '@/pages/user/reservationsHelper';
-import { fmtShort, fmtMoney } from '@/pages/user/reservationsHelper';
+import type { BookingMode, VehicleKind } from '@/pages/user/packageBookingHelper';
+import { fmtShort, fmtMoney } from '@/pages/user/packageBookingHelper';
 
 interface BookingSummarySidebarProps {
   selectedBuildingName?: string;

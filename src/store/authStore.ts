@@ -17,7 +17,7 @@ interface AuthState {
 
 function mapLegacySession(): AuthSession | null {
   const legacy = loadSession();
-  if (!legacy.token || !legacy.user) {
+  if (!legacy.user) {
     return null;
   }
 
@@ -38,7 +38,11 @@ function mapLegacySession(): AuthSession | null {
     || (Array.isArray(user.licensePlates) ? user.licensePlates : []);
 
   return {
-    token: legacy.token,
+    // Real auth is the httpOnly cookie, invisible to JS by design — this field
+    // is only populated fresh at login for the handful of admin/* call sites
+    // that still pass an explicit token; it's blank after a page reload (the
+    // cookie keeps authenticating those calls regardless, see apiClient.ts).
+    token: '',
     userId: String(user._id ?? user.id ?? ''),
     role: (user.role as AuthSession['role']) ?? 'user',
     email,
@@ -125,7 +129,6 @@ export const useAuthStore = create<AuthState>()(
 
           set({ session, isAuthenticating: false, error: null });
           saveSession({
-            token: session.token,
             user: {
               _id: session.userId,
               email: session.email,
@@ -144,6 +147,10 @@ export const useAuthStore = create<AuthState>()(
         }
       },
       logout() {
+        // Fire-and-forget: the cookie is httpOnly, so only the BE can clear it.
+        // Don't block clearing local state on this — a slow/unreachable BE
+        // shouldn't leave the user stuck on a "logged in" screen.
+        api.post('/users/auth/logout').catch(() => undefined);
         clearSession();
         set({ session: null, error: null });
       },
@@ -157,7 +164,6 @@ export const useAuthStore = create<AuthState>()(
             licensePlates: profile.licensePlates,
           };
           saveSession({
-            token: updatedSession.token,
             user: {
               _id: updatedSession.userId,
               email: updatedSession.email,
@@ -203,7 +209,6 @@ export const useAuthStore = create<AuthState>()(
           };
 
           saveSession({
-            token: updatedSession.token,
             user: {
               _id: updatedSession.userId,
               email: updatedSession.email,

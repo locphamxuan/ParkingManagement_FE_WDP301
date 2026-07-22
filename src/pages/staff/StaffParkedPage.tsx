@@ -188,6 +188,12 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
     const diffMin = Math.max(0, Math.floor((Date.now() - entry.getTime()) / 60000));
     const isUnderGracePeriod = diffMin < 10;
     const dueFee = isUnderGracePeriod ? 0 : (target.currentFee ?? target.fee ?? 0);
+    // Phí phạt (nếu có) đang chờ thu cho biển số này — BE tự cộng/khấu trừ khi check-out
+    // (settlePendingPenaltyAtCheckout), nhưng phương thức thanh toán gửi lên phải phản
+    // ánh đúng lựa chọn của staff kể cả khi phí gửi xe = 0 (miễn phí/grace period) mà
+    // vẫn còn phạt phải thu.
+    const pendingPenalty = pendingPenalties[normalizePlate(target.plateNumber)] || 0;
+    const grandTotal = dueFee + pendingPenalty;
 
     try {
       if (paymentMethod === 'bank_transfer' && dueFee > 0) {
@@ -206,8 +212,16 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
       }
       const exitPortrait = capturedPortraitImage ?? portraitCamRef.current?.capture() ?? null;
 
+      // Bank transfer chỉ có QR thật cho phí gửi xe (nhánh trên) — không có luồng QR
+      // riêng cho phí phạt, nên nếu chỉ còn phạt (dueFee = 0) mà staff chọn "Transfer"
+      // thì hạ về cash thay vì gửi thẳng 'bank_transfer' (tránh BE đánh dấu đã thu điện
+      // tử trong khi chưa hề có giao dịch thật nào).
+      const effectivePaymentMethod = grandTotal > 0
+        ? (paymentMethod === 'bank_transfer' ? 'cash' : paymentMethod)
+        : 'cash';
+
       const payload: any = {
-        ...(target.isReservation ? {} : { paymentMethod: dueFee > 0 ? paymentMethod : 'cash' }),
+        ...(target.isReservation ? {} : { paymentMethod: effectivePaymentMethod }),
         exitPlateImage: capturedPlateImage,
         exitPortraitImage: exitPortrait,
       };
@@ -229,11 +243,13 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
         type: 'ok',
         text: target.isReservation
           ? `Vehicle ${target.plateNumber} released — wallet auto-charged.`
-          : isUnderGracePeriod
-            ? `Vehicle ${target.plateNumber} released under 10-minute Grace Period (free).`
-            : dueFee > 0
-              ? `Fee collected (${dueFee.toLocaleString('vi-VN')} ₫). Vehicle ${target.plateNumber} released.`
-              : `Vehicle ${target.plateNumber} released (free under package).`,
+          : pendingPenalty > 0
+            ? `Fee collected (${grandTotal.toLocaleString('vi-VN')} ₫, incl. ${pendingPenalty.toLocaleString('vi-VN')} ₫ penalty). Vehicle ${target.plateNumber} released.`
+            : isUnderGracePeriod
+              ? `Vehicle ${target.plateNumber} released under 10-minute Grace Period (free).`
+              : dueFee > 0
+                ? `Fee collected (${dueFee.toLocaleString('vi-VN')} ₫). Vehicle ${target.plateNumber} released.`
+                : `Vehicle ${target.plateNumber} released (free under package).`,
       });
       setPaymentMethod('cash');
       setCheckoutTarget(null);
@@ -564,57 +580,6 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
                             <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50/50 p-3.5 text-xs font-bold text-rose-700 flex items-center justify-between">
                               <span>⚠️ Manager-approved penalty fee for this plate</span>
                               <span>+ {fmtMoney(pendingPenalty)}</span>
-                          {/* Penalty & Fine Box */}
-                          <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50/40 p-3.5 space-y-2.5">
-                            <div className="flex items-center justify-between">
-                              <span className="text-[11px] font-bold text-rose-700 flex items-center gap-1.5 uppercase tracking-wider">
-                                <ShieldAlert size={14} className="text-rose-500" /> Phạt vi phạm / Mất thẻ xe
-                              </span>
-                              {extraFine > 0 && (
-                                <span className="text-[10px] font-extrabold text-rose-600 bg-rose-100 px-2 py-0.5 rounded-full">
-                                  + {fmtMoney(extraFine)}
-                                </span>
-                              )}
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                              <div>
-                                <label className="text-[9px] font-bold text-slate-500 uppercase">Lý do vi phạm</label>
-                                <select
-                                  value={penaltyReason}
-                                  onChange={(e) => {
-                                    const val = e.target.value;
-                                    setPenaltyReason(val);
-                                    if (!val) {
-                                      setPenaltyFee(0);
-                                    } else if (val.includes('Mất vé') || val.includes('Mất thẻ')) {
-                                      setPenaltyFee(50000);
-                                    } else {
-                                      setPenaltyFee(100000);
-                                    }
-                                  }}
-                                  className="h-8 w-full rounded-md border border-rose-200 bg-white px-2.5 text-xs font-semibold text-slate-700 outline-none focus:border-rose-500 shadow-xs"
-                                >
-                                  <option value="">-- Không có vi phạm --</option>
-                                  <option value="Mất vé / Mất thẻ xe">Mất vé / Mất thẻ xe (50.000 đ)</option>
-                                  <option value="Đỗ sai slot / Lấn làn">Đỗ sai slot / Lấn làn (100.000 đ)</option>
-                                  <option value="Làm hỏng thẻ / Bãi đỗ">Làm hỏng thẻ / Bãi đỗ (100.000 đ)</option>
-                                  <option value="Vi phạm nội quy chung">Vi phạm nội quy chung (100.000 đ)</option>
-                                </select>
-                              </div>
-                              <div>
-                                <label className="text-[9px] font-bold text-slate-500 uppercase flex items-center justify-between">
-                                  <span>Mức phạt (VNĐ)</span>
-                                  <span className="text-[8px] text-rose-600 font-extrabold">🔒 Manager Set</span>
-                                </label>
-                                <Input
-                                  type="number"
-                                  value={penaltyFee || 0}
-                                  readOnly
-                                  disabled
-                                  className="h-8 text-xs font-black text-rose-700 border-rose-200 bg-slate-100 cursor-not-allowed shadow-xs"
-                                />
-                              </div>
                             </div>
                           )}
 

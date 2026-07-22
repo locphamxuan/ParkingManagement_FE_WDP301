@@ -63,6 +63,15 @@ export default function ParkingHistoryPage() {
     load(1);
   }, [load, session]);
 
+  // Không có push/WebSocket ở BE cho phiên gửi xe — tự refetch khi user quay lại tab
+  // (vd sau khi checkout ở cổng) thay vì bắt bấm nút Refresh thủ công mới thấy cập nhật.
+  useEffect(() => {
+    if (!session) return;
+    const onFocus = () => load(page);
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [session, page, load]);
+
   const filtered = useMemo(() => {
     if (statusFilter === 'all') return items;
     return items.filter((s) => s.status === statusFilter);

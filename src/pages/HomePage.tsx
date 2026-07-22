@@ -412,7 +412,8 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
         </div>
       </section>
 
-      {/* Services Roadmap Section */}
+      {/* Services Roadmap Section — only when there's an actual upcoming feature to show */}
+      {serviceModules.length > 0 && (
       <section id="lo-trinh" className="py-20 relative z-10 bg-slate-950/40">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center max-w-xl mx-auto mb-12">
@@ -451,6 +452,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
           </div>
         </div>
       </section>
+      )}
 
       {/* Premium CTA Banner */}
       <PremiumCTABanner user={user} onViewProfile={onViewProfile} />

@@ -564,6 +564,57 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
                             <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50/50 p-3.5 text-xs font-bold text-rose-700 flex items-center justify-between">
                               <span>⚠️ Manager-approved penalty fee for this plate</span>
                               <span>+ {fmtMoney(pendingPenalty)}</span>
+                          {/* Penalty & Fine Box */}
+                          <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50/40 p-3.5 space-y-2.5">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[11px] font-bold text-rose-700 flex items-center gap-1.5 uppercase tracking-wider">
+                                <ShieldAlert size={14} className="text-rose-500" /> Phạt vi phạm / Mất thẻ xe
+                              </span>
+                              {extraFine > 0 && (
+                                <span className="text-[10px] font-extrabold text-rose-600 bg-rose-100 px-2 py-0.5 rounded-full">
+                                  + {fmtMoney(extraFine)}
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              <div>
+                                <label className="text-[9px] font-bold text-slate-500 uppercase">Lý do vi phạm</label>
+                                <select
+                                  value={penaltyReason}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    setPenaltyReason(val);
+                                    if (!val) {
+                                      setPenaltyFee(0);
+                                    } else if (val.includes('Mất vé') || val.includes('Mất thẻ')) {
+                                      setPenaltyFee(50000);
+                                    } else {
+                                      setPenaltyFee(100000);
+                                    }
+                                  }}
+                                  className="h-8 w-full rounded-md border border-rose-200 bg-white px-2.5 text-xs font-semibold text-slate-700 outline-none focus:border-rose-500 shadow-xs"
+                                >
+                                  <option value="">-- Không có vi phạm --</option>
+                                  <option value="Mất vé / Mất thẻ xe">Mất vé / Mất thẻ xe (50.000 đ)</option>
+                                  <option value="Đỗ sai slot / Lấn làn">Đỗ sai slot / Lấn làn (100.000 đ)</option>
+                                  <option value="Làm hỏng thẻ / Bãi đỗ">Làm hỏng thẻ / Bãi đỗ (100.000 đ)</option>
+                                  <option value="Vi phạm nội quy chung">Vi phạm nội quy chung (100.000 đ)</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label className="text-[9px] font-bold text-slate-500 uppercase flex items-center justify-between">
+                                  <span>Mức phạt (VNĐ)</span>
+                                  <span className="text-[8px] text-rose-600 font-extrabold">🔒 Manager Set</span>
+                                </label>
+                                <Input
+                                  type="number"
+                                  value={penaltyFee || 0}
+                                  readOnly
+                                  disabled
+                                  className="h-8 text-xs font-black text-rose-700 border-rose-200 bg-slate-100 cursor-not-allowed shadow-xs"
+                                />
+                              </div>
                             </div>
                           )}
 

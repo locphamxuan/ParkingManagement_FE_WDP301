@@ -1,13 +1,15 @@
 ﻿import { useState } from 'react';
-import { Package, Users } from 'lucide-react';
+import { Package, Users, UserCheck } from 'lucide-react';
 import { ManagerPackagesPage } from '@/pages/manager/ManagerPackagesPage';
 import { ManagerSubscriptionsPage } from '@/pages/manager/ManagerSubscriptionsPage';
+import { ManagerCustomersPage } from '@/pages/manager/ManagerCustomersPage';
 
-type Tab = 'packages' | 'subscribers';
+type Tab = 'packages' | 'subscribers' | 'customers';
 
 const TABS: { key: Tab; label: string; icon: typeof Package }[] = [
   { key: 'packages', label: 'Packages', icon: Package },
   { key: 'subscribers', label: 'Subscribers', icon: Users },
+  { key: 'customers', label: 'Customers', icon: UserCheck },
 ];
 
 /**
@@ -41,7 +43,13 @@ export function ManagerPackagesHubPage() {
         })}
       </div>
 
-      {tab === 'packages' ? <ManagerPackagesPage /> : <ManagerSubscriptionsPage />}
+      {tab === 'packages' ? (
+        <ManagerPackagesPage />
+      ) : tab === 'subscribers' ? (
+        <ManagerSubscriptionsPage />
+      ) : (
+        <ManagerCustomersPage />
+      )}
     </div>
   );
 }

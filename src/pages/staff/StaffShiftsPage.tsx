@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { staffApi, extractShifts, type MyShift } from '@/services/staff/staffApi';
+import styles from './StaffShiftsPage.module.css';
 
 export function StaffShiftsPage() {
   const [items, setItems] = useState<MyShift[]>([]);
@@ -40,22 +41,11 @@ export function StaffShiftsPage() {
     >
       {/* Header Banner */}
       <section
-        className="relative overflow-hidden rounded-2xl p-5"
-        style={{
-          background: 'linear-gradient(135deg, rgba(224,242,254,0.7) 0%, rgba(255,255,255,0.75) 50%, rgba(219,234,254,0.5) 100%)',
-          border: '1px solid rgba(14,165,233,0.18)',
-          boxShadow: '0 4px 24px rgba(14,165,233,0.06), inset 0 1px 0 rgba(255,255,255,0.9)',
-          backdropFilter: 'blur(16px)',
-        }}
+        className={`relative overflow-hidden rounded-2xl p-5 ${styles.headerBanner}`}
       >
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-3.5">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
-              style={{
-                background: 'linear-gradient(135deg, #e0f2fe, #bae6fd)',
-                border: '1px solid rgba(14,165,233,0.22)',
-                boxShadow: '0 4px 12px rgba(14,165,233,0.12)',
-              }}>
+            <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${styles.headerIcon}`}>
               <CalendarClock className="text-sky-600" size={22} />
             </div>
             <div>
@@ -77,12 +67,7 @@ export function StaffShiftsPage() {
 
       {/* Date Filter Panel */}
       <div
-        className="rounded-2xl p-4 flex flex-wrap items-end gap-4"
-        style={{
-          background: 'rgba(255,255,255,0.6)',
-          border: '1px solid rgba(14,165,233,0.1)',
-          backdropFilter: 'blur(10px)',
-        }}
+        className={`rounded-2xl p-4 flex flex-wrap items-end gap-4 ${styles.filterPanel}`}
       >
         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase tracking-wide mr-2 mb-2 sm:mb-0">
           <Filter size={14} className="text-sky-500" />
@@ -119,13 +104,7 @@ export function StaffShiftsPage() {
 
       {/* Shift Timeline Section */}
       <div
-        className="relative overflow-hidden rounded-3xl p-5 md:p-6"
-        style={{
-          background: 'rgba(255,255,255,0.72)',
-          border: '1px solid rgba(14,165,233,0.14)',
-          boxShadow: '0 10px 30px rgba(14,165,233,0.05), inset 0 1px 0 rgba(255,255,255,0.9)',
-          backdropFilter: 'blur(20px)',
-        }}
+        className={`relative overflow-hidden rounded-3xl p-5 md:p-6 ${styles.dataContainer}`}
       >
         <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-sky-400 via-sky-500 to-transparent" />
 
@@ -180,12 +159,7 @@ export function StaffShiftsPage() {
 
                     {/* Shift ID-Card style panel */}
                     <div
-                      className="relative overflow-hidden rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-all duration-200 hover:shadow-md"
-                      style={{
-                        background: 'rgba(255,255,255,0.6)',
-                        border: '1px solid rgba(14,165,233,0.1)',
-                        boxShadow: '0 2px 10px rgba(14,165,233,0.03)',
-                      }}
+                      className={`relative overflow-hidden rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-all duration-200 hover:shadow-md ${styles.shiftCard}`}
                     >
                       <div className="flex items-start gap-3.5">
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-sky-100 bg-sky-50">

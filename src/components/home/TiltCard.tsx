@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, useMotionValue, useSpring, useTransform, animate } from 'framer-motion';
+import styles from './TiltCard.module.css';
 
 interface TiltCardProps {
   children: React.ReactNode;
@@ -77,8 +78,7 @@ export function TiltCard({ children, className = '', glowColor = 'rgba(249,115,2
       />
 
       <div
-        className="h-full w-full rounded-[23px] bg-slate-950/85 backdrop-blur-xl p-8 md:p-12 relative overflow-hidden"
-        style={{ transformStyle: 'preserve-3d' }}
+        className={`h-full w-full rounded-[23px] bg-slate-950/85 backdrop-blur-xl p-8 md:p-12 relative overflow-hidden ${styles.preserve3d}`}
       >
         <motion.div
           className="pointer-events-none absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-[23px]"
@@ -90,7 +90,7 @@ export function TiltCard({ children, className = '', glowColor = 'rgba(249,115,2
           style={{ x: shineX, y: shineY }}
         />
 
-        <div style={{ transform: 'translateZ(20px)', transformStyle: 'preserve-3d' }} className="relative z-10 h-full w-full">
+        <div className={`relative z-10 h-full w-full ${styles.layerZ20}`}>
           {children}
         </div>
       </div>

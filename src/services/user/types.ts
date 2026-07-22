@@ -8,7 +8,6 @@ export type {
   VehicleType,
   ParkingSlot,
   Gate,
-  Reservation,
   ParkingHistory,
   LongTermPackage,
   LongTermSubscription,
@@ -18,8 +17,6 @@ export type {
   LicensePlate,
   UserVehicleType,
   UserProfile,
-  ReservationEstimate,
-  ReservationCreateResult,
 } from '@/services/user/userApi';
 
 export { userApi } from '@/services/user/userApi';

@@ -1,31 +1,5 @@
 import { api } from '@/services/client/apiClient';
 
-export interface StaffReservation {
-  _id: string;
-  code?: string;
-  user?: any;
-  building?: any;
-  slot?: any;
-  status: string;
-  createdAt?: string;
-  plateNumber?: string;
-  vehicleType?: any;
-  startTime?: string;
-  amountPaid?: number;
-  fee?: number;
-}
-
-export interface ShiftRevenueSummary {
-  total: number;
-  count: number;
-  cash: number;
-  wallet: number;
-  qr: number;
-  byMethod?: { cash: number; wallet: number; qr: number };
-  date?: string;
-  items?: any[];
-}
-
 export interface FreeSlot {
   _id: string;
   code: string;
@@ -115,25 +89,28 @@ export interface StaffIncident {
   building?: { _id?: string; code?: string; name?: string } | null;
   slot?: { _id?: string; code?: string } | null;
   severity?: 'medium' | 'high' | 'critical';
-  status?: 'open' | 'investigating' | 'escalated' | 'resolved' | 'closed';
+  status?: 'open' | 'investigating' | 'escalated' | 'penalty_pending' | 'resolved' | 'closed';
   createdAt?: string;
   note?: string;
   target?: string;
   violatorPlate?: string;
+  /** null = không áp dụng (không có violatorPlate); false → incident tự escalate cho manager. */
+  plateAccountFound?: boolean | null;
   resolutionNote?: string;
+  /** Manager đã DUYỆT (rule: staff không được set) — staff thu thật lúc check-out xe vi phạm. */
+  penaltyFee?: number | null;
+  /** Chỉ có giá trị SAU KHI thu tại check-out (chưa thu = null). */
+  paymentMethod?: 'cash' | 'wallet' | 'qr' | null;
   reportedBy?: { _id?: string; fullName?: string; email?: string } | null;
   resolvedBy?: { _id?: string; fullName?: string; email?: string } | null;
   resolvedAt?: string | null;
 }
 
+/** Staff chỉ được đổi trạng thái/ghi chú — set phí phạt là manager-only (BE trả 403 MANAGER_ONLY_ACTION nếu cố gửi action/penaltyFee). */
 export interface StaffIncidentUpdatePayload {
-  status?: 'open' | 'investigating' | 'escalated' | 'resolved' | 'closed';
+  status?: 'open' | 'investigating' | 'escalated' | 'penalty_pending' | 'resolved' | 'closed';
   resolutionNote?: string;
   violatorPlate?: string;
-  /** 'penalize_violator' → BE force-checkout xe vi phạm + thu phí phạt + resolve incident */
-  action?: 'penalize_violator';
-  penaltyFee?: number;
-  paymentMethod?: 'cash' | 'wallet' | 'qr';
 }
 
 export interface WalletTransaction {
@@ -144,18 +121,6 @@ export interface WalletTransaction {
   type: 'payment' | 'refund' | 'topup';
   status: 'pending' | 'completed' | 'failed';
   createdAt: string;
-}
-
-export interface Incident {
-  _id: string;
-  incidentType: string;
-  parkingSessionId: string;
-  plateNumber: string;
-  penaltyFee: number;
-  paymentMethod: 'cash' | 'wallet' | 'qr';
-  description?: string;
-  resolvedAt?: string;
-  status: 'reported' | 'resolved' | 'cancelled';
 }
 
 export interface Dashboard {
@@ -301,9 +266,6 @@ export const staffApi = {
       }>
     >(`/staff/users/lookup-plate-qr/${qrCode}`),
 
-  addCustomerPlate: (customerId: string, payload: { plateNumber: string; vehicleType?: string }) =>
-    api.post<Wrap<{ success: boolean }>>(`/staff/users/${customerId}/license-plates`, payload),
-
   // AI camera (Camera 1): send a captured frame (base64, data-URL prefix allowed),
   // get back the recognized plate + brand and the resolved owner account.
   scanVehicle: (image: string, _buildingId?: string) =>
@@ -392,45 +354,19 @@ export const staffApi = {
     /** Lịch sử xe vào hôm nay của nhân viên cổng VÀO — có location (cổng, tầng, ô). */
     myCheckIns: (buildingId: string) =>
       api.get<Wrap<{ items: ParkingSession[] }>>('/staff/parking-sessions/my-checkins', { query: { building: buildingId } }),
-
-    /** Thống kê doanh thu ca trực của Staff */
-    myShiftRevenue: async (buildingId?: string) => {
-      try {
-        const res = await api.get<Wrap<ShiftRevenueSummary>>('/staff/parking-sessions/my-shift-revenue', {
-          query: buildingId ? { building: buildingId } : undefined,
-        });
-        if (res && res.data) return res;
-      } catch {
-        // Fallback fallback safe structure
-      }
-      return {
-        data: {
-          total: 0,
-          count: 0,
-          cash: 0,
-          wallet: 0,
-          qr: 0,
-          byMethod: { cash: 0, wallet: 0, qr: 0 },
-          items: [],
-        },
-      };
-    },
   },
 
   // Incidents
   incidents: {
-    list: (buildingId?: string) =>
+    list: (buildingId?: string, query?: { status?: string }) =>
       api.get<Wrap<ApiList<StaffIncident>>>('/staff/incidents', {
-        query: buildingId ? { buildingId } : undefined,
+        query: { ...(buildingId ? { buildingId } : {}), ...(query?.status ? { status: query.status } : {}) },
       }),
 
     create: (payload: { type: string; target?: string; note?: string; buildingId?: string; severity?: string; parkingSessionId?: string; status?: string; resolutionNote?: string }) =>
       api.post('/staff/incidents', payload),
 
-    update: (id: string, payload: StaffIncidentUpdatePayload) =>
-      api.patch<Wrap<{ item: StaffIncident }>>(`/staff/incidents/${id}`, payload),
-
-    resolve: (id: string, payload: any) =>
+    resolve: (id: string, payload: StaffIncidentUpdatePayload) =>
       api.patch<Wrap<{ item: StaffIncident }>>(`/staff/incidents/${id}`, payload),
   },
 
@@ -442,15 +378,6 @@ export const staffApi = {
   }) =>
     api.post<Wrap<{ item: WalletTransaction }>>('/staff/wallet-transactions', body),
 
-  // Fallbacks for compatibility
-  listReservations: (query?: Record<string, string | undefined>) =>
-    api.get<Wrap<{ items: StaffReservation[] }>>('/staff/reservations', { query }).catch(() => ({ data: { items: [] } })),
-  reservations: {
-    list: (query?: Record<string, string | undefined>) =>
-      api.get<Wrap<{ items: StaffReservation[] }>>('/staff/reservations', { query }).catch(() => ({ data: { items: [] } })),
-  },
-  submitShiftReport: (shiftId: string) =>
-    api.post(`/staff/my-shifts/${shiftId}/submit-report`, {}).catch(() => ({ data: {} })),
 };
 
 // ========== HELPER FUNCTIONS ==========

@@ -21,6 +21,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
+import styles from './StaffProfilePage.module.css';
 
 export function StaffProfilePage() {
   const { session, user, logout, updateProfile } = useAuth();
@@ -101,22 +102,11 @@ export function StaffProfilePage() {
 
       {/* Header Banner */}
       <section
-        className="relative overflow-hidden rounded-2xl p-4"
-        style={{
-          background: 'linear-gradient(135deg, rgba(224,242,254,0.72) 0%, rgba(255,255,255,0.8) 50%, rgba(219,234,254,0.55) 100%)',
-          border: '1px solid rgba(14,165,233,0.2)',
-          boxShadow: '0 4px 20px rgba(14,165,233,0.04), inset 0 1px 0 rgba(255,255,255,0.9)',
-          backdropFilter: 'blur(20px)',
-        }}
+        className={`relative overflow-hidden rounded-2xl p-4 ${styles.headerBanner}`}
       >
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between relative z-10">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl animate-pulse"
-              style={{
-                background: 'linear-gradient(135deg, #e0f2fe, #bae6fd)',
-                border: '1px solid rgba(14,165,233,0.25)',
-                boxShadow: '0 2px 8px rgba(14,165,233,0.1)',
-              }}>
+            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl animate-pulse ${styles.headerIcon}`}>
               <User className="text-sky-600" size={18} />
             </div>
             <div>
@@ -149,13 +139,7 @@ export function StaffProfilePage() {
         
         {/* Left Column: Smart Access ID Card */}
         <div
-          className="relative overflow-hidden rounded-3xl p-5 text-center flex flex-col items-center justify-between min-h-[300px]"
-          style={{
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(248,250,252,0.96) 100%)',
-            border: '1px solid rgba(14,165,233,0.18)',
-            boxShadow: '0 8px 32px rgba(14,165,233,0.06), inset 0 1px 0 rgba(255,255,255,0.9)',
-            backdropFilter: 'blur(20px)',
-          }}
+          className={`relative overflow-hidden rounded-3xl p-5 text-center flex flex-col items-center justify-between min-h-[300px] ${styles.idCard}`}
         >
           {/* Holographic Header Bar */}
           <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-sky-400 via-sky-500 to-sky-600" />
@@ -195,13 +179,7 @@ export function StaffProfilePage() {
           
           {/* Details Panel */}
           <div
-            className="relative overflow-hidden rounded-3xl p-5"
-            style={{
-              background: 'rgba(255,255,255,0.72)',
-              border: '1px solid rgba(14,165,233,0.14)',
-              boxShadow: '0 8px 30px rgba(14,165,233,0.04), inset 0 1px 0 rgba(255,255,255,0.9)',
-              backdropFilter: 'blur(20px)',
-            }}
+            className={`relative overflow-hidden rounded-3xl p-5 ${styles.panel}`}
           >
             <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-sky-400 via-sky-500 to-transparent" />
             <h3 className="text-xs font-extrabold text-slate-800 tracking-tight mb-4">Account Information</h3>
@@ -302,12 +280,7 @@ export function StaffProfilePage() {
                     <motion.div
                       key={f.label}
                       whileHover={{ y: -2 }}
-                      className="flex items-center gap-3.5 rounded-2xl p-3 transition-all duration-200 border"
-                      style={{
-                        background: 'rgba(255,255,255,0.5)',
-                        borderColor: 'rgba(14,165,233,0.08)',
-                        boxShadow: '0 1px 8px rgba(14,165,233,0.01), inset 0 1px 0 rgba(255,255,255,0.9)',
-                      }}
+                      className={`flex items-center gap-3.5 rounded-2xl p-3 transition-all duration-200 border ${styles.infoRow}`}
                     >
                       <div className="flex h-9.5 w-9.5 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600 border border-sky-100">
                         <Icon size={15} />
@@ -326,13 +299,7 @@ export function StaffProfilePage() {
           {/* Assigned Station (Horizontal Ribbon Bar) */}
           {building && (
             <div
-              className="relative overflow-hidden rounded-3xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
-              style={{
-                background: 'rgba(255,255,255,0.72)',
-                border: '1px solid rgba(14,165,233,0.14)',
-                boxShadow: '0 8px 30px rgba(14,165,233,0.04), inset 0 1px 0 rgba(255,255,255,0.9)',
-                backdropFilter: 'blur(20px)',
-              }}
+              className={`relative overflow-hidden rounded-3xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4 ${styles.panel}`}
             >
               <div className="absolute top-0 inset-y-0 left-0 w-1 bg-gradient-to-b from-sky-400 via-sky-500 to-transparent md:bg-gradient-to-r md:w-auto md:h-1 md:inset-x-0 md:top-0" />
               

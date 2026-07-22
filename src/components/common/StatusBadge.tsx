@@ -37,12 +37,19 @@ export function StatusBadge({ status }: StatusBadgeProps) {
     completed: 'Completed',
     expired: 'Expired',
     cancelled: 'Cancelled',
+    // Incident statuses
+    open: 'Open',
+    investigating: 'Investigating',
+    escalated: 'Escalated',
+    penalty_pending: 'Penalty Pending',
+    resolved: 'Resolved',
+    closed: 'Closed',
   };
 
   const display = labelMap[normalized] ?? status ?? 'N/A';
 
   // Custom premium color classes
-  if (['active', 'ok', 'success', 'online', 'low', 'available', 'confirmed', 'completed'].includes(normalized)) {
+  if (['active', 'ok', 'success', 'online', 'low', 'available', 'confirmed', 'completed', 'resolved'].includes(normalized)) {
     return (
       <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 border border-emerald-200/50 shadow-[0_2px_8px_rgba(16,185,129,0.06)] status-badge-success">
         <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -51,7 +58,7 @@ export function StatusBadge({ status }: StatusBadgeProps) {
     );
   }
   
-  if (['warning', 'pending', 'review', 'maintenance', 'medium'].includes(normalized)) {
+  if (['warning', 'pending', 'review', 'maintenance', 'medium', 'escalated', 'penalty_pending'].includes(normalized)) {
     return (
       <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700 border border-amber-200/50 shadow-[0_2px_8px_rgba(245,158,11,0.06)] status-badge-warning">
         <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />

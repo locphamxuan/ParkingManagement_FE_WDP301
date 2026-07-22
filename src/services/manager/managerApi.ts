@@ -61,19 +61,6 @@ export const ZONE_USAGE_LABELS: Record<ZoneUsageType, string> = {
   reserved: 'Reserved',
 };
 
-export interface ShiftReportSubmission {
-  _id: string;
-  shift: any;
-  staff: any;
-  submittedAt: string;
-  totalAmount: number;
-  sessionCount: number;
-  note?: string;
-  revenueReport?: any;
-  gate?: any;
-  workDate?: string;
-}
-
 export interface PendingCashPayment {
   _id: string;
   amount: number;
@@ -135,17 +122,6 @@ export interface PricePolicy {
   isActive: boolean;
 }
 
-export interface PolicyPushLog {
-  _id: string;
-  building: string;
-  pricePolicy: { _id: string; name: string };
-  actor: { _id: string; fullName: string; email: string; role: string };
-  action: string;
-  previousValue?: unknown;
-  newValue?: unknown;
-  createdAt: string;
-}
-
 export interface LongTermPackage {
   _id: string;
   building: string;
@@ -173,6 +149,18 @@ export interface Subscription {
   /** Snapshot % và số tiền đã hoàn lúc hủy (theo refund policy tại thời điểm đó). */
   refundPercent?: number | null;
   refundAmount?: number | null;
+}
+
+/** Registered user (non-walk-in) who has used the building, with package-registration status. */
+export interface ManagerCustomer {
+  _id: string;
+  fullName: string;
+  email: string;
+  phone?: string | null;
+  /** Has at least one subscription with status 'active' in this building. */
+  hasActivePackage: boolean;
+  /** Has ever registered a subscription (any status) in this building. */
+  hasAnyPackage: boolean;
 }
 
 /** Chính sách hoàn tiền khi hủy gói dài hạn (per building). */
@@ -280,7 +268,7 @@ export interface WalletTopUpResult {
   orderCode: number;
 }
 
-export type ManagerIncidentStatus = 'open' | 'investigating' | 'escalated' | 'resolved' | 'closed';
+export type ManagerIncidentStatus = 'open' | 'investigating' | 'escalated' | 'penalty_pending' | 'resolved' | 'closed';
 
 export interface ManagerIncident {
   _id: string;
@@ -293,7 +281,13 @@ export interface ManagerIncident {
   note?: string;
   target?: string;
   violatorPlate?: string;
+  /** null = không áp dụng (không có violatorPlate); false → incident tự escalate cho manager. */
+  plateAccountFound?: boolean | null;
   resolutionNote?: string;
+  /** Số tiền manager đã DUYỆT (status 'penalty_pending' = chưa thu, 'resolved' = đã thu). */
+  penaltyFee?: number | null;
+  /** Chỉ có giá trị SAU KHI staff thu tại check-out (chưa thu = null). */
+  paymentMethod?: 'cash' | 'wallet' | 'qr' | null;
   reportedBy?: { _id?: string; fullName?: string; email?: string } | null;
   resolvedBy?: { _id?: string; fullName?: string; email?: string } | null;
   resolvedAt?: string | null;
@@ -304,10 +298,11 @@ export interface ManagerIncidentUpdatePayload {
   status?: ManagerIncidentStatus;
   resolutionNote?: string;
   violatorPlate?: string;
-  /** 'penalize_violator' → BE force-checkout xe vi phạm + thu phí phạt + resolve incident */
+  /** 'penalize_violator' → DUYỆT số tiền phạt (manager-only) — chưa thu, chưa checkout.
+   * Staff thu thật + chọn phương thức lúc check-out xe vi phạm tại cổng. */
   action?: 'penalize_violator';
+  /** Bỏ trống → BE dùng mức phạt chuẩn từ ReservationPolicy.ruleViolationFee của toà. */
   penaltyFee?: number;
-  paymentMethod?: 'cash' | 'wallet' | 'qr';
 }
 
 interface Wrap<T> {
@@ -401,8 +396,6 @@ export const managerApi = {
     update: (b: string, id: string, body: Partial<PricePolicy>) =>
       api.put<Wrap<{ item: PricePolicy }>>(path(b, `/price-policies/${id}`), body),
     deactivate: (b: string, id: string) => api.delete(path(b, `/price-policies/${id}`)),
-    pushLogs: (b: string) =>
-      api.get<Wrap<{ items: PolicyPushLog[]; pagination: unknown }>>(path(b, '/policy-push-logs')),
   },
 
   packages: {
@@ -424,6 +417,14 @@ export const managerApi = {
       api.get<Wrap<{ item: RefundPolicy }>>(path(b, '/refund-policy')),
     update: (b: string, body: Partial<RefundPolicy>) =>
       api.put<Wrap<{ item: RefundPolicy }>>(path(b, '/refund-policy'), body),
+  },
+
+  customers: {
+    list: (b: string, q?: Record<string, string | undefined>) =>
+      api.get<Wrap<{
+        items: ManagerCustomer[];
+        pagination: { page: number; limit: number; total: number; totalPages: number };
+      }>>(path(b, '/customers'), { query: q }),
   },
 
   shifts: {
@@ -450,8 +451,6 @@ export const managerApi = {
     ) => api.put<Wrap<{ item: StaffShift }>>(path(b, `/staff-shifts/${id}`), body),
     removeStaffShift: (b: string, id: string) =>
       api.delete(path(b, `/staff-shifts/${id}`)),
-    listReports: (b: string) =>
-      api.get<Wrap<{ items: ShiftReportSubmission[] }>>(path(b, '/shift-report-submissions')),
   },
 
   incidents: {

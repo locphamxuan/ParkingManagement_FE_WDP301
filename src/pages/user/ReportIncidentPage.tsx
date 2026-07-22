@@ -12,7 +12,6 @@ const INCIDENT_TYPES: { value: UserIncidentType; label: string }[] = [
   { value: 'facility_issue', label: 'Facility issue (flooding, lighting, floor...)' },
   { value: 'wrong_scan', label: 'Wrong plate scan / vehicle mismatch' },
   { value: 'payment_dispute', label: 'Payment / fee dispute' },
-  { value: 'lost_ticket', label: 'Lost ticket / QR' },
   { value: 'security', label: 'Security concern (theft, suspicious person)' },
   { value: 'other', label: 'Other' },
 ];
@@ -216,6 +215,11 @@ export default function ReportIncidentPage() {
                   <p className="mt-1 text-xs font-semibold text-slate-200">{typeLabel(it.type)}</p>
                   {it.note && <p className="mt-1 text-[11px] text-slate-400">{it.note}</p>}
                   {it.slot?.code && <p className="mt-1 text-[10px] text-slate-500">Slot: {it.slot.code}</p>}
+                  {it.status === 'escalated' && (
+                    <p className="mt-1 text-[10px] text-orange-300">
+                      The reported plate has no registered account in this building — a manager is handling it directly.
+                    </p>
+                  )}
                   {it.resolutionNote && (
                     <p className="mt-1 text-[11px] text-emerald-300/90">Resolution: {it.resolutionNote}</p>
                   )}

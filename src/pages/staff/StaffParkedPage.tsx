@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RefreshCcw, CheckCircle2, Car, ScanLine, QrCode, UserSquare, ArrowLeft, ArrowRight, Wallet, Banknote, QrCode as QrIcon, ShieldAlert } from 'lucide-react';
+import { RefreshCcw, CheckCircle2, Car, ScanLine, QrCode, UserSquare, ArrowLeft, ArrowRight, Wallet, Banknote, QrCode as QrIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
@@ -16,6 +16,7 @@ import { ParkedSessionCard } from '@/components/staff/parked/ParkedSessionCard';
 import { ParkedRejectModal } from '@/components/staff/parked/ParkedRejectModal';
 import { BankTransferModal } from '@/components/staff/parked/BankTransferModal';
 import { LicensePlate } from '@/components/common/LicensePlate';
+import styles from './StaffParkedPage.module.css';
 
 type PaymentKind = 'cash' | 'bank_transfer' | 'wallet';
 
@@ -59,9 +60,6 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
   const [rejectReason, setRejectReason] = useState('');
   const [barrierState, setBarrierState] = useState<'closed' | 'opening' | 'open' | 'closing'>('closed');
 
-  const [penaltyFee, setPenaltyFee] = useState<number>(0);
-  const [penaltyReason, setPenaltyReason] = useState<string>('');
-
   const [identifyMode, setIdentifyMode] = useState<'plate' | 'qr'>('plate');
   const [coStep, setCoStep] = useState<1 | 2>(1);
 
@@ -71,6 +69,10 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
   const [capturedPlateImage, setCapturedPlateImage] = useState<string | null>(null);
   const [capturedPortraitImage, setCapturedPortraitImage] = useState<string | null>(null);
   const portraitCamRef = useRef<LiveCameraHandle>(null);
+
+  // Biển số đang có incident 'penalty_pending' (manager đã duyệt phí phạt, chờ staff
+  // thu lúc check-out) — map plate đã normalize → số tiền, để hiện banner cảnh báo.
+  const [pendingPenalties, setPendingPenalties] = useState<Record<string, number>>({});
 
   const refreshSessions = useCallback(() => {
     setLoading(true);
@@ -84,6 +86,18 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
       })
       .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load data'))
       .finally(() => setLoading(false));
+
+    staffApi.incidents.list(buildingId, { status: 'penalty_pending' })
+      .then((res) => {
+        const items = (res.data as { items?: { violatorPlate?: string; penaltyFee?: number | null }[] } | { violatorPlate?: string; penaltyFee?: number | null }[]);
+        const list = Array.isArray(items) ? items : (items.items ?? []);
+        const map: Record<string, number> = {};
+        list.forEach((it) => {
+          if (it.violatorPlate && it.penaltyFee) map[normalizePlate(it.violatorPlate)] = it.penaltyFee;
+        });
+        setPendingPenalties(map);
+      })
+      .catch(() => setPendingPenalties({}));
   }, [buildingId]);
 
   useEffect(() => {
@@ -102,8 +116,6 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
     setCheckoutTarget(session);
     setPaymentMethod('cash');
     setCoStep(1);
-    setPenaltyFee(0);
-    setPenaltyReason('');
     setCapturedPlateImage(exitPlateImage);
     setCapturedPortraitImage(null);
     try {
@@ -176,18 +188,16 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
     const diffMin = Math.max(0, Math.floor((Date.now() - entry.getTime()) / 60000));
     const isUnderGracePeriod = diffMin < 10;
     const dueFee = isUnderGracePeriod ? 0 : (target.currentFee ?? target.fee ?? 0);
-    const extraPenalty = Math.max(0, penaltyFee || 0);
-    const totalToCollect = dueFee + extraPenalty;
 
     try {
-      if (paymentMethod === 'bank_transfer' && totalToCollect > 0) {
+      if (paymentMethod === 'bank_transfer' && dueFee > 0) {
         const res = await staffApi.initiateSessionPayment(target._id);
         const d = (res as unknown as { data?: { orderCode: number; checkoutUrl: string; amount: number; plateNumber?: string } })?.data;
         if (d) {
           setBankTransfer({
             orderCode: d.orderCode,
             checkoutUrl: d.checkoutUrl,
-            amount: extraPenalty > 0 ? totalToCollect : d.amount,
+            amount: d.amount,
             plate: d.plateNumber || target.plateNumber,
           });
           setCheckoutTarget(null);
@@ -195,40 +205,14 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
         return;
       }
       const exitPortrait = capturedPortraitImage ?? portraitCamRef.current?.capture() ?? null;
-      
+
       const payload: any = {
-        ...(target.isReservation ? {} : { paymentMethod: totalToCollect > 0 ? paymentMethod : 'cash' }),
+        ...(target.isReservation ? {} : { paymentMethod: dueFee > 0 ? paymentMethod : 'cash' }),
         exitPlateImage: capturedPlateImage,
         exitPortraitImage: exitPortrait,
       };
 
-      if (extraPenalty > 0) {
-        payload.adjustedFee = totalToCollect;
-        payload.adjustmentReason = penaltyReason.trim() || 'Thu tiền phạt vi phạm / Mất vé';
-      }
-
       await staffApi.checkOut(target._id, payload);
-
-      // Nếu có tiền phạt vi phạm, tự động ghi nhận phiếu sự cố đã xử lý (resolved) ngay tại cổng
-      if (extraPenalty > 0) {
-        try {
-          const typeStr = (penaltyReason.toLowerCase().includes('vé') || penaltyReason.toLowerCase().includes('ve'))
-            ? 'lost_ticket'
-            : 'rule_violation';
-          await staffApi.incidents.create({
-            type: typeStr,
-            buildingId: buildingId || undefined,
-            target: target.plateNumber,
-            severity: 'medium',
-            status: 'resolved',
-            resolutionNote: `Thu tiền phạt tại cổng: ${extraPenalty.toLocaleString('vi-VN')} VNĐ. Lý do: ${penaltyReason || 'Mất vé / Vi phạm nội quy'}`,
-            note: `Phạt tiền khách: ${extraPenalty.toLocaleString('vi-VN')} VNĐ. Lý do: ${penaltyReason || 'Mất vé / Vi phạm nội quy'}`,
-            parkingSessionId: target._id,
-          });
-        } catch {
-          // Ignored
-        }
-      }
 
       setBarrierState('opening');
       setTimeout(() => {
@@ -245,16 +229,14 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
         type: 'ok',
         text: target.isReservation
           ? `Vehicle ${target.plateNumber} released — wallet auto-charged.`
-          : isUnderGracePeriod && extraPenalty <= 0
+          : isUnderGracePeriod
             ? `Vehicle ${target.plateNumber} released under 10-minute Grace Period (free).`
-            : totalToCollect > 0
-              ? `Fee & penalty collected (${totalToCollect.toLocaleString('vi-VN')} ₫). Vehicle ${target.plateNumber} released.`
+            : dueFee > 0
+              ? `Fee collected (${dueFee.toLocaleString('vi-VN')} ₫). Vehicle ${target.plateNumber} released.`
               : `Vehicle ${target.plateNumber} released (free under package).`,
       });
       setPaymentMethod('cash');
       setCheckoutTarget(null);
-      setPenaltyFee(0);
-      setPenaltyReason('');
       setCapturedPlateImage(null);
       setCapturedPortraitImage(null);
       setReloadTick((n) => n + 1);
@@ -320,21 +302,10 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
     >
       {/* Header Banner */}
       <div
-        className="flex flex-col gap-4 rounded-2xl p-5 lg:flex-row lg:items-center lg:justify-between"
-        style={{
-          background: 'linear-gradient(135deg, rgba(224,242,254,0.7) 0%, rgba(255,255,255,0.75) 50%, rgba(219,234,254,0.5) 100%)',
-          border: '1px solid rgba(14,165,233,0.18)',
-          boxShadow: '0 4px 24px rgba(14,165,233,0.06), inset 0 1px 0 rgba(255,255,255,0.9)',
-          backdropFilter: 'blur(16px)',
-        }}
+        className={`flex flex-col gap-4 rounded-2xl p-5 lg:flex-row lg:items-center lg:justify-between ${styles.headerBanner}`}
       >
         <div className="flex items-center gap-3.5">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
-            style={{
-              background: 'linear-gradient(135deg, #e0f2fe, #bae6fd)',
-              border: '1px solid rgba(14,165,233,0.22)',
-              boxShadow: '0 4px 12px rgba(14,165,233,0.12)',
-            }}>
+          <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${styles.headerIcon}`}>
             <Car className="text-sky-600" size={22} />
           </div>
           <div>
@@ -377,13 +348,7 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
             </div>
           ) : !checkoutTarget && !bankTransfer && !rejectOpen ? (
             <section
-              className="space-y-4 rounded-3xl p-5"
-              style={{
-                background: 'rgba(255,255,255,0.72)',
-                border: '1px solid rgba(14,165,233,0.14)',
-                boxShadow: '0 10px 30px rgba(14,165,233,0.05), inset 0 1px 0 rgba(255,255,255,0.9)',
-                backdropFilter: 'blur(20px)',
-              }}
+              className={`space-y-4 rounded-3xl p-5 ${styles.panel}`}
             >
               <div className="flex gap-2 p-1 rounded-xl bg-slate-50 border border-sky-100">
                 <button
@@ -437,13 +402,7 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
           )}
 
           <div
-            className="relative overflow-hidden rounded-3xl p-5 md:p-6"
-            style={{
-              background: 'rgba(255,255,255,0.72)',
-              border: '1px solid rgba(14,165,233,0.14)',
-              boxShadow: '0 10px 30px rgba(14,165,233,0.05), inset 0 1px 0 rgba(255,255,255,0.9)',
-              backdropFilter: 'blur(20px)',
-            }}
+            className={`relative overflow-hidden rounded-3xl p-5 md:p-6 ${styles.panel}`}
           >
             {/* Top accent */}
             <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-sky-400 via-sky-500 to-transparent" />
@@ -479,11 +438,7 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-3xl p-6 shadow-2xl relative border border-sky-100"
-            style={{
-              background: 'rgba(255,255,255,0.96)',
-              boxShadow: '0 24px 60px rgba(14,165,233,0.12)',
-            }}
+            className={`w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-3xl p-6 shadow-2xl relative border border-sky-100 ${styles.modal}`}
           >
             {/* Top border line */}
             <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-sky-400 via-sky-500 to-transparent" />
@@ -600,11 +555,15 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
                       const diffMin = Math.max(0, Math.floor((Date.now() - entry.getTime()) / 60000));
                       const isUnderGracePeriod = diffMin < 10;
                       const baseFee = isUnderGracePeriod ? 0 : (checkoutTarget.currentFee ?? checkoutTarget.fee ?? 0);
-                      const extraFine = Math.max(0, penaltyFee || 0);
-                      const grandTotal = baseFee + extraFine;
+                      const pendingPenalty = pendingPenalties[normalizePlate(checkoutTarget.plateNumber)] || 0;
+                      const grandTotal = baseFee + pendingPenalty;
 
                       return (
                         <>
+                          {pendingPenalty > 0 && (
+                            <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50/50 p-3.5 text-xs font-bold text-rose-700 flex items-center justify-between">
+                              <span>⚠️ Manager-approved penalty fee for this plate</span>
+                              <span>+ {fmtMoney(pendingPenalty)}</span>
                           {/* Penalty & Fine Box */}
                           <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50/40 p-3.5 space-y-2.5">
                             <div className="flex items-center justify-between">
@@ -657,7 +616,7 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
                                 />
                               </div>
                             </div>
-                          </div>
+                          )}
 
                           <div className="mt-4 rounded-2xl border border-sky-100 bg-sky-50/50 p-4 flex flex-col gap-1">
                             <div className="flex items-center justify-between">
@@ -668,12 +627,10 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
                                   : fmtMoney(grandTotal)}
                               </span>
                             </div>
-                            {extraFine > 0 && (
-                              <p className="text-[10px] text-rose-600 font-bold mt-0.5 flex items-center gap-1">
-                                ⚠️ Đã bao gồm {fmtMoney(extraFine)} tiền phạt ({penaltyReason || 'Vi phạm / Mất vé'})
-                              </p>
-                            )}
-                            {isUnderGracePeriod && extraFine <= 0 && (
+                            <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
+                              Need to fine a violation? Report it via Incidents — a manager approves the penalty fee.
+                            </p>
+                            {isUnderGracePeriod && pendingPenalty <= 0 && (
                               <p className="text-[10px] text-emerald-600 font-bold mt-0.5 flex items-center gap-1.5">
                                 <CheckCircle2 size={11} className="text-emerald-500" /> Free parking under 10-minute Grace Period
                               </p>
@@ -718,13 +675,14 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
                     className="flex-1 h-11 gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-extrabold hover:brightness-110 disabled:opacity-60 rounded-xl shadow-md"
                   >
                     <CheckCircle2 size={16} />
-                    {checkoutTarget.isReservation
-                      ? 'Release (auto wallet charge)'
-                      : ((checkoutTarget.currentFee ?? checkoutTarget.fee ?? 0) + penaltyFee) <= 0
-                        ? 'Release (Free)'
-                        : paymentMethod === 'bank_transfer'
-                        ? 'Create payment QR'
-                        : `Collect ${fmtMoney((checkoutTarget.currentFee ?? checkoutTarget.fee ?? 0) + penaltyFee)} & release`}
+                    {(() => {
+                      const total = (checkoutTarget.currentFee ?? checkoutTarget.fee ?? 0)
+                        + (pendingPenalties[normalizePlate(checkoutTarget.plateNumber)] || 0);
+                      if (checkoutTarget.isReservation) return 'Release (auto wallet charge)';
+                      if (total <= 0) return 'Release (Free)';
+                      if (paymentMethod === 'bank_transfer') return 'Create payment QR';
+                      return `Collect ${fmtMoney(total)} & release`;
+                    })()}
                   </Button>
                   <Button
                     type="button"

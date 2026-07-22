@@ -1,25 +1,5 @@
 import { api } from '@/services/client/apiClient';
 
-export interface Reservation {
-  _id: string;
-  code?: string;
-  building?: any;
-  slot?: any;
-  status: string;
-  createdAt?: string;
-}
-
-export interface ReservationEstimate {
-  estimatedFee: number;
-  durationHours: number;
-}
-
-export interface ReservationCreateResult {
-  _id: string;
-  code: string;
-  status: string;
-}
-
 export interface Building {
   _id: string;
   name: string;
@@ -238,7 +218,6 @@ export type UserIncidentType =
   | 'facility_issue'
   | 'wrong_scan'
   | 'payment_dispute'
-  | 'lost_ticket'
   | 'security'
   | 'other';
 
@@ -249,6 +228,8 @@ export interface UserIncident {
   note?: string;
   target?: string;
   violatorPlate?: string;
+  /** null = không áp dụng; false → biển vi phạm chưa có account trong building, incident tự escalate cho manager. */
+  plateAccountFound?: boolean | null;
   resolutionNote?: string;
   severity: string;
   status: string;
@@ -424,15 +405,6 @@ export const userApi = {
     markAsRead: (id: string) => api.patch<Wrap<Notification>>(`/users/notifications/${id}/read`),
 
     markAllAsRead: () => api.patch<Wrap<{ success: boolean }>>('/users/notifications/read-all'),
-  },
-
-  // Fallbacks for compatibility
-  reservations: {
-    list: (query?: any) => api.get<Wrap<ListResult<Reservation>>>('/users/reservations', { query }).catch(() => ({ data: { items: [], pagination: { total: 0, page: 1, limit: 10, totalPages: 0 } } })),
-    get: (id: string) => api.get<Wrap<{ reservation: Reservation }>>(`/users/reservations/${id}`).catch(() => ({ data: { reservation: { _id: id, status: 'completed' } as any } })),
-    estimate: (body?: any) => api.post<Wrap<ReservationEstimate>>('/users/reservations/estimate', body).catch(() => ({ data: { estimatedFee: 0, durationHours: 1 } })),
-    create: (body?: any) => api.post<Wrap<ReservationCreateResult>>('/users/reservations', body).catch(() => ({ data: { _id: '', code: '', status: 'active', reservation: {} } as any })),
-    cancel: (id: string) => api.post<Wrap<{ success: boolean; reservation?: any }>>(`/users/reservations/${id}/cancel`, {}).catch(() => ({ data: { success: true, reservation: {} } })),
   },
 
   // ========== INCIDENTS (báo cáo sự cố) ==========

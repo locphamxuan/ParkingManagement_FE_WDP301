@@ -1,5 +1,5 @@
 ﻿import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Building2, Save, Layers, Clock, Banknote, MapPin, Phone, Loader2 } from 'lucide-react';
+import { Building2, Save, Layers, Clock, MapPin, Phone, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +11,6 @@ export function ManagerBuildingsPage() {
   const { buildings, selectedBuilding, selectedBuildingId, setSelectedBuildingId, isLoading, error, refreshBuildings } = useManagerBuildings();
 
   const [name, setName] = useState('');
-  const [totalFloors, setTotalFloors] = useState('');
   const [status, setStatus] = useState<ManagerBuilding['status']>('active');
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -20,12 +19,10 @@ export function ManagerBuildingsPage() {
   useEffect(() => {
     if (!selectedBuilding) {
       setName('');
-      setTotalFloors('');
       setStatus('active');
       return;
     }
     setName(selectedBuilding.name || '');
-    setTotalFloors(String(selectedBuilding.totalFloors ?? ''));
     setStatus(selectedBuilding.status || 'active');
   }, [selectedBuilding]);
 
@@ -45,7 +42,6 @@ export function ManagerBuildingsPage() {
     try {
       const payload: Partial<ManagerBuilding> = {};
       if (name) payload.name = name;
-      if (totalFloors) payload.totalFloors = Number(totalFloors);
       if (status) payload.status = status;
       await managerApi.updateBuilding(selectedBuildingId, payload);
       await refreshBuildings();
@@ -56,7 +52,7 @@ export function ManagerBuildingsPage() {
     } finally {
       setIsSaving(false);
     }
-  }, [name, totalFloors, status, selectedBuildingId, refreshBuildings]);
+  }, [name, status, selectedBuildingId, refreshBuildings]);
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
@@ -154,22 +150,14 @@ export function ManagerBuildingsPage() {
                       <div className="flex items-center gap-2">
                         <Layers size={13} className="text-blue-600 shrink-0" />
                         <span className="font-semibold text-slate-400">Floors:</span>
-                        <span className="font-bold text-slate-900">{b.totalFloors} levels</span>
+                        <span className="font-bold text-slate-900">{b.floorCount} levels</span>
                       </div>
-                      
+
                       <div className="flex items-center gap-2">
                         <Clock size={13} className="text-blue-600 shrink-0" />
                         <span className="font-semibold text-slate-400">Hours:</span>
                         <span className="font-bold text-slate-900">
                           {b.operatingHours ? `${b.operatingHours.open} - ${b.operatingHours.close}` : '24/7'}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <Banknote size={13} className="text-blue-600 shrink-0" />
-                        <span className="font-semibold text-slate-400">Base Rate:</span>
-                        <span className="font-bold text-blue-700">
-                          {b.pricing?.hourlyRate?.toLocaleString('vi-VN') || 0} VND/h
                         </span>
                       </div>
 
@@ -206,24 +194,11 @@ export function ManagerBuildingsPage() {
             <CardTitle className="text-sm font-black uppercase tracking-wider text-slate-700">Update Building Information</CardTitle>
           </CardHeader>
           <CardContent className="p-6 grid gap-5 text-slate-800">
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2">
               {/* Tên tòa nhà */}
               <div className="grid gap-1.5">
                 <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Building name</label>
                 <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter building name" className="h-11 rounded-xl bg-white border-blue-100 text-slate-800 focus:border-blue-500/40" />
-              </div>
-
-              {/* Số tầng */}
-              <div className="grid gap-1.5">
-                <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Number of floors</label>
-                <Input
-                  type="number"
-                  min={1}
-                  value={totalFloors}
-                  onChange={(e) => setTotalFloors(e.target.value)}
-                  placeholder="e.g. 5"
-                  className="h-11 rounded-xl bg-white border-blue-100 text-slate-800 focus:border-blue-500/40"
-                />
               </div>
 
               {/* Trạng thái — dropdown */}

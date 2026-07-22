@@ -4,6 +4,7 @@ import { ArrowRight, Building2, Mail, PhoneCall } from 'lucide-react';
 import footerBg from '@/assets/footer.png';
 import { navigationLinks } from './homeNavigation.constants';
 import { Logo } from '@/components/layout/Logo';
+import styles from './HomeFooter.module.css';
 
 type HomeUser = { fullName?: string; email?: string; role?: string } | null | undefined;
 
@@ -86,8 +87,7 @@ export function TiltCard({ children, className = '', glowColor = 'rgba(249,115,2
       />
 
       <div
-        className="h-full w-full rounded-[23px] bg-slate-950/85 backdrop-blur-xl p-8 md:p-12 relative overflow-hidden"
-        style={{ transformStyle: 'preserve-3d' }}
+        className={`h-full w-full rounded-[23px] bg-slate-950/85 backdrop-blur-xl p-8 md:p-12 relative overflow-hidden ${styles.preserve3d}`}
       >
         <motion.div
           className="pointer-events-none absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-[23px]"
@@ -104,7 +104,7 @@ export function TiltCard({ children, className = '', glowColor = 'rgba(249,115,2
           style={{ x: shineX, y: shineY }}
         />
 
-        <div style={{ transform: 'translateZ(20px)', transformStyle: 'preserve-3d' }} className="relative z-10 h-full w-full">
+        <div className={`relative z-10 h-full w-full ${styles.layerZ20}`}>
           {children}
         </div>
       </div>
@@ -213,9 +213,9 @@ export function PremiumFooter({ user, onViewProfile }: PremiumFooterProps) {
         <TiltCard className="group border border-white/5 shadow-2xl relative">
           <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none rounded-[23px]" />
 
-          <div className="relative z-20 grid md:grid-cols-3 gap-10 lg:gap-16 pb-12" style={{ transformStyle: 'preserve-3d' }}>
+          <div className={`relative z-20 grid md:grid-cols-3 gap-10 lg:gap-16 pb-12 ${styles.preserve3d}`}>
             {/* Col 1: Platform Info */}
-            <div className="space-y-6" style={{ transform: 'translateZ(30px)' }}>
+            <div className={`space-y-6 ${styles.layerZ30}`}>
               <Logo size={32} tagline="Cloud Management" />
 
 
@@ -240,7 +240,7 @@ export function PremiumFooter({ user, onViewProfile }: PremiumFooterProps) {
             </div>
 
             {/* Col 2: Navigation Links */}
-            <div className="space-y-6" style={{ transform: 'translateZ(30px)', transformStyle: 'preserve-3d' }}>
+            <div className={`space-y-6 ${styles.layerZ30p}`}>
               <h4 className="font-black text-white text-xs uppercase tracking-wider font-mono border-l-2 border-cyan-500 pl-3">
                 Quick Links
               </h4>
@@ -261,7 +261,7 @@ export function PremiumFooter({ user, onViewProfile }: PremiumFooterProps) {
             </div>
 
             {/* Col 3: Portal & Newsletter */}
-            <div className="space-y-6" style={{ transform: 'translateZ(35px)', transformStyle: 'preserve-3d' }}>
+            <div className={`space-y-6 ${styles.layerZ35p}`}>
               <h4 className="font-black text-white text-xs uppercase tracking-wider font-mono border-l-2 border-cyan-500 pl-3">
                 Portal Access
               </h4>
@@ -332,7 +332,7 @@ export function PremiumFooter({ user, onViewProfile }: PremiumFooterProps) {
           </div>
 
           {/* Bottom footer bar */}
-          <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6" style={{ transform: 'translateZ(25px)' }}>
+          <div className={`pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 ${styles.layerZ25}`}>
             <small className="text-[10px] font-bold text-slate-500 font-mono tracking-tight">
               © {new Date().getFullYear()} PBMS PARKING. PREMIUM INTERFACE DESIGN UNDER CENTRALIZED PROTOCOL.
             </small>

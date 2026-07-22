@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Building2, Mail, PhoneCall } from 'lucide-react';
 import footerBg from '@/assets/footer.png';
 import { TiltCard } from './TiltCard';
+import styles from './HomeFooterSections.module.css';
 
 interface PremiumCTABannerProps {
   user: any;
@@ -102,9 +103,9 @@ export function PremiumFooter({ user, onViewProfile, navigationLinks }: PremiumF
         <TiltCard className="group border border-white/5 shadow-2xl relative">
           <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none rounded-[23px]" />
 
-          <div className="relative z-20 grid md:grid-cols-3 gap-10 lg:gap-16 pb-12" style={{ transformStyle: 'preserve-3d' }}>
+          <div className={`relative z-20 grid md:grid-cols-3 gap-10 lg:gap-16 pb-12 ${styles.preserve3d}`}>
             {/* Col 1: Platform Info */}
-            <div className="space-y-6" style={{ transform: 'translateZ(30px)' }}>
+            <div className={`space-y-6 ${styles.layerZ30}`}>
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.3)]">
                   <span className="text-white font-black text-base font-mono">P</span>
@@ -136,7 +137,7 @@ export function PremiumFooter({ user, onViewProfile, navigationLinks }: PremiumF
             </div>
 
             {/* Col 2: Navigation Links */}
-            <div className="space-y-6" style={{ transform: 'translateZ(30px)', transformStyle: 'preserve-3d' }}>
+            <div className={`space-y-6 ${styles.layerZ30p}`}>
               <h4 className="font-black text-white text-xs uppercase tracking-wider font-mono border-l-2 border-cyan-500 pl-3">
                 Quick Links
               </h4>
@@ -157,7 +158,7 @@ export function PremiumFooter({ user, onViewProfile, navigationLinks }: PremiumF
             </div>
 
             {/* Col 3: Portal & Newsletter */}
-            <div className="space-y-6" style={{ transform: 'translateZ(35px)', transformStyle: 'preserve-3d' }}>
+            <div className={`space-y-6 ${styles.layerZ35p}`}>
               <h4 className="font-black text-white text-xs uppercase tracking-wider font-mono border-l-2 border-cyan-500 pl-3">
                 Portal Access
               </h4>
@@ -228,7 +229,7 @@ export function PremiumFooter({ user, onViewProfile, navigationLinks }: PremiumF
           </div>
 
           {/* Bottom footer bar */}
-          <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6" style={{ transform: 'translateZ(25px)' }}>
+          <div className={`pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 ${styles.layerZ25}`}>
             <small className="text-[10px] font-bold text-slate-500 font-mono tracking-tight">
               © {new Date().getFullYear()} PBMS PARKING. PREMIUM INTERFACE DESIGN UNDER CENTRALIZED PROTOCOL.
             </small>

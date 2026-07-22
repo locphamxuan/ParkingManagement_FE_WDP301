@@ -5,6 +5,7 @@ import { useAuthForm } from '@/hooks/useAuthForm';
 import { AuthPromoPanel } from '@/components/auth/AuthPromoPanel';
 import { AuthNoticeModal } from '@/components/auth/AuthNoticeModal';
 import { showToast } from '@/components/common/ToastNotification';
+import styles from './AuthPage.module.css';
 
 export type AuthMode = 'login' | 'register' | 'forgot-password' | 'reset-password';
 
@@ -32,8 +33,7 @@ export default function AuthPage({ mode, notice, onModeChange, onSubmit, isLoadi
     <main 
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="relative min-h-screen flex items-center justify-center bg-slate-950 text-slate-100 py-12 px-4 overflow-hidden selection:bg-orange-500 selection:text-white"
-      style={{ perspective: '1200px' }}
+      className={`relative min-h-screen flex items-center justify-center bg-slate-950 text-slate-100 py-12 px-4 overflow-hidden selection:bg-orange-500 selection:text-white ${styles.perspective1200}`}
     >
       {/* Laser Scanning Line and perspective grid animations */}
       <style>{`

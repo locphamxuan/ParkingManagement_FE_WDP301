@@ -1,19 +1,21 @@
-﻿import { useState } from 'react';
-import { Package, Users } from 'lucide-react';
+import { useState } from 'react';
+import { Package, UserCheck } from 'lucide-react';
 import { ManagerPackagesPage } from '@/pages/manager/ManagerPackagesPage';
-import { ManagerSubscriptionsPage } from '@/pages/manager/ManagerSubscriptionsPage';
+import { ManagerCustomersPage } from '@/pages/manager/ManagerCustomersPage';
 
-type Tab = 'packages' | 'subscribers';
+type Tab = 'packages' | 'customers';
 
 const TABS: { key: Tab; label: string; icon: typeof Package }[] = [
   { key: 'packages', label: 'Packages', icon: Package },
-  { key: 'subscribers', label: 'Subscribers', icon: Users },
+  { key: 'customers', label: 'Customers', icon: UserCheck },
 ];
 
 /**
- * Gộp 2 màn trước đây ("Gói" + "Gói của khách") thành một trang với sub-tab
- * để gọn sidebar. "Danh sách gói" là danh mục gói dài hạn của tòa nhà; "Khách
- * đăng ký" là các lượt khách đã mua gói.
+ * Gộp 2 màn trước đây ("Gói" + "Khách hàng") thành một trang với sub-tab để
+ * gọn sidebar. "Danh sách gói" là danh mục gói dài hạn của tòa nhà; "Customers"
+ * là danh bạ user (kèm biển số, để tra cứu lúc xử lý sự cố) + toàn bộ subscription
+ * của từng user (xem hạn, phí/hoàn, hủy gói) — tab "Subscribers" cũ đã gộp vào
+ * đây 2026-07-22 vì cùng phục vụ 1 user, tách 2 tab gây trùng lặp tra cứu.
  */
 export function ManagerPackagesHubPage() {
   const [tab, setTab] = useState<Tab>('packages');
@@ -41,7 +43,7 @@ export function ManagerPackagesHubPage() {
         })}
       </div>
 
-      {tab === 'packages' ? <ManagerPackagesPage /> : <ManagerSubscriptionsPage />}
+      {tab === 'packages' ? <ManagerPackagesPage /> : <ManagerCustomersPage />}
     </div>
   );
 }

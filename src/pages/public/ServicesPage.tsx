@@ -35,8 +35,8 @@ const driverServices = [
   {
     icon: ShieldAlert,
     title: 'Incident Support',
-    description: 'Report lost tickets, blocked slots, or vehicle issues right from the app. On-site staff resolve and you get notified.',
-    highlights: ['9 incident types covered', 'Photo evidence upload', 'Resolution notifications'],
+    description: 'Report blocked slots, security concerns, or vehicle issues right from the app. On-site staff and building managers resolve it and you get notified.',
+    highlights: ['8 incident types covered', 'Photo evidence upload', 'Resolution notifications'],
   },
 ];
 

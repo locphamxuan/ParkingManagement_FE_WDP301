@@ -264,12 +264,33 @@ export function StaffIncidentsPage() {
           <h3 className="text-sm font-extrabold text-slate-800 tracking-tight mb-4">Quick Report</h3>
 
           <div className="grid gap-3">
-            <Input
+            <select
               value={incidentType}
               onChange={(e) => setIncidentType(e.target.value)}
-              placeholder="Incident type: broken barrier, wrong parking, facility issue..."
-              className="h-10 rounded-xl border-sky-100 text-xs bg-white focus:border-sky-500"
-            />
+              className="h-10 rounded-xl border border-sky-100 bg-white px-3 text-xs text-slate-700 outline-none font-semibold focus:ring-2 focus:ring-sky-500/20"
+            >
+              <option value="">-- Chọn loại sự cố --</option>
+              <optgroup label="🚘 Lỗi đỗ xe">
+                <option value="wrong_spot">🚫 Đỗ sai vị trí / sai dãy quy định</option>
+                <option value="wrong_vehicle_type">🚌 Sai loại xe (ô tô đỗ vào dãy xe máy hoặc ngược lại)</option>
+                <option value="slot_occupied">🔒 Chiếm ô gói đăng ký cố định của người khác</option>
+                <option value="overstay">⏰ Xe ở quá giờ / quá hạn gói (overstay)</option>
+              </optgroup>
+              <optgroup label="🏗️ Thiết bị / Hạ tầng">
+                <option value="facility_issue">🔧 Hư hỏng thiết bị bãi xe (camera, cổng, sơn, biển)</option>
+                <option value="gate_violation">🚪 Vượt cổng / không thực hiện check-in/out</option>
+              </optgroup>
+              <optgroup label="🪪 Nhận dạng phương tiện">
+                <option value="wrong_scan">📸 Biển số camera nhận diện không khớp đăng ký</option>
+                <option value="plate_mismatch">🪪 Biển số xe giả mạo / không đúng với tài khoản</option>
+              </optgroup>
+              <optgroup label="📋 Sự cố chung">
+                <option value="vehicle_damaged">🚗 Phương tiện bị hư hỏng trong bãi</option>
+                <option value="payment_dispute">💳 Tranh chấp thanh toán phí đỗ xe</option>
+                <option value="security">🛡️ Mối lo ngại về an ninh / trật tự bãi</option>
+                <option value="other">📋 Khác / Không phân loại rõ ràng</option>
+              </optgroup>
+            </select>
             <Input
               value={incidentTarget}
               onChange={(e) => setIncidentTarget(e.target.value)}

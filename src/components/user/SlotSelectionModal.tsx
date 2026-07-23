@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin } from 'lucide-react';
 import { ParkingMap2D } from '@/components/map/ParkingMap2D';
@@ -47,6 +48,29 @@ export function SlotSelectionModal({
   floorsData,
   selectedVehicleType,
 }: SlotSelectionModalProps) {
+  const filteredFloorsData = useMemo(() => {
+    if (!selectedVehicleType) return floorsData;
+    return floorsData.filter((f) => {
+      const allowed = ((f as any).allowedVehicleTypes || []) as Array<{ _id?: string; code?: string; name?: string } | string>;
+      if (allowed.length === 0) return true;
+      return allowed.some((vt) => {
+        const val = typeof vt === 'object' && vt ? (vt.code || vt.name || '') : String(vt || '');
+        const codeOrName = val.toLowerCase();
+        if (selectedVehicleType === 'car') {
+          return /car|oto|ô t|auto/i.test(codeOrName);
+        } else {
+          return /motor|xe|máy|bike|moto/i.test(codeOrName);
+        }
+      });
+    });
+  }, [floorsData, selectedVehicleType]);
+
+  const selectedFloor = useMemo(() => {
+    return floorsData.find((f) => f._id === selectedFloorIdModal);
+  }, [floorsData, selectedFloorIdModal]);
+
+  const selectedFloorName = selectedFloor ? (selectedFloor.name || selectedFloor.code || '') : '';
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -66,6 +90,8 @@ export function SlotSelectionModal({
           >
             <ParkingMap2D
               interactive
+              floorName={selectedFloorName}
+              filterVehicleType={selectedVehicleType || undefined}
               slots={
                 selectedFloorIdModal
                   ? slots.map((s) => ({
@@ -115,7 +141,7 @@ export function SlotSelectionModal({
                       }}
                       options={[
                         { value: '', label: '-- Select floor --' },
-                        ...floorsData.map((f) => ({
+                        ...filteredFloorsData.map((f) => ({
                           value: f._id,
                           label: `${f.name || f.code || ''} (${f.availableSlots}/${f.totalSlots})`,
                         })),

@@ -42,6 +42,7 @@ export interface FloorAvailability {
   occupiedSlots: number;
   reservedSlots: number;
   totalSlots: number;
+  allowedVehicleTypes?: Array<{ _id: string; code?: string; name?: string } | string>;
 }
 
 export interface Gate {

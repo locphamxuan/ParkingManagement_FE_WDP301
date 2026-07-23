@@ -5,7 +5,7 @@ import { LivePortraitCamera } from '@/components/staff/LivePortraitCamera';
 import type { LiveCameraHandle } from '@/components/staff/LivePlateCamera';
 import { LicensePlate } from '@/components/common/LicensePlate';
 import { normalizePlate } from '@/utils/plate';
-import { fmtTime, fmtMoney, fmtDuration } from '@/components/staff/parked/staffParkedFormat';
+import { fmtTime, fmtMoney, fmtDuration, computeCheckoutFee } from '@/components/staff/parked/staffParkedFormat';
 import type { ParkingSession } from '@/services/staff/staffApi';
 import styles from '@/styles/modules/StaffParkedPage.module.css';
 
@@ -177,13 +177,8 @@ export function CheckoutModal({
             ) : (
               <>
                 {(() => {
-                  let entry = new Date();
-                  try { entry = new Date(checkoutTarget.entryTime); } catch { }
-                  const diffMin = Math.max(0, Math.floor((Date.now() - entry.getTime()) / 60000));
-                  const isUnderGracePeriod = diffMin < 10;
-                  const baseFee = isUnderGracePeriod ? 0 : (checkoutTarget.currentFee ?? checkoutTarget.fee ?? 0);
                   const pendingPenalty = pendingPenalties[normalizePlate(checkoutTarget.plateNumber)] || 0;
-                  const grandTotal = baseFee + pendingPenalty;
+                  const { isUnderGracePeriod, grandTotal } = computeCheckoutFee(checkoutTarget, pendingPenalty);
 
                   return (
                     <>
@@ -196,7 +191,7 @@ export function CheckoutModal({
 
                       <div className="mt-4 rounded-2xl border border-sky-100 bg-sky-50/50 p-4 flex flex-col gap-1">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tổng tiền cần thu</span>
+                          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total due</span>
                           <span className="font-mono text-2xl font-black text-sky-600">
                             {grandTotal <= 0
                               ? 'Free (0 ₫)'

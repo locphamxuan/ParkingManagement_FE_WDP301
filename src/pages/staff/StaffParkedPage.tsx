@@ -9,7 +9,7 @@ import { staffApi, type ParkingSession } from '@/services/staff/staffApi';
 import { LivePlateCamera, type PlateScanResult, type LiveCameraHandle } from '@/components/staff/LivePlateCamera';
 import { LiveQRCamera } from '@/components/staff/LiveQRCamera';
 import { normalizePlate } from '@/utils/plate';
-import { fmtMoney } from '@/components/staff/parked/staffParkedFormat';
+import { fmtMoney, computeCheckoutFee } from '@/components/staff/parked/staffParkedFormat';
 import { ParkedSessionCard } from '@/components/staff/parked/ParkedSessionCard';
 import { ParkedRejectModal } from '@/components/staff/parked/ParkedRejectModal';
 import { BankTransferModal } from '@/components/staff/parked/BankTransferModal';
@@ -161,21 +161,12 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
     if (!target) return;
     setOpMessage(null);
     
-    let entry = new Date();
-    try {
-      entry = new Date(target.entryTime);
-    } catch {
-      // fallback
-    }
-    const diffMin = Math.max(0, Math.floor((Date.now() - entry.getTime()) / 60000));
-    const isUnderGracePeriod = diffMin < 10;
-    const dueFee = isUnderGracePeriod ? 0 : (target.currentFee ?? target.fee ?? 0);
     // Phí phạt (nếu có) đang chờ thu cho biển số này — BE tự cộng/khấu trừ khi check-out
     // (settlePendingPenaltyAtCheckout), nhưng phương thức thanh toán gửi lên phải phản
     // ánh đúng lựa chọn của staff kể cả khi phí gửi xe = 0 (miễn phí/grace period) mà
     // vẫn còn phạt phải thu.
     const pendingPenalty = pendingPenalties[normalizePlate(target.plateNumber)] || 0;
-    const grandTotal = dueFee + pendingPenalty;
+    const { isUnderGracePeriod, dueFee, grandTotal } = computeCheckoutFee(target, pendingPenalty);
 
     try {
       if (paymentMethod === 'bank_transfer' && dueFee > 0) {

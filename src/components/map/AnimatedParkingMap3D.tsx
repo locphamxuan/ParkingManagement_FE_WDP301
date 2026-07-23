@@ -327,6 +327,17 @@ export function AnimatedParkingMap3D({
               const rawSlot = isRawSlot ? (item as any) : null;
               const slotCode = rawSlot ? rawSlot.code : `A-0${id}`;
               const isEV = id === 3 || slotCode.toLowerCase().includes('ev');
+
+              // Detect if this slot belongs to a motorcycle floor/zone
+              const isMotoSlot = (() => {
+                if (!rawSlot) return false;
+                const vt = rawSlot.vehicleType;
+                if (!vt) return false;
+                const vtStr = typeof vt === 'string'
+                  ? vt
+                  : (vt.code || vt.name || vt._id || '').toString();
+                return /moto|motorcycle|xe.may|xemay|motorbike/i.test(vtStr);
+              })();
               
               const reservation = interactive && activeReservations?.find((r) => r.slotCode === slotCode);
               const blockedBySlotStatus = interactiveUnavailableSlots.includes(slotCode);
@@ -395,14 +406,18 @@ export function AnimatedParkingMap3D({
                     {!isOccupied && !isReserved && !isMaintenance && <span className="text-emerald-400 font-bold text-[7px] uppercase tracking-normal">FREE</span>}
                   </div>
                   
-                  {/* Render visual cars in occupied slots */}
+                  {/* Render vehicle icon in occupied slots — motorcycle emoji for moto slots, CartoonCar3D for car slots */}
                   {isOccupied && (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ transform: 'translateZ(4px)' }}>
-                      <CartoonCar3D 
-                        type={carTypes[index % carTypes.length]} 
-                        color={carColors[index % carColors.length]} 
-                        state="parked" 
-                      />
+                      {isMotoSlot ? (
+                        <div style={{ fontSize: '20px', lineHeight: 1, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}>🏍️</div>
+                      ) : (
+                        <CartoonCar3D 
+                          type={carTypes[index % carTypes.length]} 
+                          color={carColors[index % carColors.length]} 
+                          state="parked" 
+                        />
+                      )}
                     </div>
                   )}
                 </motion.div>

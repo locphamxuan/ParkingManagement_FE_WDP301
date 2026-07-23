@@ -34,6 +34,8 @@ export interface ParkingMap2DProps {
   children?: React.ReactNode;
   placeholder?: React.ReactNode;
   className?: string;
+  floorName?: string;
+  filterVehicleType?: 'car' | 'motorcycle';
 }
 
 /* ─── SVG Icons (inline, no lock icons on occupied) ────────────────────────── */
@@ -238,6 +240,7 @@ function ParkingRow({
   interactive,
   onSlotClick,
   is3D,
+  filterVehicleType,
 }: {
   rowLabel: string;
   slots: ParkingSlot[];
@@ -249,6 +252,7 @@ function ParkingRow({
   interactive: boolean;
   onSlotClick?: (code: string) => void;
   is3D: boolean;
+  filterVehicleType?: 'car' | 'motorcycle';
 }) {
   const sorted = [...slots].sort((a, b) => {
     const numA = parseInt(a.code.replace(/[^0-9]/g, '')) || 0;
@@ -275,12 +279,22 @@ function ParkingRow({
     );
   };
 
+  const rowTitle = filterVehicleType === 'car'
+    ? `ROW ${rowLabel} (CAR SLOTS 🏎️)`
+    : filterVehicleType === 'motorcycle'
+    ? `ROW ${rowLabel} (MOTORCYCLE SLOTS 🏍️)`
+    : `ROW ${rowLabel}`;
+
   return (
-    <div className="flex items-center gap-2 sm:gap-3">
-      {/* Row Label */}
-      <span className="w-8 shrink-0 text-right text-[10px] font-black uppercase tracking-wider text-slate-500">
-        {rowLabel}
-      </span>
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-2 px-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
+        <span className="text-orange-400 font-mono">{rowTitle}</span>
+      </div>
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* Row Label */}
+        <span className="w-8 shrink-0 text-right text-[10px] font-black uppercase tracking-wider text-slate-500">
+          {rowLabel}
+        </span>
 
       {/* Left slots */}
       <div className="flex flex-wrap gap-1.5 sm:gap-2">
@@ -305,6 +319,7 @@ function ParkingRow({
       <span className="w-8 shrink-0 text-left text-[10px] font-black uppercase tracking-wider text-slate-500">
         {rowLabel}
       </span>
+    </div>
     </div>
   );
 }
@@ -398,6 +413,8 @@ export function ParkingMap2D({
   children,
   placeholder,
   className = "w-full rounded-3xl border border-slate-800/80 bg-[#080d17] p-4 sm:p-5",
+  floorName,
+  filterVehicleType,
 }: ParkingMap2DProps) {
   const [view, setView] = useState<'2D' | '3D'>('2D');
   const [rotateX, setRotateX] = useState(45);
@@ -446,16 +463,27 @@ export function ParkingMap2D({
     onSlotClick?.(code);
   };
 
-  // Group slots by row letter
+  // Filter slots strictly by filterVehicleType if provided
+  const displaySlots = useMemo(() => {
+    if (!filterVehicleType) return slots;
+    return slots.filter((slot) => {
+      const codeLower = slot.code.toLowerCase();
+      const derivedVt = slot.vehicleType || (codeLower.includes('m') || codeLower.includes('xe') || codeLower.includes('moto') ? 'motorcycle' : 'car');
+      return derivedVt === filterVehicleType;
+    });
+  }, [slots, filterVehicleType]);
+
+  // Group slots by row / zone code prefix
   const slotsByRow = useMemo(() => {
     const grouped: Record<string, ParkingSlot[]> = {};
-    slots.forEach((slot) => {
-      const row = slot.code.charAt(0);
+    displaySlots.forEach((slot) => {
+      const match = slot.code.match(/^([A-Za-z0-9]+?)(?:-\d+|\d+)?$/i);
+      const row = match && match[1] ? match[1] : slot.code.charAt(0);
       if (!grouped[row]) grouped[row] = [];
       grouped[row].push(slot);
     });
     return grouped;
-  }, [slots]);
+  }, [displaySlots]);
 
   const rows = useMemo(() => Object.keys(slotsByRow).sort(), [slotsByRow]);
 
@@ -464,8 +492,22 @@ export function ParkingMap2D({
       {/* Header */}
       <div className="mb-6 flex items-start justify-between border-b border-white/5 pb-4">
         <div>
-          <h2 className="text-xl font-extrabold uppercase tracking-wider text-white">BASEMENT PARKING MAP</h2>
-          <p className="mt-1 text-xs font-bold text-amber-500 uppercase tracking-widest">Floor Map</p>
+          <h2 className="text-xl font-extrabold uppercase tracking-wider text-white flex items-center gap-2">
+            <span>BASEMENT PARKING MAP</span>
+            {floorName && (
+              <span className="text-orange-400 font-mono text-base font-black">
+                — {floorName}
+              </span>
+            )}
+          </h2>
+          <p className="mt-1 text-xs font-bold text-amber-500 uppercase tracking-widest flex items-center gap-2">
+            <span>{floorName ? `Floor: ${floorName}` : 'Floor Map'}</span>
+            {filterVehicleType && (
+              <span className="text-slate-400 border-l border-slate-700 pl-2">
+                Showing: {filterVehicleType === 'car' ? 'Car Slots Only (🏎️)' : 'Motorcycle Slots Only (RB)'}
+              </span>
+            )}
+          </p>
         </div>
         {onClose && (
           <button
@@ -586,6 +628,7 @@ export function ParkingMap2D({
                     interactive={interactive}
                     onSlotClick={handleSlotClick}
                     is3D={false}
+                    filterVehicleType={filterVehicleType}
                   />
                 ))}
               </motion.div>
@@ -628,6 +671,7 @@ export function ParkingMap2D({
                         interactive={interactive}
                         onSlotClick={handleSlotClick}
                         is3D={true}
+                        filterVehicleType={filterVehicleType}
                       />
                     </motion.div>
                   ))}

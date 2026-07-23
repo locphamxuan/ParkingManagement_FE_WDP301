@@ -64,6 +64,13 @@ export function SlotSelectionModal({
       });
     });
   }, [floorsData, selectedVehicleType]);
+
+  const selectedFloor = useMemo(() => {
+    return floorsData.find((f) => f._id === selectedFloorIdModal);
+  }, [floorsData, selectedFloorIdModal]);
+
+  const selectedFloorName = selectedFloor ? (selectedFloor.name || selectedFloor.code || '') : '';
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -83,6 +90,8 @@ export function SlotSelectionModal({
           >
             <ParkingMap2D
               interactive
+              floorName={selectedFloorName}
+              filterVehicleType={selectedVehicleType || undefined}
               slots={
                 selectedFloorIdModal
                   ? slots.map((s) => ({

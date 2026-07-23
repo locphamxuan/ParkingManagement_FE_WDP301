@@ -3,40 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { syncPlates, listPlates, type PlateRecord } from '@/services/licensePlateService';
 import { userApi } from '@/services/user/userApi';
-import { normalizePlate, isValidVietnamPlate, brandsForVehicleType } from '@/utils/plate';
-
-// ─── Vietnamese license plate validation (shared util — canonical 59G2-038.80) ─
-// Series is 1–2 letters + optional digit: single letter for cars (30A), letter+digit
-// for motorcycles (59G2), or two letters for special plates (30LD). Number group is
-// 4–5 digits (5-digit → NNN.NN).
-interface PlateValidationResult {
-  ok: boolean;
-  error?: string;
-}
-
-function validatePlate(raw: string, existingPlates: Array<{ plateNumber: string; vehicleType: 'car' | 'motorcycle' }>): PlateValidationResult {
-  // Step 1: empty check
-  if (!raw || raw.trim() === '') {
-    return { ok: false, error: 'Please enter a license plate.' };
-  }
-
-  // Step 2: normalize to canonical VN form + format check
-  const plate = normalizePlate(raw);
-  if (!isValidVietnamPlate(plate)) {
-    return {
-      ok: false,
-      error: 'Invalid license plate format. Example: 30A-97022 (car) or 59G2-038.80 (motorcycle).',
-    };
-  }
-
-  // Step 3: duplicate check
-  if (existingPlates.some((p) => p.plateNumber.toUpperCase() === plate)) {
-    return { ok: false, error: `License plate "${plate}" has already been added.` };
-  }
-
-  return { ok: true };
-}
-// ─────────────────────────────────────────────────────────────────────────────
+import { normalizePlate, brandsForVehicleType } from '@/utils/plate';
+import { validatePlate } from '@/utils/plateValidation';
 
 export const MAX_PLATES = 3;
 

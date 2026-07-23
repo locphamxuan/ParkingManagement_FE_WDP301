@@ -8,6 +8,7 @@ import {
   Users,
 } from 'lucide-react';
 import { PortalSidebar, type PortalNavItem } from '@/components/layout/PortalSidebar';
+import { MobileNavDrawer, MobileNavButton } from '@/components/layout/MobileNavDrawer';
 import { Navbar } from '@/components/layout/Navbar';
 import { useAuth } from '@/hooks/useAuth';
 import { ADMIN_EMAIL_FALLBACK } from '@/utils/constants';
@@ -34,6 +35,7 @@ const titles: Record<string, string> = {
 
 export function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { session, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -79,6 +81,18 @@ export function AdminLayout() {
           </main>
         </div>
       </div>
+
+      <MobileNavButton onOpen={() => setMobileNavOpen(true)} />
+      <MobileNavDrawer open={mobileNavOpen} onClose={() => setMobileNavOpen(false)}>
+        <PortalSidebar
+          variant="drawer"
+          collapsed={false}
+          onToggle={() => {}}
+          onNavigate={() => setMobileNavOpen(false)}
+          portalLabel="ADMIN PORTAL"
+          items={navItems}
+        />
+      </MobileNavDrawer>
     </div>
   );
 }

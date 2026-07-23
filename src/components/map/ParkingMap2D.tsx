@@ -162,10 +162,7 @@ function SlotCell({
   is3D: boolean;
 }) {
   const isClickable = interactive && status === 'available';
-  const isOccupied = status === 'occupied' || status === 'reserved' || (status === 'unsupported' && slot.status !== 'available');
   const isSelected = status === 'selected';
-  const showVehicleIcon = isOccupied;
-  const effectiveVehicleType = slot.vehicleType || (slot.code.toLowerCase().includes('m') ? 'motorcycle' : 'car');
 
   return (
     <motion.button
@@ -174,55 +171,18 @@ function SlotCell({
       disabled={!isClickable && !isSelected}
       whileHover={isClickable && !is3D ? { scale: 1.08, y: -3 } : {}}
       whileTap={isClickable && !is3D ? { scale: 0.95 } : {}}
-      title={`${slot.code} — ${status === 'available' ? 'Available' : status === 'selected' ? 'Selected' : status === 'occupied' ? 'Occupied' : status === 'reserved' ? 'Reserved' : status === 'maintenance' ? 'Maintenance' : 'Unsupported'}`}
+      title={`${slot.code} — ${status === 'available' ? 'Available' : 'Selected'}`}
       className={`
-        relative flex flex-col items-center justify-center rounded-xl border-2 transition-all duration-200 overflow-hidden
-        ${is3D ? 'h-12 w-14 sm:h-14 sm:w-16' : 'h-20 w-11 sm:h-22 sm:w-13'}
+        relative flex items-center justify-center rounded-xl border-2 transition-all duration-200 overflow-hidden px-3 py-2
+        ${is3D ? 'h-12 w-16 sm:h-14 sm:w-20' : 'h-16 w-24 sm:h-20 sm:w-28'}
         ${slotBg(status)}
-        ${isClickable ? 'cursor-pointer' : isSelected ? 'cursor-pointer' : 'cursor-default'}
-        ${!isClickable && !isSelected ? (status === 'unsupported' ? 'opacity-20' : 'opacity-55') : ''}
+        ${isClickable || isSelected ? 'cursor-pointer' : 'cursor-default'}
       `}
       style={is3D ? { transform: 'translateZ(10px)', transformStyle: 'preserve-3d' } : undefined}
     >
-      {/* Vehicle Icon for occupied/reserved */}
-      {showVehicleIcon ? (
-        <div className="absolute inset-0 flex flex-col items-center justify-between p-1">
-          {/* Top-down vehicle SVG */}
-          <div className="w-full flex-1 flex items-center justify-center opacity-90 my-0.5">
-            {effectiveVehicleType === 'car' ? (
-              <TopDownCarSvg className={`h-full w-auto ${getVehicleColor(slot.code)}`} />
-            ) : (
-              <TopDownMotorcycleSvg className={`h-[90%] w-auto ${getVehicleColor(slot.code)}`} />
-            )}
-          </div>
-          {/* Slot Code Badge at bottom */}
-          <span className="w-full text-center bg-black/60 backdrop-blur-[1px] rounded text-[8px] sm:text-[9px] font-black tracking-wide text-white py-0.5 border border-white/5 shadow-sm">
-            {slot.code}
-          </span>
-        </div>
-      ) : (
-        <span className={`text-xs sm:text-sm font-black uppercase tracking-wider ${slotTextColor(status)}`}>
-          {slot.code}
-        </span>
-      )}
-
-      {/* Vehicle type badge for available slots */}
-      {status === 'available' && (
-        <span className="absolute right-0.5 top-0.5 rounded bg-black/30 p-0.5 z-10">
-          {effectiveVehicleType === 'car' ? (
-            <CarSvg className="h-2 w-2 text-white/80" />
-          ) : (
-            <MotorcycleSvg className="h-2 w-2 text-white/80" />
-          )}
-        </span>
-      )}
-
-      {/* Lock overlay for unsupported slots */}
-      {status === 'unsupported' && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-xl pointer-events-none z-10">
-          <Lock size={14} className="text-slate-400" />
-        </div>
-      )}
+      <span className={`text-sm sm:text-base font-black uppercase tracking-wider ${slotTextColor(status)}`}>
+        {slot.code}
+      </span>
     </motion.button>
   );
 }
@@ -279,11 +239,7 @@ function ParkingRow({
     );
   };
 
-  const rowTitle = filterVehicleType === 'car'
-    ? `ROW ${rowLabel} (CAR SLOTS 🏎️)`
-    : filterVehicleType === 'motorcycle'
-    ? `ROW ${rowLabel} (MOTORCYCLE SLOTS 🏍️)`
-    : `ROW ${rowLabel}`;
+  const rowTitle = `ROW ${rowLabel}`;
 
   return (
     <div className="space-y-1.5">
@@ -463,18 +419,24 @@ export function ParkingMap2D({
     onSlotClick?.(code);
   };
 
-  // Filter slots strictly by filterVehicleType if provided
+  // Filter slots strictly by available status (when interactive) & vehicleType if provided
   const displaySlots = useMemo(() => {
-    if (!filterVehicleType) return slots;
     return slots.filter((slot) => {
-      if (slot.vehicleType) {
-        return slot.vehicleType === filterVehicleType;
+      // In interactive slot picker mode, ONLY display available slots that can be parked in!
+      if (interactive && slot.status !== 'available') return false;
+
+      if (filterVehicleType) {
+        if (slot.vehicleType) {
+          return slot.vehicleType === filterVehicleType;
+        }
+        const codeLower = slot.code.toLowerCase();
+        const derivedVt = (codeLower.includes('m') || codeLower.includes('xe') || codeLower.includes('moto')) && !codeLower.startsWith('ddkp') ? 'motorcycle' : 'car';
+        return derivedVt === filterVehicleType;
       }
-      const codeLower = slot.code.toLowerCase();
-      const derivedVt = (codeLower.includes('m') || codeLower.includes('xe') || codeLower.includes('moto')) && !codeLower.startsWith('ddkp') ? 'motorcycle' : 'car';
-      return derivedVt === filterVehicleType;
+
+      return true;
     });
-  }, [slots, filterVehicleType]);
+  }, [slots, filterVehicleType, interactive]);
 
   // Group slots by row / zone code prefix (e.g. 'DDKP-01' -> 'DDKP', 'AC-04' -> 'AC')
   const slotsByRow = useMemo(() => {
@@ -495,20 +457,15 @@ export function ParkingMap2D({
       <div className="mb-6 flex items-start justify-between border-b border-white/5 pb-4">
         <div>
           <h2 className="text-xl font-extrabold uppercase tracking-wider text-white flex items-center gap-2">
-            <span>BASEMENT PARKING MAP</span>
+            <span>AVAILABLE PARKING SLOTS</span>
             {floorName && (
               <span className="text-orange-400 font-mono text-base font-black">
                 — {floorName}
               </span>
             )}
           </h2>
-          <p className="mt-1 text-xs font-bold text-amber-500 uppercase tracking-widest flex items-center gap-2">
-            <span>{floorName ? `Floor: ${floorName}` : 'Floor Map'}</span>
-            {filterVehicleType && (
-              <span className="text-slate-400 border-l border-slate-700 pl-2">
-                Showing: {filterVehicleType === 'car' ? 'Car Slots Only (🏎️)' : 'Motorcycle Slots Only (RB)'}
-              </span>
-            )}
+          <p className="mt-1 text-xs font-bold text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+            <span>Select an available slot to reserve</span>
           </p>
         </div>
         {onClose && (

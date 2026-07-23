@@ -467,18 +467,20 @@ export function ParkingMap2D({
   const displaySlots = useMemo(() => {
     if (!filterVehicleType) return slots;
     return slots.filter((slot) => {
+      if (slot.vehicleType) {
+        return slot.vehicleType === filterVehicleType;
+      }
       const codeLower = slot.code.toLowerCase();
-      const derivedVt = slot.vehicleType || (codeLower.includes('m') || codeLower.includes('xe') || codeLower.includes('moto') ? 'motorcycle' : 'car');
+      const derivedVt = (codeLower.includes('m') || codeLower.includes('xe') || codeLower.includes('moto')) && !codeLower.startsWith('ddkp') ? 'motorcycle' : 'car';
       return derivedVt === filterVehicleType;
     });
   }, [slots, filterVehicleType]);
 
-  // Group slots by row / zone code prefix
+  // Group slots by row / zone code prefix (e.g. 'DDKP-01' -> 'DDKP', 'AC-04' -> 'AC')
   const slotsByRow = useMemo(() => {
     const grouped: Record<string, ParkingSlot[]> = {};
     displaySlots.forEach((slot) => {
-      const match = slot.code.match(/^([A-Za-z0-9]+?)(?:-\d+|\d+)?$/i);
-      const row = match && match[1] ? match[1] : slot.code.charAt(0);
+      const row = slot.code.includes('-') ? slot.code.split('-')[0] : slot.code.charAt(0);
       if (!grouped[row]) grouped[row] = [];
       grouped[row].push(slot);
     });

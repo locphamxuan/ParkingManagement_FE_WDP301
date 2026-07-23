@@ -562,6 +562,12 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
                       const isUnderGracePeriod = diffMin < 10;
                       return (
                         <>
+                          {pendingPenalty > 0 && (
+                            <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50/50 p-3.5 text-xs font-bold text-rose-700 flex items-center justify-between">
+                              <span>⚠️ Manager-approved penalty fee for this plate</span>
+                              <span>+ {fmtMoney(pendingPenalty)}</span>
+                            </div>
+                          )}
                           <div className="mt-4 rounded-2xl border border-sky-100 bg-sky-50/50 p-4 flex flex-col gap-1">
                             <div className="flex items-center justify-between">
                               <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Amount due</span>

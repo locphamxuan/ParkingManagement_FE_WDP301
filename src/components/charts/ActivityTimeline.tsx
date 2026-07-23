@@ -16,10 +16,11 @@ export function ActivityTimeline({ title, items }: ActivityTimelineProps) {
       </CardHeader>
       <CardContent className="p-0">
         <div className="relative border-l border-slate-200 ml-3 pl-6 space-y-5 py-2">
-          {items.map((item) => {
-            const isDanger = item.action.includes('BLOCK') || item.action.includes('CANCEL') || item.action.includes('REJECT');
-            const isSuccess = item.action.includes('CHECK_IN') || item.action.includes('CHECK_OUT') || item.action.includes('TOP_UP');
-            const isWarning = item.action.includes('UPDATE');
+          {items.map((item, idx) => {
+            const act = item?.action || '';
+            const isDanger = act.includes('BLOCK') || act.includes('CANCEL') || act.includes('REJECT');
+            const isSuccess = act.includes('CHECK_IN') || act.includes('CHECK_OUT') || act.includes('TOP_UP');
+            const isWarning = act.includes('UPDATE');
             
             const badgeColorClass = isDanger 
               ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' 
@@ -53,10 +54,10 @@ export function ActivityTimeline({ title, items }: ActivityTimelineProps) {
               ADD_LICENSE_PLATE: 'Add License Plate',
               REMOVE_LICENSE_PLATE: 'Remove License Plate',
             };
-            const friendlyAction = translations[item.action] || item.action.replace(/_/g, ' ');
+            const friendlyAction = (act && translations[act]) || act.replace(/_/g, ' ') || 'Activity';
 
             return (
-              <div key={item.id} className="relative group">
+              <div key={item?.id || idx} className="relative group">
                 <span className={`absolute -left-[30px] top-1.5 h-2 w-2 rounded-full transition-transform duration-300 group-hover:scale-125 ${dotColorClass}`} />
                 
                 <div className="flex flex-col gap-1">

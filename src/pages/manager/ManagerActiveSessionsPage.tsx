@@ -153,7 +153,7 @@ export function ManagerActiveSessionsPage() {
                           ) : (
                             <Bike size={13} className="text-sky-500" />
                           )}
-                          {typeof s.vehicleType === 'object' ? s.vehicleType.name : s.vehicleType}
+                          {typeof s.vehicleType === 'object' && s.vehicleType ? s.vehicleType.name : (s.vehicleType || 'Vehicle')}
                         </span>
                       </td>
                       <td className="py-3 text-slate-800 font-extrabold text-xs">
@@ -225,7 +225,7 @@ export function ManagerActiveSessionsPage() {
                 <div className="flex justify-between">
                   <span className="text-slate-500 font-medium">Building</span>
                   <span className="font-extrabold text-slate-800">
-                    {typeof selectedSession.building === 'object' ? selectedSession.building.name : 'Current Building'}
+                    {typeof (selectedSession as any).building === 'object' ? (selectedSession as any).building?.name : 'Current Building'}
                   </span>
                 </div>
                 <div className="flex justify-between">

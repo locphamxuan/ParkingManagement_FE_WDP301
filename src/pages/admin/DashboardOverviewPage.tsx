@@ -5,6 +5,7 @@ import { ActivityTimeline } from '@/components/charts/ActivityTimeline';
 import { RevenueChart } from '@/components/charts/RevenueChart';
 import { useAdminDataset } from '@/hooks/admin/useAdminDataset';
 import { Activity, CreditCard, ShieldCheck, TrendingUp } from 'lucide-react';
+import styles from './DashboardOverviewPage.module.css';
 
 const pieColors = ['#2563eb', '#10b981', '#8b5cf6', '#f59e0b']; // Blue, Green, Purple, Amber
 const STAT_ICONS = [
@@ -58,7 +59,7 @@ export function DashboardOverviewPage() {
   return (
     <div className="space-y-6 pb-12 relative">
       {/* Dynamic 5D Crystal Ambient Glows */}
-      <div className="absolute top-0 right-1/4 w-[450px] h-[450px] rounded-full bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.18),transparent_70%)] pointer-events-none blur-3xl -z-10 animate-pulse" style={{ animationDuration: '8s' }} />
+      <div className={`absolute top-0 right-1/4 w-[450px] h-[450px] rounded-full bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.18),transparent_70%)] pointer-events-none blur-3xl -z-10 animate-pulse ${styles.ambientGlow}`} />
       <div className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] rounded-full bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.16),transparent_70%)] pointer-events-none blur-3xl -z-10" />
       <div className="absolute top-1/2 left-1/3 w-[300px] h-[300px] rounded-full bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.12),transparent_70%)] pointer-events-none blur-3xl -z-10" />
 
@@ -103,8 +104,7 @@ export function DashboardOverviewPage() {
         initial="hidden"
         animate="visible"
         variants={sectionVariants}
-        className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4"
-        style={{ perspective: '1400px' }}
+        className={`grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4 ${styles.statGrid}`}
       >
         {data.dashboardStats.map((stat, index) => (
           <AnalyticsCard
@@ -210,7 +210,7 @@ export function DashboardOverviewPage() {
         <div className="relative overflow-hidden rounded-3xl glass-premium p-6 shadow-lg border border-sky-100/80 transition-all duration-500 hover:shadow-[0_22px_45px_rgba(37,99,235,0.08)] hover:-translate-y-1 hover:border-blue-500/30 group">
           {/* Crystal Bevel Border */}
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500/10 via-blue-500/40 to-indigo-500/10" />
-          <ActivityTimeline title="Live parking activity" items={data.liveActivities} />
+          <ActivityTimeline title="Live parking activity" items={data.liveActivities as any} />
         </div>
 
         {/* Buildings performance */}

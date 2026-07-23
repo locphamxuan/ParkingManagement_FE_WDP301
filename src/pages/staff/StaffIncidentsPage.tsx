@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, ArrowRight, CheckCircle2, Clock3, Plus, RefreshCw, ShieldAlert, Search, Loader2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AlertTriangle, ArrowRight, CheckCircle2, Clock3, Plus, RefreshCw, ShieldAlert, Search } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { extractIncidents, staffApi, type StaffIncident } from '@/services/staff/staffApi';
-import { ResolveIncidentModal } from '@/components/manager/incidents/ResolveIncidentModal';
+import { ResolveIncidentModal, type ResolveIncidentPayload } from '@/components/manager/incidents/ResolveIncidentModal';
 
 type IncidentStatus = 'open' | 'investigating' | 'escalated' | 'resolved' | 'closed';
 
@@ -66,44 +66,21 @@ export function StaffIncidentsPage() {
 
   // Resolution Modal states
   const [selectedIncident, setSelectedIncident] = useState<StaffIncident | null>(null);
-  const [status, setStatus] = useState('resolved');
-  const [resolutionNote, setResolutionNote] = useState('');
-  const [penalizeViolator, setPenalizeViolator] = useState(false);
-  const [violatorPlate, setViolatorPlate] = useState('');
-  const [penaltyFee, setPenaltyFee] = useState('50000');
-  const [paymentMethod, setPaymentMethod] = useState('cash');
   const [saving, setSaving] = useState(false);
   const [resolveMessage, setResolveMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
   const handleOpenResolve = (raw: StaffIncident) => {
     setSelectedIncident(raw);
-    setStatus(raw.status === 'open' || raw.status === 'investigating' ? 'resolved' : raw.status || 'resolved');
-    setResolutionNote(raw.resolutionNote || '');
-    setViolatorPlate(raw.violatorPlate || '');
-    setPenalizeViolator(false);
     setResolveMessage(null);
   };
 
-  const handleResolve = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleResolve = async (payload: ResolveIncidentPayload) => {
     if (!selectedIncident) return;
     setSaving(true);
     setResolveMessage(null);
     try {
-      const payload: any = {
-        status,
-        resolutionNote: resolutionNote.trim(),
-        violatorPlate: violatorPlate.trim(),
-      };
-
-      if (penalizeViolator) {
-        payload.action = 'penalize_violator';
-        payload.penaltyFee = Number(penaltyFee);
-        payload.paymentMethod = paymentMethod;
-      }
-
       await staffApi.incidents.resolve(selectedIncident._id, payload);
-      setResolveMessage({ type: 'ok', text: 'Incident resolved successfully.' });
+      setResolveMessage({ type: 'ok', text: 'Incident updated successfully.' });
       refresh();
       setTimeout(() => setSelectedIncident(null), 1000);
     } catch (err) {
@@ -290,7 +267,7 @@ export function StaffIncidentsPage() {
             <Input
               value={incidentType}
               onChange={(e) => setIncidentType(e.target.value)}
-              placeholder="Incident type: lost ticket, broken barrier, wrong parking..."
+              placeholder="Incident type: broken barrier, wrong parking, facility issue..."
               className="h-10 rounded-xl border-sky-100 text-xs bg-white focus:border-sky-500"
             />
             <Input

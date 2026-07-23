@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { motion, useMotionValue, useMotionTemplate, useSpring, useTransform } from 'framer-motion';
+import styles from './AnalyticsCard.module.css';
 
 interface AnalyticsCardProps {
   label: string;
@@ -97,10 +98,10 @@ export function AnalyticsCard({ label, value, delta, index = 0, icon }: Analytic
         <div className={`absolute -left-6 -bottom-6 h-16 w-16 rounded-full ${theme.glowLeft} pointer-events-none group-hover:scale-125 transition-all duration-500`} />
         
         {/* Content elevated with preserve-3d for floating layering effect */}
-        <div className="relative z-10" style={{ transformStyle: 'preserve-3d' }}>
+        <div className={`relative z-10 ${styles.preserve3d}`}>
 
           {/* Top row: label + optional icon */}
-          <div className="flex items-center justify-between mb-3" style={{ transform: 'translateZ(8px)' }}>
+          <div className={`flex items-center justify-between mb-3 ${styles.layerZ8}`}>
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 font-mono">
               {label}
             </p>
@@ -112,14 +113,14 @@ export function AnalyticsCard({ label, value, delta, index = 0, icon }: Analytic
           </div>
 
           {/* Main value — elevated forward with parallax depth */}
-          <div style={{ transform: 'translateZ(28px)' }}>
+          <div className={styles.layerZ28}>
             <h3 className={`text-4xl font-extrabold tracking-tight bg-gradient-to-r ${theme.valueText} bg-clip-text text-transparent transition-all duration-300 drop-shadow-[0_1px_2px_rgba(0,0,0,0.05)]`}>
               {value}
             </h3>
           </div>
 
           {/* Delta badge */}
-          <div className="mt-4 flex items-center gap-2" style={{ transform: 'translateZ(10px)' }}>
+          <div className={`mt-4 flex items-center gap-2 ${styles.layerZ10}`}>
             <span className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-0.5 text-[9px] font-black tracking-wider uppercase font-mono border ${
               isPositive 
                 ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 shadow-[0_0_8px_rgba(16,185,129,0.15)]' 
@@ -140,8 +141,8 @@ export function AnalyticsCard({ label, value, delta, index = 0, icon }: Analytic
 
         {/* Vệt loé sáng chạy theo nghiêng — lớp trên cùng, hoà trộn mềm */}
         <motion.div
-          className="absolute inset-0 rounded-2xl pointer-events-none mix-blend-soft-light"
-          style={{ background: glare, transform: 'translateZ(40px)' }}
+          className={`absolute inset-0 rounded-2xl pointer-events-none mix-blend-soft-light ${styles.layerZ40}`}
+          style={{ background: glare }}
         />
       </div>
     </motion.div>

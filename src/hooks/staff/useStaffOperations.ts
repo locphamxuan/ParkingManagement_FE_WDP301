@@ -81,7 +81,7 @@ export function useStaffOperations() {
 
   // ── Đối tượng sử dụng (usageType) suy từ BE để gọi free-slots đúng pool + validate zone ──
   const hasActivePackage = Boolean(plateAccountInfo?.hasActivePackage);
-  const hasActiveReservation = Boolean(plateAccountInfo?.hasActiveReservation);
+  const hasActiveReservation = Boolean(plateAccountInfo?.activeReservation);
   const checkInKind: 'package' | 'reservation' | 'standard' = hasActivePackage
     ? 'package'
     : hasActiveReservation
@@ -93,7 +93,7 @@ export function useStaffOperations() {
   // → registered; còn lại → walk_in. (reserved đã có slot cố định nên không chọn zone.)
   const slotUsageType: 'walk_in' | 'registered' | 'subscriber' = hasActivePackage
     ? 'subscriber'
-    : plateAccountInfo?.usageType === 'registered'
+    : (plateAccountInfo as any)?.usageType === 'registered'
       ? 'registered'
       : 'walk_in';
   const zoneChain = acceptableUsageTypes(slotUsageType);
@@ -215,7 +215,7 @@ export function useStaffOperations() {
     if (clean.length >= 7) {
       let cancelled = false;
       staffApi
-        .lookupPlate(clean, buildingId)
+        .lookupPlate(clean)
         .then((res) => {
           if (cancelled) return;
           const info = (res as { data?: PlateInfo })?.data ?? null;

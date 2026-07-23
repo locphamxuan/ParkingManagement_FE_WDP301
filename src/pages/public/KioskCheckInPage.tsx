@@ -1,36 +1,31 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, Loader2, QrCode, AlertCircle, Car } from 'lucide-react';
+import { CheckCircle2, Loader2, QrCode, AlertCircle, UserCog } from 'lucide-react';
 import { LiveQRCamera } from '@/components/staff/LiveQRCamera';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { kioskApi } from '@/services/kioskApi';
-import { normalizePlate } from '@/utils/plate';
 
 type Result =
-  | { type: 'ok'; plate: string; code: string; entryTime: string }
+  | { type: 'ok'; plate: string; entryTime: string }
   | { type: 'err'; text: string };
 
 /**
- * Public gate kiosk — a reservation driver self-admits by showing the vehicle QR
- * to Camera 2. No staff involved. A portrait frame is captured and stored.
+ * Public gate kiosk — a long-term package driver self-admits by showing the vehicle
+ * QR to Camera 2. No staff involved. A portrait frame is captured and stored.
  */
 export default function KioskCheckInPage() {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
-  const [manualPlate, setManualPlate] = useState('');
 
-  const submit = async (payload: { qrCode?: string; plateNumber?: string; portraitImage?: string | null }) => {
+  const submit = async (payload: { qrCode: string; portraitImage?: string | null }) => {
     if (busy) return;
     setBusy(true);
     setResult(null);
     try {
-      const res = await kioskApi.reservationCheckIn(payload);
-      const data = (res as { data?: { reservation?: { code?: string; plateNumber?: string }; parkingSession?: { entryTime?: string } } })?.data;
+      const res = await kioskApi.packageCheckIn(payload);
+      const data = (res as { data?: { subscription?: { plateNumber?: string }; parkingSession?: { entryTime?: string } } })?.data;
       setResult({
         type: 'ok',
-        plate: data?.reservation?.plateNumber ?? payload.plateNumber ?? '',
-        code: data?.reservation?.code ?? '',
+        plate: data?.subscription?.plateNumber ?? '',
         entryTime: data?.parkingSession?.entryTime ?? new Date().toISOString(),
       });
     } catch (err) {
@@ -46,13 +41,6 @@ export default function KioskCheckInPage() {
     void submit({ qrCode: code });
   };
 
-  const handleManual = () => {
-    const plate = normalizePlate(manualPlate) || manualPlate.trim().toUpperCase();
-    if (!plate) return;
-    void submit({ plateNumber: plate });
-    setManualPlate('');
-  };
-
   return (
     <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-xl space-y-6">
@@ -60,9 +48,9 @@ export default function KioskCheckInPage() {
           <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-400">
             <QrCode size={28} />
           </div>
-          <h1 className="text-2xl font-black">Self check-in reservation</h1>
+          <h1 className="text-2xl font-black">Package Self Check-in</h1>
           <p className="mt-1 text-sm text-slate-400">
-            Customers with a reservation: present the vehicle QR to the camera to enter automatically (no staff needed).
+            For long-term package holders: present the vehicle QR code to the camera to enter automatically (no staff needed).
           </p>
         </div>
 
@@ -70,7 +58,8 @@ export default function KioskCheckInPage() {
 
         {busy && (
           <div className="flex items-center justify-center gap-2 text-sm text-slate-300">
-            <Loader2 size={16} className="animate-spin" />Processing...</div>
+            <Loader2 size={16} className="animate-spin" /> Processing...
+          </div>
         )}
 
         {result?.type === 'ok' && (
@@ -78,9 +67,8 @@ export default function KioskCheckInPage() {
             className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5 text-center"
           >
             <CheckCircle2 size={40} className="mx-auto mb-2 text-emerald-400" />
-            <p className="text-lg font-bold text-emerald-300">Admit vehicle</p>
+            <p className="text-lg font-bold text-emerald-300">Please proceed to the parking area</p>
             <p className="mt-1 font-mono text-xl font-black text-white">{result.plate}</p>
-            {result.code && <p className="text-xs text-slate-400">Reservation code: {result.code}</p>}
             <p className="mt-1 text-xs text-slate-400">{new Date(result.entryTime).toLocaleString('vi-VN')}</p>
           </motion.div>
         )}
@@ -92,21 +80,9 @@ export default function KioskCheckInPage() {
           </div>
         )}
 
-        <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-4">
-          <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
-            <Car size={13} />Enter plate manually (if QR cannot be scanned)</p>
-          <div className="flex gap-2">
-            <Input
-              value={manualPlate}
-              onChange={(e) => setManualPlate(e.target.value)}
-              placeholder="59G2-038.80"
-              onKeyDown={(e) => e.key === 'Enter' && handleManual()}
-              className="bg-slate-800 text-white"
-            />
-            <Button onClick={handleManual} disabled={!manualPlate.trim() || busy} className="shrink-0">
-              Check-in
-            </Button>
-          </div>
+        <div className="flex items-start gap-2 rounded-2xl border border-white/10 bg-slate-900/60 p-4 text-xs text-slate-400">
+          <UserCog size={14} className="mt-0.5 shrink-0" />
+          <span>Can't scan the QR code? Please see the staff at the gate for manual check-in.</span>
         </div>
       </div>
     </div>

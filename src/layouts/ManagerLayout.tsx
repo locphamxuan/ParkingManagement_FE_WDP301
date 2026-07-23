@@ -1,15 +1,79 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Outlet, useLocation, useNavigate, useMatch } from 'react-router-dom';
+import {
+  Building2,
+  Car,
+  ClipboardList,
+  Clock,
+  Flag,
+  LayoutDashboard,
+  Layers,
+  MapPin,
+  MessageSquare,
+  Package,
+  ShieldAlert,
+  SlidersHorizontal,
+  Square,
+  Truck,
+  User,
+  Users,
+  Wallet,
+} from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
-import { ManagerSidebar } from '@/components/layout/ManagerSidebar';
-import { MobileNavDrawer, MobileNavButton } from '@/components/layout/MobileNavDrawer';
+import { PortalSidebar, type PortalNavEntry } from '@/components/layout/PortalSidebar';
 import { useAuth } from '@/hooks/useAuth';
 import { ADMIN_EMAIL_FALLBACK } from '@/utils/constants';
 import { useManagerBuildings } from '@/hooks/useManagerBuildings';
 
+// Sidebar gom nhóm theo tần suất sử dụng: mục thao tác hằng ngày đứng riêng,
+// mục cấu hình ít đụng tới được gấp vào nhóm collapsible.
+const navItems: readonly PortalNavEntry[] = [
+  { to: 'dashboard', label: 'Overview', icon: LayoutDashboard },
+  { to: 'sessions', label: 'Parked Vehicles', icon: Car },
+  {
+    label: 'Infrastructure',
+    icon: Building2,
+    children: [
+      { to: 'buildings', label: 'Buildings', icon: Building2 },
+      { to: 'floors', label: 'Floors', icon: ClipboardList },
+      { to: 'zones', label: 'Zones', icon: Layers },
+      { to: 'gates', label: 'Gates', icon: Flag },
+      { to: 'slots', label: 'Parking Slots', icon: Square },
+      { to: 'vehicle-types', label: 'Vehicle Types', icon: Truck },
+    ],
+  },
+  {
+    label: 'Business',
+    icon: Package,
+    children: [
+      { to: 'packages', label: 'Packages', icon: Package },
+      { to: 'price-policies', label: 'Price Policies', icon: SlidersHorizontal },
+      { to: 'refund-policy', label: 'Refund Policy', icon: MapPin },
+      { to: 'wallet', label: 'Building Wallet', icon: Wallet },
+    ],
+  },
+  {
+    label: 'Staff & Shifts',
+    icon: Users,
+    children: [
+      { to: 'staff', label: 'Staff', icon: User },
+      { to: 'shifts', label: 'Shifts & Assignments', icon: Users },
+      { to: 'operating-hours', label: 'Operating Hours', icon: Clock },
+    ],
+  },
+  {
+    label: 'Customer Care',
+    icon: MessageSquare,
+    children: [
+      { to: 'incidents', label: 'Incidents', icon: ShieldAlert },
+      { to: 'reviews', label: 'Reviews', icon: MessageSquare },
+    ],
+  },
+];
+
 const titles: Record<string, string> = {
   '/manager': 'Manager Dashboard',
-  '/manager/dashboard': 'Management Reports',
+  '/manager/dashboard': 'Management Report',
   '/manager/buildings': 'Building Management',
   '/manager/vehicle-types': 'Vehicle Types',
   '/manager/floors': 'Floors',
@@ -17,12 +81,13 @@ const titles: Record<string, string> = {
   '/manager/zones': 'Zones',
   '/manager/slots': 'Parking Slots',
   '/manager/operating-hours': 'Operating Hours',
-  '/manager/price-policies': 'Pricing Policies',
-  '/manager/reservation-policy': 'Reservation Policy',
-  '/manager/packages': 'Subscription Packages',
+  '/manager/price-policies': 'Price Policies',
+  '/manager/refund-policy': 'Refund Policy',
+  '/manager/packages': 'Package Management',
   '/manager/shifts': 'Shifts & Assignments',
-  '/manager/shift-reports': 'Shift Revenue Reports',
+  '/manager/sessions': 'Parked Vehicles',
   '/manager/reviews': 'Reviews',
+  '/manager/incidents': 'Incidents',
   '/manager/wallet': 'Building Wallet',
   '/manager/profile': 'Profile',
   '/manager/settings': 'Settings',
@@ -30,9 +95,8 @@ const titles: Record<string, string> = {
 
 export function ManagerLayout() {
   const [collapsed, setCollapsed] = useState(false);
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { session, logout } = useAuth();
-  const { buildings, selectedBuildingId, setSelectedBuildingId, isLoading } = useManagerBuildings();
+  const { selectedBuildingId, isLoading } = useManagerBuildings();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -48,24 +112,20 @@ export function ManagerLayout() {
   }, []);
 
   return (
-    <div className="relative min-h-screen bg-background text-foreground transition-colors duration-200">
-      {/* Subtle blue/indigo ambient glow for manager theme */}
+    <div className="relative min-h-screen bg-[#f8fafc] text-slate-900 transition-colors duration-200">
+      {/* Subtle blue/sky ambient glow for manager theme */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.04),transparent_65%)] blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.03),transparent_60%)] blur-3xl" />
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.05),transparent_65%)] blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.04),transparent_60%)] blur-3xl" />
       </div>
       <div className="relative z-10 flex min-h-screen">
-        <ManagerSidebar collapsed={collapsed} onToggle={() => setCollapsed((prev) => !prev)} />
-        {/* Điều hướng mobile (<lg): sidebar desktop bị hidden nên cần drawer + FAB. */}
-        <MobileNavButton onOpen={() => setMobileNavOpen(true)} />
-        <MobileNavDrawer open={mobileNavOpen} onClose={() => setMobileNavOpen(false)}>
-          <ManagerSidebar
-            collapsed={false}
-            onToggle={() => {}}
-            variant="drawer"
-            onNavigate={() => setMobileNavOpen(false)}
-          />
-        </MobileNavDrawer>
+        <PortalSidebar
+          collapsed={collapsed}
+          onToggle={() => setCollapsed((prev) => !prev)}
+          portalLabel="MANAGER PORTAL"
+          items={navItems}
+          basePath="/manager"
+        />
         <div className="flex min-h-screen flex-1 flex-col">
           <Navbar
             title={title}
@@ -80,10 +140,11 @@ export function ManagerLayout() {
           />
           <main className="flex-1 p-4 md:p-6">
             {isLoading && !isProfileRoute ? (
-              <div className="text-sm text-muted-foreground">Loading…</div>
+              <div className="text-sm text-muted-foreground">Loading...</div>
             ) : !selectedBuildingId && !isProfileRoute ? (
               <div className="rounded-md border border-border bg-card p-6 text-sm text-muted-foreground">
-                This account has not been assigned to any building yet. Please contact an administrator.
+                
+                This account has not been assigned to any building. Please contact the manager. 
               </div>
             ) : (
               <Outlet

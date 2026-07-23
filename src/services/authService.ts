@@ -1,4 +1,5 @@
 import { requestJson } from '@/services/client/apiClient';
+import { saveForgotEmail, clearForgotEmail } from '@/services/client/storage';
 
 export interface LoginInput {
   email: string;
@@ -12,7 +13,7 @@ interface ApiUser {
   role: 'admin' | 'manager' | 'staff' | 'user';
   assignedBuildings?: Array<{ _id?: string } | string>;
   phone?: string;
-  licensePlates?: Array<{ _id?: string; plateNumber?: string; vehicleType?: string } | string>;
+  licensePlates?: Array<{ _id?: string; plateNumber?: string; vehicleType?: string; brand?: string | null; isDefault?: boolean } | string>;
 }
 
 interface ApiAuthResponse {
@@ -54,7 +55,7 @@ function mapAuthSession(payload: ApiAuthResponse): AuthSession {
   const user = payload?.data?.user;
 
   if (!token || !user) {
-    throw new Error('Invalid authentication response from server.');
+    throw new Error('Invalid authentication response from the server.');
   }
 
   const assignedBuildingIds = Array.isArray(user.assignedBuildings)
@@ -70,11 +71,11 @@ function mapAuthSession(payload: ApiAuthResponse): AuthSession {
             return { plateNumber: item, vehicleType: 'car' as const, brand: null, isDefault: false };
           }
           return {
-            _id: (item as any)?._id ? String((item as any)._id) : undefined,
-            plateNumber: item?.plateNumber || '',
-            vehicleType: (item as any)?.vehicleType === 'motorcycle' ? ('motorcycle' as const) : ('car' as const),
-            brand: (item as any)?.brand ?? null,
-            isDefault: Boolean((item as any)?.isDefault),
+            _id: item._id ? String(item._id) : undefined,
+            plateNumber: item.plateNumber || '',
+            vehicleType: item.vehicleType === 'motorcycle' ? ('motorcycle' as const) : ('car' as const),
+            brand: item.brand ?? null,
+            isDefault: Boolean(item.isDefault),
           };
         })
         .filter((item) => Boolean(item.plateNumber))
@@ -183,11 +184,11 @@ export async function forgotPassword(email: string): Promise<{ message: string }
   });
 
   if (!payload?.message) {
-    throw new Error('Unable to send the password reset email. Please try again.');
+    throw new Error('Could not send the password reset email. Please try again.');
   }
 
   // Store email for reset password step
-  localStorage.setItem('pbms.forgotEmail_pending', email.trim().toLowerCase());
+  saveForgotEmail(email.trim().toLowerCase());
 
   return { message: payload.message };
 }
@@ -200,11 +201,11 @@ export async function resetPassword(token: string, newPassword: string): Promise
   });
 
   if (!payload?.message) {
-    throw new Error('Unable to reset the password. Please try again.');
+    throw new Error('Could not reset the password. Please try again.');
   }
 
   // Clear stored email after successful reset
-  localStorage.removeItem('pbms.forgotEmail_pending');
+  clearForgotEmail();
 
   return { message: payload.message };
 }

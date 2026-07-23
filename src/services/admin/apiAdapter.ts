@@ -1,4 +1,4 @@
-import { requestJson } from '@/services/client/apiClient';
+import { api } from '@/services/client/apiClient';
 import type { AdminDataset } from '@/services/admin/types';
 import type {
   AuditLog,
@@ -28,13 +28,11 @@ interface AdminOverviewData {
     /** @deprecated legacy alias — backend now returns `total`. */
     today?: number;
     byMethod: Record<string, { amount: number; count: number }>;
+    /** System-wide 7-day revenue trend (backend-aggregated). */
     weekly?: Array<{ date: string; revenue: number; sessions: number }>;
   };
-  buildingStats?: Array<{
-    buildingId: string;
-    occupancyRate: number;
-    revenueToday: number;
-  }>;
+  /** Per-building occupancy + today revenue (backend-aggregated, no N+1). */
+  buildingStats?: Array<{ buildingId: string; occupancyRate: number; revenueToday: number }>;
 }
 
 interface Paginated<T> {
@@ -65,9 +63,9 @@ interface ApiUser {
   email: string;
   role: 'admin' | 'manager' | 'staff' | 'user';
   isActive?: boolean;
+  walletBalance?: number;
   licensePlates?: Array<{ plateNumber?: string }>;
   phone?: string;
-  walletBalance?: number;
 }
 
 interface ApiAudit {
@@ -77,38 +75,21 @@ interface ApiAudit {
   targetTable: string;
   severity?: 'low' | 'medium' | 'high' | 'critical';
   description?: string;
+  building?: { name?: string; code?: string } | null;
   createdAt?: string;
 }
 
-interface ManagerOverviewData {
-  slots?: {
-    occupancyRate?: number;
-  };
-  sessions?: {
-    today?: number;
-    active?: number;
-  };
-  revenue?: {
-    today?: number;
-    weekly?: Array<{
-      date: string;
-      revenue: number;
-      sessions: number;
-    }>;
-  };
-}
-
 const OPERATIONAL_GUARDRAILS = [
-  'An online card code must be tied to a verified user account and a linked plate.',
-  'Walk-in customers may only enter via a valid parking session and must pay before leaving.',
-  'Every pricing change, account lock and fee adjustment must have an audit log.',
+  'Online card codes must be linked to a verified user account and its associated license plate.',
+  'Walk-in customers may only enter with a valid parking session and must pay before leaving the lot.',
+  'Any change to pricing policy, account lockouts, or fee adjustments must be recorded in the audit log.',
 ];
 
 const METHOD_LABELS: Record<string, string> = {
-  wallet: 'App wallet',
+  wallet: 'App Wallet',
   qr: 'QR',
   cash: 'Cash',
-  card: 'Bank card',
+  card: 'Bank Card',
 };
 
 const formatCompactCurrency = (amount: number): string =>
@@ -127,7 +108,7 @@ const toBuilding = (
 ): Building => {
   // Handle manager field that can be a populated object, a string ID, or null
   let managerName = 'Unassigned';
-  
+
   if (item.manager) {
     if (typeof item.manager === 'object' && 'fullName' in item.manager) {
       // Manager is a populated object with fullName
@@ -144,48 +125,17 @@ const toBuilding = (
     name: item.name,
     address: item.address?.fullAddress || 'Address not updated',
     floors: item.totalFloors || 0,
-    occupancyRate: stats?.occupancyRate ?? 0,
+    occupancyRate: Number(stats?.occupancyRate || 0),
     status: item.status || 'inactive',
     manager: managerName,
-    revenueToday: stats?.revenueToday ?? 0,
+    revenueToday: Number(stats?.revenueToday ?? 0),
   };
 };
 
 const toUser = (item: ApiUser): UserRecord => {
-  // Check if locally updated user exists
-  const locallyUpdatedRaw = localStorage.getItem('pbms.locallyUpdatedUsers');
-  const locallyUpdated = locallyUpdatedRaw ? JSON.parse(locallyUpdatedRaw) : {};
-  
-  // Case-insensitive and trimmed lookup
-  const targetEmail = (item.email || '').trim().toLowerCase();
-  const matchingKey = Object.keys(locallyUpdated).find(
-    (key) => key.trim().toLowerCase() === targetEmail
-  );
-  const localUser = matchingKey ? locallyUpdated[matchingKey] : null;
-
-  const backendPlates = (item.licensePlates || []).map((p) => 
+  const backendPlates = (item.licensePlates || []).map((p) =>
     typeof p === 'string' ? p : p.plateNumber || ''
   ).filter(Boolean);
-
-  if (localUser) {
-    const localPlates = (localUser.licensePlates || []).map((p: any) => 
-      typeof p === 'string' ? p : p.plateNumber || ''
-    ).filter(Boolean);
-
-    // Merge both arrays uniquely
-    const mergedPlates = Array.from(new Set([...localPlates, ...backendPlates]));
-
-    return {
-      id: item._id,
-      name: localUser.fullName || item.fullName,
-      email: item.email,
-      role: item.role,
-      status: item.isActive === false ? 'blocked' : 'active',
-      walletBalance: item.walletBalance ?? 0,
-      linkedPlates: mergedPlates,
-      phone: localUser.phone || item.phone || '',
-    };
-  }
 
   return {
     id: item._id,
@@ -199,42 +149,6 @@ const toUser = (item: ApiUser): UserRecord => {
   };
 };
 
-const ACTION_TRANSLATIONS: Record<string, string> = {
-  ASSIGN_STAFF_SHIFT: 'Assign staff shift',
-  UPDATE_STAFF_SHIFT: 'Update staff shift',
-  CREATE_RESERVATION: 'Create reservation',
-  UPDATE_RESERVATION: 'Update reservation',
-  CANCEL_RESERVATION: 'Cancel reservation',
-  CHECK_IN: 'Check-in',
-  CHECK_OUT: 'Check-out',
-  TOP_UP: 'Top up wallet',
-  BLOCK_USER: 'Block user',
-  UNBLOCK_USER: 'Unblock user',
-  CREATE_BUILDING: 'Create building',
-  UPDATE_BUILDING: 'Update building',
-  ADD_LICENSE_PLATE: 'Add license plate',
-  REMOVE_LICENSE_PLATE: 'Remove license plate',
-};
-
-const TARGET_TRANSLATIONS: Record<string, string> = {
-  staff_shifts: 'staff shifts',
-  reservations: 'reservations',
-  buildings: 'buildings',
-  users: 'users',
-  license_plates: 'license plates',
-  parking_sessions: 'parking sessions',
-  wallets: 'wallets',
-  transactions: 'transactions',
-};
-
-const getActionLabel = (action: string): string => {
-  return ACTION_TRANSLATIONS[action] || action.replace(/_/g, ' ').toLowerCase().replace(/^\w/, c => c.toUpperCase());
-};
-
-const getTargetLabel = (table: string): string => {
-  return TARGET_TRANSLATIONS[table] || table;
-};
-
 const toAudit = (item: ApiAudit): AuditLog => ({
   id: item._id,
   actor: item.actor?.email || item.actor?.fullName || 'unknown',
@@ -242,15 +156,20 @@ const toAudit = (item: ApiAudit): AuditLog => ({
   target: item.targetTable,
   severity: item.severity || 'low',
   timestamp: item.createdAt ? new Date(item.createdAt).toLocaleString('vi-VN') : '-',
-  details: item.description || `${getActionLabel(item.action)} on ${getTargetLabel(item.targetTable)}`,
+  details: item.description || `${item.action} on ${item.targetTable}`,
+  building: item.building
+    ? [item.building.name, item.building.code ? `(${item.building.code})` : null]
+        .filter(Boolean)
+        .join(' ')
+    : undefined,
 });
 
 export async function getApiAdminDataset(token: string): Promise<AdminDataset> {
   const [overviewRes, buildingsRes, usersRes, auditRes] = await Promise.all([
-    requestJson<ApiEnvelope<AdminOverviewData>>({ path: '/admin/dashboard', token }),
-    requestJson<ApiEnvelope<Paginated<ApiBuilding>>>({ path: '/admin/buildings?limit=200', token }),
-    requestJson<ApiEnvelope<Paginated<ApiUser>>>({ path: '/admin/users?limit=200', token }),
-    requestJson<ApiEnvelope<Paginated<ApiAudit>>>({ path: '/admin/audit-logs?limit=200', token }),
+    api.get<ApiEnvelope<AdminOverviewData>>('/admin/dashboard', { token }),
+    api.get<ApiEnvelope<Paginated<ApiBuilding>>>('/admin/buildings?limit=200', { token }),
+    api.get<ApiEnvelope<Paginated<ApiUser>>>('/admin/users?limit=200', { token }),
+    api.get<ApiEnvelope<Paginated<ApiAudit>>>('/admin/audit-logs?limit=200', { token }),
   ]);
 
   const buildingItems = buildingsRes.data.items || [];
@@ -263,69 +182,63 @@ export async function getApiAdminDataset(token: string): Promise<AdminDataset> {
       .map((user) => [String(user._id), user.fullName]),
   );
 
-  const buildingStatsList = overviewRes.data.buildingStats || [];
-  const statsMap = new Map(buildingStatsList.map((s) => [s.buildingId, s]));
+  // Per-building occupancy + today revenue come pre-aggregated from the backend
+  // (`buildingStats`) — no more one dashboard request per building (N+1 removed).
+  const statsByBuilding = new Map(
+    (overviewRes.data.buildingStats || []).map((s) => [String(s.buildingId), s]),
+  );
 
   const buildings: Building[] = buildingItems.map((item) =>
-    toBuilding(item, managerNameById, statsMap.get(item._id)),
+    toBuilding(item, managerNameById, statsByBuilding.get(String(item._id))),
   );
 
   const users: UserRecord[] = userItems.map(toUser);
   const auditLogs: AuditLog[] = auditItems.map(toAudit);
 
-  const weeklyData = overviewRes.data.revenue.weekly || [];
-  const totalOccupancy = buildings.reduce((acc, b) => acc + b.occupancyRate, 0);
-  const avgOccupancy = buildings.length > 0 ? Math.round((totalOccupancy / buildings.length) * 10) / 10 : 0;
+  // System-wide 7-day revenue trend, also backend-aggregated.
+  const avgOccupancy =
+    buildings.length > 0
+      ? buildings.reduce((sum, b) => sum + Number(b.occupancyRate || 0), 0) / buildings.length
+      : 0;
 
-  const revenueTrend: RevenuePoint[] = weeklyData
+  const revenueTrend: RevenuePoint[] = (overviewRes.data.revenue.weekly || [])
+    .slice(-7)
     .map((point) => ({
       date: formatChartDate(point.date),
-      revenue: Math.round(point.revenue),
-      occupancy: avgOccupancy,
-      sessions: point.sessions,
-    }))
-    .sort((a, b) => (a.date > b.date ? 1 : -1));
+      revenue: Math.round(Number(point.revenue || 0)),
+      occupancy: Math.round(avgOccupancy * 10) / 10,
+      sessions: Number(point.sessions || 0),
+    }));
 
-  let paymentMethodDistribution = Object.entries(overviewRes.data.revenue.byMethod || {}).map(
+  const paymentMethodDistribution = Object.entries(overviewRes.data.revenue.byMethod || {}).map(
     ([method, summary]) => ({
       name: METHOD_LABELS[method] || method,
       value: Number(summary.amount || 0),
     }),
   );
 
-  const totalValue = paymentMethodDistribution.reduce((acc, curr) => acc + curr.value, 0);
-  if (totalValue > 0) {
-    // Convert to percentage
-    paymentMethodDistribution = paymentMethodDistribution.map((item) => ({
-      ...item,
-      value: Math.round((item.value / totalValue) * 100),
-    }));
-  } else {
-    paymentMethodDistribution = [];
-  }
-
   const dashboardStats = [
     {
       key: 'buildings',
-      label: 'Total buildings',
+      label: 'Total Buildings',
       value: String(overviewRes.data.counts.buildings),
       delta: `${buildings.filter((b) => b.status === 'active').length} active`,
     },
     {
       key: 'sessions',
-      label: 'Active parking sessions',
+      label: 'Active Parking Sessions',
       value: overviewRes.data.counts.activeSessions.toLocaleString('vi-VN'),
       delta: `${overviewRes.data.counts.staff} operations staff`,
     },
     {
       key: 'revenue',
-      label: 'Today\'s revenue',
+      label: 'Revenue Today',
       value: formatCompactCurrency(overviewRes.data.revenue.total ?? overviewRes.data.revenue.today ?? 0),
       delta: `${paymentMethodDistribution.length} payment methods`,
     },
     {
       key: 'users',
-      label: 'System-wide users',
+      label: 'System-wide Users',
       value: overviewRes.data.counts.users.toLocaleString('vi-VN'),
       delta: `${overviewRes.data.counts.managers} managers / ${overviewRes.data.counts.staff} staff`,
     },
@@ -334,34 +247,30 @@ export async function getApiAdminDataset(token: string): Promise<AdminDataset> {
   const monitoringMetrics: MonitoringMetric[] = [
     {
       id: 'active-buildings',
-      label: 'Active buildings',
+      label: 'Active Buildings',
       value: `${buildings.filter((b) => b.status === 'active').length}/${buildings.length}`,
-      trend: 'By current status',
+      trend: 'Based on current status',
       status: buildings.some((b) => b.status === 'maintenance') ? 'warning' : 'ok',
     },
     {
       id: 'active-sessions',
-      label: 'Active sessions',
+      label: 'Active Sessions',
       value: overviewRes.data.counts.activeSessions.toLocaleString('vi-VN'),
       trend: 'Updated in real time',
       status: overviewRes.data.counts.activeSessions > 0 ? 'ok' : 'warning',
     },
     {
       id: 'ops-staff',
-      label: 'Operations personnel',
+      label: 'Operations Staff',
       value: overviewRes.data.counts.staff.toLocaleString('vi-VN'),
       trend: `${overviewRes.data.counts.managers} managers`,
       status: overviewRes.data.counts.staff > 0 ? 'ok' : 'critical',
     },
   ];
 
-  const liveActivities = auditLogs.slice(0, 5).map((log) => ({
-    id: log.id,
-    action: log.action,
-    actor: log.actor,
-    details: log.details,
-    timestamp: log.timestamp,
-  }));
+  const liveActivities = auditLogs.slice(0, 5).map(
+    (log) => `${log.action}: ${log.details}`,
+  );
 
   return {
     dashboardStats,
@@ -369,6 +278,8 @@ export async function getApiAdminDataset(token: string): Promise<AdminDataset> {
     paymentMethodDistribution,
     buildings,
     users,
+    // BE chưa có endpoint transactions/fraudAlerts riêng cho admin — để mảng rỗng
+    // có chủ đích (không phải thiếu sót) cho tới khi BE bổ sung API tương ứng.
     transactions: [],
     auditLogs,
     fraudAlerts: [],

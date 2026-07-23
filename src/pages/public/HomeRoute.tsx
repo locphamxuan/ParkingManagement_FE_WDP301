@@ -29,22 +29,17 @@ export function HomeRoute() {
     navigate('/profile');
   }, [navigate, onOpenAuth, session]);
 
-  const onViewReservationHistory = useCallback(() => {
-    if (!session) { onOpenAuth('login'); return; }
-    // Reservation history → open the reservation-history view in the booking page
-    // (NOT the parking-history page).
-    navigate('/reservations', { state: { openHistory: true } });
-  }, [navigate, onOpenAuth, session]);
-
   const onAction = useCallback(
-    (module: any) => {
+    (module: { id: string }) => {
       if (module.id === 'auth') return onOpenAuth('login');
       if (module.id === 'profile') return onViewProfile();
       if (module.id === 'wallet') return session ? navigate('/wallet') : onOpenAuth('login');
       if (module.id === 'buildings') return navigate('/buildings');
-      if (module.id === 'packages') return navigate('/reservations', { state: { mode: 'package' } });
-      if (module.id === 'reservations') return navigate('/reservations');
+      if (module.id === 'packages') return navigate('/long-term-subscriptions');
+      if (module.id === 'buy-package') return session ? navigate('/packages/buy') : onOpenAuth('login');
       if (module.id === 'payments') return navigate('/long-term-subscriptions');
+      if (module.id === 'sessions') return session ? navigate('/parking-history') : onOpenAuth('login');
+      if (module.id === 'notifications') return session ? navigate('/notifications') : onOpenAuth('login');
       if (module.id === 'feedback') return navigate('/reviews');
     },
     [navigate, onOpenAuth, onViewProfile, session],
@@ -65,10 +60,10 @@ export function HomeRoute() {
       modules={mainFlowModules}
       onOpenAuth={onOpenAuth}
       onViewProfile={onViewProfile}
-      onViewReservationHistory={onViewReservationHistory}
       onAction={onAction}
       user={userMapped}
       onLogout={onLogout}
+      onViewReservationHistory={() => navigate('/history')}
     />
   );
 }

@@ -1,6 +1,13 @@
 import { api } from '@/services/client/apiClient';
 
-// ========== INTERFACES ==========
+export interface FreeSlot {
+  _id: string;
+  code: string;
+  floor?: { name?: string; code?: string } | null;
+  zone?: any;
+  vehicleType?: any;
+  usageType?: any;
+}
 
 export interface StaffBuilding {
   _id: string;
@@ -12,22 +19,39 @@ export interface StaffBuilding {
   contactPhone?: string;
 }
 
+function normalizeBuilding(payload: unknown): StaffBuilding | null {
+  if (!payload || typeof payload !== 'object') return null;
+  const raw = payload as Record<string, unknown>;
+  const id = String(raw._id ?? raw.id ?? '').trim();
+  if (!id) return null;
+
+  return {
+    _id: id,
+    name: String(raw.name ?? ''),
+    code: String(raw.code ?? ''),
+    status:
+      raw.status === 'inactive' || raw.status === 'maintenance'
+        ? (raw.status as 'inactive' | 'maintenance')
+        : 'active',
+    operatingHours: {
+      open: String((raw.operatingHours as Record<string, unknown> | undefined)?.open ?? '00:00'),
+      close: String((raw.operatingHours as Record<string, unknown> | undefined)?.close ?? '00:00'),
+    },
+    address: (raw.address as { fullAddress?: string } | undefined) ?? undefined,
+    contactPhone: typeof raw.contactPhone === 'string' ? raw.contactPhone : undefined,
+  };
+}
+
 export interface MyShift {
   _id: string;
   shift: { _id: string; code: string; name: string; startTime: string; endTime: string };
   building: { _id: string; name: string; code: string };
-  /** Gate assigned by the manager for this shift (exit / entry). */
+  /** Gate assigned by the manager for this shift (ra / vào). */
   gate?: { _id: string; code: string; name?: string; direction: 'in' | 'out' | 'both'; status?: string } | null;
   workDate: string;
   status: 'scheduled' | 'active' | 'completed' | 'cancelled';
   note?: string;
-  /** Báo cáo doanh thu cuối ca (staff tự gửi cho manager). */
-  revenueReport?: {
-    submittedAt: string;
-    total: number;
-    count: number;
-    byMethod: { cash: number; wallet: number; online: number };
-  } | null;
+  revenueReport?: any;
 }
 
 export interface ParkingSession {
@@ -44,36 +68,18 @@ export interface ParkingSession {
   fee?: number | null;
   currentFee?: number | null;        // live fee (per manager PricePolicy) for active sessions
   isMember?: boolean;                 // true if the plate is linked to an account
-  // Long-term package: free within maxHoursPerDay/day; currentFee = fee for overage hours.
+  // Gói dài hạn (long_term): miễn phí trong maxHoursPerDay/ngày; currentFee = phí phần vượt.
   isLongTerm?: boolean;
-  overageHours?: number;             // hours parked beyond the daily free limit (being charged)
-  maxHoursPerDay?: number;           // free-hour limit per day from the package (0 = unlimited)
+  overageHours?: number;             // số giờ đỗ vượt hạn mức (đang tính phí)
+  maxHoursPerDay?: number;           // hạn mức giờ free/ngày của gói (0 = không giới hạn)
   plateImage?: string | null;        // license-plate camera snapshot (Camera 1)
   portraitImage?: string | null;     // QR / account camera snapshot (Camera 2 — driver portrait)
   user?: { _id: string; fullName?: string; email?: string } | null;
   staff?: { _id: string; fullName?: string; email?: string } | null; // check-in staff
   paymentMethod?: 'cash' | 'wallet' | 'qr' | 'card' | 'payos' | 'long_term' | null;
   status: 'active' | 'completed' | 'cancelled';
-  note?: string | null;
-  reservation?: { _id: string; code?: string; estimatedFee?: number; fee?: number } | null;
   isReservation?: boolean;
   reservationRemainingFee?: number;
-}
-
-export interface StaffReservation {
-  _id: string;
-  code?: string;
-  user?: { _id: string; fullName?: string; email?: string } | null;
-  building?: { _id: string; name?: string; code?: string } | null;
-  vehicleType?: { _id: string; name?: string; code?: string } | null;
-  slot?: { _id: string; code?: string; floor?: { _id: string; name?: string; code?: string } | null } | null;
-  plateNumber?: string;
-  startTime?: string;
-  endTime?: string;
-  status: 'pending' | 'confirmed' | 'checked_in' | 'completed' | 'cancelled' | 'expired';
-  fee?: number | null;
-  amountPaid?: number | null;
-  createdAt?: string;
 }
 
 export interface StaffIncident {
@@ -81,15 +87,30 @@ export interface StaffIncident {
   code?: string;
   type?: string;
   building?: { _id?: string; code?: string; name?: string } | null;
+  slot?: { _id?: string; code?: string } | null;
   severity?: 'medium' | 'high' | 'critical';
-  status?: 'open' | 'investigating' | 'escalated' | 'resolved' | 'closed';
+  status?: 'open' | 'investigating' | 'escalated' | 'penalty_pending' | 'resolved' | 'closed';
   createdAt?: string;
   note?: string;
   target?: string;
   violatorPlate?: string;
+  /** null = không áp dụng (không có violatorPlate); false → incident tự escalate cho manager. */
+  plateAccountFound?: boolean | null;
   resolutionNote?: string;
-  reportedBy?: { _id: string; fullName: string; email: string } | null;
-  slot?: { _id: string; code: string } | null;
+  /** Manager đã DUYỆT (rule: staff không được set) — staff thu thật lúc check-out xe vi phạm. */
+  penaltyFee?: number | null;
+  /** Chỉ có giá trị SAU KHI thu tại check-out (chưa thu = null). */
+  paymentMethod?: 'cash' | 'wallet' | 'qr' | null;
+  reportedBy?: { _id?: string; fullName?: string; email?: string } | null;
+  resolvedBy?: { _id?: string; fullName?: string; email?: string } | null;
+  resolvedAt?: string | null;
+}
+
+/** Staff chỉ được đổi trạng thái/ghi chú — set phí phạt là manager-only (BE trả 403 MANAGER_ONLY_ACTION nếu cố gửi action/penaltyFee). */
+export interface StaffIncidentUpdatePayload {
+  status?: 'open' | 'investigating' | 'escalated' | 'penalty_pending' | 'resolved' | 'closed';
+  resolutionNote?: string;
+  violatorPlate?: string;
 }
 
 export interface WalletTransaction {
@@ -100,18 +121,6 @@ export interface WalletTransaction {
   type: 'payment' | 'refund' | 'topup';
   status: 'pending' | 'completed' | 'failed';
   createdAt: string;
-}
-
-export interface Incident {
-  _id: string;
-  incidentType: string;
-  parkingSessionId: string;
-  plateNumber: string;
-  penaltyFee: number;
-  paymentMethod: 'cash' | 'wallet' | 'qr';
-  description?: string;
-  resolvedAt?: string;
-  status: 'reported' | 'resolved' | 'cancelled';
 }
 
 export interface Dashboard {
@@ -139,69 +148,21 @@ export interface PlateInfo {
     building: string;
     entryTime: string;
   };
-  /** Active long-term package → staff must assign an available slot on check-in. */
+  activeReservation?: any;
+  /** Gói dài hạn còn hiệu lực → staff gán slot trống khi check-in (hoặc dùng slot cố định của gói). */
   hasActivePackage?: boolean;
   activePackage?: {
     id: string;
     name: string;
     maxHoursPerDay: number;
+    /** Slot cố định của gói (nếu user đã chọn lúc mua) → staff không cần chọn slot. */
     slot?: {
       id: string;
       code: string;
       status: string;
-      floor?: { name: string; code: string } | null;
+      floor?: { name?: string; code?: string } | null;
     } | null;
   } | null;
-  /** Active reservation → scan-only flow, no photo capture required. */
-  hasActiveReservation?: boolean;
-  activeReservation?: { id: string; code: string } | null;
-  /** Đối tượng suy ra (walk_in|registered|subscriber|reserved) — để gọi free-slots đúng pool. */
-  usageType?: 'walk_in' | 'registered' | 'subscriber' | 'reserved';
-}
-
-export interface ShiftRevenueItem {
-  _id: string;
-  plateNumber: string | null;
-  amount: number;
-  method: 'cash' | 'wallet' | 'qr' | 'card' | 'payos' | 'long_term';
-  createdAt: string;
-  /** True when this session was under a long-term package. */
-  isLongTerm?: boolean;
-  /** Populated when the plate is linked to a registered user account. */
-  user?: { _id: string; fullName?: string } | null;
-  /** Populated when this session was pre-booked via a reservation. */
-  reservation?: { _id: string; code?: string } | null;
-  /** Alias returned by some BE versions — same meaning as user != null. */
-  isMember?: boolean;
-}
-
-/** Derived session category for revenue breakdown. */
-export type SessionCategory = 'package' | 'reservation' | 'account' | 'walkin';
-
-export function categorizeSession(item: ShiftRevenueItem): SessionCategory {
-  if (item.isLongTerm) return 'package';
-  if (item.reservation) return 'reservation';
-  if (item.user || item.isMember) return 'account';
-  return 'walkin';
-}
-
-export interface ShiftRevenueSummary {
-  date: string;
-  total: number;
-  count: number;
-  byMethod: { cash: number; wallet: number; online: number };
-  /** Pre-computed by BE when available; otherwise FE derives it via categorizeSession. */
-  byType?: { package: number; reservation: number; account: number; walkin: number };
-  items: ShiftRevenueItem[];
-}
-
-export interface FreeSlot {
-  _id: string;
-  code: string;
-  floor?: { _id: string; name?: string; code?: string } | null;
-  zone?: { _id: string; code: string; usageType: string } | string | null;
-  usageType?: 'walk_in' | 'registered' | 'subscriber' | 'reserved' | null;
-  vehicleType?: { _id: string; code: string; name: string } | string | null;
 }
 
 export interface PaymentData {
@@ -245,12 +206,12 @@ export const staffApi = {
   buildingDetail: (buildingId: string) =>
     api.get<Wrap<StaffBuilding>>(`/staff/buildings/${buildingId}`),
 
+  getBuildingPolicy: (buildingId: string) =>
+    api.get<Wrap<{ lostTicketFee?: number; ruleViolationFee?: number; refundPercent?: number }>>(`/staff/buildings/${buildingId}/policy`),
+
   // My Shifts
   myShifts: (q?: Record<string, string | undefined>) =>
     api.get<Wrap<{ items: MyShift[] } | MyShift[]>>('/staff/my-shifts', { query: q }),
-
-  submitShiftReport: (shiftId: string) =>
-    api.post<Wrap<{ item: MyShift }>>(`/staff/my-shifts/${shiftId}/submit-report`, {}),
 
   // Parking Sessions — top-level methods (correct backend paths)
   getActiveSessions: (query?: Record<string, string | number | boolean | undefined>) =>
@@ -259,12 +220,13 @@ export const staffApi = {
   checkIn: (payload: { plateNumber: string; vehicleType?: string; gate?: string; building?: string; vehicleBrand?: string; plateImage?: string | null; portraitImage?: string | null; slot?: string }) =>
     api.post<Wrap<{ item: ParkingSession }>>('/staff/parking-sessions/check-in', payload),
 
-  // Slot trống của tòa nhà — có thể lọc theo loại xe + đối tượng để chỉ hiện slot
-  // tương thích lúc check-in; trả kèm suggestedSlotId (slot gợi ý) để FE highlight.
-  freeSlots: (buildingId: string, opts?: { vehicleType?: string; usageType?: string }) =>
-    api.get<Wrap<{ items: FreeSlot[]; suggestedSlotId: string | null; totalSlots?: number; totalAvailable?: number }>>(
+  // Slot 'available' của 1 tòa nhà — để gán xe mua gói khi check-in.
+  // usageType/vehicleType lọc & xếp hạng đúng dãy/zone manager đã cấu hình
+  // (thiếu 2 tham số này BE trả về TOÀN BỘ slot trống của tòa nhà, không lọc).
+  freeSlots: (buildingId: string, opts?: { usageType?: string; vehicleType?: string }) =>
+    api.get<Wrap<{ items: FreeSlot[]; suggestedSlotId?: string | null; totalSlots?: number; totalAvailable?: number }>>(
       '/staff/parking-sessions/free-slots',
-      { query: { building: buildingId, vehicleType: opts?.vehicleType, usageType: opts?.usageType } }
+      { query: { building: buildingId, usageType: opts?.usageType, vehicleType: opts?.vehicleType } },
     ),
 
   checkOut: (
@@ -272,9 +234,11 @@ export const staffApi = {
     body?: {
       paymentMethod?: string;
       bypassMismatch?: boolean;
-      /** Photo at vehicle EXIT for evidence / verification. */
+      /** Ảnh lúc xe RA để lưu bằng chứng / đối chiếu. */
       exitPlateImage?: string | null;
       exitPortraitImage?: string | null;
+      adjustedFee?: number;
+      adjustmentReason?: string;
     },
   ) =>
     api.patch<Wrap<{ item: ParkingSession }>>(`/staff/parking-sessions/${sessionId}/check-out`, body ?? {}),
@@ -285,8 +249,8 @@ export const staffApi = {
   verifySessionPayment: (orderCode: number) =>
     api.get<Wrap<PaymentStatus>>(`/staff/parking-sessions/payment/${orderCode}/status`),
 
-  lookupPlate: (plateNumber: string, buildingId?: string, signal?: AbortSignal) =>
-    api.get<Wrap<PlateInfo>>(`/staff/parking-sessions/lookup-plate/${plateNumber}`, { query: { building: buildingId }, signal }),
+  lookupPlate: (plateNumber: string) =>
+    api.get<Wrap<PlateInfo>>(`/staff/parking-sessions/lookup-plate/${plateNumber}`),
 
   lookupUserQr: (qrCode: string) =>
     api.get<Wrap<{ hasAccount: boolean; user: { id: string; fullName: string; email: string } | null }>>(
@@ -307,7 +271,7 @@ export const staffApi = {
 
   // AI camera (Camera 1): send a captured frame (base64, data-URL prefix allowed),
   // get back the recognized plate + brand and the resolved owner account.
-  scanVehicle: (image: string, buildingId?: string) =>
+  scanVehicle: (image: string, _buildingId?: string) =>
     api.post<
       Wrap<{
         plateNumber: string;
@@ -321,7 +285,7 @@ export const staffApi = {
         user: { id: string; fullName: string; email: string; phone: string | null; walletBalance: number } | null;
         activeSession: { id: string; building: string; entryTime: string } | null;
       }>
-    >('/staff/parking-sessions/scan', { image, building: buildingId }),
+    >('/staff/parking-sessions/scan', { image }),
 
   // Staff rejects a check-in/check-out → backend notifies the plate owner.
   reject: (payload: { plateNumber: string; stage: 'check-in' | 'check-out'; reason: string; building?: string }) =>
@@ -331,7 +295,7 @@ export const staffApi = {
     ),
 
   // Camera 2: unified QR resolver — PLT- plate token or account ID.
-  resolveQr: (code: string) =>
+  resolveQr: (code: string, buildingId?: string) =>
     api.get<
       Wrap<{
         kind: 'plate' | 'user';
@@ -340,17 +304,10 @@ export const staffApi = {
         plate?: { plateNumber: string; vehicleType: string; brand?: string | null } | null;
         user: { id: string; fullName: string; email: string; phone?: string | null; walletBalance?: number } | null;
         activeSessions?: { id: string; building: string; plateNumber: string; entryTime: string; fee: number }[];
+        /** Gói dài hạn đang hoạt động của user (chỉ có khi kind === 'user'). */
+        activePackages?: { id: string; name: string; code: string | null; plateNumber: string; startDate?: string; endDate?: string }[];
       }>
-    >(`/staff/users/resolve-qr/${encodeURIComponent(code)}`),
-
-  checkInReservation: (code: string) =>
-    api.post(`/staff/reservations/${code}/check-in`),
-
-  listReservations: (query?: Record<string, string | undefined>) =>
-    api.get<Wrap<{ items: StaffReservation[]; total: number }>>('/staff/reservations', { query }).catch(() => ({
-      status: 'success',
-      data: { items: [], total: 0 },
-    })),
+    >(`/staff/users/resolve-qr/${encodeURIComponent(code)}`, { query: buildingId ? { building: buildingId } : undefined }),
 
   // Sessions (namespaced, for backward compat)
   sessions: {
@@ -389,7 +346,7 @@ export const staffApi = {
     getPaymentStatus: (orderCode: number) =>
       api.get<Wrap<PaymentStatus>>(`/staff/parking-sessions/payment/${orderCode}/status`),
 
-    lookupPlate: (plateNumber: string) =>
+    lookupPlate: (plateNumber: string, _buildingId?: string) =>
       api.get<Wrap<PlateInfo>>(`/staff/parking-sessions/lookup-plate/${plateNumber}`),
 
     lookupUser: (qrCode: string) =>
@@ -397,49 +354,22 @@ export const staffApi = {
         `/staff/users/lookup-qr/${qrCode}`
       ),
 
-    /** Revenue collected by the exit-gate staff for today's shift. */
-    myShiftRevenue: (buildingId: string) =>
-      api.get<Wrap<ShiftRevenueSummary>>('/staff/parking-sessions/my-shift-revenue', { query: { building: buildingId } }),
-
-    /** Vehicles checked in by entry-gate staff today. */
-    myCheckins: (buildingId: string) =>
-      api.get<Wrap<{ items: Array<{ _id: string; plateNumber: string; entryTime: string; entryGate?: { code: string; name?: string } | null; slot?: { code: string } | null; vehicleType?: { name: string } | null }> }>>('/staff/parking-sessions/my-checkins', { query: { building: buildingId } }),
+    /** Lịch sử xe vào hôm nay của nhân viên cổng VÀO — có location (cổng, tầng, ô). */
     myCheckIns: (buildingId: string) =>
-      api.get<Wrap<{ items: Array<{ _id: string; plateNumber: string; entryTime: string; entryGate?: { code: string; name?: string } | null; slot?: { code: string } | null; vehicleType?: { name: string } | null }> }>>('/staff/parking-sessions/my-checkins', { query: { building: buildingId } }),
-  },
-
-  // Reservations
-  reservations: {
-    list: (query?: Record<string, string | undefined>) =>
-      api.get<Wrap<{ items: StaffReservation[]; total: number }>>('/staff/reservations', { query }).catch(() => ({
-        status: 'success',
-        data: { items: [], total: 0 },
-      })),
-
-    checkIn: (code: string, body?: { gate?: string }) =>
-      api.post<Wrap<{ item: StaffReservation }>>(
-        `/staff/reservations/${code}/check-in`,
-        body ?? {}
-      ),
-
-    expire: (reservationId: string) =>
-      api.patch<Wrap<{ item: StaffReservation }>>(
-        `/staff/reservations/${reservationId}/expire`,
-        {}
-      ),
+      api.get<Wrap<{ items: ParkingSession[] }>>('/staff/parking-sessions/my-checkins', { query: { building: buildingId } }),
   },
 
   // Incidents
   incidents: {
-    list: (buildingId?: string) =>
+    list: (buildingId?: string, query?: { status?: string }) =>
       api.get<Wrap<ApiList<StaffIncident>>>('/staff/incidents', {
-        query: buildingId ? { buildingId } : undefined,
+        query: { ...(buildingId ? { buildingId } : {}), ...(query?.status ? { status: query.status } : {}) },
       }),
 
-    create: (payload: { type: string; target?: string; note?: string; buildingId?: string }) =>
+    create: (payload: { type: string; target?: string; note?: string; buildingId?: string; severity?: string; parkingSessionId?: string; status?: string; resolutionNote?: string }) =>
       api.post('/staff/incidents', payload),
 
-    resolve: (id: string, payload: { status?: string; resolutionNote?: string; violatorPlate?: string; action?: string; penaltyFee?: number; paymentMethod?: string }) =>
+    resolve: (id: string, payload: StaffIncidentUpdatePayload) =>
       api.patch<Wrap<{ item: StaffIncident }>>(`/staff/incidents/${id}`, payload),
   },
 
@@ -450,6 +380,7 @@ export const staffApi = {
     amount: number;
   }) =>
     api.post<Wrap<{ item: WalletTransaction }>>('/staff/wallet-transactions', body),
+
 };
 
 // ========== HELPER FUNCTIONS ==========
@@ -458,11 +389,20 @@ export const extractShifts = (payload: Wrap<{ items: MyShift[] } | MyShift[]>): 
   return unwrapList(payload);
 };
 
-export const extractBuildings = (
-  payload: StaffBuilding[] | { items: StaffBuilding[] }
-): StaffBuilding[] => {
-  if (Array.isArray(payload)) return payload;
-  return (payload as { items?: StaffBuilding[] }).items ?? [];
+export const extractBuildings = (payload: unknown): StaffBuilding[] => {
+  if (!payload || typeof payload !== 'object') return [];
+  if (Array.isArray(payload)) {
+    return payload
+      .map((item) => normalizeBuilding(item))
+      .filter((item): item is StaffBuilding => item !== null);
+  }
+
+  const candidate = payload as { data?: unknown; items?: unknown };
+  if (candidate.data) return extractBuildings(candidate.data);
+  if (Array.isArray(candidate.items)) return extractBuildings(candidate.items);
+
+  const single = normalizeBuilding(payload);
+  return single ? [single] : [];
 };
 
 export const extractSessions = (payload: unknown): ParkingSession[] => {

@@ -1,10 +1,17 @@
 import { api } from '@/services/client/apiClient';
+import type { Feedback } from '@/services/user/userApi';
+import type { ParkingSession } from '@/services/staff/staffApi';
+
+export type { ParkingSession };
 
 export interface ManagerBuilding {
   _id: string;
   name: string;
   code: string;
+  /** @deprecated Nhập tay, dễ lệch thực tế — dùng `floorCount` (số Floor thật đã tạo). */
   totalFloors: number;
+  /** Số Floor THẬT đã tạo qua trang Floor management (BE tính, không nhập tay được). */
+  floorCount: number;
   status: 'active' | 'inactive' | 'maintenance';
   operatingHours: { open: string; close: string };
   pricing: { hourlyRate: number; dailyCap?: number | null; motorcycleMultiplier?: number };
@@ -24,12 +31,59 @@ export interface VehicleType {
 export interface Floor {
   _id: string;
   building: string;
-  /** Mã do BE tự sinh từ name ("Tầng 1" → T1) — client không đặt. */
+  /** Code do BE tự sinh (F1, F2…) — read-only với client. */
   code: string;
   name: string;
   capacity: number;
   status: 'active' | 'inactive' | 'maintenance';
   allowedVehicleTypes: VehicleType[];
+}
+
+export interface Zone {
+  _id: string;
+  building: string;
+  floor: Floor | string;
+  code: string;
+  name: string;
+  vehicleType: VehicleType | string;
+  usageType: ZoneUsageType;
+  capacity: number;
+  status: 'active' | 'inactive' | 'maintenance';
+  slotCount?: number;
+}
+
+export type ActiveSession = ParkingSession;
+export type Incident = ManagerIncident;
+
+export type ZoneUsageType = 'walk_in' | 'registered' | 'subscriber' | 'reserved';
+
+export const ZONE_USAGE_LABELS: Record<ZoneUsageType, string> = {
+  walk_in: 'Walk-in',
+  registered: 'Registered',
+  subscriber: 'Subscriber',
+  reserved: 'Reserved',
+};
+
+export interface PendingCashPayment {
+  _id: string;
+  amount: number;
+  method: string;
+  staff?: any;
+  user?: any;
+  note?: string;
+  createdAt: string;
+  type?: string;
+}
+
+export interface RevenueBreakdown {
+  total: number;
+  cash: number;
+  wallet: number;
+  qr: number;
+  card: number;
+  payos: number;
+  allTimeTotal?: number;
+  days?: { date: string; total: number; byMethod: { cash: number; wallet: number; online: number } }[];
 }
 
 export interface Gate {
@@ -44,38 +98,14 @@ export interface Gate {
   floors?: (Floor | string)[];
 }
 
-/** Usage class of a zone — the "who is allowed to park" dimension. */
-export type ZoneUsageType = 'walk_in' | 'registered' | 'subscriber' | 'reserved';
-
-export const ZONE_USAGE_LABELS: Record<ZoneUsageType, string> = {
-  walk_in: 'Walk-in guest',
-  registered: 'Registered user',
-  subscriber: 'Long-term package',
-  reserved: 'Reservation',
-};
-
-export interface Zone {
-  _id: string;
-  building: string;
-  floor: { _id: string; code: string } | string;
-  code: string;
-  name?: string;
-  vehicleType: VehicleType | string;
-  usageType: ZoneUsageType;
-  capacity?: number;
-  /** Number of slots currently in this zone (server-computed). */
-  slotCount?: number;
-  status: 'active' | 'inactive' | 'maintenance';
-}
-
 export interface ParkingSlot {
   _id: string;
   building: string;
   floor: { _id: string; code: string; name: string } | string;
-  zone?: { _id: string; code: string; usageType: ZoneUsageType; vehicleType?: string } | string | null;
+  zone?: { _id: string; code: string; usageType: string; vehicleType?: VehicleType | string } | string | null;
   code: string;
   vehicleType?: VehicleType | string | null;
-  usageType?: ZoneUsageType | null;
+  usageType?: string | null;
   status: 'available' | 'occupied' | 'reserved' | 'maintenance';
   reservable: boolean;
   note?: string;
@@ -86,7 +116,7 @@ export interface PricePolicy {
   building: string;
   vehicleType: VehicleType | string;
   name: string;
-  /** Rate type — regular or peak. */
+  /** Rate type — regular (giờ thường) hoặc peak (cao điểm). */
   type: 'regular' | 'peak';
   hourlyRate: number;
   timeWindow?: { from: string; to: string };
@@ -103,16 +133,11 @@ export interface LongTermPackage {
   code: string;
   durationDays: number;
   price: number;
-  reservedSlots: number;
   description?: string;
-  /** Perks shown to users (e.g. "Free car wash", "Priority slots near the elevator"). */
+  /** Perks shown to users (e.g. "Miễn phí rửa xe", "Ưu tiên chỗ gần thang máy"). */
   benefits?: string[];
-  /** When true, subscribers get a dedicated reserved slot. */
-  allowDedicatedSlot?: boolean;
-  /** Max free parking hours per day for the package (0 = unlimited). */
+  /** Số giờ đỗ miễn phí tối đa/ngày của gói (0 = không giới hạn). Gói floating: không giữ chỗ cố định. */
   maxHoursPerDay?: number;
-  /** Days to hold the dedicated slot after expiry (grace) before releasing. */
-  graceDays?: number;
   isActive: boolean;
 }
 
@@ -124,27 +149,51 @@ export interface Subscription {
   startDate: string;
   endDate: string;
   status: 'pending' | 'active' | 'expired' | 'cancelled';
-  /** Snapshot % và số tiền đã hoàn lúc hủy (theo ReservationPolicy thời điểm đó) — null với gói cũ. */
+  /** Snapshot % và số tiền đã hoàn lúc hủy (theo refund policy tại thời điểm đó). */
   refundPercent?: number | null;
   refundAmount?: number | null;
-  // NOTE: long-term packages are FLOATING — no fixed slot is held on the subscription.
-  // The slot is assigned by staff at each check-in, so there is no slot field here.
 }
 
-export interface ReservationPolicy {
+/** One long-term subscription, as embedded in a ManagerCustomer row. */
+export interface CustomerSubscription {
+  _id: string;
+  plateNumber: string;
+  startDate: string;
+  endDate: string;
+  status: 'pending' | 'active' | 'expired' | 'cancelled';
+  package: { _id: string; name: string; price: number } | null;
+  refundPercent?: number | null;
+  refundAmount?: number | null;
+}
+
+/** Registered user (non-walk-in) who has used the building, with package-registration status. */
+export interface ManagerCustomer {
+  _id: string;
+  fullName: string;
+  email: string;
+  phone?: string | null;
+  isActive: boolean;
+  walletBalance: number;
+  createdAt: string;
+  licensePlates: { plateNumber: string; vehicleType?: string }[];
+  /** Number of parking sessions in THIS building. */
+  sessionCount: number;
+  /** Most recent entryTime in this building; null if never parked here (subscription-only). */
+  lastVisitAt?: string | null;
+  /** Has at least one subscription with status 'active' in this building. */
+  hasActivePackage: boolean;
+  /** Has ever registered a subscription (any status) in this building. */
+  hasAnyPackage: boolean;
+  /** Every subscription this user has in this building, newest first (merged in from the old "Subscribers" tab). */
+  subscriptions: CustomerSubscription[];
+}
+
+/** Chính sách hoàn tiền khi hủy gói dài hạn (per building). */
+export interface RefundPolicy {
   _id?: string;
-  maxHoldMinutes: number;
   refundPercent: number;
-  /** % of total fee taken as deposit at booking; the rest (100 - depositPercent) charged after checkout. */
-  depositPercent: number;
-  /** Maximum days that can be booked in advance. */
-  maxAdvanceDays: number;
-  /** Maximum hours per booking. */
-  maxDurationHours: number;
-  /** % penalty surcharge on overstay time. 0 = no penalty. */
-  overstayPenaltyPercent: number;
-  /** Hours before booking time that guests can still cancel. 0 = cancel any time before booking. */
-  cancellationCutoffHours: number;
+  lostTicketFee?: number;
+  ruleViolationFee?: number;
   isActive: boolean;
 }
 
@@ -163,24 +212,11 @@ export interface StaffShift {
   building: string;
   shift: { _id: string; code: string; name: string; startTime: string; endTime: string };
   staff: { _id: string; fullName: string; email: string; phone?: string };
-  /** Gate the manager assigned this staff to for the shift (exit / entry). */
+  /** Gate the manager assigned this staff to for the shift (ra / vào). */
   gate?: { _id: string; code: string; name?: string; direction: 'in' | 'out' | 'both'; status?: string } | null;
   workDate: string;
   status: 'scheduled' | 'active' | 'completed' | 'cancelled';
   note?: string;
-}
-
-export interface ShiftRevenue {
-  _id: string;
-  shift: { _id: string; code: string; name: string };
-  staff: { _id: string; fullName: string; email: string };
-  workDate: string;
-  sessionCount: number;
-  totalRevenue: number;
-  cashAmount: number;
-  walletAmount: number;
-  qrAmount: number;
-  reconciled: boolean;
 }
 
 export interface DashboardOverview {
@@ -207,19 +243,7 @@ export interface BuildingWallet {
   _id: string;
   building: string;
   balance: number;
-  /** Tổng tiền vào ví (gồm cả top-up) — KHÔNG dùng làm "tổng doanh thu". */
-  totalReceived?: number;
   updatedAt: string;
-}
-
-/** Doanh thu theo ngày × phương thức + tổng doanh thu all-time (loại top-up). */
-export interface RevenueBreakdown {
-  allTimeTotal: number;
-  days: {
-    date: string;
-    total: number;
-    byMethod: { cash: number; wallet: number; online: number };
-  }[];
 }
 
 export interface BuildingWalletTransaction {
@@ -240,10 +264,72 @@ export interface DailyRevenueResult {
   settled: boolean;
 }
 
+/** Một khoản tiền mặt của khách đang chờ manager "Thu nhận". */
+export interface PendingCashItem {
+  _id: string;
+  amount: number;
+  method: string;
+  status: string;
+  createdAt: string;
+  parkingSession?: { _id: string; plateNumber?: string; entryTime?: string; exitTime?: string } | null;
+  staff?: { _id: string; fullName?: string; email?: string } | null;
+}
+
+/** Một dòng tiền (Payment) của building — dùng cho tab "Dòng tiền" theo phương thức. */
+export interface PaymentRecord {
+  _id: string;
+  type: string;
+  method: string;
+  amount: number;
+  status: string;
+  createdAt: string;
+  note?: string;
+  parkingSession?: { _id: string; plateNumber?: string } | null;
+  user?: { _id: string; fullName?: string; email?: string } | null;
+  staff?: { _id: string; fullName?: string; email?: string } | null;
+}
+
 export interface WalletTopUpResult {
   checkoutUrl: string;
   qrCode: string;
   orderCode: number;
+}
+
+export type ManagerIncidentStatus = 'open' | 'investigating' | 'escalated' | 'penalty_pending' | 'resolved' | 'closed';
+
+export interface ManagerIncident {
+  _id: string;
+  code?: string;
+  type?: string;
+  building?: { _id?: string; code?: string; name?: string } | null;
+  slot?: { _id?: string; code?: string } | null;
+  severity?: 'medium' | 'high' | 'critical';
+  status?: ManagerIncidentStatus;
+  note?: string;
+  target?: string;
+  violatorPlate?: string;
+  /** null = không áp dụng (không có violatorPlate); false → incident tự escalate cho manager. */
+  plateAccountFound?: boolean | null;
+  resolutionNote?: string;
+  /** Số tiền manager đã DUYỆT (status 'penalty_pending' = chưa thu, 'resolved' = đã thu). */
+  penaltyFee?: number | null;
+  /** Chỉ có giá trị SAU KHI staff thu tại check-out (chưa thu = null). */
+  paymentMethod?: 'cash' | 'wallet' | 'qr' | null;
+  reportedBy?: { _id?: string; fullName?: string; email?: string } | null;
+  resolvedBy?: { _id?: string; fullName?: string; email?: string } | null;
+  resolvedAt?: string | null;
+  createdAt?: string;
+}
+
+export interface ManagerIncidentUpdatePayload {
+  status?: ManagerIncidentStatus;
+  resolutionNote?: string;
+  violatorPlate?: string;
+  /** 'penalize_violator' → DUYỆT số tiền phạt (manager-only) — chưa thu, chưa checkout.
+   * Staff thu thật + chọn phương thức lúc check-out xe vi phạm tại cổng. */
+  action?: 'penalize_violator';
+  /** Bỏ trống → BE dùng mức phạt chuẩn từ ReservationPolicy.ruleViolationFee của toà. */
+  penaltyFee?: number;
 }
 
 interface Wrap<T> {
@@ -256,8 +342,8 @@ const path = (buildingId: string, suffix: string) =>
 export const managerApi = {
   listAssignedBuildings: () =>
     api.get<Wrap<ManagerBuilding[] | { items: ManagerBuilding[] }>>('/manager/buildings'),
-  updateBuilding: (buildingId: string, body: Partial<ManagerBuilding>) =>
-    api.put<Wrap<{ building: ManagerBuilding }>>(`/manager/buildings/${buildingId}`, body),
+  updateBuilding: (id: string, body: Partial<ManagerBuilding>) =>
+    api.put<Wrap<{ building: ManagerBuilding }>>(`/manager/buildings/${id}`, body),
   /** Update only the building open/close hours (dedicated tab). */
   updateOperatingHours: (buildingId: string, body: { open: string; close: string }) =>
     api.put<Wrap<{ building: ManagerBuilding }>>(path(buildingId, '/operating-hours'), body),
@@ -265,11 +351,13 @@ export const managerApi = {
   getDashboard: (buildingId: string) =>
     api.get<Wrap<DashboardOverview>>(path(buildingId, '/dashboard')),
 
-  feedbacks: {
-    list: (b: string, q?: Record<string, string | undefined>) =>
-      api.get<Wrap<{ items: any[] }>>(path(b, '/feedbacks'), { query: q }),
-    respond: (b: string, id: string, body: { staffReply: string; status: 'resolved' }) =>
-      api.patch<Wrap<{ item: any }>>(path(b, `/feedbacks/${id}`), body),
+  sessions: {
+    /** Danh sách phiên xe đang đỗ (status=active) trong tòa nhà — giám sát realtime. */
+    listActive: (b: string) =>
+      api.get<Wrap<{ items: ParkingSession[] }>>(path(b, '/sessions/active')),
+    /** Chi tiết 1 phiên (kèm ảnh biển số / chân dung lúc check-in). */
+    detail: (b: string, id: string) =>
+      api.get<Wrap<ParkingSession>>(path(b, `/sessions/${id}`)),
   },
 
   vehicleTypes: {
@@ -291,7 +379,7 @@ export const managerApi = {
   },
 
   gates: {
-    // Manager CRUD for gates and their type (exit / entry / two-way).
+    // Manager CRUD cổng và tự đặt thể loại (ra / vào / hai chiều).
     list: (b: string) => api.get<Wrap<{ items: Gate[] }>>(path(b, '/gates')),
     create: (b: string, body: { code: string; name?: string; direction?: Gate['direction']; status?: Gate['status'] }) =>
       api.post<Wrap<{ item: Gate }>>(path(b, '/gates'), body),
@@ -305,12 +393,10 @@ export const managerApi = {
   zones: {
     list: (b: string, q?: Record<string, string | undefined>) =>
       api.get<Wrap<{ items: Zone[] }>>(path(b, '/zones'), { query: q }),
-    // BE tự sinh code từ name — client chỉ gửi name.
-    create: (
-      b: string,
-      body: { floor: string; name: string; vehicleType: string; usageType: ZoneUsageType; capacity?: number; status?: Zone['status'] }
-    ) => api.post<Wrap<{ item: Zone }>>(path(b, '/zones'), body),
-    update: (b: string, id: string, body: Partial<Omit<Zone, '_id' | 'building'>> & { vehicleType?: string }) =>
+    // code do BE sinh từ tên zone — client không gửi code.
+    create: (b: string, body: { name: string; floor: string; vehicleType: string; usageType: Zone['usageType']; capacity: number; status?: Zone['status'] }) =>
+      api.post<Wrap<{ item: Zone }>>(path(b, '/zones'), body),
+    update: (b: string, id: string, body: Partial<{ name: string; floor: string; vehicleType: string; usageType: Zone['usageType']; capacity: number; status: Zone['status'] }>) =>
       api.put<Wrap<{ item: Zone }>>(path(b, `/zones/${id}`), body),
     remove: (b: string, id: string) => api.delete(path(b, `/zones/${id}`)),
   },
@@ -318,15 +404,12 @@ export const managerApi = {
   slots: {
     list: (b: string, q?: Record<string, string | undefined>) =>
       api.get<Wrap<{ items: ParkingSlot[] }>>(path(b, '/slots'), { query: q }),
-    // code optional — BE tự sinh {zoneCode}-01, -02… khi bỏ trống.
-    create: (b: string, body: Partial<ParkingSlot> & { floor: string; zone: string }) =>
+    create: (b: string, body: { floor: string; zone: string; status?: ParkingSlot['status']; reservable?: boolean; note?: string }) =>
       api.post<Wrap<{ item: ParkingSlot }>>(path(b, '/slots'), body),
-    /** Tạo hàng loạt: BE tự sinh mã nối tiếp theo code zone (quantity 1–50). */
-    createBatch: (
-      b: string,
-      body: { floor: string; zone: string; quantity: number; status?: ParkingSlot['status']; reservable?: boolean; note?: string }
-    ) => api.post<Wrap<{ items: ParkingSlot[] }>>(path(b, '/slots/batch'), body),
-    update: (b: string, id: string, body: Partial<ParkingSlot>) =>
+    // Tạo hàng loạt — BE sinh mã nối tiếp {zoneCode}-NN trong 1 request.
+    createBatch: (b: string, body: { floor: string; zone: string; quantity: number; status?: ParkingSlot['status']; reservable?: boolean; note?: string }) =>
+      api.post<Wrap<{ items: ParkingSlot[] }>>(path(b, '/slots/batch'), body),
+    update: (b: string, id: string, body: Partial<{ floor: string; zone: string; status: ParkingSlot['status']; reservable: boolean; note: string }>) =>
       api.put<Wrap<{ item: ParkingSlot }>>(path(b, `/slots/${id}`), body),
     updateStatus: (b: string, id: string, status: ParkingSlot['status']) =>
       api.patch<Wrap<{ item: ParkingSlot }>>(path(b, `/slots/${id}/status`), { status }),
@@ -350,17 +433,23 @@ export const managerApi = {
     update: (b: string, id: string, body: Partial<LongTermPackage>) =>
       api.put<Wrap<{ item: LongTermPackage }>>(path(b, `/packages/${id}`), body),
     remove: (b: string, id: string) => api.delete(path(b, `/packages/${id}`)),
-    subscriptions: (b: string, q?: Record<string, string | undefined>) =>
-      api.get<Wrap<{ items: Subscription[]; pagination: unknown }>>(path(b, '/subscriptions'), { query: q }),
-    cancelSubscription: (b: string, subscriptionId: string, reason?: string) =>
-      api.delete<Wrap<{ message: string }>>(path(b, `/subscriptions/${subscriptionId}`), { body: { reason } }),
+    cancelSubscription: (b: string, id: string, reason?: string) =>
+      api.delete<Wrap<{ subscription: Subscription; refundAmount: number; refundPercent: number }>>(path(b, `/subscriptions/${id}`), { body: { reason } }),
   },
 
   refundPolicy: {
     get: (b: string) =>
-      api.get<Wrap<{ item: ReservationPolicy }>>(path(b, '/refund-policy')),
-    update: (b: string, body: Partial<ReservationPolicy>) =>
-      api.put<Wrap<{ item: ReservationPolicy }>>(path(b, '/refund-policy'), body),
+      api.get<Wrap<{ item: RefundPolicy }>>(path(b, '/refund-policy')),
+    update: (b: string, body: Partial<RefundPolicy>) =>
+      api.put<Wrap<{ item: RefundPolicy }>>(path(b, '/refund-policy'), body),
+  },
+
+  customers: {
+    list: (b: string, q?: Record<string, string | undefined>) =>
+      api.get<Wrap<{
+        items: ManagerCustomer[];
+        pagination: { page: number; limit: number; total: number; totalPages: number };
+      }>>(path(b, '/customers'), { query: q }),
   },
 
   shifts: {
@@ -387,12 +476,17 @@ export const managerApi = {
     ) => api.put<Wrap<{ item: StaffShift }>>(path(b, `/staff-shifts/${id}`), body),
     removeStaffShift: (b: string, id: string) =>
       api.delete(path(b, `/staff-shifts/${id}`)),
-    revenues: (b: string, q?: Record<string, string | undefined>) =>
-      api.get<
-        Wrap<{ items: ShiftRevenue[]; totals: { sessionCount: number; totalRevenue: number; cashAmount: number; walletAmount: number; qrAmount: number } }>
-      >(path(b, '/shift-revenues'), { query: q }),
-    listReports: (b: string, q?: Record<string, string | undefined>) =>
-      api.get<Wrap<{ items: ShiftReportSubmission[] }>>(path(b, '/shift-report-submissions'), { query: q }),
+  },
+
+  incidents: {
+    list: (b: string, q?: { status?: string; severity?: string; page?: number; limit?: number }) =>
+      api.get<Wrap<{
+        items: ManagerIncident[];
+        pagination: { page: number; limit: number; total: number; totalPages: number };
+      }>>(path(b, '/incidents'), { query: q }),
+
+    resolve: (b: string, id: string, body: ManagerIncidentUpdatePayload) =>
+      api.patch<Wrap<{ item: ManagerIncident }>>(path(b, `/incidents/${id}`), body),
   },
 
   wallet: {
@@ -402,10 +496,24 @@ export const managerApi = {
       api.get<Wrap<DailyRevenueResult>>(path(b, '/wallet/daily-revenue'), {
         query: date ? { date } : undefined,
       }),
-    getRevenueBreakdown: (b: string, q?: { from?: string; to?: string }) =>
-      api.get<Wrap<RevenueBreakdown>>(path(b, '/wallet/revenue-breakdown'), { query: q }),
+    getRevenueBreakdown: (b: string) =>
+      api.get<Wrap<RevenueBreakdown>>(path(b, '/wallet/revenue-breakdown')),
     listTransactions: (b: string, q?: Record<string, string | undefined>) =>
       api.get<Wrap<{ items: BuildingWalletTransaction[] }>>(path(b, '/wallet/transactions'), { query: q }),
+
+    /** Tiền mặt của khách đang chờ xác nhận (GET /wallet/pending-cash). */
+    listPendingCash: (b: string, q?: Record<string, string | undefined>) =>
+      api.get<Wrap<{ items: PendingCashItem[]; pendingTotal: number; pagination?: { page: number; limit: number; total: number; totalPages: number } }>>(
+        path(b, '/wallet/pending-cash'), { query: q }),
+
+    /** Manager "Thu nhận" 1 khoản tiền mặt → cộng vào ví (POST /wallet/pending-cash/:paymentId/confirm). */
+    confirmCash: (b: string, paymentId: string) =>
+      api.post<Wrap<{ payment: PaymentRecord }>>(path(b, `/wallet/pending-cash/${paymentId}/confirm`), {}),
+
+    /** Toàn bộ dòng tiền của building theo phương thức (GET /payments). */
+    listPayments: (b: string, q?: Record<string, string | undefined>) =>
+      api.get<Wrap<{ items: PaymentRecord[]; pagination?: { page: number; limit: number; total: number; totalPages: number } }>>(
+        path(b, '/payments'), { query: q }),
 
     /** PayOS top-up for the building wallet (POST /wallet/topup). */
     initiateTopup: (b: string, amount: number) =>
@@ -414,46 +522,15 @@ export const managerApi = {
     /** Manually verify a PayOS top-up (GET /wallet/topup/:orderCode/verify). */
     verifyTopup: (b: string, orderCode: number) =>
       api.get<Wrap<{ status: string; credited: boolean }>>(path(b, `/wallet/topup/${orderCode}/verify`)),
-
-    /** Tiền mặt chờ xác nhận (GET /wallet/pending-cash). */
-    listPendingCash: (b: string, q?: Record<string, string | undefined>) =>
-      api.get<Wrap<{ items: PendingCashPayment[] }>>(path(b, '/wallet/pending-cash'), { query: q }),
-
-    /** Xác nhận nhận tiền mặt từ staff (POST /wallet/pending-cash/:paymentId/confirm). */
-    confirmCash: (b: string, paymentId: string) =>
-      api.post<Wrap<{ payment: PendingCashPayment }>>(path(b, `/wallet/pending-cash/${paymentId}/confirm`)),
   },
 
-  incidents: {
+  feedbacks: {
     list: (b: string, q?: Record<string, string | undefined>) =>
-      api.get<Wrap<{ items: Incident[] }>>(path(b, '/incidents'), { query: q }),
-    resolve: (b: string, id: string, body: { status?: string; resolutionNote?: string; violatorPlate?: string; action?: string; penaltyFee?: number; paymentMethod?: string }) =>
-      api.patch<Wrap<{ item: Incident }>>(path(b, `/incidents/${id}`), body),
-  },
-
-  sessions: {
-    listActive: (b: string, q?: Record<string, string | undefined>) =>
-      api.get<Wrap<{ items: ActiveSession[] }>>(path(b, '/sessions/active'), { query: q }),
-    getDetail: (b: string, id: string) =>
-      api.get<Wrap<ActiveSession>>(path(b, `/sessions/${id}`)),
+      api.get<Wrap<{ items: Feedback[]; pagination?: { page: number; limit: number; total: number; totalPages: number } }>>(path(b, '/feedbacks'), { query: q }),
+    respond: (b: string, id: string, body: { staffReply: string; status?: string }) =>
+      api.patch<Wrap<{ item: Feedback }>>(path(b, `/feedbacks/${id}`), body),
   },
 };
-
-export interface ShiftReportSubmission {
-  _id: string;
-  workDate: string;
-  status: string;
-  staff: { _id: string; fullName: string; email: string } | null;
-  shift: { code: string; name: string; startTime: string; endTime: string } | null;
-  gate: { code: string; name: string; direction: string } | null;
-  revenueReport: {
-    submittedAt: string;
-    total: number;
-    count: number;
-    byMethod: { cash: number; wallet: number; online: number };
-  };
-  createdAt: string;
-}
 
 export const unwrapItems = <T,>(payload: Wrap<{ items: T[] }> | Wrap<T[]> | undefined): T[] => {
   if (!payload?.data) return [];
@@ -461,47 +538,3 @@ export const unwrapItems = <T,>(payload: Wrap<{ items: T[] }> | Wrap<T[]> | unde
   if (Array.isArray(d)) return d as unknown as T[];
   return d.items ?? [];
 };
-
-export interface Incident {
-  _id: string;
-  code: string;
-  type: string;
-  target?: string;
-  note?: string;
-  building?: { _id: string; code: string; name: string } | string | null;
-  slot?: { _id: string; code: string } | string | null;
-  violatorPlate?: string;
-  resolutionNote?: string;
-  severity: 'medium' | 'high' | 'critical';
-  status: 'open' | 'investigating' | 'escalated' | 'resolved' | 'closed';
-  reportedBy: { _id: string; fullName: string; email: string };
-  resolvedBy?: { _id: string; fullName: string; email: string } | null;
-  resolvedAt?: string | null;
-  createdAt: string;
-}
-
-export interface ActiveSession {
-  _id: string;
-  plateNumber: string;
-  building: { _id: string; name: string } | string;
-  vehicleType: { _id: string; code: string; name: string } | string;
-  vehicleBrand?: string;
-  plateImage?: string;
-  portraitImage?: string;
-  entryTime: string;
-  slot?: { _id: string; code: string; floor?: { name: string; code: string } } | null;
-  status: 'active' | 'completed';
-}
-
-export interface PendingCashPayment {
-  _id: string;
-  building: string;
-  type: 'session' | 'subscription' | 'topup';
-  method: 'cash';
-  amount: number;
-  status: 'pending' | 'success';
-  createdAt: string;
-  staff?: { _id: string; fullName: string; email: string } | null;
-  user?: { _id: string; fullName: string; email: string } | null;
-  note?: string;
-}

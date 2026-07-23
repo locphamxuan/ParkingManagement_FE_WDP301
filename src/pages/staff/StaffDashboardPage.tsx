@@ -24,8 +24,8 @@ import {
   type MyShift,
   type ParkingSession,
   type StaffIncident,
-  type StaffReservation,
 } from '@/services/staff/staffApi';
+import styles from './StaffDashboardPage.module.css';
 
 /* ─── helpers ─── */
 function fmtTime(iso: string) {
@@ -93,8 +93,7 @@ function TiltActionCard({ to, title, subtitle, gradFrom, gradTo, border, shadow,
       className="group relative block overflow-hidden rounded-2xl p-5 cursor-pointer"
     >
       {/* Shimmer */}
-      <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-        style={{ background: 'linear-gradient(108deg, transparent 36%, rgba(255,255,255,0.35) 50%, transparent 64%)' }} />
+      <div className={`pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${styles.shimmer}`} />
 
       <div className="relative z-10 flex items-center gap-4">
         <span className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-xl" style={iconStyle}>
@@ -131,13 +130,7 @@ function StatCard({ label, value, icon: Icon, topLine, iconBg, iconColor, valueC
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
       whileHover={{ y: -5, scale: 1.025 }}
-      className="relative overflow-hidden rounded-2xl p-4"
-      style={{
-        background: 'rgba(255,255,255,0.75)',
-        border: '1px solid rgba(14,165,233,0.1)',
-        boxShadow: '0 2px 16px rgba(14,165,233,0.05), inset 0 1px 0 rgba(255,255,255,0.9)',
-        backdropFilter: 'blur(12px)',
-      }}
+      className={`relative overflow-hidden rounded-2xl p-4 ${styles.statCard}`}
     >
       {/* Top colour line */}
       <div className="absolute top-0 left-4 right-4 h-0.5 rounded-full" style={{ background: topLine }} />
@@ -172,12 +165,7 @@ function PlateBox({ session }: { session: ParkingSession }) {
     <motion.div
       whileHover={{ y: -3, scale: 1.015 }}
       transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-      className="flex items-center gap-3 rounded-xl p-3"
-      style={{
-        background: 'rgba(255,255,255,0.6)',
-        border: '1px solid rgba(14,165,233,0.1)',
-        boxShadow: '0 1px 8px rgba(14,165,233,0.05)',
-      }}
+      className={`flex items-center gap-3 rounded-xl p-3 ${styles.plateBox}`}
     >
       <LicensePlate plateNumber={session.plateNumber} />
 
@@ -196,13 +184,7 @@ function PlateBox({ session }: { session: ParkingSession }) {
 function GlassCard({ children, accentLine, className = '' }: { children: React.ReactNode; accentLine: string; className?: string }) {
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl p-5 ${className}`}
-      style={{
-        background: 'rgba(255,255,255,0.72)',
-        border: '1px solid rgba(14,165,233,0.1)',
-        boxShadow: '0 4px 24px rgba(14,165,233,0.06), inset 0 1px 0 rgba(255,255,255,0.9)',
-        backdropFilter: 'blur(14px)',
-      }}
+      className={`relative overflow-hidden rounded-2xl p-5 ${styles.glassCard} ${className}`}
     >
       <div className="absolute top-0 left-0 right-0 h-0.5 rounded-full" style={{ background: accentLine }} />
       {children}
@@ -216,7 +198,6 @@ export function StaffDashboardPage() {
   const [shifts, setShifts]             = useState<MyShift[]>([]);
   const [sessions, setSessions]         = useState<ParkingSession[]>([]);
   const [incidents, setIncidents]       = useState<StaffIncident[]>([]);
-  const [reservations, setReservations] = useState<StaffReservation[]>([]);
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState<string | null>(null);
 
@@ -233,7 +214,6 @@ export function StaffDashboardPage() {
         setSessions(Array.isArray(rawS) ? rawS : (rawS as { items?: ParkingSession[] })?.items ?? []);
         const rawI = (incidentRes as { data?: { items?: StaffIncident[] } | StaffIncident[] })?.data;
         setIncidents(Array.isArray(rawI) ? rawI : (rawI as { items?: StaffIncident[] })?.items ?? []);
-        setReservations([]);
         setError(null);
       })
       .catch(e => setError(e instanceof Error ? e.message : 'Failed to load data'))
@@ -250,7 +230,6 @@ export function StaffDashboardPage() {
 
   const activeSessions = useMemo(() => sessions.filter(s => s.status === 'active'), [sessions]);
   const openIncidents  = useMemo(() => incidents.filter(i => ['open','investigating','escalated'].includes(i.status ?? '')), [incidents]);
-  const pendingRes     = useMemo(() => reservations.filter(r => r.status === 'confirmed'), [reservations]);
 
   const assignedGates = useMemo(() => {
     const src = todayShifts.length > 0 ? todayShifts : shifts.slice(0, 1);
@@ -293,8 +272,7 @@ export function StaffDashboardPage() {
   if (!loading && !building) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="max-w-sm rounded-2xl p-8 text-center"
-          style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)', boxShadow: '0 4px 20px rgba(245,158,11,0.06)' }}>
+        <div className={`max-w-sm rounded-2xl p-8 text-center ${styles.noBuildingCard}`}>
           <Building2 size={36} className="mx-auto mb-3 text-amber-500" />
           <p className="text-base font-bold text-amber-700">No building selected</p>
           <p className="mt-1 text-sm text-slate-500">Please select a building from the left menu.</p>
@@ -315,27 +293,15 @@ export function StaffDashboardPage() {
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.04, duration: 0.36 }}
-        className="relative overflow-hidden rounded-2xl p-5"
-        style={{
-          background: 'linear-gradient(135deg, rgba(224,242,254,0.9) 0%, rgba(255,255,255,0.85) 50%, rgba(219,234,254,0.7) 100%)',
-          border: '1px solid rgba(14,165,233,0.18)',
-          boxShadow: '0 4px 24px rgba(14,165,233,0.08), inset 0 1px 0 rgba(255,255,255,0.9)',
-          backdropFilter: 'blur(12px)',
-        }}
+        className={`relative overflow-hidden rounded-2xl p-5 ${styles.banner}`}
       >
         {/* Corner glow */}
-        <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full"
-          style={{ background: 'radial-gradient(circle, rgba(14,165,233,0.12) 0%, transparent 70%)', filter: 'blur(16px)' }} />
+        <div className={`pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full ${styles.cornerGlow}`} />
 
         <div className="relative z-10 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-4">
             {/* Icon with sky gradient */}
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
-              style={{
-                background: 'linear-gradient(135deg, #e0f2fe, #bae6fd)',
-                border: '1px solid rgba(14,165,233,0.22)',
-                boxShadow: '0 4px 12px rgba(14,165,233,0.12)',
-              }}>
+            <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${styles.bannerIcon}`}>
               <Building2 size={22} className="text-sky-600" />
             </div>
             <div>
@@ -351,27 +317,23 @@ export function StaffDashboardPage() {
             {!loading && (
               assignedGates.length > 0
                 ? assignedGates.map(g => (
-                    <span key={g._id} className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold"
-                      style={{ background: 'rgba(14,165,233,0.08)', border: '1px solid rgba(14,165,233,0.18)', color: '#0284c7' }}>
+                    <span key={g._id} className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold ${styles.gateBadge}`}>
                       <DoorOpen size={12} /> Gate {g.code}{g.name ? ` · ${g.name}` : ''} · {dirText(g.direction)}
                     </span>
                   ))
                 : (
-                  <span className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold"
-                    style={{ background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(203,213,225,0.6)', color: '#64748b' }}>
+                  <span className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold ${styles.neutralBadge}`}>
                     <DoorOpen size={12} /> No gate assigned
                   </span>
                 )
             )}
             {building?.operatingHours && (
-              <span className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold"
-                style={{ background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(203,213,225,0.6)', color: '#475569' }}>
+              <span className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold ${styles.hoursBadge}`}>
                 <Clock size={12} /> {building.operatingHours.open} – {building.operatingHours.close}
               </span>
             )}
             {/* Active badge — emerald with ping */}
-            <span className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold"
-              style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.25)', color: '#059669' }}>
+            <span className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold ${styles.activeBadge}`}>
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
@@ -433,20 +395,18 @@ export function StaffDashboardPage() {
 
       {/* Error/incident banners */}
       {error && (
-        <div className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold"
-          style={{ background: 'rgba(244,63,94,0.06)', border: '1px solid rgba(244,63,94,0.18)', color: '#e11d48' }}>
+        <div className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold ${styles.errorBanner}`}>
           <AlertTriangle size={16} className="shrink-0" /> {error}
         </div>
       )}
       {!loading && openIncidents.length > 0 && (
         <Link to="/staff/incidents"
-          className="flex items-center gap-3 rounded-2xl px-4 py-3 transition-all hover:shadow-md"
-          style={{ background: 'rgba(244,63,94,0.05)', border: '1px solid rgba(244,63,94,0.16)', boxShadow: '0 2px 8px rgba(244,63,94,0.05)' }}>
-          <ShieldAlert size={16} className="shrink-0" style={{ color: '#f43f5e' }} />
-          <p className="flex-1 text-sm" style={{ color: '#be123c' }}>
+          className={`flex items-center gap-3 rounded-2xl px-4 py-3 transition-all hover:shadow-md ${styles.incidentLink}`}>
+          <ShieldAlert size={16} className={`shrink-0 ${styles.iconRose}`} />
+          <p className={`flex-1 text-sm ${styles.textRose}`}>
             <strong>{openIncidents.length} open incidents</strong> — tap to view and handle.
           </p>
-          <ArrowRight size={16} style={{ color: '#f43f5e' }} />
+          <ArrowRight size={16} className={styles.iconRose} />
         </Link>
       )}
 
@@ -463,13 +423,11 @@ export function StaffDashboardPage() {
           <GlassCard accentLine="linear-gradient(90deg, transparent, #10b981, transparent)">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg"
-                  style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)' }}>
+                <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${styles.emeraldIconBox}`}>
                   <Car size={14} className="text-emerald-600" />
                 </div>
                 <h2 className="text-sm font-bold text-slate-800">Parked vehicles</h2>
-                <span className="rounded-md px-2 py-0.5 text-[11px] font-bold"
-                  style={{ background: 'rgba(14,165,233,0.07)', color: '#64748b', border: '1px solid rgba(14,165,233,0.1)' }}>
+                <span className={`rounded-md px-2 py-0.5 text-[11px] font-bold ${styles.countBadge}`}>
                   {loading ? '…' : activeSessions.length}
                 </span>
               </div>
@@ -485,8 +443,7 @@ export function StaffDashboardPage() {
                 <Skeleton className="h-16 w-full rounded-xl" />
               </div>
             ) : activeSessions.length === 0 ? (
-              <div className="flex flex-col items-center gap-2 rounded-xl py-8 text-center"
-                style={{ background: 'rgba(241,245,249,0.6)', border: '1px dashed rgba(203,213,225,0.8)' }}>
+              <div className={`flex flex-col items-center gap-2 rounded-xl py-8 text-center ${styles.emptyState}`}>
                 <CheckCircle2 size={28} className="text-slate-300" />
                 <p className="text-sm text-slate-400">No vehicles parked</p>
               </div>
@@ -513,14 +470,12 @@ export function StaffDashboardPage() {
           <GlassCard accentLine="linear-gradient(90deg, transparent, #0ea5e9, transparent)">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg"
-                  style={{ background: 'rgba(14,165,233,0.1)', border: '1px solid rgba(14,165,233,0.2)' }}>
+                <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${styles.skyIconBox}`}>
                   <CalendarClock size={14} className="text-sky-600" />
                 </div>
                 <h2 className="text-sm font-bold text-slate-800">Shifts today</h2>
               </div>
-              <span className="rounded-md px-2 py-0.5 text-[11px] font-bold"
-                style={{ background: 'rgba(14,165,233,0.07)', color: '#64748b', border: '1px solid rgba(14,165,233,0.1)' }}>
+              <span className={`rounded-md px-2 py-0.5 text-[11px] font-bold ${styles.countBadge}`}>
                 {loading ? '…' : todayShifts.length}
               </span>
             </div>
@@ -528,8 +483,7 @@ export function StaffDashboardPage() {
             {loading ? (
               <Skeleton className="h-24 w-full rounded-xl" />
             ) : todayShifts.length === 0 ? (
-              <div className="flex flex-col items-center gap-2 rounded-xl py-8 text-center"
-                style={{ background: 'rgba(241,245,249,0.6)', border: '1px dashed rgba(203,213,225,0.8)' }}>
+              <div className={`flex flex-col items-center gap-2 rounded-xl py-8 text-center ${styles.emptyState}`}>
                 <Circle size={28} className="text-slate-300" />
                 <p className="text-sm text-slate-400">No shifts today</p>
               </div>
@@ -539,16 +493,10 @@ export function StaffDashboardPage() {
                   <motion.div
                     key={s._id}
                     whileHover={{ x: 3 }}
-                    className="relative overflow-hidden rounded-xl p-3.5"
-                    style={{
-                      background: 'rgba(255,255,255,0.7)',
-                      border: '1px solid rgba(14,165,233,0.1)',
-                      boxShadow: '0 2px 8px rgba(14,165,233,0.04)',
-                    }}
+                    className={`relative overflow-hidden rounded-xl p-3.5 ${styles.shiftCard}`}
                   >
                     {/* Left accent bar — sky gradient */}
-                    <div className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full"
-                      style={{ background: 'linear-gradient(180deg, #0ea5e9, #0284c7)', boxShadow: '0 0 6px rgba(14,165,233,0.4)' }} />
+                    <div className={`absolute left-0 top-2 bottom-2 w-[3px] rounded-full ${styles.shiftAccent}`} />
                     <div className="pl-3">
                       <div className="flex items-center justify-between gap-2">
                         <p className="text-sm font-extrabold text-slate-800 tracking-tight">
@@ -560,8 +508,7 @@ export function StaffDashboardPage() {
                         {s.shift.startTime} – {s.shift.endTime}
                       </p>
                       {s.gate ? (
-                        <p className="mt-2 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide"
-                          style={{ background: 'rgba(14,165,233,0.08)', border: '1px solid rgba(14,165,233,0.18)', color: '#0284c7' }}>
+                        <p className={`mt-2 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${styles.gateBadge}`}>
                           <DoorOpen size={10} />
                           Gate {s.gate.code}{s.gate.name ? ` · ${s.gate.name}` : ''} · {dirText(s.gate.direction)}
                         </p>

@@ -1,167 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, MessageSquare, Star, Sparkles, Plus, AlertTriangle, CheckCircle, RefreshCw, Quote, ArrowRight } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { userApi, type Feedback, type ParkingHistory } from '@/services/user/userApi';
-import { Modal } from '@/components/ui/modal';
-import { Button } from '@/components/ui/button';
-
-const fmtTime = (s?: string | null) =>
-  s ? new Date(s).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' }) : '—';
+import { ArrowLeft, MessageSquare } from 'lucide-react';
+import { useReviews } from '@/hooks/useReviews';
+import { RatingStatsCard } from '@/components/reviews/RatingStatsCard';
+import { ReviewFiltersBar } from '@/components/reviews/ReviewFiltersBar';
+import { ReviewsList } from '@/components/reviews/ReviewsList';
+import { WriteReviewModal } from '@/components/reviews/WriteReviewModal';
 
 export default function ReviewsPage() {
-  const navigate = useNavigate();
-  const { session } = useAuth();
-
-  // Reviews states
-  const [reviews, setReviews] = useState<Feedback[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [buildings, setBuildings] = useState<{ _id: string; name: string }[]>([]);
-  const [selectedBuilding, setSelectedBuilding] = useState<string>('all');
-  const [selectedRating, setSelectedRating] = useState<string>('all');
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-
-  // Write Review states
-  const [modalOpen, setModalOpen] = useState(false);
-  const [sessions, setSessions] = useState<ParkingHistory[]>([]);
-  const [loadingSessions, setLoadingSessions] = useState(false);
-  const [sessionsError, setSessionsError] = useState<string | null>(null);
-
-  // Form states
-  const [selectedSessionId, setSelectedSessionId] = useState<string>('');
-  const [ratingInput, setRatingInput] = useState<number>(5);
-  const [hoveredRating, setHoveredRating] = useState<number | null>(null);
-  const [commentInput, setCommentInput] = useState<string>('');
-  const [submitting, setSubmitting] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-
-  // Load buildings
-  useEffect(() => {
-    userApi.buildings
-      .list({ limit: 100 })
-      .then((res) => {
-        const items = res.data?.items || [];
-        setBuildings(items.map((b) => ({ _id: b._id, name: b.name })));
-      })
-      .catch((err) => console.error('Failed to load buildings', err));
-  }, []);
-
-  // Load reviews list
-  const loadReviews = useCallback((p = 1) => {
-    setLoading(true);
-    setError(null);
-    const query: any = { page: p, limit: 10 };
-    if (selectedBuilding !== 'all') query.buildingId = selectedBuilding;
-    if (selectedRating !== 'all') query.rating = Number(selectedRating);
-
-    userApi.feedbacks
-      .listAll(query)
-      .then((res) => {
-        const raw = res.data;
-        setReviews(raw?.items || []);
-        setTotalPages(raw?.pagination?.totalPages ?? 1);
-        setPage(p);
-      })
-      .catch((err) => {
-        setError(err instanceof Error ? err.message : 'Failed to load reviews');
-      })
-      .finally(() => setLoading(false));
-  }, [selectedBuilding, selectedRating]);
-
-  useEffect(() => {
-    loadReviews(1);
-  }, [loadReviews]);
-
-  // Load user parking sessions when opening modal
-  const handleOpenWriteReview = async () => {
-    if (!session) {
-      navigate('/auth/login');
-      return;
-    }
-    setModalOpen(true);
-    setLoadingSessions(true);
-    setSessionsError(null);
-    setSubmitSuccess(false);
-    setSubmitError(null);
-    setCommentInput('');
-    setRatingInput(5);
-    setSelectedSessionId('');
-
-    try {
-      const res = await userApi.parkingHistory.list({ limit: 100 });
-      // Map checkIn/checkOut standard fields
-      const items: ParkingHistory[] = (res.data?.items ?? []).map((item: any) => ({
-        ...item,
-        checkIn: item.checkIn ?? item.entryTime ?? null,
-        checkOut: item.checkOut ?? item.exitTime ?? null,
-      }));
-      // Only keep completed sessions
-      const completed = items.filter((s) => s.status === 'completed');
-      setSessions(completed);
-      if (completed.length > 0) {
-        setSelectedSessionId(completed[0]._id);
-      }
-    } catch (err) {
-      setSessionsError(err instanceof Error ? err.message : 'Unable to load parking history.');
-    } finally {
-      setLoadingSessions(false);
-    }
-  };
-
-  // Submit feedback action
-  const handleSubmitFeedback = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedSessionId) {
-      setSubmitError('Please select a parking session to review.');
-      return;
-    }
-    if (!commentInput.trim()) {
-      setSubmitError('Please enter your review.');
-      return;
-    }
-
-    setSubmitting(true);
-    setSubmitError(null);
-
-    const sessionObj = sessions.find((s) => s._id === selectedSessionId);
-    if (!sessionObj) {
-      setSubmitError('Invalid parking session.');
-      setSubmitting(false);
-      return;
-    }
-
-    try {
-      await userApi.feedbacks.create({
-        buildingId: sessionObj.building._id,
-        parkingSessionId: selectedSessionId,
-        rating: ratingInput,
-        comment: commentInput.trim(),
-      });
-      setSubmitSuccess(true);
-      setTimeout(() => {
-        setModalOpen(false);
-        loadReviews(1);
-      }, 1500);
-    } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Failed to submit review. Please try again.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  // Compute stats
-  const stats = useMemo(() => {
-    if (reviews.length === 0) return { avg: 5.0, total: 0 };
-    const total = reviews.length;
-    const sum = reviews.reduce((acc, r) => acc + r.rating, 0);
-    return {
-      avg: Number((sum / total).toFixed(1)),
-      total,
-    };
-  }, [reviews]);
+  const rv = useReviews();
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased">
@@ -173,19 +18,25 @@ export default function ReviewsPage() {
         <div className="mx-auto flex max-w-5xl items-center gap-4">
           <button
             type="button"
-            onClick={() => navigate(-1)}
+            onClick={() => rv.navigate(-1)}
             className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-400 hover:text-white transition-all duration-200 hover:bg-white/10"
           >
             <ArrowLeft size={16} />
           </button>
-          <div className="flex flex-col">
+          <div className="flex flex-col flex-1">
             <div className="flex items-center gap-2">
               <MessageSquare size={20} className="text-orange-400 animate-pulse" />
-              <h1 className="text-lg font-black tracking-tight text-white">Service reviews</h1>
+              <h1 className="text-lg font-black tracking-tight text-white">Service Reviews</h1>
             </div>
-            <p className="text-xs text-slate-400">View feedback and suggestions from system customers</p>
+            <p className="text-xs text-slate-400">See feedback and comments from our customers</p>
           </div>
-          
+          <button
+            type="button"
+            onClick={rv.handleOpenWriteReview}
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider shadow-[0_0_15px_rgba(249,115,22,0.3)] transition-all hover:scale-105 hover:shadow-[0_0_20px_rgba(249,115,22,0.5)] cursor-pointer"
+          >
+            Write a Review
+          </button>
         </div>
       </header>
 
@@ -193,356 +44,75 @@ export default function ReviewsPage() {
         {/* Title Banner */}
         <div className="text-center py-6">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-orange-400">
-            <Sparkles size={11} />Real reviews</span>
-          <h2 className="mt-3 text-3xl font-black text-white tracking-tight">What customers say about<span className="bg-gradient-to-r from-orange-400 to-amber-500 bg-clip-text text-transparent">us</span>
+            Real Reviews
+          </span>
+          <h2 className="mt-3 text-3xl font-black text-white tracking-tight">
+            What customers say about <span className="bg-gradient-to-r from-orange-400 to-amber-500 bg-clip-text text-transparent">us</span>
           </h2>
-          <p className="mt-2 text-sm text-slate-400 max-w-md mx-auto">The system always records feedback to continuously improve parking quality.</p>
+          <p className="mt-2 text-sm text-slate-400 max-w-md mx-auto">
+            We collect feedback continuously to keep improving parking lot quality.
+          </p>
         </div>
 
         {/* Stats & Filters Box */}
         <div className="grid gap-6 md:grid-cols-3">
-          {/* Average Stats Card */}
-          <div className="rounded-3xl border border-white/8 bg-white/3 p-6 flex flex-col justify-center items-center text-center">
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Average rating</p>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-5xl font-black text-white">{stats.avg}</span>
-              <span className="text-slate-500 text-lg">/ 5.0</span>
-            </div>
-            <div className="mt-3 flex gap-1 text-orange-400">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star
-                  key={i}
-                  size={18}
-                  fill={i < Math.round(stats.avg) ? 'currentColor' : 'none'}
-                  className={i < Math.round(stats.avg) ? 'text-orange-400' : 'text-slate-650'}
-                />
-              ))}
-            </div>
-            <p className="mt-2 text-xs text-slate-400">Based on {stats.total} reviews</p>
-          </div>
-
-          {/* Filters Card */}
-          <div className="md:col-span-2 rounded-3xl border border-white/8 bg-white/3 p-6 space-y-4">
-            <p className="text-xs font-black uppercase tracking-wider text-slate-300">Review filters</p>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="text-[11px] font-bold text-slate-400 uppercase">Building / Parking lot</label>
-                <select
-                  value={selectedBuilding}
-                  onChange={(e) => setSelectedBuilding(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-white/10 bg-slate-900 px-3 py-2.5 text-xs text-white focus:border-orange-500/50 focus:outline-none focus:ring-1 focus:ring-orange-500/50 transition-all"
-                >
-                  <option value="all">All parking lots</option>
-                  {buildings.map((b) => (
-                    <option key={b._id} value={b._id}>
-                      {b.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="text-[11px] font-bold text-slate-400 uppercase">Rating</label>
-                <select
-                  value={selectedRating}
-                  onChange={(e) => setSelectedRating(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-white/10 bg-slate-900 px-3 py-2.5 text-xs text-white focus:border-orange-500/50 focus:outline-none focus:ring-1 focus:ring-orange-500/50 transition-all"
-                >
-                  <option value="all">All ratings</option>
-                  <option value="5">5 sao ⭐⭐⭐⭐⭐</option>
-                  <option value="4">4 sao ⭐⭐⭐⭐</option>
-                  <option value="3">3 sao ⭐⭐⭐</option>
-                  <option value="2">2 sao ⭐⭐</option>
-                  <option value="1">1 sao ⭐</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedBuilding('all');
-                  setSelectedRating('all');
-                }}
-                className="text-xs font-semibold text-slate-400 hover:text-white transition-colors flex items-center gap-1.5"
-              >
-                <RefreshCw size={12} />Reset filters</button>
-            </div>
-          </div>
+          <RatingStatsCard avg={rv.stats.avg} total={rv.stats.total} />
+          <ReviewFiltersBar
+            buildings={rv.buildings}
+            selectedBuilding={rv.selectedBuilding}
+            setSelectedBuilding={rv.setSelectedBuilding}
+            selectedBuildingName={rv.selectedBuildingName}
+            buildingDropdownOpen={rv.buildingDropdownOpen}
+            setBuildingDropdownOpen={rv.setBuildingDropdownOpen}
+            selectedRating={rv.selectedRating}
+            setSelectedRating={rv.setSelectedRating}
+            selectedRatingLabel={rv.selectedRatingLabel}
+            ratingDropdownOpen={rv.ratingDropdownOpen}
+            setRatingDropdownOpen={rv.setRatingDropdownOpen}
+          />
         </div>
 
         {/* Reviews List */}
-        {loading ? (
-          <div className="py-20 text-center space-y-3">
-            <RefreshCw className="mx-auto animate-spin text-orange-500" size={32} />
-            <p className="text-sm text-slate-450 font-medium">Loading reviews...</p>
-          </div>
-        ) : reviews.length === 0 ? (
-          <div className="rounded-3xl border border-white/8 bg-white/3 p-16 text-center max-w-md mx-auto">
-            <MessageSquare size={48} className="mx-auto mb-4 text-slate-650" />
-            <p className="text-base font-bold text-slate-300">No reviews yet</p>
-            <p className="mt-1.5 text-xs text-slate-500 leading-relaxed">
-              {selectedBuilding !== 'all' || selectedRating !== 'all'
-                ? 'No reviews match the current filters.'
-                : 'Be the first to review your parking experience!'}
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {/* Reviews Grid */}
-            <div className="grid gap-6 md:grid-cols-2">
-              {reviews.map((item) => {
-                const userInitials = item.user?.fullName
-                  ? item.user.fullName
-                      .split(' ')
-                      .slice(-2)
-                      .map((word) => word[0])
-                      .join('')
-                      .toUpperCase()
-                  : 'U';
-
-                return (
-                  <div
-                    key={item._id}
-                    className="group relative rounded-3xl border border-white/6 bg-white/3 p-6 hover:border-orange-500/20 hover:bg-white/5 transition-all duration-350 shadow-lg hover:shadow-orange-500/2 shadow-slate-950/20 hover:scale-[1.01]"
-                  >
-                    {/* Background decoration inside card */}
-                    <div className="absolute top-0 right-0 p-4 text-white/5 group-hover:text-orange-500/5 transition-colors">
-                      <Quote size={40} className="transform rotate-180" />
-                    </div>
-
-                    <div className="flex items-start gap-4">
-                      {/* Avatar */}
-                      {item.user?.avatar ? (
-                        <img
-                          src={item.user.avatar}
-                          alt={item.user.fullName || 'User'}
-                          className="h-11 w-11 rounded-full object-cover border border-white/10"
-                        />
-                      ) : (
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-amber-600 text-white font-bold text-sm shadow-md shadow-orange-500/10">
-                          {userInitials}
-                        </div>
-                      )}
-
-                      {/* Header details */}
-                      <div className="space-y-1">
-                        <p className="font-bold text-white leading-tight">
-                          {item.user?.fullName || item.user?.email || 'Anonymous user'}
-                        </p>
-                        <p className="text-[10px] font-semibold text-slate-450 tracking-wide">
-                          Customer · {item.building?.name || 'Parking lot'}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Rating stars & Date */}
-                    <div className="mt-4 flex items-center justify-between">
-                      <div className="flex gap-0.5 text-orange-400">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <Star
-                            key={i}
-                            size={14}
-                            fill={i < item.rating ? 'currentColor' : 'none'}
-                            className={i < item.rating ? 'text-orange-400' : 'text-slate-700'}
-                          />
-                        ))}
-                        <span className="ml-1.5 text-xs font-black text-slate-350">{item.rating}.0</span>
-                      </div>
-                      <span className="text-[10px] text-slate-500 font-semibold">{fmtTime(item.createdAt)}</span>
-                    </div>
-
-                    {/* Comment text */}
-                    <p className="mt-3 text-sm text-slate-300 leading-relaxed font-medium">
-                      {item.comment}
-                    </p>
-
-                    {/* Manager's reply */}
-                    {item.staffReply && (
-                      <div className="mt-4 rounded-2xl border border-orange-500/15 bg-orange-500/5 p-4 space-y-1">
-                        <div className="flex items-center gap-1.5">
-                          <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />
-                          <p className="text-[10px] font-black uppercase tracking-wider text-orange-400">Response from administrator</p>
-                          {item.repliedBy?.fullName && (
-                            <span className="text-[10px] text-slate-450">({item.repliedBy.fullName})</span>
-                          )}
-                        </div>
-                        <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                          {item.staffReply}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2.5 pt-4">
-                <button
-                  type="button"
-                  disabled={page <= 1 || loading}
-                  onClick={() => loadReviews(page - 1)}
-                  className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold text-slate-300 hover:text-white disabled:opacity-40 hover:bg-white/10 transition-all"
-                >← Prev</button>
-                <span className="text-xs text-slate-400 font-bold">
-                  Trang {page} / {totalPages}
-                </span>
-                <button
-                  type="button"
-                  disabled={page >= totalPages || loading}
-                  onClick={() => loadReviews(page + 1)}
-                  className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold text-slate-300 hover:text-white disabled:opacity-40 hover:bg-white/10 transition-all"
-                >
-                  Sau →
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+        <ReviewsList
+          loading={rv.loading}
+          reviews={rv.reviews}
+          selectedBuilding={rv.selectedBuilding}
+          selectedRating={rv.selectedRating}
+          currentUserId={rv.user?.userId}
+          deletingId={rv.deletingId}
+          onDelete={rv.handleDeleteFeedback}
+          onWriteReview={rv.handleOpenWriteReview}
+          page={rv.page}
+          totalPages={rv.totalPages}
+          loadReviews={rv.loadReviews}
+        />
       </main>
 
       {/* Review Submission Modal */}
-      <Modal open={modalOpen} onOpenChange={setModalOpen} title="Rate parking service">
-        <div className="text-slate-700 text-sm leading-relaxed p-1">
-          {loadingSessions ? (
-            <div className="py-12 text-center space-y-2">
-              <RefreshCw className="mx-auto animate-spin text-orange-500" size={24} />
-              <p className="text-xs text-stone-500">Checking your parking history...</p>
-            </div>
-          ) : sessionsError ? (
-            <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-4 flex gap-3 text-red-650 items-start">
-              <AlertTriangle className="shrink-0 mt-0.5" size={16} />
-              <div className="space-y-1">
-                <p className="font-bold text-sm">Error loading data</p>
-                <p className="text-xs leading-relaxed">{sessionsError}</p>
-              </div>
-            </div>
-          ) : sessions.length === 0 ? (
-            <div className="py-6 text-center space-y-4">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-500">
-                <AlertTriangle size={24} />
-              </div>
-              <div className="space-y-1 px-4">
-                <p className="font-black text-stone-850 text-base">Service completion required</p>
-                <p className="text-xs text-stone-500 leading-relaxed">
-                  You have not completed any parking sessions yet. Please use the service and complete payment before leaving a review.
-                </p>
-              </div>
-              <Button
-                variant="secondary"
-                onClick={() => setModalOpen(false)}
-                className="mt-2 rounded-xl text-xs font-bold px-5 py-2.5"
-              >Got it</Button>
-            </div>
-          ) : submitSuccess ? (
-            <div className="py-8 text-center space-y-3">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-500">
-                <CheckCircle size={32} />
-              </div>
-              <p className="font-black text-stone-850 text-base">Thank you for your review!</p>
-              <p className="text-xs text-stone-500">Your feedback has been submitted and is awaiting approval.</p>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmitFeedback} className="space-y-4">
-              <p className="text-xs text-stone-500">Your feedback helps us improve parking quality every day.</p>
-
-              {/* Sessions Select */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-black text-stone-600 uppercase">Select a completed parking session</label>
-                <select
-                  value={selectedSessionId}
-                  onChange={(e) => setSelectedSessionId(e.target.value)}
-                  required
-                  className="w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-xs text-stone-850 focus:border-orange-500 focus:outline-none transition-all"
-                >
-                  {sessions.map((s) => (
-                    <option key={s._id} value={s._id}>
-                      {s.plateNumber} at {s.building.name} (Check-out: {fmtTime(s.checkOut)})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Stars Input */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-black text-stone-600 uppercase">Satisfaction level</label>
-                <div className="flex gap-1.5 py-1">
-                  {Array.from({ length: 5 }).map((_, i) => {
-                    const index = i + 1;
-                    const active = hoveredRating !== null ? index <= hoveredRating : index <= ratingInput;
-
-                    return (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => setRatingInput(index)}
-                        onMouseEnter={() => setHoveredRating(index)}
-                        onMouseLeave={() => setHoveredRating(null)}
-                        className="text-stone-300 hover:scale-110 active:scale-95 transition-all focus:outline-none"
-                      >
-                        <Star
-                          size={28}
-                          fill={active ? '#f97316' : 'none'}
-                          className={active ? 'text-orange-500' : 'text-stone-350'}
-                        />
-                      </button>
-                    );
-                  })}
-                  <span className="ml-3 font-black text-stone-800 self-center text-sm">
-                    {ratingInput} / 5 sao
-                  </span>
-                </div>
-              </div>
-
-              {/* Comment Input */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-black text-stone-600 uppercase">Review content</label>
-                <textarea
-                  value={commentInput}
-                  onChange={(e) => setCommentInput(e.target.value)}
-                  placeholder="Share your experience and feedback about the parking, staff attitude..."
-                  rows={4}
-                  required
-                  maxLength={1000}
-                  className="w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs text-stone-850 placeholder:text-stone-400 focus:border-orange-500 focus:outline-none transition-all resize-none"
-                />
-                <div className="text-right text-[10px] text-stone-400">
-                  {commentInput.length} / 1000 characters
-                </div>
-              </div>
-
-              {/* Submit Error */}
-              {submitError && (
-                <div className="rounded-xl border border-red-500/20 bg-red-500/5 px-3 py-2.5 text-xs text-red-650 flex gap-2 items-center">
-                  <AlertTriangle className="shrink-0" size={13} />
-                  <span>{submitError}</span>
-                </div>
-              )}
-
-              {/* Form buttons */}
-              <div className="flex justify-end gap-2.5 border-t border-stone-100 pt-4 mt-2">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => setModalOpen(false)}
-                  disabled={submitting}
-                  className="rounded-xl px-5 py-2.5 font-bold text-xs"
-                >Cancel</Button>
-                <Button
-                  type="submit"
-                  disabled={submitting}
-                  className="rounded-xl px-5 py-2.5 font-bold text-xs bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-md shadow-orange-500/10 transition-all"
-                >
-                  {submitting ? 'Sending...' : 'Submit review'}
-                </Button>
-              </div>
-            </form>
-          )}
-        </div>
-      </Modal>
+      <WriteReviewModal
+        navigate={rv.navigate}
+        modalOpen={rv.modalOpen}
+        setModalOpen={rv.setModalOpen}
+        session={rv.session}
+        sessions={rv.sessions}
+        loadingSessions={rv.loadingSessions}
+        sessionsError={rv.sessionsError}
+        selectedSessionId={rv.selectedSessionId}
+        setSelectedSessionId={rv.setSelectedSessionId}
+        selectedSession={rv.selectedSession}
+        dropdownOpen={rv.dropdownOpen}
+        setDropdownOpen={rv.setDropdownOpen}
+        ratingInput={rv.ratingInput}
+        setRatingInput={rv.setRatingInput}
+        hoveredRating={rv.hoveredRating}
+        setHoveredRating={rv.setHoveredRating}
+        commentInput={rv.commentInput}
+        setCommentInput={rv.setCommentInput}
+        submitting={rv.submitting}
+        submitSuccess={rv.submitSuccess}
+        submitError={rv.submitError}
+        handleSubmitFeedback={rv.handleSubmitFeedback}
+      />
     </div>
   );
 }

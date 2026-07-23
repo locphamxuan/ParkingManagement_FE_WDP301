@@ -85,7 +85,7 @@ export async function syncPlates(
       try {
         await removePlate(plate._id);
       } catch (err) {
-        errors.push(`Delete ${plate.plateNumber}: ${err instanceof Error ? err.message : 'error'}`);
+        errors.push(`Remove ${plate.plateNumber}: ${err instanceof Error ? err.message : 'error'}`);
       }
     }
   }
@@ -108,7 +108,7 @@ export async function syncPlates(
   }
 
   if (errors.length) {
-    throw new Error(`Failed to sync plates — ${errors.join('; ')}`);
+    throw new Error(`License plate sync failed — ${errors.join('; ')}`);
   }
 
   return latestPlates;

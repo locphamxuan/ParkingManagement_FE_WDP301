@@ -17,11 +17,11 @@ interface NavbarProps {
 
 export function Navbar({ title, email, onLogout, fullName, role, showNotification = true }: NavbarProps) {
   return (
-    <header className="sticky top-0 z-20 border-b border-sky-100/50 bg-white/40 px-6 py-4 backdrop-blur-xl shadow-sm transition-all duration-200">
+    <header className="sticky top-0 z-20 border-b border-sky-100 bg-white/90 px-6 py-3.5 backdrop-blur-xl shadow-xs transition-all duration-200">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-slate-400">OPERATIONS SYSTEM</p>
-          <h1 className="text-lg font-black tracking-tight bg-gradient-to-r from-blue-600 to-blue-300 bg-clip-text text-transparent mt-0.5 inline-block w-fit">
+          <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-sky-600 font-mono">OPERATIONS SYSTEM</p>
+          <h1 className="text-lg font-black tracking-tight bg-gradient-to-r from-blue-600 via-blue-500 to-sky-400 bg-clip-text text-transparent mt-0.5 inline-block w-fit">
             {title}
           </h1>
         </div>

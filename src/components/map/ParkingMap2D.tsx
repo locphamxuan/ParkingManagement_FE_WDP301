@@ -163,6 +163,7 @@ function SlotCell({
 }) {
   const isClickable = interactive && status === 'available';
   const isSelected = status === 'selected';
+  const isCar = !slot.vehicleType || slot.vehicleType === 'car';
 
   return (
     <motion.button
@@ -173,15 +174,18 @@ function SlotCell({
       whileTap={isClickable && !is3D ? { scale: 0.95 } : {}}
       title={`${slot.code} — ${status === 'available' ? 'Available' : 'Selected'}`}
       className={`
-        relative flex items-center justify-center rounded-xl border-2 transition-all duration-200 overflow-hidden px-3 py-2
+        relative flex flex-col items-center justify-center rounded-xl border-2 transition-all duration-200 overflow-hidden px-2 py-1.5
         ${is3D ? 'h-12 w-16 sm:h-14 sm:w-20' : 'h-16 w-24 sm:h-20 sm:w-28'}
         ${slotBg(status)}
         ${isClickable || isSelected ? 'cursor-pointer' : 'cursor-default'}
       `}
       style={is3D ? { transform: 'translateZ(10px)', transformStyle: 'preserve-3d' } : undefined}
     >
-      <span className={`text-sm sm:text-base font-black uppercase tracking-wider ${slotTextColor(status)}`}>
+      <span className={`text-xs sm:text-sm font-black uppercase tracking-wider ${slotTextColor(status)}`}>
         {slot.code}
+      </span>
+      <span className="text-sm sm:text-base mt-0.5">
+        {isCar ? '🏎️' : '🏍️'}
       </span>
     </motion.button>
   );

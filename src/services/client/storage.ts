@@ -10,8 +10,10 @@ export const STORAGE_KEYS = {
 
 export type StorageKey = (typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS];
 
+// Auth is via httpOnly cookie (see services/client/apiClient.ts) — the token
+// itself is never written here, so it can't be read out by an XSS payload.
+// `user` is cached only for optimistic UI on reload (display data, not a secret).
 export interface LocalSession {
-  token: string;
   user: Record<string, unknown> | null;
 }
 
@@ -57,20 +59,18 @@ export function removeStored(key: StorageKey): void {
 }
 
 export function loadSession(): LocalSession {
-  const token = localStorage.getItem(STORAGE_KEYS.token) || '';
+  // One-time purge of any token a pre-cookie-auth build of this app left
+  // behind in localStorage — nothing writes STORAGE_KEYS.token anymore.
+  localStorage.removeItem(STORAGE_KEYS.token);
   const user = loadJson<Record<string, unknown>>(STORAGE_KEYS.user);
-
-  return { token, user };
+  return { user };
 }
 
 export function saveSession(session: LocalSession): void {
-  if (session?.token) {
-    localStorage.setItem(STORAGE_KEYS.token, session.token);
-    localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(session.user || null));
+  if (session?.user) {
+    localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(session.user));
     return;
   }
-
-  localStorage.removeItem(STORAGE_KEYS.token);
   localStorage.removeItem(STORAGE_KEYS.user);
 }
 

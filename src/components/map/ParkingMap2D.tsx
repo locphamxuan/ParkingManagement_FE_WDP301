@@ -1,24 +1,9 @@
 import { useState, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Lock } from 'lucide-react';
+import { X } from 'lucide-react';
+import { ParkingRow, type ParkingSlot, type SlotDetailedStatus } from './ParkingMap2D.pieces';
 
-/* ─── Types ────────────────────────────────────────────────────────────────── */
-
-export type SlotDetailedStatus =
-  | 'available'
-  | 'selected'
-  | 'reserved'
-  | 'occupied'
-  | 'maintenance'
-  | 'unsupported';
-
-export interface ParkingSlot {
-  code: string;
-  status: 'available' | 'unavailable' | 'reserved';
-  vehicleType?: 'car' | 'motorcycle';
-  plateNumber?: string;
-  detailedStatus?: SlotDetailedStatus;
-}
+export type { ParkingSlot, SlotDetailedStatus };
 
 export interface ParkingMap2DProps {
   slots: ParkingSlot[];
@@ -38,7 +23,7 @@ export interface ParkingMap2DProps {
   filterVehicleType?: 'car' | 'motorcycle';
 }
 
-/* ─── SVG Icons (inline, no lock icons on occupied) ────────────────────────── */
+ /* ─── SVG Icons (inline, no lock icons on occupied) ────────────────────────── */
 
 function CarSvg({ className = '' }: { className?: string }) {
   return (
@@ -283,6 +268,7 @@ function ParkingRow({
     </div>
   );
 }
+
 
 /* ─── Legend ────────────────────────────────────────────────────────────────── */
 

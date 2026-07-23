@@ -136,13 +136,6 @@ export function ManagerDashboardPage() {
                   </span>
                 </div>
 
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50/50 border border-blue-200 text-[10px] font-bold text-blue-800 shadow-sm transition-all duration-200 hover:border-blue-400">
-                  <span className="text-[9px] font-black uppercase tracking-wider text-blue-500 font-mono">Rate:</span>
-                  <span className="font-black text-blue-700">
-                    {selectedBuilding.pricing?.hourlyRate?.toLocaleString('vi-VN') || 0} VND/h
-                  </span>
-                </div>
-
                 {selectedBuilding.contactPhone && (
                   <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-[10px] font-bold text-slate-700 shadow-sm transition-all duration-200 hover:border-blue-300">
                     <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">Support:</span>

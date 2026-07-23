@@ -4,7 +4,7 @@ import { ArrowRight, Building2, Mail, PhoneCall } from 'lucide-react';
 import footerBg from '@/assets/footer.png';
 import { navigationLinks } from './homeNavigation.constants';
 import { Logo } from '@/components/layout/Logo';
-import styles from './HomeFooter.module.css';
+import styles from '@/styles/modules/HomeFooter.module.css';
 
 type HomeUser = { fullName?: string; email?: string; role?: string } | null | undefined;
 

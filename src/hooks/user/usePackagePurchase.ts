@@ -17,7 +17,7 @@ import {
   type VehicleKind,
   isCarPackage,
   normalizeVehicleTypeCode,
-} from '@/pages/user/reservationsHelper';
+} from '@/pages/user/packageBookingHelper';
 
 export interface PackagePurchaseLocationState {
   buildingId?: string;

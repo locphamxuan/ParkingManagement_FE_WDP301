@@ -1,45 +1,27 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { RefreshCcw, CheckCircle2, Car, ScanLine, QrCode, UserSquare, ArrowLeft, ArrowRight, Wallet, Banknote, QrCode as QrIcon } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { RefreshCcw, Car, ScanLine, QrCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useAssignedGates } from '@/hooks/staff/useAssignedGates';
 import { staffApi, type ParkingSession } from '@/services/staff/staffApi';
 import { LivePlateCamera, type PlateScanResult, type LiveCameraHandle } from '@/components/staff/LivePlateCamera';
 import { LiveQRCamera } from '@/components/staff/LiveQRCamera';
-import { LivePortraitCamera } from '@/components/staff/LivePortraitCamera';
 import { normalizePlate } from '@/utils/plate';
-import { fmtTime, fmtMoney, fmtDuration } from '@/components/staff/parked/staffParkedFormat';
+import { fmtMoney, computeCheckoutFee } from '@/components/staff/parked/staffParkedFormat';
 import { ParkedSessionCard } from '@/components/staff/parked/ParkedSessionCard';
 import { ParkedRejectModal } from '@/components/staff/parked/ParkedRejectModal';
 import { BankTransferModal } from '@/components/staff/parked/BankTransferModal';
-import { LicensePlate } from '@/components/common/LicensePlate';
-import styles from './StaffParkedPage.module.css';
-
-type PaymentKind = 'cash' | 'bank_transfer' | 'wallet';
+import { CheckoutModal, type PaymentKind } from '@/components/staff/parked/CheckoutModal';
+import { BarrierGateOverlay, type BarrierState } from '@/components/staff/BarrierGateOverlay';
+import styles from '@/styles/modules/StaffParkedPage.module.css';
 
 interface BankTransferState {
   orderCode: number;
   checkoutUrl: string;
   amount: number;
   plate: string;
-}
-
-function CompareImg({ src, label }: { src?: string | null; label: string }) {
-  return (
-    <div>
-      <div className="aspect-[4/3] overflow-hidden rounded-xl border border-sky-100 bg-slate-50 flex items-center justify-center shadow-inner">
-        {src ? (
-          <img src={src} alt={label} className="h-full w-full object-cover" />
-        ) : (
-          <span className="text-[10px] text-slate-400">None</span>
-        )}
-      </div>
-      <p className="mt-1 text-center text-[10px] font-bold text-slate-500">{label}</p>
-    </div>
-  );
 }
 
 export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }) {
@@ -58,7 +40,7 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
   const [paymentMethod, setPaymentMethod] = useState<PaymentKind>('cash');
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
-  const [barrierState, setBarrierState] = useState<'closed' | 'opening' | 'open' | 'closing'>('closed');
+  const [barrierState, setBarrierState] = useState<BarrierState>('closed');
 
   const [identifyMode, setIdentifyMode] = useState<'plate' | 'qr'>('plate');
   const [coStep, setCoStep] = useState<1 | 2>(1);
@@ -179,15 +161,12 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
     if (!target) return;
     setOpMessage(null);
     
-    let entry = new Date();
-    try {
-      entry = new Date(target.entryTime);
-    } catch {
-      // fallback
-    }
-    const diffMin = Math.max(0, Math.floor((Date.now() - entry.getTime()) / 60000));
-    const isUnderGracePeriod = diffMin < 10;
-    const dueFee = isUnderGracePeriod ? 0 : (target.currentFee ?? target.fee ?? 0);
+    // Phí phạt (nếu có) đang chờ thu cho biển số này — BE tự cộng/khấu trừ khi check-out
+    // (settlePendingPenaltyAtCheckout), nhưng phương thức thanh toán gửi lên phải phản
+    // ánh đúng lựa chọn của staff kể cả khi phí gửi xe = 0 (miễn phí/grace period) mà
+    // vẫn còn phạt phải thu.
+    const pendingPenalty = pendingPenalties[normalizePlate(target.plateNumber)] || 0;
+    const { isUnderGracePeriod, dueFee, grandTotal } = computeCheckoutFee(target, pendingPenalty);
 
     try {
       if (paymentMethod === 'bank_transfer' && dueFee > 0) {
@@ -206,8 +185,16 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
       }
       const exitPortrait = capturedPortraitImage ?? portraitCamRef.current?.capture() ?? null;
 
+      // Bank transfer chỉ có QR thật cho phí gửi xe (nhánh trên) — không có luồng QR
+      // riêng cho phí phạt, nên nếu chỉ còn phạt (dueFee = 0) mà staff chọn "Transfer"
+      // thì hạ về cash thay vì gửi thẳng 'bank_transfer' (tránh BE đánh dấu đã thu điện
+      // tử trong khi chưa hề có giao dịch thật nào).
+      const effectivePaymentMethod = grandTotal > 0
+        ? (paymentMethod === 'bank_transfer' ? 'cash' : paymentMethod)
+        : 'cash';
+
       const payload: any = {
-        ...(target.isReservation ? {} : { paymentMethod: dueFee > 0 ? paymentMethod : 'cash' }),
+        ...(target.isReservation ? {} : { paymentMethod: effectivePaymentMethod }),
         exitPlateImage: capturedPlateImage,
         exitPortraitImage: exitPortrait,
       };
@@ -229,11 +216,13 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
         type: 'ok',
         text: target.isReservation
           ? `Vehicle ${target.plateNumber} released — wallet auto-charged.`
-          : isUnderGracePeriod
-            ? `Vehicle ${target.plateNumber} released under 10-minute Grace Period (free).`
-            : dueFee > 0
-              ? `Fee collected (${dueFee.toLocaleString('vi-VN')} ₫). Vehicle ${target.plateNumber} released.`
-              : `Vehicle ${target.plateNumber} released (free under package).`,
+          : pendingPenalty > 0
+            ? `Fee collected (${grandTotal.toLocaleString('vi-VN')} ₫, incl. ${pendingPenalty.toLocaleString('vi-VN')} ₫ penalty). Vehicle ${target.plateNumber} released.`
+            : isUnderGracePeriod
+              ? `Vehicle ${target.plateNumber} released under 10-minute Grace Period (free).`
+              : dueFee > 0
+                ? `Fee collected (${dueFee.toLocaleString('vi-VN')} ₫). Vehicle ${target.plateNumber} released.`
+                : `Vehicle ${target.plateNumber} released (free under package).`,
       });
       setPaymentMethod('cash');
       setCheckoutTarget(null);
@@ -434,6 +423,24 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
 
       {/* Checkout and Payment Modal */}
       {checkoutTarget && (
+        <CheckoutModal
+          checkoutTarget={checkoutTarget}
+          userLabel={user?.fullName || user?.email || 'You'}
+          coStep={coStep}
+          setCoStep={setCoStep}
+          capturedPlateImage={capturedPlateImage}
+          capturedPortraitImage={capturedPortraitImage}
+          setCapturedPortraitImage={setCapturedPortraitImage}
+          portraitCamRef={portraitCamRef}
+          paymentMethod={paymentMethod}
+          setPaymentMethod={setPaymentMethod}
+          pendingPenalties={pendingPenalties}
+          loading={loading}
+          onClose={() => { setCheckoutTarget(null); setPaymentMethod('cash'); setCoStep(1); setCapturedPlateImage(null); setCapturedPortraitImage(null); }}
+          onCheckOut={onCheckOut}
+          onOpenReject={() => setRejectOpen(true)}
+          onCaptureError={(text) => setOpMessage({ type: 'err', text })}
+        />
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-md">
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
@@ -664,76 +671,7 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
         onClose={() => setBankTransfer(null)}
       />
       {/* Barrier Gate IoT Simulation Overlay */}
-      <AnimatePresence>
-        {barrierState !== 'closed' && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm"
-          >
-            <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className="w-full max-w-md rounded-3xl border border-slate-800 bg-slate-900 p-8 text-center shadow-2xl space-y-6"
-            >
-              {/* Barrier Arm Animation Container */}
-              <div className="relative h-32 w-full flex items-center justify-center overflow-hidden bg-slate-950/50 rounded-2xl border border-slate-800">
-                {/* Gate Post */}
-                <div className="absolute bottom-4 left-1/4 w-6 h-16 bg-slate-700 rounded-md border border-slate-600 z-10 flex flex-col justify-around items-center py-2">
-                  <div className={`w-3.5 h-3.5 rounded-full ${barrierState === 'open' ? 'bg-emerald-500 shadow-[0_0_12px_#10b981]' : 'bg-amber-500 shadow-[0_0_12px_#f59e0b]'} transition-all duration-300`} />
-                  <div className="w-1.5 h-6 bg-slate-900 rounded" />
-                </div>
-                
-                {/* Barrier Arm (Pole) */}
-                <motion.div
-                  style={{ originX: 0.1, originY: 0.5 }}
-                  animate={{
-                    rotate: barrierState === 'open' ? -90 : barrierState === 'opening' ? -45 : barrierState === 'closing' ? -45 : 0
-                  }}
-                  transition={{ duration: 0.8, ease: "easeInOut" }}
-                  className="absolute bottom-10 left-1/4 w-40 h-3 bg-gradient-to-r from-slate-200 via-rose-500 to-rose-600 rounded-full border border-slate-900 z-20 origin-left flex justify-around animate-pulse"
-                >
-                  <div className="w-4 h-full bg-white" />
-                  <div className="w-4 h-full bg-white" />
-                  <div className="w-4 h-full bg-white" />
-                </motion.div>
-
-                {/* Ground Line */}
-                <div className="absolute bottom-4 left-0 right-0 h-1 bg-slate-800" />
-              </div>
-
-              {/* Status Message */}
-              <div className="space-y-2">
-                <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-black uppercase tracking-wider ${
-                  barrierState === 'open' 
-                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
-                    : barrierState === 'opening' 
-                      ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                      : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-                }`}>
-                  {barrierState === 'opening' && 'Gate opening...'}
-                  {barrierState === 'open' && 'Barrier Raised - Pass through'}
-                  {barrierState === 'closing' && 'Closing barrier...'}
-                </span>
-                
-                <h3 className="text-lg font-black text-slate-100 uppercase tracking-wide">
-                  {barrierState === 'opening' && 'Releasing Vehicle...'}
-                  {barrierState === 'open' && 'Gate barrier open'}
-                  {barrierState === 'closing' && 'Security Gate warning'}
-                </h3>
-                
-                <p className="text-xs text-slate-400 px-4">
-                  {barrierState === 'opening' && 'Triggering IoT controller. Gate is opening.'}
-                  {barrierState === 'open' && 'Please drive the vehicle forward slowly. The barrier will automatically close.'}
-                  {barrierState === 'closing' && 'Safety check complete. Closing gate arm.'}
-                </p>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <BarrierGateOverlay barrierState={barrierState} />
     </motion.div>
   );
 }

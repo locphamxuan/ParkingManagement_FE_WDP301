@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Building2, Mail, PhoneCall } from 'lucide-react';
 import footerBg from '@/assets/footer.png';
 import { TiltCard } from './TiltCard';
-import styles from './HomeFooterSections.module.css';
+import styles from '@/styles/modules/HomeFooterSections.module.css';
 
 interface PremiumCTABannerProps {
   user: any;

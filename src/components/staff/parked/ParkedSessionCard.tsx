@@ -100,9 +100,9 @@ export function ParkedSessionCard({ session: s, canCheckout, onCheckout }: Parke
           <p className="font-bold text-slate-700">{floor} · {slotCode}</p>
         </div>
         <div>
-          <span className="text-[9px] font-bold uppercase tracking-wide text-slate-400">Trạng thái ô đỗ</span>
+          <span className="text-[9px] font-bold uppercase tracking-wide text-slate-400">Slot status</span>
           <p className={`font-bold ${!hasSlot ? 'text-amber-500' : isPlateMismatch ? 'text-rose-500 animate-pulse' : 'text-emerald-500'}`}>
-            {!hasSlot ? '⚠️ Chưa phân ô' : isPlateMismatch ? '🔴 Bị báo chiếm chỗ' : '🟢 Đúng vị trí'}
+            {!hasSlot ? '⚠️ No slot assigned' : isPlateMismatch ? '🔴 Reported occupied' : '🟢 Correct slot'}
           </p>
         </div>
         <div className="col-span-2">

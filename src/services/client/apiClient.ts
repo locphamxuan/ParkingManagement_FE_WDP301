@@ -1,5 +1,3 @@
-const STORAGE_TOKEN = 'pbms.token';
-
 // Hỗ trợ cả hai tên biến môi trường từng dùng (VITE_API_BASE và VITE_API_BASE_URL)
 // để giữ tương thích sau khi hợp nhất 2 HTTP client về một.
 const API_BASE =
@@ -7,22 +5,18 @@ const API_BASE =
   (import.meta.env.VITE_API_BASE_URL as string | undefined) ||
   'http://localhost:5000/api';
 
-export function setStoredToken(token: string | null): void {
-  if (token) localStorage.setItem(STORAGE_TOKEN, token);
-  else localStorage.removeItem(STORAGE_TOKEN);
-}
-
-export function getStoredToken(): string | null {
-  return localStorage.getItem(STORAGE_TOKEN);
-}
-
 type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 interface ApiOptions {
   body?: unknown;
   query?: Record<string, string | number | boolean | undefined | null>;
   signal?: AbortSignal;
-  /** Ghi đè token (nếu không truyền sẽ lấy từ localStorage). */
+  /**
+   * Chỉ dùng cho vài call site cũ (admin/*) còn giữ token trong state của
+   * session đang mở, KHÔNG đọc từ localStorage — auth mặc định đi qua cookie
+   * httpOnly (credentials:'include' bên dưới), thiếu header này request vẫn
+   * xác thực được bình thường.
+   */
   token?: string;
 }
 
@@ -52,14 +46,16 @@ export async function apiRequest<T = unknown>(
   path: string,
   options: ApiOptions = {}
 ): Promise<T> {
-  const token = options.token ?? getStoredToken();
   const url = `${API_BASE}${path}${buildQuery(options.query)}`;
 
   const res = await fetch(url, {
     method,
+    // Sends the httpOnly auth cookie automatically — this is the ONLY auth
+    // channel for the web app now (see storage.ts / auth.middleware.js on BE).
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
     },
     body: options.body ? JSON.stringify(options.body) : undefined,
     signal: options.signal,
@@ -78,7 +74,6 @@ export async function apiRequest<T = unknown>(
         ? String((payload as { message?: unknown }).message)
         : null) || `Request failed (${res.status})`;
     if (res.status === 401) {
-      setStoredToken(null);
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new Event('auth-unauthorized'));
       }

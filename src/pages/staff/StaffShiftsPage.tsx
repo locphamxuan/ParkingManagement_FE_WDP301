@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { staffApi, extractShifts, type MyShift } from '@/services/staff/staffApi';
-import styles from './StaffShiftsPage.module.css';
+import styles from '@/styles/modules/StaffShiftsPage.module.css';
 
 export function StaffShiftsPage() {
   const [items, setItems] = useState<MyShift[]>([]);

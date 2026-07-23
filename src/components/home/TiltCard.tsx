@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, useMotionValue, useSpring, useTransform, animate } from 'framer-motion';
-import styles from './TiltCard.module.css';
+import styles from '@/styles/modules/TiltCard.module.css';
 
 interface TiltCardProps {
   children: React.ReactNode;

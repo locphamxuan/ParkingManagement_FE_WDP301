@@ -127,26 +127,26 @@ export function ManagerRefundPolicyPage() {
 
             <div className="rounded-2xl border border-rose-100 bg-rose-50/30 p-4 space-y-4">
               <h3 className="text-xs font-extrabold uppercase tracking-wider text-rose-700 flex items-center gap-2">
-                ⚖️ Quy định tiền phạt vi phạm (Dành cho Manager cấu hình)
+                ⚖️ Penalty Fee Rules (Manager configuration)
               </h3>
 
               {/* Penalty explanations */}
               <div className="rounded-xl border border-rose-100 bg-rose-50/60 p-3 text-[10px] text-rose-700 space-y-1.5 font-medium">
-                <p className="font-bold text-rose-800 text-[11px]">📋 Các trường hợp phạt áp dụng tại bãi gửi xe:</p>
+                <p className="font-bold text-rose-800 text-[11px]">📋 Cases where a penalty fee applies on the premises:</p>
                 <div className="grid gap-1">
-                  <div className="flex items-start gap-2"><span className="shrink-0 font-black">🚫</span><span><b>Đỗ sai vị trí / dãy:</b> Xe đỗ vào ô không được phép (sai loại xe, sai dãy gói đăng ký).</span></div>
-                  <div className="flex items-start gap-2"><span className="shrink-0 font-black">⏰</span><span><b>Xe ở quá giờ quy định (overstay):</b> Xe gói tháng đỗ quá số giờ/ngày cho phép theo gói.</span></div>
-                  <div className="flex items-start gap-2"><span className="shrink-0 font-black">🔧</span><span><b>Làm hỏng thiết bị bãi xe:</b> Gây hư hỏng camera, cổng tự động, vạch sơn, biển báo.</span></div>
-                  <div className="flex items-start gap-2"><span className="shrink-0 font-black">📸</span><span><b>Biển số không khớp / giả mạo:</b> Biển số camera nhận diện không trùng với đăng ký trong hệ thống.</span></div>
-                  <div className="flex items-start gap-2"><span className="shrink-0 font-black">🔒</span><span><b>Chiếm ô gói đăng ký của người khác:</b> Xe không có quyền đỗ vào slot đã được người khác đăng ký gói cố định.</span></div>
-                  <div className="flex items-start gap-2"><span className="shrink-0 font-black">🚪</span><span><b>Vi phạm quy trình ra/vào cổng:</b> Cố tình vượt cổng, không thực hiện check-in/out đúng quy trình hệ thống.</span></div>
+                  <div className="flex items-start gap-2"><span className="shrink-0 font-black">🚫</span><span><b>Wrong spot / row:</b> Vehicle parked in a slot it's not allowed to use (wrong vehicle type, wrong subscription row).</span></div>
+                  <div className="flex items-start gap-2"><span className="shrink-0 font-black">⏰</span><span><b>Overstaying the limit (overstay):</b> Monthly package vehicle parked longer than the hours/day allowed by its package.</span></div>
+                  <div className="flex items-start gap-2"><span className="shrink-0 font-black">🔧</span><span><b>Damaged parking equipment:</b> Damage to cameras, automatic gates, floor markings, or signage.</span></div>
+                  <div className="flex items-start gap-2"><span className="shrink-0 font-black">📸</span><span><b>Plate mismatch / forged:</b> Camera-scanned plate doesn't match the plate registered in the system.</span></div>
+                  <div className="flex items-start gap-2"><span className="shrink-0 font-black">🔒</span><span><b>Occupying another customer's slot:</b> Vehicle without the right to park in a slot reserved under another customer's fixed subscription.</span></div>
+                  <div className="flex items-start gap-2"><span className="shrink-0 font-black">🚪</span><span><b>Gate entry/exit violation:</b> Deliberately bypassing the gate or skipping the check-in/out process.</span></div>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700">
-                    🚫 Phạt đỗ sai vị trí / sai loại xe (VNĐ)
+                    🚫 Wrong spot / wrong vehicle type penalty (VND)
                   </label>
                   <Input
                     type="number"
@@ -157,12 +157,12 @@ export function ManagerRefundPolicyPage() {
                     className="h-10 rounded-xl border-rose-200 bg-white font-extrabold text-rose-700"
                     required
                   />
-                  <p className="text-[10px] text-slate-400 font-medium">Mức phạt áp dụng khi xe đỗ sai ô/dãy quy định, hoặc sai loại xe (ô tô đỗ vào dãy xe máy và ngược lại).</p>
+                  <p className="text-[10px] text-slate-400 font-medium">Applied when a vehicle parks in the wrong slot/row, or the wrong vehicle type (car parked in a moto row or vice versa).</p>
                 </div>
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700">
-                    🔧 Phạt vi phạm quy định / làm hỏng thiết bị (VNĐ)
+                    🔧 Rule violation / equipment damage penalty (VND)
                   </label>
                   <Input
                     type="number"
@@ -173,7 +173,7 @@ export function ManagerRefundPolicyPage() {
                     className="h-10 rounded-xl border-rose-200 bg-white font-extrabold text-rose-700"
                     required
                   />
-                  <p className="text-[10px] text-slate-400 font-medium">Mức phạt áp dụng cho các vi phạm: làm hỏng thiết bị, biển số không khớp, vượt cổng trái phép, chiếm slot của người khác.</p>
+                  <p className="text-[10px] text-slate-400 font-medium">Applied to violations such as equipment damage, plate mismatch, unauthorized gate crossing, or occupying another customer's slot.</p>
                 </div>
               </div>
             </div>

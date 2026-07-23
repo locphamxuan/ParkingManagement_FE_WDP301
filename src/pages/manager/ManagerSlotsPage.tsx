@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DataTable, type DataColumn } from '@/components/common/DataTable';
 import { ModalForm } from '@/components/modals/ModalForm';
+import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { CustomSelect } from '@/components/ui/select';
 import { MultiSlotForm, type SlotBatchInput } from '@/components/manager/MultiSlotForm';
 import { SlotMap3DView } from '@/components/manager/SlotMap3DView';
@@ -181,14 +182,22 @@ export function ManagerSlotsPage() {
     }
   };
 
-  const onDelete = async (row: ParkingSlot) => {
-    if (!window.confirm(`Delete slot ${row.code}?`)) return;
+  // Xác nhận qua ConfirmModal (bỏ window.confirm native).
+  const [deleteTarget, setDeleteTarget] = useState<ParkingSlot | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const onDelete = (row: ParkingSlot) => setDeleteTarget(row);
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      await managerApi.slots.remove(buildingId, row._id);
+      await managerApi.slots.remove(buildingId, deleteTarget._id);
       refresh();
       showToast('Slot deleted successfully', 'success');
+      setDeleteTarget(null);
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Delete failed', 'error');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -529,6 +538,16 @@ export function ManagerSlotsPage() {
         zones={zones}
         defaultFloor={floorFilter}
         defaultQuantity={batchQty}
+      />
+
+      <ConfirmModal
+        open={!!deleteTarget}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+        title="Delete slot"
+        description={`Delete slot ${deleteTarget?.code}?`}
+        confirmLabel="Delete"
+        onConfirm={confirmDelete}
+        isConfirming={deleting}
       />
     </div>
   );

@@ -7,6 +7,7 @@ import { useLongTermSubscriptions, useCancelSubscription, useRenewSubscription }
 import type { LongTermSubscription } from '@/services/user/userApi';
 import { packageStatusLabel, packageStatusBadgeClass } from '@/utils/packageStatus';
 import { resolveErrorMessage } from '@/utils/apiErrors';
+import { ConfirmModal } from '@/components/modals/ConfirmModal';
 
 const currency = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -45,15 +46,20 @@ export default function LongTermSubscriptionsPage() {
   const [cancelNote, setCancelNote] = useState<string>('');
   const [cancelError, setCancelError] = useState<string | null>(null);
 
-  const handleRenew = async (item: LongTermSubscription) => {
-    if (!window.confirm(`Renew subscription "${item.package.name}" for plate ${item.plateNumber}? The fee will be deducted from your wallet.`)) return;
+  // Xác nhận qua ConfirmModal (bỏ window.confirm native).
+  const [renewTarget, setRenewTarget] = useState<LongTermSubscription | null>(null);
+  const handleRenew = (item: LongTermSubscription) => setRenewTarget(item);
+  const confirmRenew = async () => {
+    if (!renewTarget) return;
     setMessage(null);
     try {
-      await renew(item._id);
+      await renew(renewTarget._id);
       await refreshSubscriptions();
       setMessage({ type: 'success', text: 'Renewed successfully.' });
+      setRenewTarget(null);
     } catch (err) {
       setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to renew' });
+      setRenewTarget(null);
     }
   };
 
@@ -337,6 +343,16 @@ export default function LongTermSubscriptionsPage() {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        open={!!renewTarget}
+        onOpenChange={(o) => !o && setRenewTarget(null)}
+        title="Renew subscription"
+        description={`Renew subscription "${renewTarget?.package.name}" for plate ${renewTarget?.plateNumber}? The fee will be deducted from your wallet.`}
+        confirmLabel="Renew"
+        onConfirm={confirmRenew}
+        isConfirming={isRenewing}
+      />
     </main>
   );
 }

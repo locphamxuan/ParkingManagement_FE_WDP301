@@ -1,3 +1,5 @@
+import { showToast } from '@/components/common/ToastNotification';
+
 /**
  * Nút đăng nhập mạng xã hội (Google/Facebook/GitHub/LinkedIn) — chưa nối BE,
  * chỉ hiển thị placeholder "coming soon". Tách khỏi form login cho gọn.
@@ -8,7 +10,7 @@ export function AuthSocialButtons() {
       {/* Google */}
       <button
         type="button"
-        onClick={() => alert('Google login is coming soon...')}
+        onClick={() => showToast('Google login is coming soon', 'info')}
         className="w-11 h-11 rounded-2xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/20 transition-all flex items-center justify-center hover:scale-105 active:scale-95 shadow-md group"
       >
         <svg className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" viewBox="0 0 24 24">
@@ -34,7 +36,7 @@ export function AuthSocialButtons() {
       {/* Facebook */}
       <button
         type="button"
-        onClick={() => alert('Facebook login is coming soon...')}
+        onClick={() => showToast('Facebook login is coming soon', 'info')}
         className="w-11 h-11 rounded-2xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/20 transition-all flex items-center justify-center hover:scale-105 active:scale-95 shadow-md group"
       >
         <svg className="w-5 h-5 text-[#1877F2] fill-[#1877F2] group-hover:scale-110 transition-transform duration-200" viewBox="0 0 24 24">
@@ -45,7 +47,7 @@ export function AuthSocialButtons() {
       {/* GitHub */}
       <button
         type="button"
-        onClick={() => alert('GitHub login is coming soon...')}
+        onClick={() => showToast('GitHub login is coming soon', 'info')}
         className="w-11 h-11 rounded-2xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/20 transition-all flex items-center justify-center hover:scale-105 active:scale-95 shadow-md group"
       >
         <svg className="w-5 h-5 text-white fill-white group-hover:scale-110 transition-transform duration-200" viewBox="0 0 24 24">
@@ -56,7 +58,7 @@ export function AuthSocialButtons() {
       {/* LinkedIn */}
       <button
         type="button"
-        onClick={() => alert('LinkedIn login is coming soon...')}
+        onClick={() => showToast('LinkedIn login is coming soon', 'info')}
         className="w-11 h-11 rounded-2xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/20 transition-all flex items-center justify-center hover:scale-105 active:scale-95 shadow-md group"
       >
         <svg className="w-5 h-5 text-[#0A66C2] fill-[#0A66C2] group-hover:scale-110 transition-transform duration-200" viewBox="0 0 24 24">

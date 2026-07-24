@@ -1,6 +1,6 @@
 // Nguồn dùng chung cho nhãn/màu/tab của status GÓI DÀI HẠN phía user.
 // BE trả về: pending | active | expired | cancelled.
-// Dùng ở: ReservationHistoryTab, LongTermSubscriptionsPage, ProfilePage để đồng bộ.
+// Dùng ở: LongTermSubscriptionsPage để đồng bộ nhãn/màu/tab.
 
 export type PackageStatus = 'pending' | 'active' | 'expired' | 'cancelled';
 
@@ -26,11 +26,3 @@ export const packageStatusLabel = (status: string): string =>
 
 export const packageStatusBadgeClass = (status: string): string =>
   PACKAGE_STATUS_BADGE[status as PackageStatus] ?? FALLBACK_BADGE;
-
-// Bộ tab lọc cho chế độ gói dài hạn (value = đúng status API; 'all' = tất cả).
-export const PACKAGE_STATUS_TABS = [
-  { value: 'all', label: 'All' },
-  { value: 'active', label: PACKAGE_STATUS_LABELS.active },
-  { value: 'expired', label: PACKAGE_STATUS_LABELS.expired },
-  { value: 'cancelled', label: PACKAGE_STATUS_LABELS.cancelled },
-] as const;

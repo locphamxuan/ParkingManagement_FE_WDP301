@@ -192,7 +192,6 @@ export interface ManagerCustomer {
 export interface RefundPolicy {
   _id?: string;
   refundPercent: number;
-  lostTicketFee?: number;
   ruleViolationFee?: number;
   isActive: boolean;
 }

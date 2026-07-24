@@ -301,6 +301,12 @@ export const userApi = {
         `/users/long-term/subscriptions/${id}/cancel`,
         body
       ),
+
+    /** Preview refund %/amount BEFORE confirming cancel — same calc BE uses on actual cancel. */
+    refundPreview: (id: string) =>
+      api.get<Wrap<{ refundPercent: number; refundAmount: number; packagePrice: number }>>(
+        `/users/long-term/subscriptions/${id}/refund-preview`
+      ),
   },
 
   // ========== BUILDINGS ==========

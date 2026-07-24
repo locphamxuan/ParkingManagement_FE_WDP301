@@ -197,3 +197,26 @@ export function useCancelSubscription() {
 
   return { cancel, isLoading, error };
 }
+
+/** Preview refund %/amount for a subscription BEFORE the user confirms cancellation. */
+export function useRefundPreview() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const fetchPreview = useCallback(async (id: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const result = await userApi.longTermSubscriptions.refundPreview(id);
+      return result.data;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Unknown error');
+      setError(error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  return { fetchPreview, isLoading, error };
+}

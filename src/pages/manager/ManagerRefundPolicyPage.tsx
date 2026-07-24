@@ -10,7 +10,6 @@ import { managerApi } from '@/services/manager/managerApi';
 export function ManagerRefundPolicyPage() {
   const { buildingId } = useBuildingContext();
   const [refundPercent, setRefundPercent] = useState<string>('80');
-  const [wrongSpotFee, setWrongSpotFee] = useState<string>('50000');
   const [ruleViolationFee, setRuleViolationFee] = useState<string>('100000');
   const [isActive, setIsActive] = useState<boolean>(true);
   const [loading, setLoading] = useState(true);
@@ -24,7 +23,6 @@ export function ManagerRefundPolicyPage() {
       .then((res) => {
         const item = res.data.item;
         setRefundPercent(String(item?.refundPercent ?? 80));
-        setWrongSpotFee(String(item?.lostTicketFee ?? 50000));
         setRuleViolationFee(String(item?.ruleViolationFee ?? 100000));
         setIsActive(item?.isActive ?? true);
       })
@@ -41,18 +39,13 @@ export function ManagerRefundPolicyPage() {
       if (isNaN(pct) || pct < 0 || pct > 100) {
         throw new Error('Refund percentage must be between 0 and 100');
       }
-      const lostFee = Number(wrongSpotFee);
       const ruleFee = Number(ruleViolationFee);
-      if (isNaN(lostFee) || lostFee < 0) {
-        throw new Error('Wrong spot parking fee must be a valid positive amount');
-      }
       if (isNaN(ruleFee) || ruleFee < 0) {
         throw new Error('Rule violation fee must be a valid positive amount');
       }
 
       await managerApi.refundPolicy.update(buildingId, {
         refundPercent: pct,
-        lostTicketFee: lostFee,
         ruleViolationFee: ruleFee,
         isActive,
       });
@@ -143,26 +136,10 @@ export function ManagerRefundPolicyPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700">
-                    🚫 Wrong spot / wrong vehicle type penalty (VND)
-                  </label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="10000"
-                    value={wrongSpotFee}
-                    onChange={(e) => setWrongSpotFee(e.target.value)}
-                    className="h-10 rounded-xl border-rose-200 bg-white font-extrabold text-rose-700"
-                    required
-                  />
-                  <p className="text-[10px] text-slate-400 font-medium">Applied when a vehicle parks in the wrong slot/row, or the wrong vehicle type (car parked in a moto row or vice versa).</p>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700">
-                    🔧 Rule violation / equipment damage penalty (VND)
+                    🔧 Default violation penalty (VND)
                   </label>
                   <Input
                     type="number"
@@ -173,7 +150,7 @@ export function ManagerRefundPolicyPage() {
                     className="h-10 rounded-xl border-rose-200 bg-white font-extrabold text-rose-700"
                     required
                   />
-                  <p className="text-[10px] text-slate-400 font-medium">Applied to violations such as equipment damage, plate mismatch, unauthorized gate crossing, or occupying another customer's slot.</p>
+                  <p className="text-[10px] text-slate-400 font-medium">Applied to any of the violation cases above when staff/manager resolve an incident without entering a custom amount.</p>
                 </div>
               </div>
             </div>

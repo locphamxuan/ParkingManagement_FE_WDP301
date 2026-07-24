@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowRightLeft, LogIn, LogOut, Plus, Pencil, Trash2, X, Loader2, DoorOpen, CheckCircle2 } from 'lucide-react';
+import { ArrowRightLeft, LogIn, LogOut, Plus, Pencil, Trash2, Loader2, DoorOpen, CheckCircle2 } from 'lucide-react';
 import { DataTable, type DataColumn } from '@/components/common/DataTable';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

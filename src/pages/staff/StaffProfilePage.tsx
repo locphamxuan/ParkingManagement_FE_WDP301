@@ -20,7 +20,7 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { Button } from '@/components/ui/button';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import styles from '@/styles/modules/StaffProfilePage.module.css';
 
 export function StaffProfilePage() {

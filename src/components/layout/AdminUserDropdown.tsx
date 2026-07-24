@@ -83,6 +83,12 @@ export function AdminUserDropdown({ email, onLogout, fullName, role }: Props) {
           <div className="p-1">
             <button
               type="button"
+              className="user-dropdown-item flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-foreground hover:text-primary transition hover:bg-primary/10"
+              onClick={handleViewProfile}
+            >
+              <User size={14} />View Profile</button>
+            <button
+              type="button"
               className="user-dropdown-item flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-rose-500 hover:text-rose-600 dark:text-rose-400 dark:hover:text-rose-300 transition hover:bg-rose-500/10 mt-0.5"
               onClick={() => { setOpen(false); onLogout(); }}
             >

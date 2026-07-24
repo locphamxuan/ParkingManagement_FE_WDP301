@@ -20,11 +20,11 @@ interface AuthPageProps {
 
 export default function AuthPage({ mode, notice, onModeChange, onSubmit, isLoading }: AuthPageProps) {
   const {
-    localNotice, setLocalNotice, form, setForm, forgotEmail, setForgotEmail,
+    localNotice, setLocalNotice, form, forgotEmail, setForgotEmail,
     resetPasswordForm, setResetPasswordForm, savedAccounts, showDropdown, setShowDropdown,
-    resetToken, setResetToken, showPassword, setShowPassword, showConfirmPassword, setShowConfirmPassword,
+    setResetToken, showPassword, setShowPassword, showConfirmPassword, setShowConfirmPassword,
     modal, closeModal, dropdownRef, emailInputRef, passwordInputRef,
-    saveAccount, deleteSavedAccount, handleSelectAccount, rotateX, rotateY,
+    deleteSavedAccount, handleSelectAccount, rotateX, rotateY,
     title, description, handleChange, handleSubmit, handleForgotPassword, handleResetPassword,
     handleMouseMove, handleMouseLeave,
   } = useAuthForm({ mode, onModeChange, onSubmit });

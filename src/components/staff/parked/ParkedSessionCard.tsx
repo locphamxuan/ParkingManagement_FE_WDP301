@@ -1,5 +1,5 @@
 import type { ParkingSession } from '@/services/staff/staffApi';
-import { fmtTime, fmtMoney, fmtDuration } from './staffParkedFormat';
+import { fmtMoney, fmtDuration } from './staffParkedFormat';
 import { motion } from 'framer-motion';
 
 import { LicensePlate } from '@/components/common/LicensePlate';
@@ -14,9 +14,6 @@ export function ParkedSessionCard({ session: s, canCheckout, onCheckout }: Parke
   const floor = s.slot?.floor?.name || s.slot?.floor?.code || '—';
   const slotCode = s.slot?.code || '—';
   const isMember = Boolean(s.isMember ?? s.user) || s.isLongTerm;
-
-  // Mock Sensor verification to address teacher's feedback: "chưa rõ khách có đậu đúng chỗ không"
-  const isPlateMismatch = s.plateNumber === '29A-999.99';
   const hasSlot = Boolean(s.slot);
 
   return (
@@ -101,8 +98,8 @@ export function ParkedSessionCard({ session: s, canCheckout, onCheckout }: Parke
         </div>
         <div>
           <span className="text-[9px] font-bold uppercase tracking-wide text-slate-400">Slot status</span>
-          <p className={`font-bold ${!hasSlot ? 'text-amber-500' : isPlateMismatch ? 'text-rose-500 animate-pulse' : 'text-emerald-500'}`}>
-            {!hasSlot ? '⚠️ No slot assigned' : isPlateMismatch ? '🔴 Reported occupied' : '🟢 Correct slot'}
+          <p className={`font-bold ${hasSlot ? 'text-emerald-500' : 'text-amber-500'}`}>
+            {hasSlot ? 'Assigned' : 'No slot assigned'}
           </p>
         </div>
         <div className="col-span-2">

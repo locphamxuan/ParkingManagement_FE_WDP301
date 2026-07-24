@@ -1,17 +1,14 @@
 import { useCallback, useEffect, useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Building2, 
-  Coins, 
-  CreditCard, 
-  Calendar, 
-  TrendingUp, 
-  RefreshCw, 
-  Wallet,
-  ArrowUpRight
+import {
+  Building2,
+  Coins,
+  CreditCard,
+  Calendar,
+  TrendingUp,
+  RefreshCw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { adminApi, type RevenueReport } from '@/services/admin/adminApi';
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 

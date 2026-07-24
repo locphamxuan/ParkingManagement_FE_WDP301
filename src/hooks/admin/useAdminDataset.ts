@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { getAdminDataset, type AdminDataset } from '@/services/admin';
 
@@ -14,37 +14,42 @@ export function useAdminDataset(): UseAdminDatasetResult {
   const [data, setData] = useState<AdminDataset | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Tránh setState sau khi unmount (vd điều hướng đi trong lúc fetch còn treo).
+  const mountedRef = useRef(true);
 
   const refresh = useCallback(async () => {
     const token = session?.token;
     if (!token) {
-      setData(null);
-      setError('You are not logged in to an admin session.');
-      setIsLoading(false);
+      if (mountedRef.current) {
+        setData(null);
+        setError('You are not logged in to an admin session.');
+        setIsLoading(false);
+      }
       return;
     }
 
-    setIsLoading(true);
+    if (mountedRef.current) setIsLoading(true);
 
     try {
       const result = await getAdminDataset(token);
-      setData(result);
-      setError(null);
+      if (mountedRef.current) {
+        setData(result);
+        setError(null);
+      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to load admin data';
-      setError(message);
+      if (mountedRef.current) setError(message);
     } finally {
-      setIsLoading(false);
+      if (mountedRef.current) setIsLoading(false);
     }
   }, [session?.token]);
 
   useEffect(() => {
-    let mounted = true;
-
+    mountedRef.current = true;
     refresh().catch(() => undefined);
 
     return () => {
-      mounted = false;
+      mountedRef.current = false;
     };
   }, [refresh]);
 

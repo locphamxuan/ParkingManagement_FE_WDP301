@@ -1,17 +1,15 @@
 import { Plus, RotateCcw, Zap } from 'lucide-react';
 import { AnimatedParkingMap3D } from '@/components/map/AnimatedParkingMap3D';
-import type { Floor, ParkingSlot, VehicleType } from '@/services/manager/managerApi';
+import type { ParkingSlot } from '@/services/manager/managerApi';
 
 interface SlotMap3DViewProps {
-  floors: Floor[];
   floorFilter: string;
   slotsByFloor: Record<string, ParkingSlot[]>;
   rx: number;
   rz: number;
   setRx: (v: number) => void;
   setRz: (v: number) => void;
-  statusFilter: string;
-  vehicleTypes: VehicleType[];
+  /** Danh sách slot đã lọc theo status/floor từ page cha (query BE) — component chỉ hiển thị. */
   items: ParkingSlot[];
   onEditSlot: (slot: ParkingSlot) => void;
   onOpenMultiSlot?: (qty?: number) => void;
@@ -19,15 +17,12 @@ interface SlotMap3DViewProps {
 
 /** Chế độ sơ đồ 3D của màn quản lý ô đỗ (hiển thị đồng nhất mô hình 3D Hologram với User). */
 export function SlotMap3DView({
-  floors,
   floorFilter,
   slotsByFloor,
   rx,
   rz,
   setRx,
   setRz,
-  statusFilter,
-  vehicleTypes,
   items,
   onEditSlot,
   onOpenMultiSlot,

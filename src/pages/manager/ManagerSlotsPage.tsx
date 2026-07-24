@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { showToast } from '@/components/common/ToastNotification';
-import { Pencil, Plus, Trash2, LayoutGrid, CheckCircle2, Car, ShieldCheck, Layers, Square } from 'lucide-react';
+import { Pencil, Plus, Trash2, LayoutGrid, CheckCircle2, Car, ShieldCheck, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DataTable, type DataColumn } from '@/components/common/DataTable';
@@ -14,7 +14,6 @@ import {
   managerApi,
   type Floor,
   type ParkingSlot,
-  type VehicleType,
   type Zone,
 } from '@/services/manager/managerApi';
 
@@ -45,7 +44,6 @@ export function ManagerSlotsPage() {
   const [items, setItems] = useState<ParkingSlot[]>([]);
   const [floors, setFloors] = useState<Floor[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
-  const [vehicleTypes, setVehicleTypes] = useState<VehicleType[]>([]);
   const [floorFilter, setFloorFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [loading, setLoading] = useState(true);
@@ -71,18 +69,16 @@ export function ManagerSlotsPage() {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const [slotsRes, floorsRes, vtRes, zonesRes] = await Promise.all([
+      const [slotsRes, floorsRes, zonesRes] = await Promise.all([
         managerApi.slots.list(buildingId, {
           floor: floorFilter || undefined,
           status: statusFilter || undefined,
         }),
         managerApi.floors.list(buildingId),
-        managerApi.vehicleTypes.list(buildingId),
         managerApi.zones.list(buildingId),
       ]);
       setItems(slotsRes.data.items);
       setFloors(floorsRes.data.items);
-      setVehicleTypes(vtRes.data.items);
       setZones(zonesRes.data.items);
       setError(null);
     } catch (err) {
@@ -422,15 +418,12 @@ export function ManagerSlotsPage() {
           ) : (
             /* Sci-Fi 3D Visual Map Mode */
             <SlotMap3DView
-              floors={floors}
               floorFilter={floorFilter}
               slotsByFloor={slotsByFloor}
               rx={rx}
               rz={rz}
               setRx={setRx}
               setRz={setRz}
-              statusFilter={statusFilter}
-              vehicleTypes={vehicleTypes}
               items={items}
               onEditSlot={openEdit}
               onOpenMultiSlot={openBatchModal}

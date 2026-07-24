@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { showToast } from '@/components/common/ToastNotification';
 import { Pencil, Plus, Trash2, LayoutGrid, Layers, ShieldCheck, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DataTable, type DataColumn } from '@/components/common/DataTable';

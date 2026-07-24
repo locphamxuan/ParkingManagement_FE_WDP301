@@ -1,12 +1,11 @@
 ﻿import { useCallback, useEffect, useState } from 'react';
-import { Pencil, Plus, Trash2, Ticket, Loader2 } from 'lucide-react';
+import { Pencil, Plus, Trash2, Ticket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DataTable, type DataColumn } from '@/components/common/DataTable';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { ModalForm } from '@/components/modals/ModalForm';
 import { CustomSelect } from '@/components/ui/select';
-import { Spinner } from '@/components/ui/spinner';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { managerApi, type LongTermPackage, type VehicleType } from '@/services/manager/managerApi';
 import { showToast } from '@/components/common/ToastNotification';

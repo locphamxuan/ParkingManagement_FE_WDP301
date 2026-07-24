@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { showToast } from '@/components/common/ToastNotification';
-import { Pencil, Plus, Trash2, LayoutGrid, CheckCircle2, Car, ShieldCheck, Layers, Square } from 'lucide-react';
+import { Pencil, Plus, Trash2, LayoutGrid, CheckCircle2, Car, ShieldCheck, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DataTable, type DataColumn } from '@/components/common/DataTable';
 import { ModalForm } from '@/components/modals/ModalForm';
+import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { CustomSelect } from '@/components/ui/select';
 import { MultiSlotForm, type SlotBatchInput } from '@/components/manager/MultiSlotForm';
 import { SlotMap3DView } from '@/components/manager/SlotMap3DView';
@@ -13,7 +14,6 @@ import {
   managerApi,
   type Floor,
   type ParkingSlot,
-  type VehicleType,
   type Zone,
 } from '@/services/manager/managerApi';
 
@@ -44,7 +44,6 @@ export function ManagerSlotsPage() {
   const [items, setItems] = useState<ParkingSlot[]>([]);
   const [floors, setFloors] = useState<Floor[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
-  const [vehicleTypes, setVehicleTypes] = useState<VehicleType[]>([]);
   const [floorFilter, setFloorFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [loading, setLoading] = useState(true);
@@ -70,18 +69,16 @@ export function ManagerSlotsPage() {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const [slotsRes, floorsRes, vtRes, zonesRes] = await Promise.all([
+      const [slotsRes, floorsRes, zonesRes] = await Promise.all([
         managerApi.slots.list(buildingId, {
           floor: floorFilter || undefined,
           status: statusFilter || undefined,
         }),
         managerApi.floors.list(buildingId),
-        managerApi.vehicleTypes.list(buildingId),
         managerApi.zones.list(buildingId),
       ]);
       setItems(slotsRes.data.items);
       setFloors(floorsRes.data.items);
-      setVehicleTypes(vtRes.data.items);
       setZones(zonesRes.data.items);
       setError(null);
     } catch (err) {
@@ -181,14 +178,22 @@ export function ManagerSlotsPage() {
     }
   };
 
-  const onDelete = async (row: ParkingSlot) => {
-    if (!window.confirm(`Delete slot ${row.code}?`)) return;
+  // Xác nhận qua ConfirmModal (bỏ window.confirm native).
+  const [deleteTarget, setDeleteTarget] = useState<ParkingSlot | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const onDelete = (row: ParkingSlot) => setDeleteTarget(row);
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      await managerApi.slots.remove(buildingId, row._id);
+      await managerApi.slots.remove(buildingId, deleteTarget._id);
       refresh();
       showToast('Slot deleted successfully', 'success');
+      setDeleteTarget(null);
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Delete failed', 'error');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -413,15 +418,12 @@ export function ManagerSlotsPage() {
           ) : (
             /* Sci-Fi 3D Visual Map Mode */
             <SlotMap3DView
-              floors={floors}
               floorFilter={floorFilter}
               slotsByFloor={slotsByFloor}
               rx={rx}
               rz={rz}
               setRx={setRx}
               setRz={setRz}
-              statusFilter={statusFilter}
-              vehicleTypes={vehicleTypes}
               items={items}
               onEditSlot={openEdit}
               onOpenMultiSlot={openBatchModal}
@@ -529,6 +531,16 @@ export function ManagerSlotsPage() {
         zones={zones}
         defaultFloor={floorFilter}
         defaultQuantity={batchQty}
+      />
+
+      <ConfirmModal
+        open={!!deleteTarget}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+        title="Delete slot"
+        description={`Delete slot ${deleteTarget?.code}?`}
+        confirmLabel="Delete"
+        onConfirm={confirmDelete}
+        isConfirming={deleting}
       />
     </div>
   );

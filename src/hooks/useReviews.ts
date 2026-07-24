@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { userApi, type Feedback, type ParkingHistory } from '@/services/user/userApi';
+import { showToast } from '@/components/common/ToastNotification';
 
 export const fmtTime = (s?: string | null) =>
   s ? new Date(s).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' }) : '—';
@@ -49,14 +50,18 @@ export function useReviews() {
   const [buildingDropdownOpen, setBuildingDropdownOpen] = useState(false);
   const [ratingDropdownOpen, setRatingDropdownOpen] = useState(false);
 
-  const handleDeleteFeedback = async (feedbackId: string) => {
-    if (!window.confirm('Are you sure you want to delete this review?')) return;
-    setDeletingId(feedbackId);
+  // Xác nhận qua ConfirmModal (bỏ window.confirm/alert native).
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const handleDeleteFeedback = (feedbackId: string) => setDeleteTargetId(feedbackId);
+  const confirmDeleteFeedback = async () => {
+    if (!deleteTargetId) return;
+    setDeletingId(deleteTargetId);
     try {
-      await userApi.feedbacks.remove(feedbackId);
+      await userApi.feedbacks.remove(deleteTargetId);
+      setDeleteTargetId(null);
       loadReviews(page);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete review.');
+      showToast(err instanceof Error ? err.message : 'Failed to delete review.', 'error');
     } finally {
       setDeletingId(null);
     }
@@ -272,7 +277,10 @@ export function useReviews() {
     ratingDropdownOpen,
     setRatingDropdownOpen,
     stats,
+    deleteTargetId,
+    setDeleteTargetId,
     handleDeleteFeedback,
+    confirmDeleteFeedback,
     handleOpenWriteReview,
     handleSubmitFeedback,
   };

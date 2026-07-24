@@ -1,18 +1,13 @@
 import { useMemo, useState } from 'react';
-import { 
-  Search, 
-  ShieldAlert, 
-  FileText, 
-  Info, 
-  AlertTriangle, 
-  ShieldCheck, 
+import {
+  Search,
+  ShieldAlert,
+  FileText,
+  Info,
+  ShieldCheck,
   Activity,
-  User,
-  Clock,
-  Layers
 } from 'lucide-react';
 import { DataTable, type DataColumn } from '@/components/common/DataTable';
-import { StatusBadge } from '@/components/common/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CustomSelect } from '@/components/ui/select';

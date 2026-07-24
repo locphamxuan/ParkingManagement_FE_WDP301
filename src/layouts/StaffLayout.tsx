@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { staffApi, extractBuildings, type StaffBuilding } from '@/services/staff/staffApi';
 import { cn } from '@/utils/cn';
+import { MobileNavDrawer, MobileNavButton } from '@/components/layout/MobileNavDrawer';
 
 const BASE_PAGE_TITLE: Record<string, string> = {
   '': 'Overview',
@@ -36,6 +37,7 @@ export function StaffLayout() {
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(assignedBuildingId);
   const [bootstrapping, setBootstrapping] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     document.body.classList.add('admin-theme');
@@ -307,6 +309,45 @@ export function StaffLayout() {
           </main>
         </div>
       </div>
+
+      <MobileNavButton onOpen={() => setMobileNavOpen(true)} />
+      <MobileNavDrawer open={mobileNavOpen} onClose={() => setMobileNavOpen(false)}>
+        <div className="p-4">
+          <div className="mb-5 rounded-2xl border border-sky-100 bg-sky-50/70 p-3 shadow-xs">
+            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-sky-600">PBMS Staff</p>
+            <p className="text-xs font-extrabold text-slate-900">Operations Staff</p>
+            {selectedBuilding ? (
+              <p className="mt-0.5 truncate text-[10px] text-slate-500">
+                {selectedBuilding.code} · {selectedBuilding.name}
+              </p>
+            ) : null}
+          </div>
+          <nav className="space-y-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <NavLink
+                  key={item.label}
+                  to={item.to}
+                  end={item.end}
+                  onClick={() => setMobileNavOpen(false)}
+                  className={({ isActive }) =>
+                    cn(
+                      'flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition-all duration-200',
+                      isActive
+                        ? 'bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-md shadow-blue-500/20'
+                        : 'text-slate-600 hover:bg-sky-50 hover:text-blue-600',
+                    )
+                  }
+                >
+                  <Icon size={15} className="shrink-0" />
+                  <span className="tracking-wide">{item.label}</span>
+                </NavLink>
+              );
+            })}
+          </nav>
+        </div>
+      </MobileNavDrawer>
     </div>
   );
 }

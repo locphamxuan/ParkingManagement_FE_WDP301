@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { PortalSidebar, type PortalNavEntry } from '@/components/layout/PortalSidebar';
+import { MobileNavDrawer, MobileNavButton } from '@/components/layout/MobileNavDrawer';
 import { useAuth } from '@/hooks/useAuth';
 import { ADMIN_EMAIL_FALLBACK } from '@/utils/constants';
 import { useManagerBuildings } from '@/hooks/useManagerBuildings';
@@ -95,6 +96,7 @@ const titles: Record<string, string> = {
 
 export function ManagerLayout() {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { session, logout } = useAuth();
   const { selectedBuildingId, isLoading } = useManagerBuildings();
   const navigate = useNavigate();
@@ -156,6 +158,19 @@ export function ManagerLayout() {
           </main>
         </div>
       </div>
+
+      <MobileNavButton onOpen={() => setMobileNavOpen(true)} />
+      <MobileNavDrawer open={mobileNavOpen} onClose={() => setMobileNavOpen(false)}>
+        <PortalSidebar
+          variant="drawer"
+          collapsed={false}
+          onToggle={() => {}}
+          onNavigate={() => setMobileNavOpen(false)}
+          portalLabel="MANAGER PORTAL"
+          items={navItems}
+          basePath="/manager"
+        />
+      </MobileNavDrawer>
     </div>
   );
 }

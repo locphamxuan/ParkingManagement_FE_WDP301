@@ -4,6 +4,7 @@ import { RatingStatsCard } from '@/components/reviews/RatingStatsCard';
 import { ReviewFiltersBar } from '@/components/reviews/ReviewFiltersBar';
 import { ReviewsList } from '@/components/reviews/ReviewsList';
 import { WriteReviewModal } from '@/components/reviews/WriteReviewModal';
+import { ConfirmModal } from '@/components/modals/ConfirmModal';
 
 export default function ReviewsPage() {
   const rv = useReviews();
@@ -112,6 +113,16 @@ export default function ReviewsPage() {
         submitSuccess={rv.submitSuccess}
         submitError={rv.submitError}
         handleSubmitFeedback={rv.handleSubmitFeedback}
+      />
+
+      <ConfirmModal
+        open={!!rv.deleteTargetId}
+        onOpenChange={(o) => !o && rv.setDeleteTargetId(null)}
+        title="Delete review"
+        description="Are you sure you want to delete this review?"
+        confirmLabel="Delete"
+        onConfirm={rv.confirmDeleteFeedback}
+        isConfirming={!!rv.deletingId}
       />
     </div>
   );

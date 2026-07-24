@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { X, Loader } from 'lucide-react';
+import { Loader } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
 import { managerApi, type StaffShift, type Gate } from '@/services/manager/managerApi';

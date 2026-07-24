@@ -79,7 +79,7 @@ function mapLegacySession(): AuthSession | null {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       session: mapLegacySession(),
       isAuthenticating: false,
       error: null,

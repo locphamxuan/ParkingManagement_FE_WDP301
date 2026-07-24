@@ -17,11 +17,12 @@ const ALLOWED_TYPES = ['CAR', 'MOTORCYCLE'];
 // Chuỗi ưu tiên đối tượng cho slot (mirror BE helpers.js USAGE_FALLBACK_CHAIN):
 // hội viên/đặt chỗ có thể mượn tạm slot chung (walk_in) khi hết slot đúng đối tượng,
 // NHƯNG khách vãng lai KHÔNG lấn slot hội viên/gói/đặt chỗ. Index nhỏ = ưu tiên hơn.
+// (`reserved` không có trong bảng — slot reserved có chỗ cố định, không đi qua
+// đường chọn zone/free-slots nên `slotUsageType` không bao giờ là 'reserved'.)
 const USAGE_FALLBACK_CHAIN: Record<string, string[]> = {
   walk_in: ['walk_in'],
   registered: ['registered', 'walk_in'],
   subscriber: ['subscriber', 'registered', 'walk_in'],
-  reserved: ['reserved', 'registered', 'walk_in'],
 };
 const acceptableUsageTypes = (u?: string | null): string[] =>
   (u && USAGE_FALLBACK_CHAIN[u]) || (u ? [u] : []);
@@ -150,11 +151,6 @@ export function useStaffOperations() {
   // Chặn check-in khi cần slot mà pool rỗng vì lý do không hợp lệ (đầy / chỉ còn slot
   // đối tượng khác). 'capacity' KHÔNG chặn (đỗ theo sức chứa là hợp lệ).
   const slotSelectionBlocked = needsSlotSelection && (slotPoolState === 'exhausted' || slotPoolState === 'full');
-
-  const isBlacklisted = useMemo(() => {
-    const clean = plateNumber.trim().toUpperCase();
-    return clean.startsWith('99') || clean === '59G2-999.99' || clean.startsWith('XX');
-  }, [plateNumber]);
 
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
@@ -456,7 +452,6 @@ export function useStaffOperations() {
     slotUsageType, selectedZone, zoneUsageBlocked, zoneUsageFallback, hasExactZoneFree,
     slotPoolState, slotSelectionBlocked, slotPoolStats,
     rejectOpen, setRejectOpen,
-    isBlacklisted,
     barrierState,
     rejectReason, setRejectReason,
     userQrInfo, setUserQrInfo,

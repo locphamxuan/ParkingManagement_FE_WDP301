@@ -40,7 +40,7 @@ export function StaffOperationsPage() {
     availableZones, setRejectOpen,
     slotUsageType, selectedZone, zoneUsageBlocked, zoneUsageFallback, hasExactZoneFree,
     slotPoolState, slotSelectionBlocked,
-    allowedTypes, plateTypeWarning, buildingSupportWarning, isBlacklisted, barrierState,
+    allowedTypes, plateTypeWarning, buildingSupportWarning, barrierState,
     hasActivePackage, checkInKind, needsSlotSelection,
     handlePlateDetected, proceedFromIdentify, capturePortraitAndNext,
     handleResolveIdQr, onCheckIn, vehicleTypeMismatch,
@@ -402,17 +402,6 @@ export function StaffOperationsPage() {
                       <button type="button" onClick={() => setRejectOpen(true)} className="shrink-0 rounded-lg bg-rose-500 px-3 py-1 text-[10px] font-black text-white hover:bg-rose-600">
                         Reject
                       </button>
-                    </div>
-                  )}
-                  {isBlacklisted && (
-                    <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-[11px] text-rose-700 flex flex-col gap-1.5 animate-pulse">
-                      <span className="flex items-center gap-1.5 font-bold">
-                        <AlertCircle size={14} className="text-rose-500 shrink-0 animate-bounce" />
-                        [ALERT] VEHICLE WATCH LIST / OUTSTANDING VIOLATIONS
-                      </span>
-                      <p className="text-rose-600 font-medium leading-relaxed">
-                        This license plate is marked in the blacklist directory (unpaid fees or slot occupancy violation). Guard warning: Verify driver identity and settle balance before admission.
-                      </p>
                     </div>
                   )}
                 </div>

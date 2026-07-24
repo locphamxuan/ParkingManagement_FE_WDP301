@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { showToast } from '@/components/common/ToastNotification';
 import { Pencil, Plus, Trash2, LayoutGrid, Layers, ShieldCheck, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DataTable, type DataColumn } from '@/components/common/DataTable';
 import { ModalForm } from '@/components/modals/ModalForm';
+import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { CustomSelect } from '@/components/ui/select';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import {
@@ -159,14 +159,22 @@ export function ManagerZonesPage() {
     }
   };
 
-  const onDelete = async (row: Zone) => {
-    if (!window.confirm(`Delete zone ${row.code}? The zone must not contain any slots.`)) return;
+  // Xác nhận qua ConfirmModal (bỏ window.confirm native).
+  const [deleteTarget, setDeleteTarget] = useState<Zone | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const onDelete = (row: Zone) => setDeleteTarget(row);
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      await managerApi.zones.remove(buildingId, row._id);
+      await managerApi.zones.remove(buildingId, deleteTarget._id);
       refresh();
       showToast('Zone deleted successfully', 'success');
+      setDeleteTarget(null);
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Delete failed', 'error');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -462,6 +470,16 @@ export function ManagerZonesPage() {
           </div>
         </div>
       </ModalForm>
+
+      <ConfirmModal
+        open={!!deleteTarget}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+        title="Delete zone"
+        description={`Delete zone ${deleteTarget?.code}? The zone must not contain any slots.`}
+        confirmLabel="Delete"
+        onConfirm={confirmDelete}
+        isConfirming={deleting}
+      />
     </div>
   );
 }

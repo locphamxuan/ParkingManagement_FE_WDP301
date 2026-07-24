@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { CalendarClock, Calendar, Clock, DoorOpen, BadgeAlert, Sparkles, Filter, RefreshCw } from 'lucide-react';
+import { CalendarClock, Clock, DoorOpen, BadgeAlert, Sparkles, Filter, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/common/StatusBadge';

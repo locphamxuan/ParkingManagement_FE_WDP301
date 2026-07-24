@@ -12,7 +12,6 @@ import {
   Gauge,
   ScanLine,
   ShieldAlert,
-  Ticket,
 } from 'lucide-react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';

@@ -41,22 +41,22 @@ const STATUS_COLORS = {
 };
 
 const INCIDENT_TYPE_LABELS: Record<string, string> = {
-  // Lỗi đỗ xe
-  wrong_spot:          '🚫 Đỗ sai vị trí / sai dãy',
-  wrong_vehicle_type:  '🚌 Sai loại xe (ô tô/xe máy)',
-  slot_occupied:       '🔒 Chiếm slot gói của người khác',
-  overstay:            '⏰ Quá giờ quy định (overstay)',
-  // Lỗi thiết bị / hạ tầng
-  facility_issue:      '🔧 Hỏng thiết bị bãi xe',
-  gate_violation:      '🚪 Vượt cổng / không check-in/out',
-  // Lỗi nhận dạng
-  wrong_scan:          '📸 Biển số không khớp / giả mạo',
-  plate_mismatch:      '🪪 Biển số đăng ký không trùng',
-  // Sự cố chung
-  vehicle_damaged:     '🚗 Phương tiện bị hư hỏng trong bãi',
-  payment_dispute:     '💳 Tranh chấp thanh toán phí đỗ',
-  security:            '🛡️ Mối lo ngại về an ninh',
-  other:               '📋 Khác / Không phân loại',
+  // Parking violations
+  wrong_spot:          '🚫 Wrong spot / wrong row',
+  wrong_vehicle_type:  '🚌 Wrong vehicle type (car/moto)',
+  slot_occupied:       "🔒 Occupying another customer's slot",
+  overstay:            '⏰ Overstaying limit (overstay)',
+  // Facility / infrastructure
+  facility_issue:      '🔧 Damaged parking equipment',
+  gate_violation:      '🚪 Gate violation / skipped check-in/out',
+  // Identification
+  wrong_scan:          '📸 Plate mismatch / forged',
+  plate_mismatch:      '🪪 Registered plate mismatch',
+  // General incidents
+  vehicle_damaged:     '🚗 Vehicle damaged on premises',
+  payment_dispute:     '💳 Parking fee payment dispute',
+  security:            '🛡️ Security concern',
+  other:               '📋 Other / Unclassified',
 };
 
 export function ManagerIncidentsPage() {

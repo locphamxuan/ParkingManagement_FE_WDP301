@@ -1,21 +1,14 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { LucideIcon } from 'lucide-react';
 import {
   AlertTriangle,
   BarChart3,
   BellRing,
-  CalendarClock,
   CarFront,
-  CheckCircle2,
   Clock3,
-  CreditCard,
   History,
   MapPinned,
-  ScanLine,
-  ShieldCheck,
   Ticket,
-  Star,
   Wallet,
   User,
   ChevronDown,

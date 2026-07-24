@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import { useCallback, useEffect, useState } from 'react';
 import { Building2, Save, Layers, Clock, MapPin, Phone, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,11 +25,6 @@ export function ManagerBuildingsPage() {
     setName(selectedBuilding.name || '');
     setStatus(selectedBuilding.status || 'active');
   }, [selectedBuilding]);
-
-  const buildingOptions = useMemo(
-    () => buildings.map((b) => ({ id: b._id, label: b.name || b.code || 'Building' })),
-    [buildings],
-  );
 
   const handleSave = useCallback(async () => {
     if (!selectedBuildingId) {

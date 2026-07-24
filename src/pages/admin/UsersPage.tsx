@@ -1,10 +1,8 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Edit, Lock, Mail, Phone, Plus, Search, Trash2, Unlock, User, Users, UserCheck, UserX, Wallet } from 'lucide-react';
+import { Edit, Lock, Mail, Phone, Plus, Search, Trash2, Unlock, Users, UserCheck, UserX, Wallet } from 'lucide-react';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
-import { DataTable, type DataColumn } from '@/components/common/DataTable';
 import { ModalForm } from '@/components/modals/ModalForm';
-import { SearchFilterBar } from '@/components/common/SearchFilterBar';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -170,114 +168,6 @@ export function UsersPage() {
       setIsDeleting(false);
     }
   };
-
-  const columns: DataColumn<UserRecord>[] = [
-    {
-      key: 'name',
-      title: 'Full name',
-      render: (row) => (
-        <div className="flex items-center gap-3">
-          <div className="w-8.5 h-8.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 flex items-center justify-center font-bold text-xs shrink-0 uppercase">
-            {row.name.slice(0, 2)}
-          </div>
-          <div>
-            <span className="font-extrabold text-slate-800 text-xs block leading-tight">{row.name}</span>
-            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block mt-0.5">{row.role || 'user'}</span>
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: 'email',
-      title: 'Email',
-      render: (row) => (
-        <div className="flex items-center gap-1.5 text-slate-600">
-          <Mail size={12} className="text-slate-400 shrink-0" />
-          <span className="text-xs font-semibold">{row.email}</span>
-        </div>
-      ),
-    },
-    {
-      key: 'phone',
-      title: 'Phone number',
-      render: (row) => {
-        const hasPhone = !!row.phone && row.phone !== 'Not updated';
-        return (
-          <div className="flex items-center gap-1.5 text-slate-500">
-            <Phone size={12} className={hasPhone ? 'text-slate-400 shrink-0' : 'text-slate-350 shrink-0'} />
-            <span className={hasPhone ? 'text-xs font-semibold text-slate-600' : 'text-xs italic text-slate-400 font-medium'}>
-              {row.phone || 'Not updated'}
-            </span>
-          </div>
-        );
-      },
-    },
-    {
-      key: 'status',
-      title: 'Status',
-      render: (row) => <StatusBadge status={row.status} />,
-    },
-    {
-      key: 'walletBalance',
-      title: 'Wallet balance',
-      render: (row) => (
-        <span className="font-bold text-emerald-600 text-xs bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-lg whitespace-nowrap">
-          {row.walletBalance.toLocaleString('vi-VN')} ₫
-        </span>
-      ),
-    },
-    {
-      key: 'linkedPlates',
-      title: 'Linked plates',
-      render: (row) => {
-        const plates = row.linkedPlates || [];
-        if (plates.length === 0) {
-          return <span className="text-slate-400 italic text-xs font-medium">Not linked</span>;
-        }
-        return (
-          <div className="flex flex-wrap gap-1.5">
-            {plates.map((p) => (
-              <span
-                key={p}
-                className="inline-flex items-center px-2 py-0.5 rounded border border-blue-500/25 bg-slate-50 text-slate-700 font-mono text-[10px] font-black tracking-wider shadow-sm"
-              >
-                {p}
-              </span>
-            ))}
-          </div>
-        );
-      },
-    },
-    {
-      key: 'actions',
-      title: 'Actions',
-      render: (row) => (
-        <div className="flex items-center gap-1.5 whitespace-nowrap">
-          <button
-            onClick={() => openEditModal(row)}
-            className="p-1.5 rounded-lg bg-amber-50 border border-amber-100 hover:bg-amber-500 hover:text-white text-amber-600 hover:shadow-md transition-all duration-200"
-            title="Edit"
-          >
-            <Edit size={13} />
-          </button>
-          <button
-            onClick={() => toggleStatus(row)}
-            className="p-1.5 rounded-lg bg-orange-50 border border-orange-100 hover:bg-orange-500 hover:text-white text-orange-600 hover:shadow-md transition-all duration-200"
-            title={row.status === 'active' ? 'Lock account' : 'Unlock'}
-          >
-            {row.status === 'active' ? <Lock size={13} /> : <Unlock size={13} />}
-          </button>
-          <button
-            onClick={() => setPendingDeleteUser(row)}
-            className="p-1.5 rounded-lg bg-red-50 border border-red-100 hover:bg-red-500 hover:text-white text-red-650 hover:shadow-md transition-all duration-200"
-            title="Delete"
-          >
-            <Trash2 size={13} />
-          </button>
-        </div>
-      ),
-    },
-  ];
 
   return (
     <div className="space-y-6 pb-12">

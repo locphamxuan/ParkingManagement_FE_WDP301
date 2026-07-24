@@ -192,8 +192,15 @@ export interface ManagerCustomer {
 export interface RefundPolicy {
   _id?: string;
   refundPercent: number;
-  lostTicketFee?: number;
-  ruleViolationFee?: number;
+  isActive: boolean;
+}
+
+/** Bảng giá phạt vi phạm — 1 mức phí/loại vi phạm, manager tự cấu hình (không hard code). */
+export interface ViolationType {
+  _id: string;
+  code: string;
+  label: string;
+  fee: number;
   isActive: boolean;
 }
 
@@ -442,6 +449,16 @@ export const managerApi = {
       api.get<Wrap<{ item: RefundPolicy }>>(path(b, '/refund-policy')),
     update: (b: string, body: Partial<RefundPolicy>) =>
       api.put<Wrap<{ item: RefundPolicy }>>(path(b, '/refund-policy'), body),
+  },
+
+  violationTypes: {
+    list: (b: string, includeInactive = false) =>
+      api.get<Wrap<{ items: ViolationType[] }>>(path(b, '/violation-types'), { query: includeInactive ? { includeInactive: 'true' } : undefined }),
+    create: (b: string, body: { label: string; fee: number }) =>
+      api.post<Wrap<{ item: ViolationType }>>(path(b, '/violation-types'), body),
+    update: (b: string, id: string, body: Partial<Pick<ViolationType, 'label' | 'fee' | 'isActive'>>) =>
+      api.put<Wrap<{ item: ViolationType }>>(path(b, `/violation-types/${id}`), body),
+    remove: (b: string, id: string) => api.delete(path(b, `/violation-types/${id}`)),
   },
 
   customers: {

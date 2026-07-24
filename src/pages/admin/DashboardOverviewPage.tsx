@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { AnalyticsCard } from '@/components/charts/AnalyticsCard';
 import { ActivityTimeline } from '@/components/charts/ActivityTimeline';
 import { RevenueChart } from '@/components/charts/RevenueChart';
+import { BuildingOccupancyChart } from '@/components/charts/BuildingOccupancyChart';
 import { useAdminDataset } from '@/hooks/admin/useAdminDataset';
 import { Activity, CreditCard, ShieldCheck, TrendingUp } from 'lucide-react';
 import styles from '@/styles/modules/DashboardOverviewPage.module.css';
@@ -22,12 +23,6 @@ const sectionVariants = {
     y: 0,
     transition: { type: 'spring', stiffness: 90, damping: 18, delay: i * 0.1 },
   }),
-};
-
-const getOccupancyColor = (rate: number) => {
-  if (rate >= 75) return 'from-emerald-500 to-teal-400';
-  if (rate >= 40) return 'from-blue-500 to-sky-400';
-  return 'from-amber-500 to-orange-400';
 };
 
 const getOccupancyTextColor = (rate: number) => {
@@ -221,36 +216,29 @@ export function DashboardOverviewPage() {
             <h3 className="text-sm font-black uppercase tracking-wider text-slate-400 font-mono">Building performance</h3>
             <span className="px-2 py-0.5 rounded-md bg-blue-500/10 border border-blue-500/20 text-[9px] font-black text-blue-500 font-mono uppercase tracking-wider shadow-[0_0_8px_rgba(59,130,246,0.1)]">{data.buildings.length} bldg</span>
           </div>
-          <div className="max-h-[360px] overflow-y-auto pr-1 space-y-3">
-            {data.buildings.length === 0 ? (
-              <p className="text-xs text-slate-500 italic text-center py-6">No building data yet.</p>
-            ) : (
-              data.buildings.slice(0, 8).map((b) => (
+
+          <BuildingOccupancyChart buildings={data.buildings} />
+
+          {data.buildings.length > 0 && (
+            <div className="mt-3 max-h-[180px] overflow-y-auto pr-1 space-y-2">
+              {data.buildings.slice(0, 8).map((b) => (
                 <motion.div
                   key={b.id}
                   whileHover={{ scale: 1.01, x: 2 }}
-                  className="rounded-2xl border border-blue-500/10 bg-sky-50/40 p-4 transition-all duration-300 hover:border-blue-500/35 hover:shadow-[0_0_12px_rgba(37,99,235,0.06)]"
+                  className="flex items-center justify-between gap-3 rounded-xl border border-blue-500/10 bg-sky-50/40 px-3 py-2 transition-all duration-300 hover:border-blue-500/35 hover:shadow-[0_0_12px_rgba(37,99,235,0.06)]"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-black text-xs text-slate-800 truncate">{b.name}</p>
-                      <p className="mt-1 text-[10px] text-slate-500 font-semibold">{b.address}</p>
-                    </div>
-                    <div className="shrink-0 text-right">
-                      <p className={`text-xs font-black font-mono ${getOccupancyTextColor(b.occupancyRate)}`}>{b.occupancyRate}%</p>
-                      <p className="text-[10px] text-slate-500 font-mono">{b.revenueToday.toLocaleString('vi-VN')} VND</p>
-                    </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-black text-xs text-slate-800 truncate">{b.name}</p>
+                    <p className="mt-0.5 text-[10px] text-slate-500 font-semibold truncate">{b.address}</p>
                   </div>
-                  <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-                    <div
-                      className={`h-full bg-gradient-to-r ${getOccupancyColor(b.occupancyRate)} transition-all duration-500 rounded-full`}
-                      style={{ width: `${Math.min(b.occupancyRate, 100)}%` }}
-                    />
+                  <div className="shrink-0 text-right">
+                    <p className={`text-xs font-black font-mono ${getOccupancyTextColor(b.occupancyRate)}`}>{b.occupancyRate}%</p>
+                    <p className="text-[10px] text-slate-500 font-mono">{b.revenueToday.toLocaleString('vi-VN')} VND</p>
                   </div>
                 </motion.div>
-              ))
-            )}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Operational guardrails */}

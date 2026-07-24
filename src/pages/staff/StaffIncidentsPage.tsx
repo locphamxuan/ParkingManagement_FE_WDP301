@@ -483,6 +483,7 @@ export function StaffIncidentsPage() {
       {selectedIncident && (
         <ResolveIncidentModal
           role="staff"
+          buildingId={buildingId || ''}
           incident={selectedIncident}
           saving={saving}
           message={resolveMessage}

@@ -4,6 +4,7 @@ import { Building2, Car, Crown, Square, TrendingUp, Ticket } from 'lucide-react'
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RevenueChart } from '@/components/charts/RevenueChart';
+import { SlotOccupancyChart } from '@/components/charts/SlotOccupancyChart';
 import { useAuth } from '@/hooks/useAuth';
 import { useManagerBuildings } from '@/hooks/useManagerBuildings';
 import { managerApi, type DashboardOverview } from '@/services/manager/managerApi';
@@ -318,21 +319,12 @@ export function ManagerDashboardPage() {
                 <CardTitle className="text-xs font-black uppercase tracking-wider text-indigo-950 font-mono">Parking performance</CardTitle>
               </CardHeader>
               <CardContent className="p-5 space-y-4">
-                <div className="rounded-2xl border-2 border-blue-100 bg-slate-50/50 p-4">
-                  <p className="text-[9px] font-black uppercase tracking-wider text-slate-550 font-mono">Occupied slots</p>
-                  <div className="mt-2 flex items-baseline justify-between">
-                    <p className="text-2xl font-black text-slate-900 font-mono">{overview?.slots?.occupied ?? 0}</p>
-                    <p className="text-xs font-black text-slate-500 font-mono">/ {overview?.slots?.total ?? 0} slots</p>
-                  </div>
-                  <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-slate-200 p-[2px] border border-slate-300/60">
-                    <div
-                      className="h-full bg-gradient-to-r from-blue-700 via-indigo-600 to-blue-500 shadow-[0_0_12px_rgba(37,99,235,0.4)] transition-all duration-500 rounded-full relative overflow-hidden"
-                      style={{ width: `${overview?.slots?.occupancyRate ?? 0}%` }}
-                    >
-                      <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.45)_50%,transparent_100%)] animate-shimmer" style={{ backgroundSize: '200% 100%' }} />
-                    </div>
-                  </div>
-                </div>
+                <SlotOccupancyChart
+                  available={overview?.slots?.available ?? Math.max((overview?.slots?.total ?? 0) - (overview?.slots?.occupied ?? 0), 0)}
+                  occupied={overview?.slots?.occupied ?? 0}
+                  reserved={overview?.slots?.reserved ?? 0}
+                  maintenance={overview?.slots?.maintenance ?? 0}
+                />
 
                 <div className="rounded-2xl border-2 border-blue-100 bg-slate-50/50 p-4">
                   <p className="text-[9px] font-black uppercase tracking-wider text-slate-550 font-mono">Occupancy rate</p>

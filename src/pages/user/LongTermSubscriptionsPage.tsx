@@ -3,7 +3,7 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Building2, CheckCircle2, Loader2, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useLongTermSubscriptions, useCancelSubscription, useRenewSubscription } from '@/hooks/user';
+import { useLongTermSubscriptions, useCancelSubscription, useRenewSubscription, useRefundPreview } from '@/hooks/user';
 import type { LongTermSubscription } from '@/services/user/userApi';
 import { packageStatusLabel, packageStatusBadgeClass } from '@/utils/packageStatus';
 import { resolveErrorMessage } from '@/utils/apiErrors';
@@ -40,11 +40,21 @@ export default function LongTermSubscriptionsPage() {
 
   const { cancel: cancelSub, isLoading: isCancelling } = useCancelSubscription();
   const { renew, isLoading: isRenewing } = useRenewSubscription();
+  const { fetchPreview, isLoading: isLoadingPreview } = useRefundPreview();
 
   const [cancellingSub, setCancellingSub] = useState<LongTermSubscription | null>(null);
   const [cancelReason, setCancelReason] = useState<string>('change_vehicle');
   const [cancelNote, setCancelNote] = useState<string>('');
   const [cancelError, setCancelError] = useState<string | null>(null);
+  const [refundPreview, setRefundPreview] = useState<{ refundPercent: number; refundAmount: number } | null>(null);
+
+  const openCancelModal = (item: LongTermSubscription) => {
+    setCancellingSub(item);
+    setRefundPreview(null);
+    fetchPreview(item._id)
+      .then((preview) => setRefundPreview(preview))
+      .catch(() => setRefundPreview(null));
+  };
 
   // Xác nhận qua ConfirmModal (bỏ window.confirm native).
   const [renewTarget, setRenewTarget] = useState<LongTermSubscription | null>(null);
@@ -194,7 +204,7 @@ export default function LongTermSubscriptionsPage() {
                     {canCancel && (
                       <button
                         type="button"
-                        onClick={() => setCancellingSub(item)}
+                        onClick={() => openCancelModal(item)}
                         className="mt-2 w-full rounded-xl border border-rose-500/20 bg-rose-500/10 hover:bg-rose-500/20 px-3 py-1.5 text-xs font-black uppercase tracking-wider text-rose-400 transition-all active:scale-95"
                       >
                         Cancel Package
@@ -228,9 +238,23 @@ export default function LongTermSubscriptionsPage() {
             </div>
 
             <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 p-4 space-y-2 text-xs font-semibold text-rose-300">
-              <p>
-                This subscription will be cancelled. A partial refund (per this building's cancellation policy) will be credited to your wallet — the exact amount will be shown after confirmation.
-              </p>
+              {isLoadingPreview ? (
+                <p className="inline-flex items-center gap-2">
+                  <Loader2 size={12} className="animate-spin" /> Calculating your refund...
+                </p>
+              ) : refundPreview ? (
+                <p>
+                  This subscription will be cancelled. You will be refunded{' '}
+                  <span className="font-black text-rose-200">
+                    {refundPreview.refundPercent}% ({formatMoney(refundPreview.refundAmount)})
+                  </span>{' '}
+                  to your wallet, per this building's cancellation policy.
+                </p>
+              ) : (
+                <p>
+                  This subscription will be cancelled. A partial refund (per this building's cancellation policy) will be credited to your wallet — the exact amount will be shown after confirmation.
+                </p>
+              )}
               <p className="text-[10px] text-rose-300/80 italic">
                 (*) A cancellation fee is deducted for utility fees, system management, and parking lot operations.
               </p>
@@ -303,6 +327,7 @@ export default function LongTermSubscriptionsPage() {
                   setCancelReason('change_vehicle');
                   setCancelNote('');
                   setCancelError(null);
+                  setRefundPreview(null);
                 }}
                 disabled={isCancelling}
                 className="px-4 py-2.5 rounded-xl border border-white/10 bg-slate-950 text-xs font-black uppercase tracking-wider text-slate-400 hover:text-white transition-all active:scale-95 disabled:opacity-50"
@@ -324,6 +349,7 @@ export default function LongTermSubscriptionsPage() {
                     setCancellingSub(null);
                     setCancelReason('change_vehicle');
                     setCancelNote('');
+                    setRefundPreview(null);
                   } catch (err) {
                     setCancelError(resolveErrorMessage(err, 'Error cancelling package.'));
                   }

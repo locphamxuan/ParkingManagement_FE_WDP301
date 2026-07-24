@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { managerApi, type ViolationType } from '@/services/manager/managerApi';
 
 export interface ResolveIncidentTarget {
   _id: string;
@@ -34,6 +35,8 @@ export interface ResolveIncidentPayload {
 interface ResolveIncidentModalProps {
   /** staff không được set phí phạt (rule: chỉ manager) — ẩn toàn bộ phần "Penalize Violator". */
   role: 'staff' | 'manager';
+  /** Cần để tra bảng giá vi phạm (chỉ dùng khi role='manager'). */
+  buildingId: string;
   incident: ResolveIncidentTarget;
   saving: boolean;
   message: { type: 'ok' | 'err'; text: string } | null;
@@ -45,7 +48,7 @@ interface ResolveIncidentModalProps {
  * Modal xử lý sự cố dùng chung Staff/Manager. Incident `escalated` (biển vi phạm
  * không có account trong building) → staff chỉ xem read-only, chỉ manager xử lý được.
  */
-export function ResolveIncidentModal({ role, incident, saving, message, onClose, onSubmit }: ResolveIncidentModalProps) {
+export function ResolveIncidentModal({ role, buildingId, incident, saving, message, onClose, onSubmit }: ResolveIncidentModalProps) {
   const isEscalatedReadonly = role === 'staff' && incident.status === 'escalated';
 
   const resolvedDefaultStatus = (s?: string): ResolveIncidentStatus =>
@@ -56,6 +59,7 @@ export function ResolveIncidentModal({ role, incident, saving, message, onClose,
   const [violatorPlate, setViolatorPlate] = useState(incident.violatorPlate || '');
   const [penalizeViolator, setPenalizeViolator] = useState(false);
   const [penaltyFee, setPenaltyFee] = useState('');
+  const [violationTypes, setViolationTypes] = useState<ViolationType[]>([]);
 
   // Reset lại khi mở incident khác.
   useEffect(() => {
@@ -67,9 +71,23 @@ export function ResolveIncidentModal({ role, incident, saving, message, onClose,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [incident._id]);
 
+  // Bảng giá vi phạm — chỉ manager mới duyệt phạt được nên chỉ fetch cho role đó.
+  useEffect(() => {
+    if (role !== 'manager' || !buildingId) return;
+    managerApi.violationTypes.list(buildingId, true)
+      .then((res) => setViolationTypes(res.data.items ?? []))
+      .catch(() => setViolationTypes([]));
+  }, [role, buildingId]);
+
   const handleEscalate = () => {
     onSubmit({ status: 'escalated', resolutionNote: resolutionNote.trim() || 'Escalated to manager for review.' });
   };
+
+  // type khớp 1 ViolationType đã cấu hình → phí bị ép theo bảng giá, không cho nhập tay
+  // (chặn manager set phí tuỳ tiện). Chỉ 'other' (hoặc type không còn khớp bảng giá,
+  // vd incident cũ) mới cần/được nhập tay.
+  const matchedViolationType = violationTypes.find((v) => v.code === incident.type) ?? null;
+  const requiresManualFee = incident.type === 'other' || !matchedViolationType;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,12 +98,16 @@ export function ResolveIncidentModal({ role, incident, saving, message, onClose,
     };
     if (penalizeViolator) {
       payload.action = 'penalize_violator';
-      if (penaltyFee.trim()) payload.penaltyFee = Number(penaltyFee);
+      // Chỉ gửi penaltyFee khi cần nhập tay — type đã khớp bảng giá thì để BE tự áp
+      // đúng ViolationType.fee (gửi lên cũng bị BE bỏ qua, nhưng không gửi cho rõ ràng).
+      if (requiresManualFee && penaltyFee.trim()) payload.penaltyFee = Number(penaltyFee);
     }
     onSubmit(payload);
   };
 
-  const isOccupiedType = incident.type === 'slot_occupied';
+  // Hiện phần "Approve Penalty" khi type khớp bảng giá vi phạm HOẶC là 'other' — các
+  // loại sự cố tự thân (vehicle_damaged, facility_issue...) không có khái niệm phạt.
+  const canPenalize = Boolean(matchedViolationType) || incident.type === 'other';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
@@ -175,7 +197,7 @@ export function ResolveIncidentModal({ role, incident, saving, message, onClose,
               />
             </div>
 
-            {role === 'manager' && isOccupiedType && (
+            {role === 'manager' && canPenalize && (
               <div className="rounded-2xl border border-rose-100 bg-rose-50/30 p-4 space-y-3">
                 <div className="flex items-center gap-2">
                   <input
@@ -209,13 +231,20 @@ export function ResolveIncidentModal({ role, incident, saving, message, onClose,
                       </div>
                       <div>
                         <label className="text-[9px] font-black tracking-wider text-rose-600 block mb-1">Fine Amount (VND)</label>
-                        <Input
-                          type="number"
-                          placeholder="Leave blank = building's standard fee"
-                          value={penaltyFee}
-                          onChange={(e) => setPenaltyFee(e.target.value)}
-                          className="h-9 rounded-lg border-rose-200 bg-white text-xs font-bold text-slate-800"
-                        />
+                        {requiresManualFee ? (
+                          <Input
+                            type="number"
+                            placeholder="Enter amount"
+                            value={penaltyFee}
+                            onChange={(e) => setPenaltyFee(e.target.value)}
+                            className="h-9 rounded-lg border-rose-200 bg-white text-xs font-bold text-slate-800"
+                            required
+                          />
+                        ) : (
+                          <div className="h-9 flex items-center rounded-lg border border-rose-200 bg-rose-50 px-3 text-xs font-black text-rose-700">
+                            {matchedViolationType?.fee.toLocaleString('en-US')} VND (from price list)
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

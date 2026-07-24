@@ -1,6 +1,11 @@
-import { Plus, RotateCcw, Zap } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ChevronLeft, ChevronRight, Plus, RotateCcw, Zap } from 'lucide-react';
 import { AnimatedParkingMap3D } from '@/components/map/AnimatedParkingMap3D';
 import type { ParkingSlot } from '@/services/manager/managerApi';
+
+// The 3D stage only has room to render one row of bays at a time — page through
+// the rest instead of silently truncating (managers batch-create 20+ slots/floor).
+const SLOTS_PER_PAGE = 10;
 
 interface SlotMap3DViewProps {
   floorFilter: string;
@@ -28,6 +33,12 @@ export function SlotMap3DView({
   onOpenMultiSlot,
 }: SlotMap3DViewProps) {
   const displayedSlots = floorFilter ? (slotsByFloor[floorFilter] || []) : items;
+  const pageCount = Math.max(1, Math.ceil(displayedSlots.length / SLOTS_PER_PAGE));
+  const [page, setPage] = useState(0);
+  // Slot list (floor filter, status filter) changed — snap back to page 1 instead of
+  // pointing at a now out-of-range page.
+  useEffect(() => setPage(0), [floorFilter, displayedSlots.length]);
+  const pagedSlots = displayedSlots.slice(page * SLOTS_PER_PAGE, (page + 1) * SLOTS_PER_PAGE);
 
   return (
     <div className="grid gap-6 xl:grid-cols-[1fr,300px]">
@@ -37,9 +48,35 @@ export function SlotMap3DView({
           rotateX={rx}
           rotateZ={rz}
           interactive={true}
-          slots={displayedSlots}
+          slots={pagedSlots}
           onEditSlot={onEditSlot}
         />
+
+        {/* Bay pager — the stage only fits one row of 10; page through the rest so
+            no slot is silently hidden from the manager. */}
+        {displayedSlots.length > SLOTS_PER_PAGE && (
+          <div className="absolute top-16 right-6 z-20 flex items-center gap-2 bg-slate-950/80 border border-white/10 rounded-xl px-2 py-1.5 backdrop-blur-md shadow-lg">
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0}
+              className="p-1 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            >
+              <ChevronLeft size={14} />
+            </button>
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono">
+              Bays {page * SLOTS_PER_PAGE + 1}-{Math.min((page + 1) * SLOTS_PER_PAGE, displayedSlots.length)} / {displayedSlots.length}
+            </span>
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+              disabled={page >= pageCount - 1}
+              className="p-1 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            >
+              <ChevronRight size={14} />
+            </button>
+          </div>
+        )}
 
         {/* Quick Batch Creator Overlay Action Bar directly on 3D Map */}
         {onOpenMultiSlot && (

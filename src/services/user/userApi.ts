@@ -212,15 +212,23 @@ interface ListResult<T> {
   pagination?: { page: number; limit: number; total: number; totalPages: number };
 }
 
+// Nhóm cố định (sự cố tự thân) + bất kỳ code nào từ bảng giá vi phạm động của
+// manager (vd 'wrong_spot', 'slot_occupied') — không hard code danh sách đầy đủ.
 export type UserIncidentType =
-  | 'slot_occupied'
-  | 'slot_blocked'
   | 'vehicle_damaged'
   | 'facility_issue'
   | 'wrong_scan'
   | 'payment_dispute'
   | 'security'
-  | 'other';
+  | 'other'
+  | (string & {});
+
+/** Loại vi phạm manager cấu hình cho building — chỉ label/code, KHÔNG có phí (nội bộ). */
+export interface ViolationTypeOption {
+  _id: string;
+  code: string;
+  label: string;
+}
 
 export interface UserIncident {
   _id: string;
@@ -334,6 +342,11 @@ export const userApi = {
         `/users/buildings/${buildingId}/floors/${floorId}/slots`,
         { query }
       ),
+
+    /** Violation types configured by the building's manager — for the incident report form.
+     *  Label/code only, no fee (that's manager/staff-internal). */
+    violationTypes: (buildingId: string) =>
+      api.get<Wrap<{ items: ViolationTypeOption[] }>>(`/users/buildings/${buildingId}/violation-types`),
   },
 
   // ========== PROFILE ==========

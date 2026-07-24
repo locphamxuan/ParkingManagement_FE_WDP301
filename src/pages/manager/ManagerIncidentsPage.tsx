@@ -262,6 +262,7 @@ export function ManagerIncidentsPage() {
       {selectedIncident && (
         <ResolveIncidentModal
           role="manager"
+          buildingId={buildingId}
           incident={selectedIncident}
           saving={saving}
           message={message}

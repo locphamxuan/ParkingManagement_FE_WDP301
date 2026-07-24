@@ -6,11 +6,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { managerApi } from '@/services/manager/managerApi';
+import { ViolationTypesManager } from '@/components/manager/ViolationTypesManager';
 
 export function ManagerRefundPolicyPage() {
   const { buildingId } = useBuildingContext();
   const [refundPercent, setRefundPercent] = useState<string>('80');
-  const [ruleViolationFee, setRuleViolationFee] = useState<string>('100000');
   const [isActive, setIsActive] = useState<boolean>(true);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -23,7 +23,6 @@ export function ManagerRefundPolicyPage() {
       .then((res) => {
         const item = res.data.item;
         setRefundPercent(String(item?.refundPercent ?? 80));
-        setRuleViolationFee(String(item?.ruleViolationFee ?? 100000));
         setIsActive(item?.isActive ?? true);
       })
       .catch((err) => setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Error' }))
@@ -39,17 +38,12 @@ export function ManagerRefundPolicyPage() {
       if (isNaN(pct) || pct < 0 || pct > 100) {
         throw new Error('Refund percentage must be between 0 and 100');
       }
-      const ruleFee = Number(ruleViolationFee);
-      if (isNaN(ruleFee) || ruleFee < 0) {
-        throw new Error('Rule violation fee must be a valid positive amount');
-      }
 
       await managerApi.refundPolicy.update(buildingId, {
         refundPercent: pct,
-        ruleViolationFee: ruleFee,
         isActive,
       });
-      setMessage({ type: 'success', text: 'Building fine and refund policies saved successfully.' });
+      setMessage({ type: 'success', text: 'Refund policy saved successfully.' });
     } catch (err) {
       setMessage({
         type: 'error',
@@ -89,7 +83,7 @@ export function ManagerRefundPolicyPage() {
             Building Fine & Refund Policies
           </h1>
           <p className="mt-1 text-xs font-bold text-slate-500">
-            Configure the fine rates for violations (lost ticket, rule breach) and cancellation refund percentage. Staff will read-only apply these configured fines.
+            Configure the violation penalty price list and cancellation refund percentage. Staff apply these configured fines as read-only.
           </p>
         </div>
       </div>
@@ -106,6 +100,8 @@ export function ManagerRefundPolicyPage() {
         </div>
       )}
 
+      <ViolationTypesManager buildingId={buildingId} />
+
       <Card
         style={{
           background: 'rgba(255, 255, 255, 0.45)',
@@ -117,44 +113,6 @@ export function ManagerRefundPolicyPage() {
       >
         <CardContent className="p-6">
           <form onSubmit={onSubmit} className="space-y-6">
-
-            <div className="rounded-2xl border border-rose-100 bg-rose-50/30 p-4 space-y-4">
-              <h3 className="text-xs font-extrabold uppercase tracking-wider text-rose-700 flex items-center gap-2">
-                ⚖️ Penalty Fee Rules (Manager configuration)
-              </h3>
-
-              {/* Penalty explanations */}
-              <div className="rounded-xl border border-rose-100 bg-rose-50/60 p-3 text-[10px] text-rose-700 space-y-1.5 font-medium">
-                <p className="font-bold text-rose-800 text-[11px]">📋 Cases where a penalty fee applies on the premises:</p>
-                <div className="grid gap-1">
-                  <div className="flex items-start gap-2"><span className="shrink-0 font-black">🚫</span><span><b>Wrong spot / row:</b> Vehicle parked in a slot it's not allowed to use (wrong vehicle type, wrong subscription row).</span></div>
-                  <div className="flex items-start gap-2"><span className="shrink-0 font-black">⏰</span><span><b>Overstaying the limit (overstay):</b> Monthly package vehicle parked longer than the hours/day allowed by its package.</span></div>
-                  <div className="flex items-start gap-2"><span className="shrink-0 font-black">🔧</span><span><b>Damaged parking equipment:</b> Damage to cameras, automatic gates, floor markings, or signage.</span></div>
-                  <div className="flex items-start gap-2"><span className="shrink-0 font-black">📸</span><span><b>Plate mismatch / forged:</b> Camera-scanned plate doesn't match the plate registered in the system.</span></div>
-                  <div className="flex items-start gap-2"><span className="shrink-0 font-black">🔒</span><span><b>Occupying another customer's slot:</b> Vehicle without the right to park in a slot reserved under another customer's fixed subscription.</span></div>
-                  <div className="flex items-start gap-2"><span className="shrink-0 font-black">🚪</span><span><b>Gate entry/exit violation:</b> Deliberately bypassing the gate or skipping the check-in/out process.</span></div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700">
-                    🔧 Default violation penalty (VND)
-                  </label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="10000"
-                    value={ruleViolationFee}
-                    onChange={(e) => setRuleViolationFee(e.target.value)}
-                    className="h-10 rounded-xl border-rose-200 bg-white font-extrabold text-rose-700"
-                    required
-                  />
-                  <p className="text-[10px] text-slate-400 font-medium">Applied to any of the violation cases above when staff/manager resolve an incident without entering a custom amount.</p>
-                </div>
-              </div>
-            </div>
-
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-650 uppercase tracking-wider block">
                 Refund Percentage (%)

@@ -4,6 +4,7 @@ import { AlertTriangle, CheckCircle2, Loader2, ParkingCircle, ShieldAlert } from
 import { useAuth } from '@/hooks/useAuth';
 import { userApi, type ParkingHistory, type UserIncident, type UserIncidentType } from '@/services/user/userApi';
 import { resolveErrorMessage } from '@/utils/apiErrors';
+import { normalizePlate, isValidVietnamPlate } from '@/utils/plate';
 
 const INCIDENT_TYPES: { value: UserIncidentType; label: string }[] = [
   { value: 'slot_occupied', label: 'Someone is parked in my slot' },
@@ -77,12 +78,26 @@ export default function ReportIncidentPage() {
       setMessage({ type: 'err', text: 'Please describe the incident.' });
       return;
     }
+
+    let normalizedViolatorPlate: string | undefined = undefined;
+    if (type === 'slot_occupied') {
+      const trimmed = violatorPlate.trim();
+      if (trimmed) {
+        const norm = normalizePlate(trimmed);
+        if (!isValidVietnamPlate(norm)) {
+          setMessage({ type: 'err', text: 'Invalid license plate format (e.g. 59G2-038.80).' });
+          return;
+        }
+        normalizedViolatorPlate = norm;
+      }
+    }
+
     setSubmitting(true);
     try {
       await userApi.incidents.create({
         type,
         note: note.trim(),
-        violatorPlate: type === 'slot_occupied' ? violatorPlate.trim() || undefined : undefined,
+        violatorPlate: normalizedViolatorPlate,
         buildingId: activeSession?.building?._id,
         slotId: activeSession?.slot?._id,
       });

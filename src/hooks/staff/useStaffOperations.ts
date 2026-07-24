@@ -152,11 +152,6 @@ export function useStaffOperations() {
   // đối tượng khác). 'capacity' KHÔNG chặn (đỗ theo sức chứa là hợp lệ).
   const slotSelectionBlocked = needsSlotSelection && (slotPoolState === 'exhausted' || slotPoolState === 'full');
 
-  const isBlacklisted = useMemo(() => {
-    const clean = plateNumber.trim().toUpperCase();
-    return clean.startsWith('99') || clean === '59G2-999.99' || clean.startsWith('XX');
-  }, [plateNumber]);
-
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [userQrInfo, setUserQrInfo] = useState<{
@@ -457,7 +452,6 @@ export function useStaffOperations() {
     slotUsageType, selectedZone, zoneUsageBlocked, zoneUsageFallback, hasExactZoneFree,
     slotPoolState, slotSelectionBlocked, slotPoolStats,
     rejectOpen, setRejectOpen,
-    isBlacklisted,
     barrierState,
     rejectReason, setRejectReason,
     userQrInfo, setUserQrInfo,

@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import pbmsMark from '@/assets/pbms-mark-professional.png';
 
 interface LogoProps {
   /** 'mark' = icon only (favicon-style square). 'full' = icon + wordmark. */
@@ -11,34 +11,19 @@ interface LogoProps {
 }
 
 /**
- * PBMS brand mark: a bold "P" fused with a rounded stadium stem, evoking both
- * the parking initial and a location pin. Single shared component so every
- * layout renders the identical mark instead of duplicating inline SVG/CSS.
+ * PBMS brand mark: a bold parking "P" paired with a segmented digital lane.
+ * The shared component keeps the same identity across public and portal views.
  */
 export function Logo({ variant = 'full', size = 36, tagline = 'Parking Space', className = '' }: LogoProps) {
-  const gradientId = `pbms-mark-grad-${useId()}`;
-
   const mark = (
-    <svg
+    <img
+      src={pbmsMark}
       width={size}
       height={size}
-      viewBox="0 0 40 40"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
+      alt=""
       aria-hidden="true"
-      className="shrink-0 rounded-xl shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-transform duration-300 group-hover:scale-105"
-    >
-      <defs>
-        <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#2563EB" />
-          <stop offset="100%" stopColor="#06B6D4" />
-        </linearGradient>
-      </defs>
-      <rect x="2" y="2" width="36" height="36" rx="11" fill={`url(#${gradientId})`} />
-      <rect x="2" y="2" width="36" height="12" rx="9" fill="#FFFFFF" opacity="0.1" />
-      <rect x="13" y="10" width="5" height="20" rx="2.5" fill="#FFFFFF" />
-      <path d="M18,10 L23,10 A5,5 0 0 1 23,20 L18,20 Z" fill="#FFFFFF" />
-    </svg>
+      className="shrink-0 rounded-[28%] shadow-[0_0_18px_rgba(6,182,212,0.32)] transition-transform duration-300 group-hover:scale-105"
+    />
   );
 
   if (variant === 'mark') {
@@ -49,7 +34,7 @@ export function Logo({ variant = 'full', size = 36, tagline = 'Parking Space', c
     <span className={`flex items-center gap-2.5 group ${className}`}>
       {mark}
       <span className="hidden sm:block leading-tight">
-        <strong className="block text-sm font-black tracking-tight bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
+        <strong className="block text-sm font-black tracking-[0.02em] bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 bg-clip-text text-transparent">
           PBMS
         </strong>
         {tagline && (

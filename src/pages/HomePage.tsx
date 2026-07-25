@@ -21,6 +21,7 @@ import { AnimatedParkingMap3D } from '@/components/map/AnimatedParkingMap3D';
 import { ModuleCard, moduleIcons } from '@/components/home/ModuleCard';
 import { PremiumCTABanner, PremiumFooter } from '@/components/home/HomeFooterSections';
 import { HomeHero } from '@/components/home/HomeHero';
+import { Logo } from '@/components/layout/Logo';
 import back1 from '@/assets/back1.webp';
 
 interface HomePageProps {
@@ -149,14 +150,8 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
         <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-600 via-cyan-400 to-purple-600 opacity-60 pointer-events-none" />
 
         <div className="max-w-6xl mx-auto px-4 flex items-center justify-between">
-          <a href="#top" aria-label="PBMS Home" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 grid place-items-center shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(6,182,212,0.5)] group-hover:rotate-6">
-              <span className="w-2.5 h-2.5 bg-slate-950 rounded-full" />
-            </div>
-            <div>
-              <strong className="block text-lg font-black tracking-tight bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent group-hover:brightness-110 transition-all duration-300">PBMS Parking</strong>
-              <span className="text-[10px] uppercase font-mono tracking-widest text-slate-500 font-extrabold block">Cloud Management</span>
-            </div>
+          <a href="#top" aria-label="PBMS Home" className="group">
+            <Logo size={40} tagline="Cloud Management" />
           </a>
 
           <nav className="hidden md:flex gap-8">

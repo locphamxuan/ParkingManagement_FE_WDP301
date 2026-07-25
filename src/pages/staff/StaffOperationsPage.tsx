@@ -41,7 +41,7 @@ export function StaffOperationsPage() {
     slotUsageType, selectedZone, zoneUsageBlocked, zoneUsageFallback, hasExactZoneFree,
     slotPoolState, slotSelectionBlocked,
     allowedTypes, plateTypeWarning, buildingSupportWarning, barrierState,
-    hasActivePackage, checkInKind, needsSlotSelection,
+    hasActivePackage, checkInKind, needsSlotSelection, isMotorcycle,
     handlePlateDetected, proceedFromIdentify, capturePortraitAndNext,
     handleResolveIdQr, onCheckIn, vehicleTypeMismatch,
   } = ops;
@@ -215,7 +215,7 @@ export function StaffOperationsPage() {
                     }}
                     placeholder="E.g. 59G2-038.80"
                     className="h-11 rounded-xl border-sky-100 focus:border-sky-500 focus:ring-sky-500/20 text-slate-800 font-mono font-bold text-sm bg-white"
-                    onKeyDown={(e) => { if (e.key === 'Enter' && plateNumber.trim().length >= 7 && !(checkInKind === 'standard' && !plateImage)) proceedFromIdentify(); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter' && plateNumber.trim().length >= 7) proceedFromIdentify(); }}
                   />
                   {vehicleBrand && (
                     <span className="inline-flex w-fit items-center gap-1 rounded-lg border border-sky-200 bg-sky-50 px-2.5 py-1 text-[11px] font-bold text-sky-700 shadow-sm">
@@ -253,16 +253,11 @@ export function StaffOperationsPage() {
                       📅 Vehicle has a <strong>reservation</strong>{plateAccountInfo?.activeReservation?.code ? ` (code ${plateAccountInfo.activeReservation.code})` : ''} — next: capture portrait to confirm.
                     </div>
                   )}
-                  {plateNumber.trim().length >= 7 && checkInKind === 'standard' && !plateImage && (
-                    <div className="mt-1 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2.5 text-[11px] text-rose-700">
-                      ⚠️ Requires a <strong>plate photo</strong>: tap “Capture &amp; recognize” on the plate camera (required for walk-in guests / regular users).
-                    </div>
-                  )}
                 </div>
 
                 <Button
                   onClick={proceedFromIdentify}
-                  disabled={plateNumber.trim().length < 7 || !!buildingSupportWarning || (checkInKind === 'standard' && !plateImage)}
+                  disabled={plateNumber.trim().length < 7 || !!buildingSupportWarning}
                   className="w-full h-11 gap-2 bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-extrabold hover:brightness-110 disabled:opacity-60 rounded-xl shadow-md shadow-sky-500/20"
                 >
                   Continue <ArrowRight size={16} />
@@ -411,7 +406,9 @@ export function StaffOperationsPage() {
                   <div className={`rounded-2xl border p-4 space-y-3 ${hasActivePackage ? 'border-amber-200 bg-amber-50/50' : 'border-sky-200 bg-sky-50/50'}`}>
                     <p className={`text-[11px] font-bold flex items-center gap-1.5 ${hasActivePackage ? 'text-amber-800' : 'text-sky-800'}`}>
                       <AlertCircle size={13} />
-                      {hasActivePackage
+                      {isMotorcycle
+                        ? 'Select a motorcycle zone — the system will assign an available spot automatically:'
+                        : hasActivePackage
                         ? `Vehicle has a long-term package${plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''}${plateAccountInfo?.activePackage?.maxHoursPerDay ? ` · free ${plateAccountInfo.activePackage.maxHoursPerDay}h/day` : ''} — pick a zone & free slot:`
                         : 'Pick a zone & slot for the guest (required if the building has slots):'}
                       <span className="ml-1 inline-flex items-center rounded-full border border-white/15 bg-slate-950/40 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider text-slate-300">
@@ -430,7 +427,7 @@ export function StaffOperationsPage() {
                         </span>
                       </div>
                     ) : freeSlots.length > 0 ? (
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className={`grid gap-3 ${isMotorcycle ? 'grid-cols-1' : 'grid-cols-2'}`}>
                         <div>
                           <label className="block text-[9px] font-bold text-slate-400 mb-1 uppercase tracking-wider font-mono">Zone</label>
                           <select
@@ -449,7 +446,7 @@ export function StaffOperationsPage() {
                             ))}
                           </select>
                         </div>
-                        <div>
+                        {!isMotorcycle && <div>
                           <label className="block text-[9px] font-bold text-slate-400 mb-1 uppercase tracking-wider font-mono">Slot</label>
                           <select
                             value={selectedSlotId}
@@ -466,7 +463,7 @@ export function StaffOperationsPage() {
                                 </option>
                               ))}
                           </select>
-                        </div>
+                        </div>}
                         {selectedSlotId && (
                           <div className="col-span-2 p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-2 mt-1">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -499,14 +496,18 @@ export function StaffOperationsPage() {
                         <AlertCircle size={12} className="text-amber-500" /> This is a <strong>{usageLabel(selectedZone?.usageType)}</strong> zone used as fallback for a {usageLabel(slotUsageType)} vehicle{hasExactZoneFree ? ` — ${usageLabel(slotUsageType)} zones are still free, prefer those.` : '.'}
                       </p>
                     )}
+                    {isMotorcycle && selectedZoneId && (
+                      <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-2.5 text-[11px] font-semibold text-emerald-700">
+                        A free motorcycle spot will be assigned automatically in this zone when you confirm check-in.
+                      </p>
+                    )}
                   </div>
                 )}
 
                 {/* Missing capture checks */}
-                {(!portraitImage || (checkInKind === 'standard' && !plateImage)) && (
+                {!portraitImage && (
                   <p className="text-[11px] text-rose-600 flex items-center gap-1.5 font-semibold">
-                    <AlertCircle size={13} /> Requires a <strong>portrait photo</strong>
-                    {checkInKind === 'standard' ? <> and a <strong>plate photo</strong></> : null} to check in (go back to capture).
+                    <AlertCircle size={13} /> Requires a <strong>portrait photo</strong> to check in (go back to capture).
                   </p>
                 )}
 
@@ -517,7 +518,7 @@ export function StaffOperationsPage() {
                   </Button>
                   <Button
                     onClick={onCheckIn}
-                    disabled={!plateNumber.trim() || loading || !!buildingSupportWarning || zoneUsageBlocked || slotSelectionBlocked || !portraitImage || (hasActivePackage && !selectedSlotId) || (checkInKind === 'standard' && !plateImage) || (checkInKind === 'standard' && freeSlots.length > 0 && !selectedSlotId)}
+                    disabled={!plateNumber.trim() || loading || !!buildingSupportWarning || zoneUsageBlocked || slotSelectionBlocked || !portraitImage || (needsSlotSelection && freeSlots.length > 0 && !selectedZoneId) || (!isMotorcycle && needsSlotSelection && freeSlots.length > 0 && !selectedSlotId)}
                     className="flex-1 h-11 gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-extrabold hover:brightness-110 disabled:opacity-60 rounded-xl shadow-md shadow-emerald-500/10"
                   >
                     <ScanLine size={16} /> Confirm &amp; Admit

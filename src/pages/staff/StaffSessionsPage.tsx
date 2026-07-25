@@ -275,11 +275,43 @@ function CheckOutHistory({ buildingId }: { buildingId: string }) {
 
 export function StaffSessionsPage() {
   const { buildingId } = useBuildingContext();
-  const { showCheckOut } = useAssignedGates();
+  const [tab, setTab] = useState<'checkout' | 'checkin'>('checkout');
 
-  if (!showCheckOut) {
-    return <CheckInHistory buildingId={buildingId} />;
-  }
+  return (
+    <div className="space-y-6">
+      {/* Sub-tabs Selector */}
+      <div className="flex w-fit gap-1 rounded-xl border border-slate-200/50 bg-slate-100/60 p-1">
+        <button
+          type="button"
+          onClick={() => setTab('checkout')}
+          className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-black uppercase tracking-wider transition-all duration-200 ${
+            tab === 'checkout'
+              ? 'bg-white text-sky-600 shadow-sm border border-slate-200/50 font-bold scale-[1.01]'
+              : 'text-slate-500 hover:text-slate-800 hover:bg-white/40'
+          }`}
+        >
+          <CircleDollarSign size={14} />
+          Check-out &amp; Revenue
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab('checkin')}
+          className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-black uppercase tracking-wider transition-all duration-200 ${
+            tab === 'checkin'
+              ? 'bg-white text-sky-600 shadow-sm border border-slate-200/50 font-bold scale-[1.01]'
+              : 'text-slate-500 hover:text-slate-800 hover:bg-white/40'
+          }`}
+        >
+          <Car size={14} />
+          Check-in History
+        </button>
+      </div>
 
-  return <CheckOutHistory buildingId={buildingId} />;
+      {tab === 'checkout' ? (
+        <CheckOutHistory buildingId={buildingId} />
+      ) : (
+        <CheckInHistory buildingId={buildingId} />
+      )}
+    </div>
+  );
 }

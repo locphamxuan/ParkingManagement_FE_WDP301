@@ -5,6 +5,7 @@ import {
   Car,
   ChevronLeft,
   ChevronDown,
+  History,
   LayoutDashboard,
   LogOut,
   ScanLine,
@@ -25,6 +26,7 @@ const BASE_PAGE_TITLE: Record<string, string> = {
   checkout: 'Vehicle Check-out',
   parked: 'Parked Vehicles',
   'my-shifts': 'My Shifts',
+  sessions: 'Shift History',
   incidents: 'Incident Management',
 };
 
@@ -55,7 +57,7 @@ export function StaffLayout() {
       { to: 'checkout', label: 'Vehicle Check-out', icon: LogOut },
       { to: 'parked', label: 'Parked Vehicles', icon: Car },
       { to: 'my-shifts', label: 'My Shifts', icon: CalendarClock },
-      { to: 'sessions', label: 'Check-in History', icon: Car },
+      { to: 'sessions', label: 'Shift History', icon: History },
       { to: 'incidents', label: 'Incidents', icon: ShieldAlert },
     ],
     [],
@@ -100,7 +102,7 @@ export function StaffLayout() {
   }, [location.pathname]);
 
   const title = slug === 'sessions'
-    ? 'Check-in History'
+    ? 'Shift History'
     : (BASE_PAGE_TITLE[slug] ?? 'Staff');
   const selectedBuilding = buildings.find((b) => b._id === selectedBuildingId);
   const isProfileRoute = Boolean(useMatch('/staff/profile'));

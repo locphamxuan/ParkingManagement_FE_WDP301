@@ -61,6 +61,10 @@ const ERROR_MESSAGES: Record<string, string> = {
     'No active parking session for this plate in the selected building.',
 
   // General
+  BUILDING_ACCESS_DENIED:
+    'You are not assigned to this building. Switch to a building you are assigned to, or ask your manager for access.',
+  BUILDING_STATUS_FORBIDDEN:
+    'You can only switch this building between active and maintenance. Ask an admin for other status changes.',
   FORBIDDEN_BUILDING_SCOPE: 'You do not have access to this building.',
   USER_FEEDBACK_ONLY: 'Only registered users can submit feedback.',
 };

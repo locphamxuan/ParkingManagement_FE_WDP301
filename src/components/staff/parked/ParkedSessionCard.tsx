@@ -102,7 +102,15 @@ export function ParkedSessionCard({ session: s, canCheckout, onCheckout }: Parke
             {hasSlot ? 'Assigned' : 'No slot assigned'}
           </p>
         </div>
-        <div className="col-span-2">
+        <div>
+          <span className="text-[9px] font-bold uppercase tracking-wide text-slate-400">Entry time</span>
+          <p className="font-bold text-slate-700">
+            {s.entryTime
+              ? `${new Date(s.entryTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} · ${new Date(s.entryTime).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })}`
+              : '—'}
+          </p>
+        </div>
+        <div>
           <span className="text-[9px] font-bold uppercase tracking-wide text-slate-400">Parking duration</span>
           <p className="font-extrabold text-sky-600">{fmtDuration(s.entryTime, s.exitTime)}</p>
         </div>

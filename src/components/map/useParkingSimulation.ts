@@ -4,9 +4,10 @@ import { useAnimation } from 'framer-motion';
 /**
  * Vòng lặp mô phỏng bãi đỗ 3D (2 xe vào/ra, cổng, khói xả, HUD) tách khỏi
  * AnimatedParkingMap3D để component chỉ còn phần render. Ở chế độ `interactive`
- * thì dừng mô phỏng, hiển thị hướng dẫn chọn ô.
+ * thì dừng mô phỏng, hiển thị hướng dẫn chọn ô. `paused` dừng hẳn vòng lặp
+ * (dùng cho bản preview khi người dùng bật prefers-reduced-motion).
  */
-export function useParkingSimulation(interactive: boolean) {
+export function useParkingSimulation(interactive: boolean, paused = false) {
   const [hudMessage, setHudMessage] = useState('Starting simulation system...');
   const [simPhase, setSimPhase] = useState(0);
 
@@ -26,12 +27,16 @@ export function useParkingSimulation(interactive: boolean) {
   const [smokeParticles, setSmokeParticles] = useState<{ id: number; x: number; y: number }[]>([]);
 
   useEffect(() => {
-    if (interactive) {
+    if (interactive || paused) {
       setCarAState('parked');
       setCarBState('parked');
       setGateAOpen(false);
       setGateBOpen(false);
-      setHudMessage('Please select an available (green) slot on the map.');
+      setHudMessage(
+        interactive
+          ? 'Please select an available (green) slot on the map.'
+          : 'Simulation paused.',
+      );
       return;
     }
 
@@ -184,11 +189,11 @@ export function useParkingSimulation(interactive: boolean) {
       active = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [controlsCarA, controlsCarB]);
+  }, [controlsCarA, controlsCarB, paused]);
 
   // Handle active car smoke particles spawning during motion
   useEffect(() => {
-    if (simPhase === 0) return;
+    if (simPhase === 0 || paused) return;
 
     const interval = setInterval(() => {
       if (simPhase === 1 && carAState === 'driving') {
@@ -206,7 +211,7 @@ export function useParkingSimulation(interactive: boolean) {
     }, 450);
 
     return () => clearInterval(interval);
-  }, [simPhase, carAState, carBState]);
+  }, [simPhase, carAState, carBState, paused]);
 
   return {
     hudMessage, simPhase,

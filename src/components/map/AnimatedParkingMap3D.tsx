@@ -1,9 +1,17 @@
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { CartoonCar3D } from './CartoonCar3D';
 import { useParkingSimulation } from './useParkingSimulation';
 import { Activity, Info, Zap } from 'lucide-react';
 
+/**
+ * `full` — bản đầy đủ cho HomePage & Manager (HUD, chọn ô, sửa ô).
+ * `compact` — bản preview thu nhỏ (~240px) chỉ để trang trí: bỏ HUD, callout,
+ * thao tác chọn/sửa ô; aria-hidden và không nhận tương tác.
+ */
+export type AnimatedParkingMap3DVariant = 'full' | 'compact';
+
 export interface AnimatedParkingMap3DProps {
+  variant?: AnimatedParkingMap3DVariant;
   rotateX?: any;
   rotateZ?: any;
   scale?: any;
@@ -25,6 +33,7 @@ export interface AnimatedParkingMap3DProps {
 }
 
 export function AnimatedParkingMap3D({
+  variant = 'full',
   rotateX,
   rotateZ,
   scale,
@@ -38,39 +47,59 @@ export function AnimatedParkingMap3D({
   slots = [],
   onEditSlot,
 }: AnimatedParkingMap3DProps = {}) {
+  const compact = variant === 'compact';
+  const prefersReducedMotion = useReducedMotion();
+  // Bản preview đứng yên khi người dùng yêu cầu giảm chuyển động.
+  const paused = compact && Boolean(prefersReducedMotion);
+
   const {
     hudMessage, simPhase,
     gateAOpen, gateBOpen,
     carAState, carBState,
     smokeParticles,
     controlsCarA, controlsCarB,
-  } = useParkingSimulation(interactive);
+  } = useParkingSimulation(interactive, paused);
+
+  const showSimCars = !interactive && !paused;
 
   return (
-    <div className="relative w-full h-full min-h-[460px] rounded-3xl bg-slate-950 border border-white/5 shadow-2xl p-6 overflow-hidden flex flex-col justify-between">
-      
+    <div
+      aria-hidden={compact || undefined}
+      className={
+        compact
+          ? 'relative w-full h-[200px] sm:h-[210px] rounded-xl bg-slate-950 overflow-hidden flex flex-col justify-between pointer-events-none select-none'
+          : 'relative w-full h-full min-h-[460px] rounded-3xl bg-slate-950 border border-white/5 shadow-2xl p-6 overflow-hidden flex flex-col justify-between'
+      }
+    >
+
       {/* Blueprint Grid Lines Backing */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:15px_15px] pointer-events-none" />
 
       {/* Cyberpunk HUD Indicator Top */}
-      <div className="relative z-10 flex items-center justify-between bg-slate-900/60 border border-white/5 px-4 py-2.5 rounded-2xl backdrop-blur-md shadow-lg border-glow-neon">
-        <div className="flex items-center gap-2.5">
-          <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse shadow-[0_0_8px_#f97316]" />
-          <span className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono flex items-center gap-1.5">
-            <Activity size={12} className="text-orange-400" />
-            {interactive ? '3D INTERACTIVE BOOKING MAP' : 'LIVE SIMULATION V3.0'}
+      {!compact && (
+        <div className="relative z-10 flex items-center justify-between bg-slate-900/60 border border-white/5 px-4 py-2.5 rounded-2xl backdrop-blur-md shadow-lg border-glow-neon">
+          <div className="flex items-center gap-2.5">
+            <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse shadow-[0_0_8px_#f97316]" />
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono flex items-center gap-1.5">
+              <Activity size={12} className="text-orange-400" />
+              {interactive ? '3D INTERACTIVE BOOKING MAP' : 'LIVE SIMULATION V3.0'}
+            </span>
+          </div>
+          <span className="text-[9px] font-mono font-black text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20 uppercase tracking-widest">
+            {interactive ? 'SELECT SLOT' : 'ACTIVE MAP'}
           </span>
         </div>
-        <span className="text-[9px] font-mono font-black text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20 uppercase tracking-widest">
-          {interactive ? 'SELECT SLOT' : 'ACTIVE MAP'}
-        </span>
-      </div>
+      )}
 
       {/* High-Fidelity Smart City Isometric Arena */}
-      <div className="w-full flex-1 relative flex items-center justify-center perspective-1000 preserve-3d">
+      <div
+        className={`w-full flex-1 relative flex items-center justify-center perspective-1000 preserve-3d ${
+          compact ? 'scale-[0.84] sm:scale-100' : ''
+        }`}
+      >
         
         {/* DATA STREAMING HUD CALLOUT FOR TEAL SEDAN IN ENTRY PHASE */}
-        {simPhase === 1 && carAState === 'driving' && (
+        {!compact && simPhase === 1 && carAState === 'driving' && (
           <svg className="absolute inset-0 w-full h-full pointer-events-none z-20">
             {/* Dynamic leader line linking from HUD to Teal Sedan path */}
             <motion.path 
@@ -104,7 +133,7 @@ export function AnimatedParkingMap3D({
             height: '240px',
             rotateX: rotateX ?? 55,
             rotateZ: rotateZ ?? -45,
-            scale: scale ?? 1.0,
+            scale: scale ?? (compact ? 0.66 : 1.0),
             x: x ?? 0,
             y: y ?? 0,
           }}
@@ -246,12 +275,12 @@ export function AnimatedParkingMap3D({
             }}
           >
             {/* Floating Entry Gate Label Badge */}
-            <div 
-              className="absolute left-[-30px] top-[-25px] z-30 font-mono text-[8px] font-black uppercase text-emerald-300 bg-slate-950/90 border border-emerald-500/40 px-2 py-0.5 rounded shadow-[0_0_10px_rgba(16,185,129,0.3)] flex items-center gap-1 pointer-events-none"
+            <div
+              className={`absolute top-[-25px] z-30 font-mono text-[8px] font-black uppercase text-emerald-300 bg-slate-950/90 border border-emerald-500/40 px-2 py-0.5 rounded shadow-[0_0_10px_rgba(16,185,129,0.3)] flex items-center gap-1 pointer-events-none ${compact ? 'left-[-14px]' : 'left-[-30px]'}`}
               style={{ transform: 'translateZ(35px)' }}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-              <span>CỔNG VÀO (IN)</span>
+              <span>{compact ? 'IN' : 'CỔNG VÀO (IN)'}</span>
             </div>
 
             {/* Volumetric black scanner body */}
@@ -299,12 +328,12 @@ export function AnimatedParkingMap3D({
             }}
           >
             {/* Floating Exit Gate Label Badge */}
-            <div 
-              className="absolute right-[-30px] top-[-25px] z-30 font-mono text-[8px] font-black uppercase text-rose-300 bg-slate-950/90 border border-rose-500/40 px-2 py-0.5 rounded shadow-[0_0_10px_rgba(244,63,94,0.3)] flex items-center gap-1 pointer-events-none"
+            <div
+              className={`absolute top-[-25px] z-30 font-mono text-[8px] font-black uppercase text-rose-300 bg-slate-950/90 border border-rose-500/40 px-2 py-0.5 rounded shadow-[0_0_10px_rgba(244,63,94,0.3)] flex items-center gap-1 pointer-events-none ${compact ? 'right-[-16px]' : 'right-[-30px]'}`}
               style={{ transform: 'translateZ(35px)' }}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping" />
-              <span>CỔNG RA (OUT)</span>
+              <span>{compact ? 'OUT' : 'CỔNG RA (OUT)'}</span>
             </div>
 
             <div 
@@ -355,21 +384,21 @@ export function AnimatedParkingMap3D({
               const carColors = ['#0e7490', '#be185d', '#334155', '#eab308', '#059669', '#d97706'];
 
               return (
-                <motion.div 
+                <motion.div
                   key={rawSlot?._id || slotCode || id}
-                  onClick={() => {
+                  onClick={compact ? undefined : () => {
                     if (onEditSlot && rawSlot) {
                       onEditSlot(rawSlot);
                     } else if (interactive && !isOccupied && onSlotClick) {
                       onSlotClick(slotCode);
                     }
                   }}
-                  whileHover={{ 
-                    scale: 1.06, 
+                  whileHover={compact ? undefined : {
+                    scale: 1.06,
                     boxShadow: isOccupied ? '0 0 15px rgba(244,63,94,0.5)' : '0 0 15px rgba(16,185,129,0.5)',
                   }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`w-[66px] h-[46px] rounded-xl border flex flex-col justify-between p-1.5 relative shadow-2xl transition-all duration-300 cursor-pointer ${
+                  whileTap={compact ? undefined : { scale: 0.95 }}
+                  className={`w-[66px] h-[46px] rounded-xl border flex flex-col justify-between p-1.5 relative shadow-2xl transition-all duration-300 ${compact ? 'cursor-default' : 'cursor-pointer'} ${
                     isSelected
                       ? 'border-orange-500 bg-orange-500/10 shadow-[0_0_15px_rgba(249,115,22,0.6)] scale-105 z-20'
                       : isOccupied
@@ -426,7 +455,7 @@ export function AnimatedParkingMap3D({
           </div>
 
           {/* Floating exhaust smoke particles */}
-          {!interactive && smokeParticles.map((p) => (
+          {showSimCars && smokeParticles.map((p) => (
             <motion.span 
               key={p.id}
               initial={{ scale: 0.3, opacity: 0.8, z: 6 }}
@@ -442,7 +471,7 @@ export function AnimatedParkingMap3D({
 
           {/* ANIMATED CARS IN SIMULATION */}
           {/* CAR A (Teal Sedan) */}
-          {!interactive && (
+          {showSimCars && (
             <motion.div 
               animate={controlsCarA}
               className="absolute preserve-3d"
@@ -469,7 +498,7 @@ export function AnimatedParkingMap3D({
           )}
 
           {/* CAR B (Fuchsia SUV) */}
-          {!interactive && (
+          {showSimCars && (
             <motion.div 
               animate={controlsCarB}
               className="absolute preserve-3d"
@@ -494,7 +523,7 @@ export function AnimatedParkingMap3D({
               )}
 
               {/* Holographic HUD Callout pinned to Fuchsia SUV roof (only when driving/exiting) */}
-              {carBState === 'driving' && (
+              {!compact && carBState === 'driving' && (
                 <div className="absolute overflow-visible pointer-events-none" style={{ top: 0, left: 0, width: '100%', height: '100%', transformStyle: 'preserve-3d' }}>
                   
                   {/* SVG curved cyan leader line */}
@@ -547,17 +576,19 @@ export function AnimatedParkingMap3D({
       </div>
 
       {/* Cyber HUD Status Panel */}
-      <div className="absolute bottom-4 right-4 w-[280px] z-20 flex gap-2.5 items-start bg-slate-950/80 border border-orange-500/30 border-l-4 border-l-orange-500 p-3 rounded-xl backdrop-blur-md shadow-[0_12px_40px_rgba(0,0,0,0.5)] transition-all duration-300 hover:border-orange-500/50">
-        <Info size={14} className="text-orange-400 shrink-0 mt-0.5 animate-pulse" />
-        <div className="space-y-0.5">
-          <p className="text-[8px] font-black uppercase text-slate-400 font-mono tracking-wider flex items-center gap-1.5">Operating status<span className="relative flex h-1.5 w-1.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
-            </span>
-          </p>
-          <p className="text-[11px] font-bold text-slate-200 leading-snug tracking-wide">{hudMessage}</p>
+      {!compact && (
+        <div className="absolute bottom-4 right-4 w-[280px] z-20 flex gap-2.5 items-start bg-slate-950/80 border border-orange-500/30 border-l-4 border-l-orange-500 p-3 rounded-xl backdrop-blur-md shadow-[0_12px_40px_rgba(0,0,0,0.5)] transition-all duration-300 hover:border-orange-500/50">
+          <Info size={14} className="text-orange-400 shrink-0 mt-0.5 animate-pulse" />
+          <div className="space-y-0.5">
+            <p className="text-[8px] font-black uppercase text-slate-400 font-mono tracking-wider flex items-center gap-1.5">Operating status<span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+              </span>
+            </p>
+            <p className="text-[11px] font-bold text-slate-200 leading-snug tracking-wide">{hudMessage}</p>
+          </div>
         </div>
-      </div>
+      )}
 
     </div>
   );

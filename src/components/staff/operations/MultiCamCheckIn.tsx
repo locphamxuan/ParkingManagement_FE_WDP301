@@ -15,7 +15,7 @@ export function MultiCamCheckIn({ ops }: { ops: StaffOperations }) {
     plateImage, plateCamRef, qrCamRef, portraitCamRef, assignment, distinctDeviceCount, multiCamMode,
     plateAccountInfo, freeSlots, selectedSlotId, setSelectedSlotId, selectedZoneId, setSelectedZoneId,
     availableZones, setRejectOpen, allowedTypes, plateTypeWarning, buildingSupportWarning,
-    hasActivePackage, checkInKind, needsSlotSelection,
+    hasActivePackage, checkInKind, needsSlotSelection, isMotorcycle,
     slotUsageType, selectedZone, zoneUsageBlocked, zoneUsageFallback, hasExactZoneFree,
     slotPoolState, slotSelectionBlocked,
     handlePlateDetected, handleResolveIdQr, onCheckIn, vehicleTypeMismatch,
@@ -101,14 +101,16 @@ export function MultiCamCheckIn({ ops }: { ops: StaffOperations }) {
         <div className={`rounded-xl border p-3 space-y-3 ${hasActivePackage ? 'border-amber-500/30 bg-amber-500/10' : 'border-sky-500/30 bg-sky-500/10'}`}>
           <p className={`text-[11px] font-bold flex items-center gap-1 ${hasActivePackage ? 'text-amber-300' : 'text-sky-300'}`}>
             <AlertCircle size={12} />
-            {hasActivePackage ? 'Vehicle has a long-term package — pick a zone & free slot:' : 'Pick a zone & slot for the guest:'}
+            {isMotorcycle
+              ? 'Select the motorcycle parking zone — the system will assign an available spot automatically:'
+              : hasActivePackage ? 'Vehicle has a long-term package — pick a zone & free slot:' : 'Pick a zone & slot for the guest:'}
             <span className="ml-1 inline-flex items-center rounded-full border border-white/15 bg-slate-950/40 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider text-slate-300">
               {usageLabel(slotUsageType)}
             </span>
           </p>
 
           {freeSlots.length > 0 ? (
-            <div className="grid grid-cols-2 gap-2">
+            <div className={`grid gap-2 ${isMotorcycle ? 'grid-cols-1' : 'grid-cols-2'}`}>
               <div>
                 <label className="block text-[9px] font-bold text-slate-400 mb-1 uppercase tracking-wider font-mono">Zone</label>
                 <select
@@ -127,7 +129,7 @@ export function MultiCamCheckIn({ ops }: { ops: StaffOperations }) {
                   ))}
                 </select>
               </div>
-              <div>
+              {!isMotorcycle && <div>
                 <label className="block text-[9px] font-bold text-slate-400 mb-1 uppercase tracking-wider font-mono">Slot</label>
                 <select
                   value={selectedSlotId}
@@ -144,7 +146,7 @@ export function MultiCamCheckIn({ ops }: { ops: StaffOperations }) {
                       </option>
                     ))}
                 </select>
-              </div>
+              </div>}
             </div>
           ) : slotPoolState === 'capacity' ? (
             <p className="text-[11px] text-slate-400">This building has no fixed slots — vehicles park by shared capacity.</p>
@@ -167,6 +169,11 @@ export function MultiCamCheckIn({ ops }: { ops: StaffOperations }) {
           {!zoneUsageBlocked && zoneUsageFallback && (
             <p className="text-[11px] text-amber-300 flex items-center gap-1">
               <AlertCircle size={12} /> This is a <strong>{usageLabel(selectedZone?.usageType)}</strong> zone used as fallback for a {usageLabel(slotUsageType)} vehicle{hasExactZoneFree ? ` — ${usageLabel(slotUsageType)} zones are still free, prefer those.` : '.'}
+            </p>
+          )}
+          {isMotorcycle && selectedZoneId && (
+            <p className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-2 text-[11px] font-semibold text-emerald-400">
+              A free motorcycle spot will be assigned automatically in this zone when you confirm check-in.
             </p>
           )}
 
@@ -207,8 +214,8 @@ export function MultiCamCheckIn({ ops }: { ops: StaffOperations }) {
             !!buildingSupportWarning ||
             zoneUsageBlocked ||
             slotSelectionBlocked ||
-            (hasActivePackage && !selectedSlotId) ||
-            (checkInKind === 'standard' && freeSlots.length > 0 && !selectedSlotId)
+            (needsSlotSelection && freeSlots.length > 0 && !selectedZoneId) ||
+            (!isMotorcycle && needsSlotSelection && freeSlots.length > 0 && !selectedSlotId)
           }
           className="flex-1 h-11 gap-2 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60"
         >

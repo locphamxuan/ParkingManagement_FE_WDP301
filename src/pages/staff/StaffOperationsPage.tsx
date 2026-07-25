@@ -231,7 +231,7 @@ export function StaffOperationsPage() {
                         <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
                       </span>
                       <p className="text-xs text-emerald-800">
-                        Member: <strong className="text-emerald-900">{plateAccountInfo.user?.fullName}</strong> ({plateAccountInfo.user?.email})
+                        Member: <strong className="text-emerald-900">{plateAccountInfo.user?.fullName}</strong>
                       </p>
                     </div>
                   )}
@@ -357,7 +357,7 @@ export function StaffOperationsPage() {
                     <div className="mt-1 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full bg-emerald-500" />
                       <p className="text-xs text-emerald-800">
-                        Member: <strong className="text-emerald-900">{plateAccountInfo.user?.fullName}</strong> ({plateAccountInfo.user?.email})
+                        Member: <strong className="text-emerald-900">{plateAccountInfo.user?.fullName}</strong>
                       </p>
                     </div>
                   )}

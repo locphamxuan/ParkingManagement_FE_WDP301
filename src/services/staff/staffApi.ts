@@ -135,13 +135,11 @@ export interface Dashboard {
 export interface PlateInfo {
   plateNumber: string;
   hasAccount: boolean;
+  usageType?: 'walk_in' | 'registered' | 'subscriber';
   registeredVehicleType?: 'car' | 'motorcycle' | null;
   user?: {
     id: string;
     fullName: string;
-    email: string;
-    phone: string;
-    walletBalance: number;
   };
   activeSession?: {
     id: string;
@@ -175,7 +173,9 @@ export interface PaymentData {
 }
 
 export interface PaymentStatus {
-  status: 'success' | 'pending' | 'cancelled' | string;
+  // 'reconciliation_required': the session was already settled by another order —
+  // the manager must reconcile/refund this one; it must never read as success.
+  status: 'success' | 'pending' | 'cancelled' | 'expired' | 'reconciliation_required' | string;
   settled: boolean;
 }
 
@@ -249,8 +249,11 @@ export const staffApi = {
   verifySessionPayment: (orderCode: number) =>
     api.get<Wrap<PaymentStatus>>(`/staff/parking-sessions/payment/${orderCode}/status`),
 
-  lookupPlate: (plateNumber: string) =>
-    api.get<Wrap<PlateInfo>>(`/staff/parking-sessions/lookup-plate/${plateNumber}`),
+  lookupPlate: (plateNumber: string, buildingId: string) =>
+    api.get<Wrap<PlateInfo>>(
+      `/staff/parking-sessions/lookup-plate/${encodeURIComponent(plateNumber)}`,
+      { query: { building: buildingId } },
+    ),
 
   lookupUserQr: (qrCode: string) =>
     api.get<Wrap<{ hasAccount: boolean; user: { id: string; fullName: string; email: string } | null }>>(
@@ -271,7 +274,7 @@ export const staffApi = {
 
   // AI camera (Camera 1): send a captured frame (base64, data-URL prefix allowed),
   // get back the recognized plate + brand and the resolved owner account.
-  scanVehicle: (image: string, _buildingId?: string) =>
+  scanVehicle: (image: string, buildingId: string) =>
     api.post<
       Wrap<{
         plateNumber: string;
@@ -282,13 +285,13 @@ export const staffApi = {
         vehicleTypeMismatch: boolean;
         hasAccount: boolean;
         registeredVehicleType: 'car' | 'motorcycle' | null;
-        user: { id: string; fullName: string; email: string; phone: string | null; walletBalance: number } | null;
+        user: { id: string; fullName: string } | null;
         activeSession: { id: string; building: string; entryTime: string } | null;
       }>
-    >('/staff/parking-sessions/scan', { image }),
+    >('/staff/parking-sessions/scan', { image, building: buildingId }),
 
   // Staff rejects a check-in/check-out → backend notifies the plate owner.
-  reject: (payload: { plateNumber: string; stage: 'check-in' | 'check-out'; reason: string; building?: string }) =>
+  reject: (payload: { plateNumber: string; stage: 'check-in' | 'check-out'; reason: string; building: string }) =>
     api.post<Wrap<{ plateNumber: string; stage: string; notified: boolean }>>(
       '/staff/parking-sessions/reject',
       payload
@@ -346,8 +349,11 @@ export const staffApi = {
     getPaymentStatus: (orderCode: number) =>
       api.get<Wrap<PaymentStatus>>(`/staff/parking-sessions/payment/${orderCode}/status`),
 
-    lookupPlate: (plateNumber: string, _buildingId?: string) =>
-      api.get<Wrap<PlateInfo>>(`/staff/parking-sessions/lookup-plate/${plateNumber}`),
+    lookupPlate: (plateNumber: string, buildingId: string) =>
+      api.get<Wrap<PlateInfo>>(
+        `/staff/parking-sessions/lookup-plate/${encodeURIComponent(plateNumber)}`,
+        { query: { building: buildingId } },
+      ),
 
     lookupUser: (qrCode: string) =>
       api.get<Wrap<{ hasAccount: boolean; user: { id: string; fullName: string; email: string } | null }>>(

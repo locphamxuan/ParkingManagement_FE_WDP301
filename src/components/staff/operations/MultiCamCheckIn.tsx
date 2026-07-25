@@ -54,7 +54,7 @@ export function MultiCamCheckIn({ ops }: { ops: StaffOperations }) {
         )}
         {plateNumber.trim().length >= 7 && plateAccountInfo?.hasAccount && (
           <div className="mt-1 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-2.5 text-xs text-emerald-400">
-            Member: <strong className="text-foreground">{plateAccountInfo.user?.fullName}</strong> ({plateAccountInfo.user?.email})
+            Member: <strong className="text-foreground">{plateAccountInfo.user?.fullName}</strong>
           </div>
         )}
         {plateNumber.trim().length >= 7 && plateAccountInfo && !plateAccountInfo.hasAccount && (

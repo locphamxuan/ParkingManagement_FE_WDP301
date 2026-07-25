@@ -5,6 +5,8 @@ import { useAssignedGates } from '@/hooks/staff/useAssignedGates';
 import { type PlateScanResult, type LiveCameraHandle } from '@/components/staff/LivePlateCamera';
 import { useCameraDevices } from '@/hooks/useCameraDevices';
 import { normalizePlate } from '@/utils/plate';
+import { resolveStaffSlotSelection } from '@/utils/staffSlotSelection';
+import { resolveErrorMessage } from '@/utils/apiErrors';
 
 export type VehicleKind = 'car' | 'motorcycle';
 export type OperationMode = 'check-in' | 'check-out';
@@ -88,13 +90,18 @@ export function useStaffOperations() {
     : hasActiveReservation
       ? 'reservation'
       : 'standard';
-  const needsSlotSelection = hasActivePackage || checkInKind === 'standard';
+  const { assignedSlotId, needsSlotSelection } = resolveStaffSlotSelection({
+    fixedSlotId: plateAccountInfo?.activePackage?.slot?.id,
+    selectedSlotId,
+    hasActivePackage,
+    checkInKind,
+  });
 
   // Đối tượng thật để lọc slot: gói → subscriber; biển có tài khoản (không gói/đặt chỗ)
   // → registered; còn lại → walk_in. (reserved đã có slot cố định nên không chọn zone.)
   const slotUsageType: 'walk_in' | 'registered' | 'subscriber' = hasActivePackage
     ? 'subscriber'
-    : (plateAccountInfo as any)?.usageType === 'registered'
+    : plateAccountInfo?.usageType === 'registered'
       ? 'registered'
       : 'walk_in';
   const zoneChain = acceptableUsageTypes(slotUsageType);
@@ -208,18 +215,14 @@ export function useStaffOperations() {
   // Tự động tra cứu chủ biển số
   useEffect(() => {
     const clean = plateNumber.trim().toUpperCase();
-    if (clean.length >= 7) {
+    if (clean.length >= 7 && buildingId) {
       let cancelled = false;
       staffApi
-        .lookupPlate(clean)
+        .lookupPlate(clean, buildingId)
         .then((res) => {
           if (cancelled) return;
           const info = (res as { data?: PlateInfo })?.data ?? null;
           setPlateAccountInfo(info);
-          // Auto fill fixed slot if available
-          if (info?.hasActivePackage && info?.activePackage?.slot) {
-            setSelectedSlotId(info.activePackage.slot.id);
-          }
         })
         .catch(() => undefined);
       return () => { cancelled = true; };
@@ -299,7 +302,7 @@ export function useStaffOperations() {
 
   const handleResolveIdQr = async (code: string) => {
     try {
-      const res = await staffApi.resolveQr(code);
+      const res = await staffApi.resolveQr(code, buildingId || undefined);
       const data = (res as {
         data?: {
           kind: 'plate' | 'user';
@@ -329,7 +332,7 @@ export function useStaffOperations() {
         setOpMessage({ type: 'err', text: 'The QR code does not match any account or vehicle.' });
       }
     } catch (err) {
-      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'QR lookup error.' });
+      setOpMessage({ type: 'err', text: resolveErrorMessage(err, 'QR lookup error.') });
     }
   };
 
@@ -348,7 +351,7 @@ export function useStaffOperations() {
 
   const onCheckIn = async () => {
     setOpMessage(null);
-    if (hasActivePackage && !selectedSlotId) {
+    if (hasActivePackage && !assignedSlotId) {
       setOpMessage({ type: 'err', text: 'This vehicle has a long-term package — please pick a free slot before checking in.' });
       return;
     }
@@ -377,7 +380,7 @@ export function useStaffOperations() {
         vehicleBrand: vehicleBrand || undefined,
         plateImage: plateImg,
         portraitImage: portraitImg,
-        slot: selectedSlotId || undefined,
+        slot: assignedSlotId || undefined,
         gate: entryGateId || undefined,
       });
       
@@ -395,7 +398,7 @@ export function useStaffOperations() {
       setOpMessage({ type: 'ok', text: `Parking session created for plate ${currentPlate}.` });
       resetForm();
     } catch (err) {
-      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Check-in failed' });
+      setOpMessage({ type: 'err', text: resolveErrorMessage(err, 'Check-in failed') });
     } finally {
       setLoading(false);
     }
@@ -410,7 +413,7 @@ export function useStaffOperations() {
         plateNumber: plate,
         stage,
         reason: rejectReason.trim(),
-        building: buildingId || undefined,
+        building: buildingId,
       });
       const notified = (res as { data?: { notified?: boolean } })?.data?.notified;
       setOpMessage({
@@ -420,7 +423,7 @@ export function useStaffOperations() {
       setRejectOpen(false);
       setRejectReason('');
     } catch (err) {
-      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Rejection failed' });
+      setOpMessage({ type: 'err', text: resolveErrorMessage(err, 'Rejection failed') });
     }
   };
 
@@ -446,7 +449,7 @@ export function useStaffOperations() {
     identifyMode, setIdentifyMode,
     plateAccountInfo, setPlateAccountInfo,
     freeSlots, setFreeSlots,
-    selectedSlotId, setSelectedSlotId,
+    selectedSlotId: assignedSlotId, setSelectedSlotId,
     selectedZoneId, setSelectedZoneId,
     availableZones,
     slotUsageType, selectedZone, zoneUsageBlocked, zoneUsageFallback, hasExactZoneFree,

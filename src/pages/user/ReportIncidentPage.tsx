@@ -72,16 +72,36 @@ export default function ReportIncidentPage() {
       .finally(() => setLoadingSession(false));
   }, [session, refresh]);
 
+  // Building của phiên đang đỗ (nếu có) → nếu không, building của gói dài hạn đang
+  // active (subscriber không nhất thiết đang có xe trong bãi) — mirror đúng thứ tự
+  // suy luận building mà BE dùng ở createIncident, để user luôn thấy ĐỦ số loại vi
+  // phạm manager đang cấu hình cho building của họ, không chỉ khi đang có xe đỗ.
   useEffect(() => {
-    const buildingId = activeSession?.building?._id;
-    if (!buildingId) {
-      setViolationTypes([]);
-      return;
-    }
-    userApi.buildings.violationTypes(buildingId)
-      .then((res) => setViolationTypes(res.data.items ?? []))
-      .catch(() => setViolationTypes([]));
-  }, [activeSession?.building?._id]);
+    if (!session) return;
+    let cancelled = false;
+    (async () => {
+      let buildingId = activeSession?.building?._id;
+      if (!buildingId) {
+        try {
+          const res = await userApi.longTermSubscriptions.list({ status: 'active' });
+          const sub = res.data.items?.[0];
+          const building = sub?.building;
+          buildingId = typeof building === 'string' ? building : building?._id;
+        } catch {
+          // ignore — no active subscription either, leave violationTypes empty
+        }
+      }
+      try {
+        const types = buildingId ? (await userApi.buildings.violationTypes(buildingId)).data.items ?? [] : [];
+        if (!cancelled) setViolationTypes(types);
+      } catch {
+        if (!cancelled) setViolationTypes([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [session, activeSession?.building?._id]);
 
   const typeLabel = (t: string) =>
     GENERAL_INCIDENT_TYPES.find((x) => x.value === t)?.label

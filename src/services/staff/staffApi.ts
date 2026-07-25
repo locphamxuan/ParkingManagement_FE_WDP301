@@ -9,6 +9,16 @@ export interface FreeSlot {
   usageType?: any;
 }
 
+/**
+ * Phiên gửi xe rút gọn mà các API tra cứu QR trả về — chỉ đủ để nhận diện xe tại
+ * cổng. Không có phí, không có thông tin cá nhân của khách.
+ */
+export interface QrActiveSession {
+  id: string;
+  plateNumber: string;
+  entryTime: string;
+}
+
 export interface StaffBuilding {
   _id: string;
   name: string;
@@ -255,22 +265,23 @@ export const staffApi = {
       { query: { building: buildingId } },
     ),
 
-  lookupUserQr: (qrCode: string) =>
-    api.get<Wrap<{ hasAccount: boolean; user: { id: string; fullName: string; email: string } | null }>>(
-      `/staff/users/lookup-qr/${qrCode}`
+  // Account QR — luôn phải kèm tòa nhà đang chọn (BE trả 400 BUILDING_REQUIRED nếu thiếu).
+  lookupUserQr: (qrCode: string, buildingId: string) =>
+    api.get<Wrap<{ hasAccount: boolean; user: { id: string; fullName: string; isActive: boolean } | null }>>(
+      `/staff/users/lookup-qr/${qrCode}`,
+      { query: { building: buildingId } },
     ),
 
-  // Lookup a license plate by its unique QR token (PLT-...)
-  lookupPlateQr: (qrCode: string) =>
+  // Lookup a license plate by its unique QR token (PLT-...), scoped to one building
+  lookupPlateQr: (qrCode: string, buildingId: string) =>
     api.get<
       Wrap<{
         qrCode: string;
         found: boolean;
-        plate: { plateNumber: string; vehicleType: string } | null;
-        user: { id: string; fullName: string; email: string; phone: string | null; walletBalance: number; isActive: boolean } | null;
-        activeSessions: { id: string; building: string; plateNumber: string; entryTime: string; fee: number }[];
+        plate: { plateNumber: string; vehicleType: string; brand?: string | null } | null;
+        activeSessions: QrActiveSession[];
       }>
-    >(`/staff/users/lookup-plate-qr/${qrCode}`),
+    >(`/staff/users/lookup-plate-qr/${qrCode}`, { query: { building: buildingId } }),
 
   // AI camera (Camera 1): send a captured frame (base64, data-URL prefix allowed),
   // get back the recognized plate + brand and the resolved owner account.
@@ -298,19 +309,21 @@ export const staffApi = {
     ),
 
   // Camera 2: unified QR resolver — PLT- plate token or account ID.
-  resolveQr: (code: string, buildingId?: string) =>
+  // `buildingId` là BẮT BUỘC: BE chỉ tra cứu trong đúng tòa đang chọn và chỉ trả về
+  // dữ liệu tối thiểu cho nghiệp vụ cổng (không có email/phone/ví/danh sách biển số).
+  resolveQr: (code: string, buildingId: string) =>
     api.get<
       Wrap<{
         kind: 'plate' | 'user';
         found?: boolean;
         hasAccount?: boolean;
         plate?: { plateNumber: string; vehicleType: string; brand?: string | null } | null;
-        user: { id: string; fullName: string; email: string; phone?: string | null; walletBalance?: number } | null;
-        activeSessions?: { id: string; building: string; plateNumber: string; entryTime: string; fee: number }[];
-        /** Gói dài hạn đang hoạt động của user (chỉ có khi kind === 'user'). */
+        user?: { id: string; fullName: string; isActive: boolean } | null;
+        activeSessions?: QrActiveSession[];
+        /** Gói dài hạn đang hoạt động của user TRONG TÒA ĐANG CHỌN (chỉ khi kind === 'user'). */
         activePackages?: { id: string; name: string; code: string | null; plateNumber: string; startDate?: string; endDate?: string }[];
       }>
-    >(`/staff/users/resolve-qr/${encodeURIComponent(code)}`, { query: buildingId ? { building: buildingId } : undefined }),
+    >(`/staff/users/resolve-qr/${encodeURIComponent(code)}`, { query: { building: buildingId } }),
 
   // Sessions (namespaced, for backward compat)
   sessions: {
@@ -355,9 +368,10 @@ export const staffApi = {
         { query: { building: buildingId } },
       ),
 
-    lookupUser: (qrCode: string) =>
-      api.get<Wrap<{ hasAccount: boolean; user: { id: string; fullName: string; email: string } | null }>>(
-        `/staff/users/lookup-qr/${qrCode}`
+    lookupUser: (qrCode: string, buildingId: string) =>
+      api.get<Wrap<{ hasAccount: boolean; user: { id: string; fullName: string; isActive: boolean } | null }>>(
+        `/staff/users/lookup-qr/${qrCode}`,
+        { query: { building: buildingId } },
       ),
 
     /** Lịch sử xe vào hôm nay của nhân viên cổng VÀO — có location (cổng, tầng, ô). */

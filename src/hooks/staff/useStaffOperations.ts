@@ -162,10 +162,9 @@ export function useStaffOperations() {
 
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
+  // Chỉ tên hiển thị + gói dài hạn của TÒA ĐANG CHỌN — không giữ email/ví của khách.
   const [userQrInfo, setUserQrInfo] = useState<{
     fullName: string;
-    email: string;
-    walletBalance?: number;
     activePackages: { id: string; name: string; code: string | null; plateNumber: string; endDate?: string }[];
   } | null>(null);
 
@@ -303,13 +302,19 @@ export function useStaffOperations() {
   };
 
   const handleResolveIdQr = async (code: string) => {
+    // Tra cứu QR luôn bị giới hạn trong đúng tòa đang chọn — chưa chọn tòa thì
+    // không gọi API (BE cũng sẽ từ chối với BUILDING_REQUIRED).
+    if (!buildingId) {
+      setOpMessage({ type: 'err', text: 'Select a building before scanning a QR code.' });
+      return;
+    }
     try {
-      const res = await staffApi.resolveQr(code, buildingId || undefined);
+      const res = await staffApi.resolveQr(code, buildingId);
       const data = (res as {
         data?: {
           kind: 'plate' | 'user';
           plate?: { plateNumber: string; vehicleType?: string; brand?: string | null } | null;
-          user?: { id: string; fullName: string; email: string; walletBalance?: number } | null;
+          user?: { id: string; fullName: string } | null;
           activePackages?: { id: string; name: string; code: string | null; plateNumber: string; endDate?: string }[];
         };
       })?.data;
@@ -325,8 +330,6 @@ export function useStaffOperations() {
       } else if (data.user) {
         setUserQrInfo({
           fullName: data.user.fullName,
-          email: data.user.email,
-          walletBalance: data.user.walletBalance,
           activePackages: data.activePackages ?? [],
         });
         setOpMessage({ type: 'ok', text: `Account recognized: ${data.user.fullName}. Please scan/enter the plate number.` });

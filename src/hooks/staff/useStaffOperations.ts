@@ -96,6 +96,7 @@ export function useStaffOperations() {
     hasActivePackage,
     checkInKind,
   });
+  const isMotorcycle = vehicleType === 'motorcycle';
 
   // Đối tượng thật để lọc slot: gói → subscriber; biển có tài khoản (không gói/đặt chỗ)
   // → registered; còn lại → walk_in. (reserved đã có slot cố định nên không chọn zone.)
@@ -161,10 +162,9 @@ export function useStaffOperations() {
 
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
+  // Chỉ tên hiển thị + gói dài hạn của TÒA ĐANG CHỌN — không giữ email/ví của khách.
   const [userQrInfo, setUserQrInfo] = useState<{
     fullName: string;
-    email: string;
-    walletBalance?: number;
     activePackages: { id: string; name: string; code: string | null; plateNumber: string; endDate?: string }[];
   } | null>(null);
 
@@ -237,7 +237,7 @@ export function useStaffOperations() {
   useEffect(() => {
     setSelectedZoneId('');
     setSelectedSlotId('');
-  }, [slotUsageType, buildingId]);
+  }, [slotUsageType, buildingId, vehicleType]);
 
   useEffect(() => {
     if (!needsSlotSelection || !buildingId) {
@@ -259,14 +259,15 @@ export function useStaffOperations() {
         setFreeSlots(itemsList);
         setSlotPoolStats({ totalSlots: data?.totalSlots ?? 0, totalAvailable: data?.totalAvailable ?? 0 });
         
-        // Auto select suggested slot if no fixed slot is present
+        // Cars use the suggested bay. Motorcycles only need its zone; the
+        // backend assigns an available bay in that zone during check-in.
         const hasFixed = plateAccountInfo?.hasActivePackage && plateAccountInfo?.activePackage?.slot;
         if (!hasFixed && data?.suggestedSlotId) {
-          setSelectedSlotId(data.suggestedSlotId);
           const matchedSlot = itemsList.find(s => s._id === data.suggestedSlotId);
           if (matchedSlot && matchedSlot.zone) {
             setSelectedZoneId(typeof matchedSlot.zone === 'object' ? matchedSlot.zone._id : matchedSlot.zone);
           }
+          setSelectedSlotId(vehicleType === 'motorcycle' ? '' : data.suggestedSlotId);
         }
       })
       .catch(() => undefined);
@@ -301,13 +302,19 @@ export function useStaffOperations() {
   };
 
   const handleResolveIdQr = async (code: string) => {
+    // Tra cứu QR luôn bị giới hạn trong đúng tòa đang chọn — chưa chọn tòa thì
+    // không gọi API (BE cũng sẽ từ chối với BUILDING_REQUIRED).
+    if (!buildingId) {
+      setOpMessage({ type: 'err', text: 'Select a building before scanning a QR code.' });
+      return;
+    }
     try {
-      const res = await staffApi.resolveQr(code, buildingId || undefined);
+      const res = await staffApi.resolveQr(code, buildingId);
       const data = (res as {
         data?: {
           kind: 'plate' | 'user';
           plate?: { plateNumber: string; vehicleType?: string; brand?: string | null } | null;
-          user?: { id: string; fullName: string; email: string; walletBalance?: number } | null;
+          user?: { id: string; fullName: string } | null;
           activePackages?: { id: string; name: string; code: string | null; plateNumber: string; endDate?: string }[];
         };
       })?.data;
@@ -323,8 +330,6 @@ export function useStaffOperations() {
       } else if (data.user) {
         setUserQrInfo({
           fullName: data.user.fullName,
-          email: data.user.email,
-          walletBalance: data.user.walletBalance,
           activePackages: data.activePackages ?? [],
         });
         setOpMessage({ type: 'ok', text: `Account recognized: ${data.user.fullName}. Please scan/enter the plate number.` });
@@ -351,7 +356,13 @@ export function useStaffOperations() {
 
   const onCheckIn = async () => {
     setOpMessage(null);
-    if (hasActivePackage && !assignedSlotId) {
+    const requiresZone = needsSlotSelection && freeSlots.length > 0;
+    const requiresManualSlot = requiresZone && !isMotorcycle;
+    if (requiresZone && !selectedZoneId) {
+      setOpMessage({ type: 'err', text: 'Please select a parking zone before checking in.' });
+      return;
+    }
+    if (requiresManualSlot && !assignedSlotId) {
       setOpMessage({ type: 'err', text: 'This vehicle has a long-term package — please pick a free slot before checking in.' });
       return;
     }
@@ -380,7 +391,8 @@ export function useStaffOperations() {
         vehicleBrand: vehicleBrand || undefined,
         plateImage: plateImg,
         portraitImage: portraitImg,
-        slot: assignedSlotId || undefined,
+        zone: selectedZoneId || undefined,
+        slot: isMotorcycle ? undefined : assignedSlotId || undefined,
         gate: entryGateId || undefined,
       });
       
@@ -461,7 +473,7 @@ export function useStaffOperations() {
     allowedTypes,
     plateTypeWarning,
     buildingSupportWarning,
-    hasActivePackage, hasActiveReservation, checkInKind, needsSlotSelection,
+    hasActivePackage, hasActiveReservation, checkInKind, needsSlotSelection, isMotorcycle,
     applyPlate, handlePlateDetected, proceedFromIdentify, capturePortraitAndNext,
     handleResolveIdQr, resetForm, onCheckIn, onReject,
     vehicleTypeMismatch,

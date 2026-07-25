@@ -17,20 +17,12 @@ export function UserQrInfoModal({ ops }: { ops: StaffOperations }) {
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary">Scanned account</p>
             <h3 className="text-lg font-semibold text-foreground">{userQrInfo.fullName}</h3>
-            <p className="text-xs text-muted-foreground">{userQrInfo.email}</p>
           </div>
           <button onClick={() => setUserQrInfo(null)} className="text-muted-foreground hover:text-foreground transition">✕</button>
         </div>
 
-        {userQrInfo.walletBalance != null && (
-          <div className="mb-4 rounded-xl border border-violet-500/20 bg-violet-500/8 px-4 py-2.5 flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">Wallet balance</span>
-            <span className="font-mono font-bold text-violet-400">{userQrInfo.walletBalance.toLocaleString('vi-VN')} ₫</span>
-          </div>
-        )}
-
         <div className="mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-          Active long-term packages
+          Active long-term packages in this building
         </div>
         {userQrInfo.activePackages.length === 0 ? (
           <p className="rounded-xl border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">

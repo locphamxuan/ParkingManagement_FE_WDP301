@@ -136,8 +136,13 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
   };
 
   const handleResolveIdQr = async (code: string) => {
+    // QR chỉ được tra cứu trong đúng tòa đang chọn.
+    if (!buildingId) {
+      setOpMessage({ type: 'err', text: 'Select a building before scanning a QR code.' });
+      return;
+    }
     try {
-      const res = await staffApi.resolveQr(code);
+      const res = await staffApi.resolveQr(code, buildingId);
       const data = (res as {
         data?: {
           kind: 'plate' | 'user';

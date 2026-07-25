@@ -8,6 +8,14 @@ import { SlotOccupancyChart } from '@/components/charts/SlotOccupancyChart';
 import { useAuth } from '@/hooks/useAuth';
 import { useManagerBuildings } from '@/hooks/useManagerBuildings';
 import { managerApi, type DashboardOverview } from '@/services/manager/managerApi';
+import {
+  BUILDING_STATE_BADGE,
+  BUILDING_STATE_DOT,
+  BUILDING_STATE_HINTS,
+  BUILDING_STATE_LABELS,
+  isOperationalNow,
+  resolveBuildingOperationalState,
+} from '@/utils/buildingOperationalState';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -63,6 +71,22 @@ export function ManagerDashboardPage() {
     void fetchOverview();
   }, [fetchOverview]);
 
+  // Badge phải tự đổi khi qua mốc mở/đóng dù manager không thao tác gì → tick mỗi phút.
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Trạng thái VẬN HÀNH (open/closed) — khác `building.status` là trạng thái HÀNH CHÍNH.
+  const selectedState = useMemo(
+    () =>
+      selectedBuilding
+        ? resolveBuildingOperationalState(selectedBuilding.status, selectedBuilding.operatingHours, now)
+        : null,
+    [selectedBuilding, now],
+  );
+
   const cards = useMemo(
     () => [
       { label: 'Parked vehicles', value: overview?.sessions?.active ?? 0, icon: Car, color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200' },
@@ -95,13 +119,18 @@ export function ManagerDashboardPage() {
                 <div className="px-2.5 py-0.5 rounded-md bg-blue-600 text-[9px] font-black uppercase tracking-widest text-white shadow-md shadow-blue-500/10 font-mono">
                   Manager Portal
                 </div>
-                {selectedBuilding && (
-                  <div className="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider font-mono select-none">
+                {selectedBuilding && selectedState && (
+                  <div
+                    title={BUILDING_STATE_HINTS[selectedState]}
+                    className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-[9px] font-black uppercase tracking-wider font-mono select-none ${BUILDING_STATE_BADGE[selectedState]}`}
+                  >
                     <span className="relative flex h-1.5 w-1.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                      {isOperationalNow(selectedState) && (
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      )}
+                      <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${BUILDING_STATE_DOT[selectedState]}`}></span>
                     </span>
-                    <span>{selectedBuilding.status}</span>
+                    <span>{BUILDING_STATE_LABELS[selectedState]}</span>
                   </div>
                 )}
               </div>
@@ -148,7 +177,7 @@ export function ManagerDashboardPage() {
           </div>
 
           {/* Right Column: Premium Interactive Building Status Card */}
-          {selectedBuilding && (
+          {selectedBuilding && selectedState && (
             <div className="hidden lg:flex flex-col justify-between p-5 rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-600 via-blue-600 to-indigo-800 text-white shadow-lg shadow-blue-500/10 min-w-[220px] max-w-[260px] relative overflow-hidden group hover:scale-[1.02] hover:shadow-xl transition-all duration-300">
               <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-white/20 via-white/5 to-transparent pointer-events-none" />
               <div className="absolute -right-8 -top-8 w-24 h-24 rounded-full bg-white/10 blur-xl pointer-events-none" />
@@ -157,11 +186,19 @@ export function ManagerDashboardPage() {
                 <div className="p-2 rounded-xl bg-white/10 border border-white/20">
                   <Building2 size={16} className="text-white" />
                 </div>
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider border border-white/10 font-mono">
-                  ACTIVE
+                <div
+                  title={BUILDING_STATE_HINTS[selectedState]}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider border border-white/10 font-mono"
+                >
+                  <span
+                    className={`inline-flex h-1.5 w-1.5 rounded-full ${BUILDING_STATE_DOT[selectedState]} ${
+                      isOperationalNow(selectedState) ? 'animate-pulse' : ''
+                    }`}
+                  />
+                  {BUILDING_STATE_LABELS[selectedState]}
                 </div>
               </div>
-              
+
               <div className="mt-6">
                 <p className="text-[9px] font-bold text-blue-200 uppercase tracking-widest font-mono">Facility</p>
                 <h3 className="text-base font-black tracking-tight mt-0.5 truncate">{selectedBuilding.name}</h3>
@@ -213,6 +250,7 @@ export function ManagerDashboardPage() {
                   <div className="grid gap-3 sm:grid-cols-2">
                     {buildings.map((b) => {
                       const isSelected = selectedBuildingId === b._id;
+                      const state = resolveBuildingOperationalState(b.status, b.operatingHours, now);
                       return (
                         <button
                           key={b._id}
@@ -227,9 +265,16 @@ export function ManagerDashboardPage() {
                           <p className={`font-black text-sm ${isSelected ? 'text-blue-800' : 'text-slate-800'}`}>
                             {b.name || b.code || 'Building'}
                           </p>
-                          <p className="mt-2.5 text-[10px] font-black text-slate-600 flex items-center gap-1.5 font-mono uppercase tracking-wide">
-                            <span className={`h-2 w-2 rounded-full ${b.status === 'active' ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
-                            {b.status === 'active' ? 'Active' : b.status === 'maintenance' ? 'Maintenance' : 'Paused'}
+                          <p
+                            title={BUILDING_STATE_HINTS[state]}
+                            className="mt-2.5 text-[10px] font-black text-slate-600 flex items-center gap-1.5 font-mono uppercase tracking-wide"
+                          >
+                            <span
+                              className={`h-2 w-2 rounded-full ${BUILDING_STATE_DOT[state]} ${
+                                isOperationalNow(state) ? 'animate-pulse' : ''
+                              }`}
+                            />
+                            {BUILDING_STATE_LABELS[state]}
                           </p>
                         </button>
                       );

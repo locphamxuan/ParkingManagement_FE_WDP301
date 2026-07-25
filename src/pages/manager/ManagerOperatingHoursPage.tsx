@@ -5,19 +5,7 @@ import { Button } from '@/components/ui/button';
 import { TimePicker } from '@/components/ui/time-picker';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { managerApi } from '@/services/manager/managerApi';
-
-// Is `now` within [open, close]? Handles overnight windows (close < open).
-function isOpenNow(open: string, close: string, now = new Date()): boolean {
-  const toMin = (t: string) => {
-    const [h, m] = t.split(':').map(Number);
-    return h * 60 + m;
-  };
-  const cur = now.getHours() * 60 + now.getMinutes();
-  const o = toMin(open);
-  const c = toMin(close);
-  if (o === c) return false;
-  return o < c ? cur >= o && cur < c : cur >= o || cur < c;
-}
+import { isWithinOperatingWindow } from '@/utils/businessHours';
 
 export function ManagerOperatingHoursPage() {
   const { buildingId, building } = useBuildingContext();
@@ -34,7 +22,14 @@ export function ManagerOperatingHoursPage() {
     }
   }, [building?.operatingHours]);
 
-  const openNow = useMemo(() => isOpenNow(open, close), [open, close]);
+  // Badge phải tự đổi khi qua mốc mở/đóng dù manager không thao tác gì → tick mỗi phút.
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const openNow = useMemo(() => isWithinOperatingWindow(open, close, now), [open, close, now]);
 
   const handleSave = async () => {
     setNotice(null);

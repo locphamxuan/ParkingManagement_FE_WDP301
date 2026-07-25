@@ -68,7 +68,7 @@ export default function LongTermSubscriptionsPage() {
       setMessage({ type: 'success', text: 'Renewed successfully.' });
       setRenewTarget(null);
     } catch (err) {
-      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to renew' });
+      setMessage({ type: 'error', text: resolveErrorMessage(err, 'Failed to renew') });
       setRenewTarget(null);
     }
   };

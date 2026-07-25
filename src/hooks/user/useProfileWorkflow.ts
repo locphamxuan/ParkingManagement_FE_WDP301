@@ -5,6 +5,7 @@ import { syncPlates, listPlates, type PlateRecord } from '@/services/licensePlat
 import { userApi } from '@/services/user/userApi';
 import { normalizePlate, brandsForVehicleType } from '@/utils/plate';
 import { validatePlate } from '@/utils/plateValidation';
+import { resolveErrorMessage } from '@/utils/apiErrors';
 
 export const MAX_PLATES = 3;
 
@@ -154,7 +155,7 @@ export function useProfileWorkflow() {
         setPlateSuccess(`Set "${plate.plateNumber}" as default plate! 🌟`);
         setTimeout(() => setPlateSuccess(null), 2500);
       } catch (err) {
-        setPlateError(err instanceof Error ? err.message : 'Failed to set default plate.');
+        setPlateError(resolveErrorMessage(err, 'Failed to set default plate.'));
       }
     }
   };
@@ -249,8 +250,7 @@ export function useProfileWorkflow() {
       setSuccessMessage('Profile & license plates updated successfully!');
       setTimeout(() => setSuccessMessage(null), 5000);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to save profile. Please try again.';
-      setApiError(message);
+      setApiError(resolveErrorMessage(err, 'Failed to save profile. Please try again.'));
     } finally {
       setIsSaving(false);
     }

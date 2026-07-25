@@ -9,6 +9,7 @@ import { staffApi, type ParkingSession } from '@/services/staff/staffApi';
 import { LivePlateCamera, type PlateScanResult, type LiveCameraHandle } from '@/components/staff/LivePlateCamera';
 import { LiveQRCamera } from '@/components/staff/LiveQRCamera';
 import { normalizePlate } from '@/utils/plate';
+import { resolveErrorMessage } from '@/utils/apiErrors';
 import { fmtMoney, computeCheckoutFee } from '@/components/staff/parked/staffParkedFormat';
 import { ParkedSessionCard } from '@/components/staff/parked/ParkedSessionCard';
 import { ParkedRejectModal } from '@/components/staff/parked/ParkedRejectModal';
@@ -230,18 +231,22 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
       setCapturedPortraitImage(null);
       setReloadTick((n) => n + 1);
     } catch (err) {
-      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Check-out failed' });
+      setOpMessage({ type: 'err', text: resolveErrorMessage(err, 'Check-out failed') });
     }
   };
 
   const onReject = async () => {
     if (!checkoutTarget || !rejectReason.trim()) return;
+    if (!buildingId) {
+      setOpMessage({ type: 'err', text: 'Select a building before rejecting an exit.' });
+      return;
+    }
     try {
       const res = await staffApi.reject({
         plateNumber: checkoutTarget.plateNumber,
         stage: 'check-out',
         reason: rejectReason.trim(),
-        building: buildingId || undefined,
+        building: buildingId,
       });
       const notified = (res as { data?: { notified?: boolean } })?.data?.notified;
       setOpMessage({
@@ -254,7 +259,7 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
       setCapturedPlateImage(null);
       setCapturedPortraitImage(null);
     } catch (err) {
-      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Rejection failed' });
+      setOpMessage({ type: 'err', text: resolveErrorMessage(err, 'Rejection failed') });
     }
   };
 
@@ -272,11 +277,18 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
       } else if (status === 'cancelled' || status === 'expired') {
         setBankTransfer(null);
         setOpMessage({ type: 'err', text: `Payment ${status}. Please try again.` });
+      } else if (status === 'reconciliation_required') {
+        setBankTransfer(null);
+        setOpMessage({
+          type: 'err',
+          text: 'This session was already settled by another payment. The transfer is flagged for manager reconciliation — do not collect again.',
+        });
+        setReloadTick((n) => n + 1);
       } else {
         setOpMessage({ type: 'err', text: 'Payment not received yet. The guest must complete the transfer.' });
       }
     } catch (err) {
-      setOpMessage({ type: 'err', text: err instanceof Error ? err.message : 'Payment confirmation failed' });
+      setOpMessage({ type: 'err', text: resolveErrorMessage(err, 'Payment confirmation failed') });
     } finally {
       setVerifying(false);
     }
@@ -357,7 +369,11 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
               </div>
               <div className="relative overflow-hidden rounded-2xl border border-sky-100 bg-slate-50 shadow-inner">
                 {identifyMode === 'plate' ? (
-                  <LivePlateCamera onDetected={handlePlateDetected} busy={loading} />
+                  <LivePlateCamera
+                    onDetected={handlePlateDetected}
+                    busy={loading}
+                    buildingId={buildingId}
+                  />
                 ) : (
                   <LiveQRCamera onResult={handleResolveIdQr} />
                 )}

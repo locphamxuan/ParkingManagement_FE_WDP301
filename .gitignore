@@ -33,3 +33,9 @@ openspec/
 CLAUDE.md
 claude.md
 .claude.json
+
+# Local Codex agent skills and configuration
+.agents/
+
+# Local review reports and remediation notes
+docs/

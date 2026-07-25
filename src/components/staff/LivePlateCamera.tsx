@@ -96,6 +96,10 @@ export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps
   useImperativeHandle(ref, () => ({ capture: () => captureFrame() }), []);
 
   const runScan = async (dataUrl: string, isRetry = false) => {
+    if (!buildingId) {
+      setError('Select a building before scanning a vehicle.');
+      return;
+    }
     const base64 = dataUrl.split(',')[1];
     const res = await staffApi.scanVehicle(base64, buildingId);
     const data = (res as { data?: { plateNumber?: string; brand?: string | null; vehicleType?: 'car' | 'motorcycle' | null } })?.data;

@@ -12,6 +12,7 @@ import {
   MessageSquare,
   Package,
   ShieldAlert,
+  Banknote,
   SlidersHorizontal,
   Square,
   Truck,
@@ -49,6 +50,7 @@ const navItems: readonly PortalNavEntry[] = [
     children: [
       { to: 'packages', label: 'Packages', icon: Package },
       { to: 'price-policies', label: 'Price Policies', icon: SlidersHorizontal },
+      { to: 'penalty-pricing', label: 'Penalty Pricing', icon: Banknote },
       { to: 'refund-policy', label: 'Refund Policy', icon: MapPin },
       { to: 'wallet', label: 'Building Wallet', icon: Wallet },
     ],
@@ -83,6 +85,7 @@ const titles: Record<string, string> = {
   '/manager/slots': 'Parking Slots',
   '/manager/operating-hours': 'Operating Hours',
   '/manager/price-policies': 'Price Policies',
+  '/manager/penalty-pricing': 'Penalty Pricing',
   '/manager/refund-policy': 'Refund Policy',
   '/manager/packages': 'Package Management',
   '/manager/shifts': 'Shifts & Assignments',

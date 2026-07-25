@@ -52,18 +52,15 @@ export function AssignStaffModal({
 }: AssignStaffModalProps) {
   const [staffList, setStaffList] = useState<Staff[]>([]);
   const [shiftList, setShiftList] = useState<Shift[]>([]);
-  const [gateList, setGateList] = useState<Gate[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Form state
   const [selectedStaff, setSelectedStaff] = useState('');
   const [selectedShift, setSelectedShift] = useState('');
-  const [selectedGate, setSelectedGate] = useState('');
   const [workDate, setWorkDate] = useState('');
-  const [note, setNote] = useState('');
 
-  // Load staff, shifts and gates on mount
+  // Load staff and shifts on mount
   useEffect(() => {
     if (!isOpen || !buildingId) return;
 
@@ -73,12 +70,10 @@ export function AssignStaffModal({
     Promise.all([
       managerApi.shifts.listStaff(buildingId),
       managerApi.shifts.list(buildingId),
-      managerApi.gates.list(buildingId),
     ])
-      .then(([staffRes, shiftsRes, gatesRes]) => {
+      .then(([staffRes, shiftsRes]) => {
         setStaffList(staffRes.data.items);
         setShiftList(shiftsRes.data.items);
-        setGateList(gatesRes.data.items);
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : 'Failed to load data');
@@ -91,16 +86,12 @@ export function AssignStaffModal({
     if (editingData) {
       setSelectedStaff(editingData.staff._id);
       setSelectedShift(editingData.shift._id);
-      setSelectedGate(editingData.gate?._id ?? '');
       setWorkDate(editingData.workDate);
-      setNote(editingData.note || '');
     } else {
       // Reset form for creating new
       setSelectedStaff('');
       setSelectedShift('');
-      setSelectedGate('');
       setWorkDate('');
-      setNote('');
     }
   }, [editingData, isOpen]);
 
@@ -127,8 +118,7 @@ export function AssignStaffModal({
         staff: selectedStaff,
         shift: selectedShift,
         workDate,
-        gate: selectedGate || null,
-        note: note.trim() || undefined,
+        gate: null,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error while saving');
@@ -193,25 +183,6 @@ export function AssignStaffModal({
             />
           </div>
 
-          {/* Gate Selection */}
-          <div className="grid gap-2">
-            <label className="text-xs uppercase text-slate-500 font-bold tracking-wider font-mono">Assigned gate</label>
-            <CustomSelect
-              value={selectedGate || ''}
-              onChange={setSelectedGate}
-              disabled={isSubmitting}
-              options={[
-                { value: '', label: '-- No gate assigned --' },
-                ...gateList.map((gate) => ({
-                  value: gate._id,
-                  label: `${gate.code}${gate.name ? ` — ${gate.name}` : ''} (${directionLabel[gate.direction]})`,
-                })),
-              ]}
-              placeholder="-- No gate assigned --"
-              className="h-10 text-sm font-semibold"
-            />
-          </div>
-
           {/* Work Date */}
           <div className="grid gap-2">
             <label className="text-xs uppercase text-slate-500 font-bold tracking-wider font-mono">Work date<span className="text-red-500">*</span></label>
@@ -220,19 +191,6 @@ export function AssignStaffModal({
               onChange={setWorkDate}
               disabled={isSubmitting}
               className="h-10 text-sm font-semibold"
-            />
-          </div>
-
-          {/* Note */}
-          <div className="grid gap-2">
-            <label className="text-xs uppercase text-slate-500 font-bold tracking-wider font-mono">Note (optional)</label>
-            <textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              disabled={isSubmitting}
-              placeholder="e.g. On duty, special notes..."
-              className="w-full px-3 py-2 border border-sky-100 rounded-xl bg-white text-foreground text-sm resize-none outline-none focus:border-sky-300"
-              rows={3}
             />
           </div>
 

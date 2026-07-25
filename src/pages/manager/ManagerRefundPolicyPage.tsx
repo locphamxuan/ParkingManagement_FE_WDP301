@@ -6,7 +6,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
 import { managerApi } from '@/services/manager/managerApi';
-import { ViolationTypesManager } from '@/components/manager/ViolationTypesManager';
 
 export function ManagerRefundPolicyPage() {
   const { buildingId } = useBuildingContext();
@@ -80,10 +79,10 @@ export function ManagerRefundPolicyPage() {
           </div>
           <h1 className="mt-2 text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
             <ShieldCheck size={20} className="text-blue-600 stroke-[2.5]" />
-            Building Fine & Refund Policies
+            Refund Policy
           </h1>
           <p className="mt-1 text-xs font-bold text-slate-500">
-            Configure the violation penalty price list and cancellation refund percentage. Staff apply these configured fines as read-only.
+            Configure the refund percentage applied when a user cancels their active subscription package.
           </p>
         </div>
       </div>
@@ -99,8 +98,6 @@ export function ManagerRefundPolicyPage() {
           {message.text}
         </div>
       )}
-
-      <ViolationTypesManager buildingId={buildingId} />
 
       <Card
         style={{

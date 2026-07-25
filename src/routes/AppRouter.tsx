@@ -42,6 +42,7 @@ const ManagerZonesPage = lazy(() => import('@/pages/manager/ManagerZonesPage').t
 const ManagerSlotsPage = lazy(() => import('@/pages/manager/ManagerSlotsPage').then((m) => ({ default: m.ManagerSlotsPage })));
 const ManagerPricingPage = lazy(() => import('@/pages/manager/ManagerPricingPage').then((m) => ({ default: m.ManagerPricingPage })));
 const ManagerRefundPolicyPage = lazy(() => import('@/pages/manager/ManagerRefundPolicyPage').then((m) => ({ default: m.ManagerRefundPolicyPage })));
+const ManagerPenaltyPricingPage = lazy(() => import('@/pages/manager/ManagerPenaltyPricingPage').then((m) => ({ default: m.ManagerPenaltyPricingPage })));
 const ManagerPackagesHubPage = lazy(() => import('@/pages/manager/ManagerPackagesHubPage').then((m) => ({ default: m.ManagerPackagesHubPage })));
 const ManagerShiftManagementPage = lazy(() => import('@/pages/manager/ManagerShiftManagementPage').then((m) => ({ default: m.ManagerShiftManagementPage })));
 const ManagerOperatingHoursPage = lazy(() => import('@/pages/manager/ManagerOperatingHoursPage').then((m) => ({ default: m.ManagerOperatingHoursPage })));
@@ -129,6 +130,7 @@ export function AppRouter() {
           <Route path="slots" element={<ManagerSlotsPage />} />
           <Route path="price-policies" element={<ManagerPricingPage />} />
           <Route path="refund-policy" element={<ManagerRefundPolicyPage />} />
+          <Route path="penalty-pricing" element={<ManagerPenaltyPricingPage />} />
           <Route path="packages" element={<ManagerPackagesHubPage />} />
           <Route path="subscriptions" element={<Navigate to="/manager/packages" replace />} />
           <Route path="shifts" element={<ManagerShiftManagementPage />} />

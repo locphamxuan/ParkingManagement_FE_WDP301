@@ -29,6 +29,37 @@ describe('apiErrors', () => {
     expect(resolveErrorMessage(active)).toContain('long-term package');
   });
 
+  it('maps cross-building access denial instead of showing the raw backend text', () => {
+    const denied = new ApiError(
+      'Forbidden: You do not have permission to manage this specific building.',
+      403,
+      { errorCode: 'BUILDING_ACCESS_DENIED' },
+    );
+
+    const message = resolveErrorMessage(denied);
+    expect(message).toContain('not assigned to this building');
+    expect(message).not.toContain('Forbidden:');
+  });
+
+  it('maps the manager building-status guard', () => {
+    const forbidden = new ApiError('nope', 403, { errorCode: 'BUILDING_STATUS_FORBIDDEN' });
+
+    expect(resolveErrorMessage(forbidden)).toContain('active and maintenance');
+  });
+
+  it('leaves existing shift-denial mappings unchanged', () => {
+    const cases: Array<[string, string]> = [
+      ['NO_ACTIVE_SHIFT', 'no active shift'],
+      ['SHIFT_NOT_STARTED', 'has not started'],
+      ['SHIFT_BUILDING_MISMATCH', 'another building'],
+      ['FORBIDDEN_BUILDING_SCOPE', 'do not have access to this building'],
+    ];
+
+    for (const [code, expected] of cases) {
+      expect(resolveErrorMessage(new ApiError('raw', 403, { errorCode: code }))).toContain(expected);
+    }
+  });
+
   it('falls back to the server message for unmapped codes', () => {
     const unknown = new ApiError('Server said no', 400, { errorCode: 'SOME_NEW_CODE' });
 

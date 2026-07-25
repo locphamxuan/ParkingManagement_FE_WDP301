@@ -362,6 +362,9 @@ export const managerApi = {
     /** Danh sách phiên xe đang đỗ (status=active) trong tòa nhà — giám sát realtime. */
     listActive: (b: string) =>
       api.get<Wrap<{ items: ParkingSession[] }>>(path(b, '/sessions/active')),
+    /** Lịch sử tất cả xe vào/ra (completed/active/cancelled) — có phân trang + lọc. */
+    listHistory: (b: string, q?: Record<string, string | undefined>) =>
+      api.get<Wrap<{ items: ParkingSession[]; pagination?: { page: number; limit: number; total: number; totalPages: number } }>>(path(b, '/sessions/history'), { query: q }),
     /** Chi tiết 1 phiên (kèm ảnh biển số / chân dung lúc check-in). */
     detail: (b: string, id: string) =>
       api.get<Wrap<ParkingSession>>(path(b, `/sessions/${id}`)),
@@ -515,6 +518,14 @@ export const managerApi = {
       }),
     getRevenueBreakdown: (b: string) =>
       api.get<Wrap<RevenueBreakdown>>(path(b, '/wallet/revenue-breakdown')),
+    getPenaltyRevenue: (b: string) =>
+      api.get<Wrap<{
+        allTimePenaltyRevenue: number;
+        allTimePenaltyCount: number;
+        todayPenaltyRevenue: number;
+        todayPenaltyCount: number;
+        recentPayments: any[];
+      }>>(path(b, '/wallet/penalty-revenue')),
     listTransactions: (b: string, q?: Record<string, string | undefined>) =>
       api.get<Wrap<{ items: BuildingWalletTransaction[] }>>(path(b, '/wallet/transactions'), { query: q }),
 

@@ -6,6 +6,7 @@ import {
   ClipboardList,
   Clock,
   Flag,
+  History,
   LayoutDashboard,
   Layers,
   MapPin,
@@ -32,6 +33,7 @@ import { useManagerBuildings } from '@/hooks/useManagerBuildings';
 const navItems: readonly PortalNavEntry[] = [
   { to: 'dashboard', label: 'Overview', icon: LayoutDashboard },
   { to: 'sessions', label: 'Parked Vehicles', icon: Car },
+  { to: 'session-history', label: 'Session History', icon: History },
   {
     label: 'Infrastructure',
     icon: Building2,

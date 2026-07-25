@@ -51,6 +51,7 @@ const ManagerWalletPage = lazy(() => import('@/pages/manager/ManagerWalletPage')
 const ManagerReviewsPage = lazy(() => import('@/pages/manager/ManagerReviewsPage').then((m) => ({ default: m.ManagerReviewsPage })));
 const ManagerIncidentsPage = lazy(() => import('@/pages/manager/ManagerIncidentsPage').then((m) => ({ default: m.ManagerIncidentsPage })));
 const ManagerSessionsPage = lazy(() => import('@/pages/manager/ManagerSessionsPage').then((m) => ({ default: m.ManagerSessionsPage })));
+const ManagerSessionHistoryPage = lazy(() => import('@/pages/manager/ManagerSessionHistoryPage').then((m) => ({ default: m.ManagerSessionHistoryPage })));
 
 // ── Staff ───────────────────────────────────────────────────────────────────
 const StaffDashboardPage = lazy(() => import('@/pages/staff/StaffDashboardPage').then((m) => ({ default: m.StaffDashboardPage })));
@@ -140,6 +141,7 @@ export function AppRouter() {
           <Route path="reviews" element={<ManagerReviewsPage />} />
           <Route path="incidents" element={<ManagerIncidentsPage />} />
           <Route path="sessions" element={<ManagerSessionsPage />} />
+          <Route path="session-history" element={<ManagerSessionHistoryPage />} />
           <Route path="wallet" element={<ManagerWalletPage />} />
           <Route
             path="settings"

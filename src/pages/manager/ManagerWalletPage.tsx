@@ -10,6 +10,8 @@ import {
   Plus,
   ExternalLink,
   Loader2,
+  ShieldAlert,
+  Banknote,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,6 +50,13 @@ export function ManagerWalletPage() {
   const [breakdown, setBreakdown] = useState<RevenueBreakdown | null>(null);
   const [transactions, setTransactions] = useState<BuildingWalletTransaction[]>([]);
   const [pendingCash, setPendingCash] = useState<PendingCashPayment[]>([]);
+  const [penaltyData, setPenaltyData] = useState<{
+    allTimePenaltyRevenue: number;
+    allTimePenaltyCount: number;
+    todayPenaltyRevenue: number;
+    todayPenaltyCount: number;
+    recentPayments: any[];
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
@@ -63,18 +72,20 @@ export function ManagerWalletPage() {
     setLoading(true);
     setError(null);
     try {
-      const [walletRes, dailyRes, breakdownRes, txRes, pendingCashRes] = await Promise.all([
+      const [walletRes, dailyRes, breakdownRes, txRes, pendingCashRes, penaltyRes] = await Promise.all([
         managerApi.wallet.get(buildingId),
         managerApi.wallet.getDailyRevenue(buildingId),
         managerApi.wallet.getRevenueBreakdown(buildingId),
         managerApi.wallet.listTransactions(buildingId),
         managerApi.wallet.listPendingCash(buildingId),
+        managerApi.wallet.getPenaltyRevenue(buildingId),
       ]);
       setWallet((walletRes as { data?: { wallet: BuildingWallet } })?.data?.wallet ?? null);
       setDaily((dailyRes as { data?: DailyRevenueResult })?.data ?? null);
       setBreakdown((breakdownRes as { data?: RevenueBreakdown })?.data ?? null);
       setTransactions((txRes as { data?: { items: BuildingWalletTransaction[] } })?.data?.items ?? []);
       setPendingCash((pendingCashRes as { data?: { items: PendingCashPayment[] } })?.data?.items ?? []);
+      setPenaltyData((penaltyRes as any)?.data ?? null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load wallet data');
     } finally {
@@ -301,6 +312,75 @@ export function ManagerWalletPage() {
           </div>
         </div>
       </div>
+
+      {/* Doanh thu tiền phạt vi phạm (Incident Penalty Revenue) */}
+      <Card className="border border-rose-100 bg-gradient-to-br from-white via-rose-50/20 to-amber-50/10 shadow-sm overflow-hidden rounded-2xl">
+        <CardHeader className="border-b border-rose-100 bg-rose-50/30 p-5">
+          <CardTitle className="text-xs font-black uppercase tracking-wider text-rose-700 flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <ShieldAlert size={16} className="text-rose-600 stroke-[2.5]" />
+              Violation Penalty Revenue Stream (Dòng tiền phạt vi phạm)
+            </span>
+            <span className="text-[10px] font-mono bg-rose-600 text-white px-2 py-0.5 rounded font-black">
+              INCIDENT FINES
+            </span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-5 space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-xl border border-rose-100 bg-white p-4">
+              <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">
+                All-time penalty revenue collected
+              </p>
+              <p className="mt-1 text-2xl font-black text-rose-600 font-mono">
+                {fmtVnd(penaltyData?.allTimePenaltyRevenue)}
+              </p>
+              <p className="mt-1 text-[10px] text-slate-400 font-semibold">
+                Total settled violations: <strong>{penaltyData?.allTimePenaltyCount ?? 0} cases</strong>
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-amber-100 bg-white p-4">
+              <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">
+                Today's penalty revenue
+              </p>
+              <p className="mt-1 text-2xl font-black text-amber-600 font-mono">
+                {fmtVnd(penaltyData?.todayPenaltyRevenue)}
+              </p>
+              <p className="mt-1 text-[10px] text-slate-400 font-semibold">
+                Settled today: <strong>{penaltyData?.todayPenaltyCount ?? 0} cases</strong>
+              </p>
+            </div>
+          </div>
+
+          {penaltyData?.recentPayments && penaltyData.recentPayments.length > 0 && (
+            <div className="space-y-2 pt-2">
+              <p className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">
+                Recent violation fine collections
+              </p>
+              <div className="divide-y divide-rose-50 rounded-xl border border-rose-100 bg-white">
+                {penaltyData.recentPayments.map((p: any) => (
+                  <div key={p._id} className="flex items-center justify-between p-3 text-xs">
+                    <div>
+                      <p className="font-bold text-slate-800 flex items-center gap-1.5">
+                        <Banknote size={13} className="text-rose-500" />
+                        {p.incident?.code || 'INCIDENT'} — {p.incident?.type || 'Violation Fine'}
+                      </p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">
+                        Target: {p.incident?.target || '—'} | Collected by: {p.staff?.fullName || 'Staff'}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-mono font-black text-rose-600">{fmtVnd(p.amount)}</p>
+                      <p className="text-[9px] uppercase font-mono text-slate-400">{p.method}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Tiền mặt chờ Manager thu nhận */}
       <Card className="border border-slate-200/80 bg-white shadow-sm overflow-hidden rounded-2xl">

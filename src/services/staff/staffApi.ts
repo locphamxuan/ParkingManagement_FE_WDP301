@@ -357,6 +357,10 @@ export const staffApi = {
     /** Lịch sử xe vào hôm nay của nhân viên cổng VÀO — có location (cổng, tầng, ô). */
     myCheckIns: (buildingId: string) =>
       api.get<Wrap<{ items: ParkingSession[] }>>('/staff/parking-sessions/my-checkins', { query: { building: buildingId } }),
+
+    /** Lịch sử xe RA hôm nay của nhân viên cổng RA — có thời gian ra, phí thu, phương thức. */
+    myCheckouts: (buildingId: string) =>
+      api.get<Wrap<{ items: ParkingSession[] }>>('/staff/parking-sessions/my-checkouts', { query: { building: buildingId } }),
   },
 
   // Incidents

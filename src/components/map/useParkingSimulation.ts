@@ -49,8 +49,12 @@ export function useParkingSimulation(interactive: boolean) {
       setGateBOpen(false);
 
       // Reset positions instantly
-      controlsCarA.set({ x: -100, y: 160, rotateZ: 90, opacity: 0 });
-      controlsCarB.set({ x: 270, y: 30, rotateZ: -90, opacity: 1 });
+      try {
+        controlsCarA.set({ x: -100, y: 160, rotateZ: 90, opacity: 0 });
+        controlsCarB.set({ x: 270, y: 30, rotateZ: -90, opacity: 1 });
+      } catch (err) {
+        console.warn('Animation controllers not yet ready:', err);
+      }
 
       await new Promise((resolve) => setTimeout(resolve, 2000));
       if (!active) return;
@@ -64,19 +68,33 @@ export function useParkingSimulation(interactive: boolean) {
       if (!active) return;
 
       // Drive through gate
-      await controlsCarA.start({
-        opacity: 1,
-        x: 100,
-        y: 160,
-        transition: { type: 'spring', stiffness: 50, damping: 14 }
-      });
+      try {
+        await controlsCarA.start({
+          opacity: 1,
+          x: 100,
+          y: 160,
+          transition: { type: 'spring', stiffness: 50, damping: 14 }
+        });
+      } catch (err) {
+        console.warn('controlsCarA start failed:', err);
+      }
       if (!active) return;
 
       setGateAOpen(false);
       setHudMessage('Cyan Sedan is moving along the lane...');
 
+      const safeStart = async (controls: any, definition: any) => {
+        try {
+          if (active) {
+            await controls.start(definition);
+          }
+        } catch (err) {
+          console.warn('Animation start error ignored (likely component unmounted):', err);
+        }
+      };
+
       // Drive to Slot 3 alignment
-      await controlsCarA.start({
+      await safeStart(controlsCarA, {
         x: 190,
         y: 160,
         transition: { ease: 'linear', duration: 1.2 }
@@ -87,7 +105,7 @@ export function useParkingSimulation(interactive: boolean) {
       setCarAState('parking');
 
       // Turn 90 degrees to face away from slot
-      await controlsCarA.start({
+      await safeStart(controlsCarA, {
         rotateZ: 0,
         transition: { duration: 0.5 }
       });
@@ -95,7 +113,7 @@ export function useParkingSimulation(interactive: boolean) {
 
       // Reverse Park into Slot 3
       setHudMessage('Reversing into slot 3...');
-      await controlsCarA.start({
+      await safeStart(controlsCarA, {
         y: 30,
         transition: { type: 'spring', stiffness: 40, damping: 12 }
       });
@@ -117,14 +135,14 @@ export function useParkingSimulation(interactive: boolean) {
 
       // Turn on headlights and drive out of slot 4
       setHudMessage('Fuchsia SUV is leaving slot 4...');
-      await controlsCarB.start({
+      await safeStart(controlsCarB, {
         y: 160,
         transition: { type: 'spring', stiffness: 45, damping: 12 }
       });
       if (!active) return;
 
       // Turn 90 degrees right to face exit
-      await controlsCarB.start({
+      await safeStart(controlsCarB, {
         rotateZ: 90,
         transition: { duration: 0.5 }
       });
@@ -134,7 +152,7 @@ export function useParkingSimulation(interactive: boolean) {
       setGateBOpen(true);
 
       // Drive to exit gate
-      await controlsCarB.start({
+      await safeStart(controlsCarB, {
         x: 380,
         y: 160,
         transition: { ease: 'linear', duration: 1.2 }
@@ -144,7 +162,7 @@ export function useParkingSimulation(interactive: boolean) {
       setHudMessage('RFID scan successful. Toll gate 2 open.');
 
       // Exit screen
-      await controlsCarB.start({
+      await safeStart(controlsCarB, {
         x: 520,
         transition: { type: 'spring', stiffness: 50, damping: 12 }
       });

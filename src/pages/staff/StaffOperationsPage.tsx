@@ -215,7 +215,7 @@ export function StaffOperationsPage() {
                     }}
                     placeholder="E.g. 59G2-038.80"
                     className="h-11 rounded-xl border-sky-100 focus:border-sky-500 focus:ring-sky-500/20 text-slate-800 font-mono font-bold text-sm bg-white"
-                    onKeyDown={(e) => { if (e.key === 'Enter' && plateNumber.trim().length >= 7 && !(checkInKind === 'standard' && !plateImage)) proceedFromIdentify(); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter' && plateNumber.trim().length >= 7) proceedFromIdentify(); }}
                   />
                   {vehicleBrand && (
                     <span className="inline-flex w-fit items-center gap-1 rounded-lg border border-sky-200 bg-sky-50 px-2.5 py-1 text-[11px] font-bold text-sky-700 shadow-sm">
@@ -253,16 +253,11 @@ export function StaffOperationsPage() {
                       📅 Vehicle has a <strong>reservation</strong>{plateAccountInfo?.activeReservation?.code ? ` (code ${plateAccountInfo.activeReservation.code})` : ''} — next: capture portrait to confirm.
                     </div>
                   )}
-                  {plateNumber.trim().length >= 7 && checkInKind === 'standard' && !plateImage && (
-                    <div className="mt-1 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2.5 text-[11px] text-rose-700">
-                      ⚠️ Requires a <strong>plate photo</strong>: tap “Capture &amp; recognize” on the plate camera (required for walk-in guests / regular users).
-                    </div>
-                  )}
                 </div>
 
                 <Button
                   onClick={proceedFromIdentify}
-                  disabled={plateNumber.trim().length < 7 || !!buildingSupportWarning || (checkInKind === 'standard' && !plateImage)}
+                  disabled={plateNumber.trim().length < 7 || !!buildingSupportWarning}
                   className="w-full h-11 gap-2 bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-extrabold hover:brightness-110 disabled:opacity-60 rounded-xl shadow-md shadow-sky-500/20"
                 >
                   Continue <ArrowRight size={16} />
@@ -503,10 +498,9 @@ export function StaffOperationsPage() {
                 )}
 
                 {/* Missing capture checks */}
-                {(!portraitImage || (checkInKind === 'standard' && !plateImage)) && (
+                {!portraitImage && (
                   <p className="text-[11px] text-rose-600 flex items-center gap-1.5 font-semibold">
-                    <AlertCircle size={13} /> Requires a <strong>portrait photo</strong>
-                    {checkInKind === 'standard' ? <> and a <strong>plate photo</strong></> : null} to check in (go back to capture).
+                    <AlertCircle size={13} /> Requires a <strong>portrait photo</strong> to check in (go back to capture).
                   </p>
                 )}
 
@@ -517,7 +511,7 @@ export function StaffOperationsPage() {
                   </Button>
                   <Button
                     onClick={onCheckIn}
-                    disabled={!plateNumber.trim() || loading || !!buildingSupportWarning || zoneUsageBlocked || slotSelectionBlocked || !portraitImage || (hasActivePackage && !selectedSlotId) || (checkInKind === 'standard' && !plateImage) || (checkInKind === 'standard' && freeSlots.length > 0 && !selectedSlotId)}
+                    disabled={!plateNumber.trim() || loading || !!buildingSupportWarning || zoneUsageBlocked || slotSelectionBlocked || !portraitImage || (hasActivePackage && !selectedSlotId) || (checkInKind === 'standard' && freeSlots.length > 0 && !selectedSlotId)}
                     className="flex-1 h-11 gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-extrabold hover:brightness-110 disabled:opacity-60 rounded-xl shadow-md shadow-emerald-500/10"
                   >
                     <ScanLine size={16} /> Confirm &amp; Admit

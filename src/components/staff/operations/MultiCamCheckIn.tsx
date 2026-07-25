@@ -196,13 +196,6 @@ export function MultiCamCheckIn({ ops }: { ops: StaffOperations }) {
         </div>
       )}
 
-      {/* Cảnh báo ảnh còn thiếu (standard: cần cả biển số + chân dung từ camera) */}
-      {checkInKind === 'standard' && !plateImage && (
-        <p className="text-[11px] text-rose-300 flex items-center gap-1">
-          <AlertCircle size={12} /> Tap <strong>"Capture &amp; recognize"</strong> on the plate camera before checking in.
-        </p>
-      )}
-
       <p className="text-[11px] text-muted-foreground">The portrait is captured automatically from the portrait camera when you tap Check-in.</p>
 
       <div className="flex gap-2">
@@ -215,7 +208,6 @@ export function MultiCamCheckIn({ ops }: { ops: StaffOperations }) {
             zoneUsageBlocked ||
             slotSelectionBlocked ||
             (hasActivePackage && !selectedSlotId) ||
-            (checkInKind === 'standard' && !plateImage) ||
             (checkInKind === 'standard' && freeSlots.length > 0 && !selectedSlotId)
           }
           className="flex-1 h-11 gap-2 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 hover:brightness-110 disabled:opacity-60"

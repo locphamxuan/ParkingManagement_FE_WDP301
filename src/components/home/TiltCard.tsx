@@ -9,7 +9,7 @@ interface TiltCardProps {
 }
 
 // Thẻ nghiêng 3D theo con trỏ + tự đảo nhẹ khi không hover (dùng cho CTA/Footer).
-export function TiltCard({ children, className = '', glowColor = 'rgba(249,115,22,0.12)' }: TiltCardProps) {
+export function TiltCard({ children, className = '', glowColor = 'rgba(14,165,233,0.12)' }: TiltCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const x = useMotionValue(0.5);
   const y = useMotionValue(0.5);
@@ -56,7 +56,7 @@ export function TiltCard({ children, className = '', glowColor = 'rgba(249,115,2
 
   const borderBg = useTransform(
     [glowX, glowY],
-    ([gx, gy]) => `radial-gradient(280px circle at ${gx}px ${gy}px, rgba(249,115,22,0.35), transparent 70%)`,
+    ([gx, gy]) => `radial-gradient(280px circle at ${gx}px ${gy}px, rgba(6,182,212,0.35), transparent 70%)`,
   );
 
   const centerGlow = useTransform(

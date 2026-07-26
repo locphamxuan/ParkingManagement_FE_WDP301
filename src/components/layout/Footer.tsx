@@ -19,8 +19,8 @@ export default function Footer() {
 
         <div className="space-y-3">
           <h4>Contact</h4>
-          <p>Email: <a href="mailto:support@example.com">support@example.com</a></p>
-          <p>Hotline: <a href="tel:+84900000000">0900 000 000</a></p>
+          <p>Email: <a href="mailto:support@pbms.com">support@pbms.com</a></p>
+          <p>Hotline: <a href="tel:+8419006868">1900 6868</a></p>
         </div>
       </div>
 

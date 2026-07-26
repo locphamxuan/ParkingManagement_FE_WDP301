@@ -80,8 +80,11 @@ function LegacyAdminRedirect() {
 /** Fallback hiển thị khi chunk của page đang được tải. */
 function RouteFallback() {
   return (
-    <div className="flex min-h-[40vh] items-center justify-center text-sm text-slate-400">
-      Loading…
+    <div className="flex min-h-[48vh] items-center justify-center p-6" role="status" aria-live="polite">
+      <div className="flex items-center gap-3 rounded-2xl border border-border/70 bg-card/85 px-5 py-4 text-sm font-semibold text-muted-foreground shadow-lg backdrop-blur-xl">
+        <span className="app-state-card__loader h-5 w-5" />
+        Loading workspace…
+      </div>
     </div>
   );
 }

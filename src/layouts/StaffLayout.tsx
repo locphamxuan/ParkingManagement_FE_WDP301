@@ -18,6 +18,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { staffApi, extractBuildings, type StaffBuilding } from '@/services/staff/staffApi';
 import { cn } from '@/utils/cn';
 import { MobileNavDrawer, MobileNavButton } from '@/components/layout/MobileNavDrawer';
+import { AppBackdrop } from '@/components/layout/AppBackdrop';
 
 const BASE_PAGE_TITLE: Record<string, string> = {
   '': 'Overview',
@@ -113,9 +114,10 @@ export function StaffLayout() {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#f8fafc] text-slate-900 transition-colors duration-200">
+    <div className="portal-shell relative min-h-screen text-slate-900">
+      <AppBackdrop />
       {/* Background glows */}
-      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+      <div className="pointer-events-none fixed inset-0 -z-10 hidden overflow-hidden">
         <div className="absolute -right-24 -top-24 h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.06),transparent_65%)] blur-3xl" />
         <div className="absolute bottom-0 left-0 h-[320px] w-[320px] rounded-full bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.04),transparent_60%)] blur-3xl" />
       </div>
@@ -124,8 +126,8 @@ export function StaffLayout() {
         {/* ── Sidebar ── */}
         <aside
           className={cn(
-            'sticky top-0 hidden h-screen border-r border-sky-100 bg-white/95 p-4 shadow-xs backdrop-blur-xl lg:flex lg:flex-col transition-all duration-300 ease-in-out',
-            collapsed ? 'w-[80px]' : 'w-[248px]',
+            'portal-sidebar sticky top-0 hidden h-screen border-r p-3 shadow-2xl backdrop-blur-xl lg:flex lg:flex-col transition-[width] duration-300 ease-out',
+            collapsed ? 'w-[84px]' : 'w-[272px]',
           )}
         >
           {/* Sidebar header */}
@@ -172,10 +174,10 @@ export function StaffLayout() {
                   end={item.end}
                   className={({ isActive }) =>
                     cn(
-                      'flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition-all duration-200',
+                      'portal-nav-link flex min-h-11 items-center gap-3 rounded-xl px-3 text-xs font-bold transition-[background-color,color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70',
                       isActive
-                        ? 'bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-md shadow-blue-500/20 scale-[1.02]'
-                        : 'text-slate-600 hover:bg-sky-50 hover:text-blue-600',
+                        ? 'portal-nav-link--active bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/20'
+                        : 'text-slate-600 hover:bg-blue-50 hover:text-blue-700',
                     )
                   }
                 >
@@ -190,8 +192,8 @@ export function StaffLayout() {
         {/* ── Main area ── */}
         <div className="flex min-h-screen flex-1 flex-col">
           {/* Header */}
-          <header className="sticky top-0 z-20 border-b border-sky-100 bg-white/90 px-5 py-3 backdrop-blur-xl shadow-xs">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+          <header className="portal-topbar sticky top-0 z-20 border-b px-4 py-3 backdrop-blur-xl md:px-6">
+            <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-blue-600">
                   Staff Operations
@@ -204,7 +206,8 @@ export function StaffLayout() {
                   <select
                     value={selectedBuildingId ?? ''}
                     onChange={(e) => setSelectedBuildingId(e.target.value)}
-                    className="h-9 rounded-lg border border-sky-100 bg-white px-3 text-sm text-slate-800 outline-none focus:ring-1 focus:ring-blue-500 shadow-xs"
+                    aria-label="Select building"
+                    className="h-10 rounded-xl border border-border bg-white px-3 text-sm font-semibold text-slate-800 shadow-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10"
                   >
                     {buildings.map((b) => (
                       <option key={b._id} value={b._id}>
@@ -218,7 +221,7 @@ export function StaffLayout() {
                   <DropdownMenu.Trigger asChild>
                     <button
                       type="button"
-                      className="group inline-flex items-center gap-2.5 rounded-full border border-sky-100 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-800 shadow-xs backdrop-blur-md transition-all duration-300 hover:bg-sky-50 hover:border-blue-500/30 focus:outline-none focus:ring-2 focus:ring-blue-500/40 cursor-pointer"
+                      className="group inline-flex min-h-10 items-center gap-2.5 rounded-xl border border-border bg-white px-2.5 text-xs font-semibold text-slate-800 shadow-sm transition-all duration-200 hover:border-blue-500/30 hover:bg-blue-50/60 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
                     >
                       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-extrabold text-blue-600 border border-blue-200">
                         {(user?.fullName ?? user?.email ?? 'S')[0]?.toUpperCase()}
@@ -232,10 +235,10 @@ export function StaffLayout() {
                   <DropdownMenu.Portal>
                     <DropdownMenu.Content
                       sideOffset={6}
-                      className="z-50 w-72 overflow-hidden rounded-2xl border border-white/10 bg-slate-900 shadow-[0_20px_45px_rgba(0,0,0,0.5)]"
+                      className="z-50 w-72 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_45px_rgba(15,23,42,0.16)]"
                     >
                       {/* Profile card */}
-                      <div className="border-b border-white/8 px-4 py-4">
+                      <div className="border-b border-slate-100 px-4 py-4">
                         <div className="flex items-center gap-3">
                           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-emerald-500/25 bg-emerald-500/10">
                             <span className="text-base font-bold text-emerald-400">
@@ -243,10 +246,10 @@ export function StaffLayout() {
                             </span>
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold text-white truncate">
+                            <p className="text-sm font-semibold text-slate-900 truncate">
                               {user?.fullName || 'Staff'}
                             </p>
-                            <p className="text-xs text-slate-400 truncate">{user?.email}</p>
+                            <p className="text-xs text-slate-500 truncate">{user?.email}</p>
                             <p className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-emerald-500">
                               Staff
                             </p>
@@ -255,9 +258,9 @@ export function StaffLayout() {
 
                         {/* Building info */}
                         {selectedBuilding && (
-                          <div className="mt-3 rounded-xl border border-white/8 bg-slate-800/60 px-3 py-2">
+                          <div className="mt-3 rounded-xl border border-blue-100 bg-blue-50/70 px-3 py-2">
                             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Assigned Building</p>
-                            <p className="mt-0.5 text-xs font-semibold text-slate-200">
+                            <p className="mt-0.5 text-xs font-semibold text-slate-800">
                               {selectedBuilding.name}
                             </p>
                             <p className="text-[10px] text-slate-500">
@@ -273,12 +276,12 @@ export function StaffLayout() {
                       {/* Actions */}
                       <div className="p-1.5 space-y-1">
                         <DropdownMenu.Item
-                          className="flex cursor-pointer items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-300 outline-none transition-all duration-200 hover:bg-emerald-500/10 hover:text-emerald-400 focus:bg-emerald-500/10 focus:text-emerald-400"
+                          className="flex cursor-pointer items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-600 outline-none transition-all duration-200 hover:bg-emerald-50 hover:text-emerald-700 focus:bg-emerald-50 focus:text-emerald-700"
                           onClick={() => navigate('/staff/profile')}
                         >
                           <User size={14} className="text-emerald-400" /> View Profile
                         </DropdownMenu.Item>
-                        <DropdownMenu.Separator className="my-1.5 h-px bg-white/8" />
+                        <DropdownMenu.Separator className="my-1.5 h-px bg-slate-100" />
                         <DropdownMenu.Item
                           className="flex cursor-pointer items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-bold text-rose-400 outline-none transition-all duration-200 hover:bg-rose-500/10 hover:text-rose-300 focus:bg-rose-500/10 focus:text-rose-300"
                           onClick={onLogout}
@@ -294,7 +297,8 @@ export function StaffLayout() {
           </header>
 
           {/* Content */}
-          <main className="flex-1 p-4 md:p-6">
+          <main className="portal-main flex-1 p-4 md:p-6 lg:p-8">
+            <div className="mx-auto w-full max-w-[1600px]">
             {bootstrapping && !isProfileRoute ? (
               <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-slate-400">
                 Loading...
@@ -308,6 +312,7 @@ export function StaffLayout() {
                 context={{ buildingId: selectedBuildingId ?? '', building: selectedBuilding ?? null }}
               />
             )}
+            </div>
           </main>
         </div>
       </div>
@@ -335,10 +340,10 @@ export function StaffLayout() {
                   onClick={() => setMobileNavOpen(false)}
                   className={({ isActive }) =>
                     cn(
-                      'flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition-all duration-200',
+                      'flex min-h-11 items-center gap-3 rounded-xl px-3 text-xs font-bold transition-all duration-200',
                       isActive
-                        ? 'bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-md shadow-blue-500/20'
-                        : 'text-slate-600 hover:bg-sky-50 hover:text-blue-600',
+                        ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/20'
+                        : 'text-slate-600 hover:bg-blue-50 hover:text-blue-700',
                     )
                   }
                 >

@@ -12,6 +12,7 @@ import { MobileNavDrawer, MobileNavButton } from '@/components/layout/MobileNavD
 import { Navbar } from '@/components/layout/Navbar';
 import { useAuth } from '@/hooks/useAuth';
 import { ADMIN_EMAIL_FALLBACK } from '@/utils/constants';
+import { AppBackdrop } from '@/components/layout/AppBackdrop';
 
 const navItems: readonly PortalNavItem[] = [
   { to: '', label: 'Overview', icon: LayoutDashboard },
@@ -51,12 +52,8 @@ export function AdminLayout() {
   }, []);
 
   return (
-    <div className="relative min-h-screen bg-[#f8fafc] text-slate-900 transition-colors duration-200">
-      {/* Subtle blue/sky ambient glow for admin theme */}
-      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.05),transparent_65%)] blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.04),transparent_60%)] blur-3xl" />
-      </div>
+    <div className="portal-shell relative min-h-screen text-slate-900">
+      <AppBackdrop />
       <div className="relative z-10 flex min-h-screen">
         <PortalSidebar
           collapsed={collapsed}
@@ -76,8 +73,10 @@ export function AdminLayout() {
               navigate('/auth/login', { replace: true });
             }}
           />
-          <main className="flex-1 p-4 md:p-6">
-            <Outlet />
+          <main className="portal-main flex-1 p-4 md:p-6 lg:p-8">
+            <div className="mx-auto w-full max-w-[1600px]">
+              <Outlet />
+            </div>
           </main>
         </div>
       </div>

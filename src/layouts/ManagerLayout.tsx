@@ -27,6 +27,7 @@ import { MobileNavDrawer, MobileNavButton } from '@/components/layout/MobileNavD
 import { useAuth } from '@/hooks/useAuth';
 import { ADMIN_EMAIL_FALLBACK } from '@/utils/constants';
 import { useManagerBuildings } from '@/hooks/useManagerBuildings';
+import { AppBackdrop } from '@/components/layout/AppBackdrop';
 
 // Sidebar gom nhóm theo tần suất sử dụng: mục thao tác hằng ngày đứng riêng,
 // mục cấu hình ít đụng tới được gấp vào nhóm collapsible.
@@ -119,12 +120,8 @@ export function ManagerLayout() {
   }, []);
 
   return (
-    <div className="relative min-h-screen bg-[#f8fafc] text-slate-900 transition-colors duration-200">
-      {/* Subtle blue/sky ambient glow for manager theme */}
-      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.05),transparent_65%)] blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.04),transparent_60%)] blur-3xl" />
-      </div>
+    <div className="portal-shell relative min-h-screen text-slate-900">
+      <AppBackdrop />
       <div className="relative z-10 flex min-h-screen">
         <PortalSidebar
           collapsed={collapsed}
@@ -145,21 +142,33 @@ export function ManagerLayout() {
               navigate('/auth/login', { replace: true });
             }}
           />
-          <main className="flex-1 p-4 md:p-6">
-            {isLoading && !isProfileRoute ? (
-              <div className="text-sm text-muted-foreground">Loading...</div>
-            ) : !selectedBuildingId && !isProfileRoute ? (
-              <div className="rounded-md border border-border bg-card p-6 text-sm text-muted-foreground">
-                
-                This account has not been assigned to any building. Please contact the manager. 
-              </div>
-            ) : (
-              <Outlet
-                context={{
-                  buildingId: selectedBuildingId ?? '',
-                }}
-              />
-            )}
+          <main className="portal-main flex-1 p-4 md:p-6 lg:p-8">
+            <div className="mx-auto w-full max-w-[1600px]">
+              {isLoading && !isProfileRoute ? (
+                <div className="app-state-card" role="status">
+                  <span className="app-state-card__loader" />
+                  <div>
+                    <p className="font-bold text-slate-900">Preparing your workspace</p>
+                    <p className="mt-1 text-sm text-slate-500">Loading building information…</p>
+                  </div>
+                </div>
+              ) : !selectedBuildingId && !isProfileRoute ? (
+                <div className="app-state-card">
+                  <div>
+                    <p className="font-bold text-slate-900">No building assigned</p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      This account has not been assigned to a building. Please contact an administrator.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <Outlet
+                  context={{
+                    buildingId: selectedBuildingId ?? '',
+                  }}
+                />
+              )}
+            </div>
           </main>
         </div>
       </div>

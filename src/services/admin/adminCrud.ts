@@ -67,14 +67,6 @@ export async function createAdminUser(payload: CreateAdminUserInput): Promise<st
   return userId ?? '';
 }
 
-export async function assignStaffToBuilding(buildingId: string, userId: string): Promise<void> {
-  await requestJson({
-    path: `/admin/buildings/${buildingId}/assign-staff`,
-    method: 'POST',
-    body: { userId },
-  });
-}
-
 export async function revokeStaffFromBuilding(buildingId: string, userId: string): Promise<void> {
   await requestJson({
     path: `/admin/buildings/${buildingId}/revoke-staff`,

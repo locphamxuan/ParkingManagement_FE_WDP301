@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BellRing, ChevronDown, LogOut, MapPinned, Ticket, User, Wallet } from 'lucide-react';
+import { BellRing, ChevronDown, LogOut, MapPinned, Menu, Ticket, User, Wallet, X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { notificationApi } from '@/services/notificationApi';
 import { navigationLinks } from './homeNavigation.constants';
@@ -13,6 +13,7 @@ export function PublicHeader() {
   const navigate = useNavigate();
   const { session, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [unreadNotif, setUnreadNotif] = useState(0);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -56,27 +57,27 @@ export function PublicHeader() {
 
   return (
     <header
-      className={`sticky top-0 z-40 transition-all duration-500 border-b ${
+      className={`sticky top-0 z-40 border-b transition-all duration-300 ${
         scrolled
-          ? 'bg-slate-950/85 backdrop-blur-xl border-cyan-500/10 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.8),0_1px_0_0_rgba(6,182,212,0.15)] py-2.5'
-          : 'bg-transparent border-transparent py-4'
+          ? 'border-slate-200/80 bg-white/90 py-2.5 shadow-[0_12px_35px_rgba(15,23,42,0.08)] backdrop-blur-xl'
+          : 'border-slate-200/60 bg-white/80 py-3.5 backdrop-blur-md'
       }`}
     >
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-600 via-cyan-400 to-purple-600 opacity-60 pointer-events-none" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/70 to-transparent" />
 
-      <div className="max-w-6xl mx-auto px-4 flex items-center justify-between">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4">
         <Link to="/" aria-label="PBMS Home">
           <Logo size={40} tagline="Cloud Management" />
         </Link>
 
-        <nav className="hidden md:flex gap-8">
+        <nav className="hidden items-center gap-1 md:flex" aria-label="Primary navigation">
           {navigationLinks.map((link) => (
             <NavLink
               key={link.href}
               to={link.href}
               end={link.href === '/'}
               className={({ isActive }) =>
-                `text-sm font-bold relative py-1.5 transition-colors duration-300 group ${isActive ? 'text-white' : 'text-slate-400 hover:text-white'}`
+                `group relative inline-flex min-h-10 items-center rounded-xl px-3 text-xs font-bold transition-colors duration-200 ${isActive ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-blue-50 hover:text-blue-700'}`
               }
             >
               {({ isActive }) => (
@@ -93,10 +94,10 @@ export function PublicHeader() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-2 sm:gap-4">
           <div className="text-right hidden sm:block group cursor-pointer">
             <span className="text-[9px] uppercase font-mono tracking-widest text-slate-500 font-black block">Support 24/7</span>
-            <strong className="text-xs font-black text-slate-300 group-hover:text-cyan-400 transition-colors duration-300">1900 636 447</strong>
+            <strong className="text-xs font-black text-slate-700 group-hover:text-cyan-600 transition-colors duration-300">1900 636 447</strong>
           </div>
 
           {session ? (
@@ -192,13 +193,56 @@ export function PublicHeader() {
               onClick={() => navigate('/auth/login')}
               whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(59,130,246,0.45)' }}
               whileTap={{ scale: 0.95 }}
-              className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.3)] font-black text-xs uppercase tracking-wider transition-all duration-300"
-            >
-              Login
-            </motion.button>
-          )}
+                className="inline-flex min-h-10 items-center rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 px-4 text-xs font-black uppercase tracking-wider text-white shadow-[0_8px_22px_rgba(6,182,212,0.22)] transition-transform duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+              >
+                Login
+              </motion.button>
+            )}
+
+          <button
+            type="button"
+            aria-label={mobileNavOpen ? 'Close navigation' : 'Open navigation'}
+            aria-expanded={mobileNavOpen}
+            onClick={() => setMobileNavOpen((value) => !value)}
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition-colors hover:bg-blue-50 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 md:hidden"
+          >
+            {mobileNavOpen ? <X size={17} /> : <Menu size={17} />}
+          </button>
         </div>
       </div>
+
+      <AnimatePresence>
+        {mobileNavOpen ? (
+          <motion.nav
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden border-t border-slate-200 bg-white/96 shadow-xl backdrop-blur-xl md:hidden"
+            aria-label="Mobile navigation"
+          >
+            <div className="mx-auto grid max-w-7xl grid-cols-2 gap-1.5 px-4 py-3">
+              {navigationLinks.map((link) => (
+                <NavLink
+                  key={link.href}
+                  to={link.href}
+                  end={link.href === '/'}
+                  onClick={() => setMobileNavOpen(false)}
+                  className={({ isActive }) =>
+                    `inline-flex min-h-11 items-center rounded-xl px-3 text-xs font-bold transition-colors ${
+                      isActive
+                        ? 'border border-blue-200 bg-blue-50 text-blue-700'
+                        : 'border border-transparent text-slate-600 hover:bg-blue-50 hover:text-blue-700'
+                    }`
+                  }
+                >
+                  {link.label}
+                </NavLink>
+              ))}
+            </div>
+          </motion.nav>
+        ) : null}
+      </AnimatePresence>
     </header>
   );
 }

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { PublicHeader } from './PublicHeader';
 import { PremiumFooter } from './HomeFooter';
 import { useAuth } from '@/hooks/useAuth';
+import { AppBackdrop } from '@/components/layout/AppBackdrop';
 
 interface PublicPageShellProps {
   children: ReactNode;
@@ -19,8 +20,9 @@ export function PublicPageShell({ children }: PublicPageShellProps) {
     : null;
 
   return (
-    <main className="min-h-screen bg-[#060a11] text-slate-100 font-sans selection:bg-cyan-500 selection:text-white relative isolate">
-      <div className="absolute inset-x-0 top-0 h-[60vh] pointer-events-none overflow-hidden -z-10" aria-hidden="true">
+    <main className="public-light-theme relative isolate min-h-screen overflow-x-hidden bg-[#f4f7fb] font-sans text-slate-900 selection:bg-cyan-200 selection:text-slate-950">
+      <AppBackdrop variant="midnight" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 hidden h-[60vh] overflow-hidden" aria-hidden="true">
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[55%] rounded-full bg-[radial-gradient(circle_at_center,hsla(180,70%,30%,0.12),transparent_55%)] blur-3xl" />
         <div className="absolute top-[15%] right-[-15%] w-[60%] h-[60%] rounded-full bg-[radial-gradient(circle_at_center,hsla(195,80%,25%,0.10),transparent_55%)] blur-3xl" />
       </div>

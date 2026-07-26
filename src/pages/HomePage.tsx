@@ -13,6 +13,7 @@ import {
   User,
   ChevronDown,
   LogOut,
+  Menu,
   X,
 } from 'lucide-react';
 import type { LegacyModule } from '../data/mainFlow';
@@ -23,6 +24,7 @@ import { PremiumCTABanner, PremiumFooter } from '@/components/home/HomeFooterSec
 import { HomeHero } from '@/components/home/HomeHero';
 import { Logo } from '@/components/layout/Logo';
 import back1 from '@/assets/back1.webp';
+import { AppBackdrop } from '@/components/layout/AppBackdrop';
 
 interface HomePageProps {
   modules: LegacyModule[];
@@ -73,6 +75,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
   const serviceModules = useMemo(() => modules.filter((m) => !m.available), [modules]);
   const [showPlateBanner, setShowPlateBanner] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -124,7 +127,8 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
   };
 
   return (
-    <main id="top" className="min-h-screen text-slate-100 font-sans selection:bg-cyan-500 selection:text-white relative isolate">
+    <main id="top" className="public-light-theme relative isolate min-h-screen overflow-x-hidden bg-[#f4f7fb] font-sans text-slate-900 selection:bg-cyan-200 selection:text-slate-950">
+      <AppBackdrop variant="midnight" />
 
       {/* Background Neon Glow Spheres — absolute so it scrolls naturally and doesn't overlap the header */}
       <div className="absolute inset-x-0 top-0 h-[100vh] pointer-events-none overflow-hidden -z-10 bg-slate-950" aria-hidden="true">
@@ -142,24 +146,24 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
 
 
       {/* Cyber Header Navigation */}
-      <header className={`sticky top-0 z-40 transition-all duration-500 border-b ${scrolled
-        ? 'bg-slate-950/85 backdrop-blur-xl border-cyan-500/10 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.8),0_1px_0_0_rgba(6,182,212,0.15)] py-2.5'
-        : 'bg-transparent border-transparent py-4'
+      <header className={`sticky top-0 z-40 border-b transition-all duration-300 ${scrolled
+        ? 'border-slate-200/80 bg-white/90 py-2.5 shadow-[0_12px_35px_rgba(15,23,42,0.08)] backdrop-blur-xl'
+        : 'border-slate-200/60 bg-white/80 py-3.5 backdrop-blur-md'
         }`}>
         {/* Top edge glowing gradient border */}
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-600 via-cyan-400 to-purple-600 opacity-60 pointer-events-none" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/70 to-transparent" />
 
-        <div className="max-w-6xl mx-auto px-4 flex items-center justify-between">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4">
           <a href="#top" aria-label="PBMS Home" className="group">
             <Logo size={40} tagline="Cloud Management" />
           </a>
 
-          <nav className="hidden md:flex gap-8">
+          <nav className="hidden items-center gap-1 md:flex" aria-label="Primary navigation">
             {navigationLinks.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
-                className="text-sm font-bold text-slate-400 hover:text-white relative py-1.5 transition-colors duration-300 group"
+                className="group relative inline-flex min-h-10 items-center rounded-xl px-3 text-xs font-bold text-slate-600 transition-colors duration-200 hover:bg-blue-50 hover:text-blue-700"
               >
                 {link.label}
                 <span className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-blue-600 to-cyan-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
@@ -167,10 +171,10 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
             ))}
           </nav>
 
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-2 sm:gap-4">
             <div className="text-right hidden sm:block group cursor-pointer">
               <span className="text-[9px] uppercase font-mono tracking-widest text-slate-500 font-black block">Support 24/7</span>
-              <strong className="text-xs font-black text-slate-300 group-hover:text-cyan-400 transition-colors duration-300">1900 636 447</strong>
+              <strong className="text-xs font-black text-slate-700 group-hover:text-cyan-600 transition-colors duration-300">1900 636 447</strong>
             </div>
 
             {user ? (
@@ -271,14 +275,50 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
                 onClick={() => onOpenAuth('login')}
                 whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(59,130,246,0.45)' }}
                 whileTap={{ scale: 0.95 }}
-                className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.3)] font-black text-xs uppercase tracking-wider transition-all duration-300"
+                className="inline-flex min-h-10 items-center rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 px-4 text-xs font-black uppercase tracking-wider text-white shadow-[0_8px_22px_rgba(6,182,212,0.22)] transition-all duration-200"
               >
                 Login
               </motion.button>
             )}
 
+            <button
+              type="button"
+              aria-label={mobileNavOpen ? 'Close navigation' : 'Open navigation'}
+              aria-expanded={mobileNavOpen}
+              onClick={() => setMobileNavOpen((value) => !value)}
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition-colors hover:bg-blue-50 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 md:hidden"
+            >
+              {mobileNavOpen ? <X size={17} /> : <Menu size={17} />}
+            </button>
+
           </div>
         </div>
+
+        <AnimatePresence>
+          {mobileNavOpen ? (
+            <motion.nav
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden border-t border-slate-200 bg-white/96 shadow-xl backdrop-blur-xl md:hidden"
+              aria-label="Mobile navigation"
+            >
+              <div className="mx-auto grid max-w-7xl grid-cols-2 gap-1.5 px-4 py-3">
+                {navigationLinks.map((link) => (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMobileNavOpen(false)}
+                    className="inline-flex min-h-11 items-center rounded-xl border border-transparent px-3 text-xs font-bold text-slate-600 transition-colors hover:bg-blue-50 hover:text-blue-700"
+                  >
+                    {link.label}
+                  </a>
+                ))}
+              </div>
+            </motion.nav>
+          ) : null}
+        </AnimatePresence>
       </header>
 
       {/* Missing License Plate Warning Banner */}
@@ -340,7 +380,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
               A real-time simulation of vehicles entering/parking/exiting with automatic gates, EV charging stations and per-slot status — a visual overview of the PBMS system.
             </p>
           </div>
-          <div className="max-w-3xl mx-auto">
+          <div className="public-dark-visual max-w-3xl mx-auto">
             <AnimatedParkingMap3D />
           </div>
         </div>

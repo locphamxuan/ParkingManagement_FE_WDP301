@@ -42,7 +42,7 @@ export default function KioskCheckInPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6">
+    <div className="public-light-theme min-h-screen bg-[#f4f7fb] text-slate-900 flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-xl space-y-6">
         <div className="text-center">
           <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-400">

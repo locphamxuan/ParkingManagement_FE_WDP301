@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { Check, ChevronDown } from 'lucide-react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { cn } from '@/utils/cn';
 
@@ -16,6 +16,7 @@ interface CustomSelectProps {
   placeholder?: string;
   className?: string;
   disabled?: boolean;
+  ariaLabel?: string;
 }
 
 export function CustomSelect({
@@ -25,19 +26,21 @@ export function CustomSelect({
   placeholder = 'Select an item...',
   className,
   disabled = false,
+  ariaLabel,
 }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const selectedOption = options.find((opt) => opt.value === value);
 
   return (
-    <div className={cn('relative h-11 w-full', className)}>
+    <div className={cn('relative min-h-11 w-full', className)}>
       <DropdownMenu.Root open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenu.Trigger asChild>
           <button
             type="button"
             disabled={disabled}
+            aria-label={ariaLabel ?? placeholder}
             className={cn(
-              "flex h-full w-full items-center justify-between rounded-xl border border-border bg-card/90 px-3.5 text-sm font-semibold text-foreground shadow-sm outline-none transition-[border-color,box-shadow,background-color] duration-200 hover:border-primary/25 focus:border-primary/45 focus:bg-card focus:ring-4 focus:ring-ring/10",
+              "flex min-h-11 w-full items-center justify-between rounded-xl border border-border bg-card/90 px-3.5 text-sm font-semibold text-foreground shadow-sm outline-none transition-[border-color,box-shadow,background-color] duration-200 hover:border-primary/25 focus:border-primary/45 focus:bg-card focus:ring-4 focus:ring-ring/10",
               isOpen && "border-blue-500/60 ring-4 ring-blue-500/10",
               disabled && "cursor-not-allowed opacity-50"
             )}
@@ -60,29 +63,33 @@ export function CustomSelect({
             {options.length === 0 ? (
               <div className="px-3.5 py-2.5 text-xs font-semibold text-slate-400 text-center">No options</div>
             ) : (
-              options.map((opt) => {
-                const isSelected = opt.value === value;
-                const isDisabled = opt.disabled === true;
-                return (
-                  <button
-                    key={String(opt.value)}
-                    type="button"
-                    disabled={isDisabled}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      onChange(opt.value);
-                      setIsOpen(false);
-                    }}
-                    className={cn(
-                      "relative flex min-h-10 w-full cursor-pointer select-none items-center rounded-lg px-3 text-left text-xs font-semibold text-muted-foreground transition-colors duration-150 hover:bg-primary/10 hover:text-foreground",
-                      isSelected && "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground font-bold",
-                      isDisabled && "cursor-not-allowed opacity-40 hover:bg-transparent hover:text-slate-400"
-                    )}
-                  >
-                    {opt.label}
-                  </button>
-                );
-              })
+              <DropdownMenu.RadioGroup
+                value={value}
+                onValueChange={(nextValue) => {
+                  onChange(nextValue);
+                  setIsOpen(false);
+                }}
+              >
+                {options.map((opt) => {
+                  const isSelected = opt.value === value;
+                  return (
+                    <DropdownMenu.RadioItem
+                      key={String(opt.value)}
+                      value={opt.value}
+                      disabled={opt.disabled}
+                      className={cn(
+                        "relative flex min-h-11 cursor-pointer select-none items-center rounded-lg px-3 pr-9 text-left text-xs font-semibold text-muted-foreground outline-none transition-colors duration-150 hover:bg-primary/10 hover:text-foreground focus:bg-primary/10 focus:text-foreground data-[disabled]:cursor-not-allowed data-[disabled]:opacity-40",
+                        isSelected && "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground font-bold"
+                      )}
+                    >
+                      <span className="min-w-0 flex-1 truncate">{opt.label}</span>
+                      <DropdownMenu.ItemIndicator className="absolute right-3 flex items-center justify-center">
+                        <Check size={14} strokeWidth={2.5} />
+                      </DropdownMenu.ItemIndicator>
+                    </DropdownMenu.RadioItem>
+                  );
+                })}
+              </DropdownMenu.RadioGroup>
             )}
           </DropdownMenu.Content>
         </DropdownMenu.Portal>

@@ -9,6 +9,7 @@ interface DatePickerProps {
   placeholder?: string;
   className?: string;
   disabled?: boolean;
+  ariaLabel?: string;
 }
 
 const MONTH_NAMES = [
@@ -26,9 +27,16 @@ const MONTH_NAMES = [
   'December',
 ];
 
-const WEEK_DAYS = ['H', 'B', 'T', 'N', 'S', 'B', 'C'];
+const WEEK_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-export function DatePicker({ value, onChange, placeholder = 'dd/mm/yyyy', className, disabled = false }: DatePickerProps) {
+export function DatePicker({
+  value,
+  onChange,
+  placeholder = 'dd/mm/yyyy',
+  className,
+  disabled = false,
+  ariaLabel = 'Select date',
+}: DatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   // Parse value to Date object or null
@@ -145,9 +153,10 @@ export function DatePicker({ value, onChange, placeholder = 'dd/mm/yyyy', classN
           <button
             type="button"
             disabled={disabled}
+            aria-label={ariaLabel}
             className={cn(
-              "flex h-10 w-full items-center justify-between rounded-xl border border-border bg-card px-3 text-sm font-semibold text-foreground outline-none transition-all duration-300 hover:border-muted-foreground/30",
-              isOpen && "border-primary/50 ring-2 ring-primary/10",
+              "flex min-h-11 w-full items-center justify-between rounded-xl border border-border bg-card px-3.5 text-sm font-semibold text-foreground shadow-sm outline-none transition-[border-color,box-shadow,background-color] duration-200 hover:border-primary/25 focus:border-primary/45 focus:ring-4 focus:ring-ring/10",
+              isOpen && "border-primary/50 ring-4 ring-primary/10",
               disabled && "cursor-not-allowed opacity-50"
             )}
           >
@@ -159,26 +168,33 @@ export function DatePicker({ value, onChange, placeholder = 'dd/mm/yyyy', classN
         <DropdownMenu.Portal>
           <DropdownMenu.Content
             align="start"
-            sideOffset={6}
-            className="z-[9999] flex flex-col w-64 rounded-2xl border border-sky-100 bg-card p-3 shadow-lg animate-in fade-in-50 zoom-in-95 duration-100 focus:outline-none"
+            sideOffset={8}
+            collisionPadding={12}
+            className="z-[9999] flex w-[min(20rem,calc(100vw-2rem))] flex-col rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_18px_48px_rgba(15,23,42,0.16)] outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95"
           >
             {/* Header: Month & Year Selector */}
             <div className="flex items-center justify-between mb-3.5">
-              <button
-                type="button"
-                onClick={handlePrevMonth}
-                className="p-1 rounded-lg hover:bg-sky-50 text-slate-500 hover:text-sky-600 transition-all"
-              >
-                <ChevronLeft size={16} />
-              </button>
+              <DropdownMenu.Item asChild onSelect={(event) => event.preventDefault()}>
+                <button
+                  type="button"
+                  aria-label="Previous month"
+                  onClick={handlePrevMonth}
+                  className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 outline-none transition-colors hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+              </DropdownMenu.Item>
               <span className="text-xs font-black uppercase text-slate-800 tracking-wider font-mono">{displayMonthName}</span>
-              <button
-                type="button"
-                onClick={handleNextMonth}
-                className="p-1 rounded-lg hover:bg-sky-50 text-slate-500 hover:text-sky-600 transition-all"
-              >
-                <ChevronRight size={16} />
-              </button>
+              <DropdownMenu.Item asChild onSelect={(event) => event.preventDefault()}>
+                <button
+                  type="button"
+                  aria-label="Next month"
+                  onClick={handleNextMonth}
+                  className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 outline-none transition-colors hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </DropdownMenu.Item>
             </div>
 
             {/* Week days Header */}
@@ -206,36 +222,58 @@ export function DatePicker({ value, onChange, placeholder = 'dd/mm/yyyy', classN
                   new Date().getMonth() === viewDate.getMonth() &&
                   new Date().getFullYear() === viewDate.getFullYear();
 
+                const targetDate = new Date(
+                  viewDate.getFullYear(),
+                  viewDate.getMonth() + (item.currentMonth ? 0 : item.day > 20 ? -1 : 1),
+                  item.day,
+                );
+
                 return (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={(e) => handleSelectDay(e, item.day, item.currentMonth)}
-                    className={cn(
-                      "h-7 w-7 text-xs font-bold rounded-lg flex items-center justify-center transition-all duration-150",
-                      item.currentMonth ? "text-slate-800 hover:bg-sky-50" : "text-slate-350 hover:bg-sky-50/50",
-                      isToday && !isSelected && "border border-sky-400/60 text-sky-600 font-black",
-                      isSelected && "bg-sky-500 text-white hover:bg-sky-600 hover:text-white font-black shadow-md shadow-sky-500/10"
-                    )}
-                  >
-                    {item.day}
-                  </button>
+                  <DropdownMenu.Item key={targetDate.toISOString()} asChild>
+                    <button
+                      type="button"
+                      aria-label={targetDate.toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                      aria-current={isToday ? 'date' : undefined}
+                      onClick={(e) => handleSelectDay(e, item.day, item.currentMonth)}
+                      className={cn(
+                        "flex min-h-9 w-full items-center justify-center rounded-lg text-xs font-bold outline-none transition-colors duration-150",
+                        item.currentMonth ? "text-slate-800 hover:bg-blue-50 focus:bg-blue-50" : "text-slate-400 hover:bg-blue-50/60 focus:bg-blue-50/60",
+                        isToday && !isSelected && "border border-blue-400/60 font-black text-blue-700",
+                        isSelected && "bg-blue-600 text-white hover:bg-blue-700 hover:text-white focus:bg-blue-700 focus:text-white font-black shadow-md shadow-blue-500/10"
+                      )}
+                    >
+                      {item.day}
+                    </button>
+                  </DropdownMenu.Item>
                 );
               })}
             </div>
 
             {/* Footer buttons: Clear & Today */}
             <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-sky-100">
-              <button
-                type="button"
-                onClick={handleClear}
-                className="text-[10px] font-black uppercase tracking-wider text-rose-600 hover:text-rose-700 transition-colors"
-              >Delete</button>
-              <button
-                type="button"
-                onClick={handleToday}
-                className="text-[10px] font-black uppercase tracking-wider text-sky-600 hover:text-sky-700 transition-colors"
-              >Today</button>
+              <DropdownMenu.Item asChild>
+                <button
+                  type="button"
+                  onClick={handleClear}
+                  className="min-h-10 rounded-xl px-3 text-[10px] font-black uppercase tracking-wider text-rose-600 outline-none transition-colors hover:bg-rose-50 hover:text-rose-700 focus:bg-rose-50 focus:text-rose-700"
+                >
+                  Clear date
+                </button>
+              </DropdownMenu.Item>
+              <DropdownMenu.Item asChild>
+                <button
+                  type="button"
+                  onClick={handleToday}
+                  className="min-h-10 rounded-xl px-3 text-[10px] font-black uppercase tracking-wider text-blue-600 outline-none transition-colors hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700"
+                >
+                  Today
+                </button>
+              </DropdownMenu.Item>
             </div>
           </DropdownMenu.Content>
         </DropdownMenu.Portal>

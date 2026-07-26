@@ -4,6 +4,7 @@ import { loginWithBackend, type AuthSession } from '@/services/authService';
 import { saveSession, clearSession, loadSession } from '@/services/client/storage';
 import { AUTH_STORAGE_KEY } from '@/utils/constants';
 import { api } from '@/services/client/apiClient';
+import { showToast } from '@/components/common/ToastNotification';
 
 interface AuthState {
   session: AuthSession | null;
@@ -38,10 +39,11 @@ function mapLegacySession(): AuthSession | null {
     || (Array.isArray(user.licensePlates) ? user.licensePlates : []);
 
   return {
-    // Real auth is the httpOnly cookie, invisible to JS by design — this field
-    // is only populated fresh at login for the handful of admin/* call sites
-    // that still pass an explicit token; it's blank after a page reload (the
-    // cookie keeps authenticating those calls regardless, see apiClient.ts).
+    // Real auth is the httpOnly cookie, invisible to JS by design — `token`
+    // is never a real secret (see authService.ts::mapAuthSession), just a
+    // truthy "a session is loaded" marker for route guards. Blank here since
+    // this only runs before Zustand's persist rehydrates the real (still
+    // non-secret) value from the last login.
     token: '',
     userId: String(user._id ?? user.id ?? ''),
     role: (user.role as AuthSession['role']) ?? 'user',
@@ -261,6 +263,38 @@ export const useAuthStore = create<AuthState>()(
 if (typeof window !== 'undefined') {
   window.addEventListener('auth-unauthorized', () => {
     useAuthStore.getState().logout();
+  });
+
+  // Cross-tab account-switch guard.
+  // The REAL auth channel is a single httpOnly cookie shared by every tab in
+  // this browser (see apiClient.ts). If tab B logs in as a different account,
+  // tab B overwrites that shared cookie — tab A's UI keeps showing its own
+  // (now stale) role/session, but any API call it makes next is silently
+  // authenticated as tab B's account. Detect that here via the localStorage
+  // mirror zustand `persist` writes on every login/logout, and drop tab A's
+  // stale belief that it's still logged in rather than let it act under the
+  // wrong identity. We deliberately do NOT call the store's `logout()` (which
+  // POSTs to /users/auth/logout) — that would clear the cookie tab B just
+  // legitimately set. Only this tab's local state is cleared.
+  window.addEventListener('storage', (event) => {
+    if (event.key !== AUTH_STORAGE_KEY || event.newValue === event.oldValue) return;
+
+    const currentUserId = useAuthStore.getState().session?.userId;
+    if (!currentUserId) return; // this tab isn't logged in — nothing to protect
+
+    let incomingUserId: string | null = null;
+    try {
+      const parsed = event.newValue ? JSON.parse(event.newValue) : null;
+      incomingUserId = parsed?.state?.session?.userId ?? null;
+    } catch {
+      incomingUserId = null;
+    }
+
+    if (incomingUserId !== currentUserId) {
+      clearSession();
+      useAuthStore.setState({ session: null, error: null });
+      showToast('You were signed out because a different account logged in from another tab.', 'info');
+    }
   });
 }
 

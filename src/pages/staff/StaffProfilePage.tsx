@@ -185,7 +185,7 @@ export function StaffProfilePage() {
             <h3 className="text-xs font-extrabold text-slate-800 tracking-tight mb-4">Account Information</h3>
 
             {isEditing ? (
-              <form onSubmit={handleSave} className="grid gap-3.5 md:grid-cols-2 relative z-10 animate-fadeIn">
+              <form onSubmit={handleSave} noValidate className="grid gap-3.5 md:grid-cols-2 relative z-10 animate-fadeIn">
                 {/* Họ tên */}
                 <div className="space-y-1">
                   <label className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Full Name</label>

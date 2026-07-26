@@ -3,7 +3,6 @@ import { AlertCircle, ArrowLeft, CheckCircle2, Eye, EyeOff, Loader2, X } from 'l
 import { useAuthForm } from '@/hooks/useAuthForm';
 import { AuthPromoPanel } from '@/components/auth/AuthPromoPanel';
 import { AuthNoticeModal } from '@/components/auth/AuthNoticeModal';
-import { showToast } from '@/components/common/ToastNotification';
 import styles from '@/styles/modules/AuthPage.module.css';
 
 export type AuthMode = 'login' | 'register' | 'forgot-password' | 'reset-password';
@@ -138,7 +137,7 @@ export default function AuthPage({ mode, notice, onModeChange, onSubmit, isLoadi
             ) : null}
 
             {mode === 'forgot-password' ? (
-              <form onSubmit={handleForgotPassword} className="space-y-4">
+              <form onSubmit={handleForgotPassword} noValidate className="space-y-4">
                 <div className="space-y-1.5">
                   <label htmlFor="forgot-email" className={fieldLabel}>
                     Email
@@ -184,7 +183,7 @@ export default function AuthPage({ mode, notice, onModeChange, onSubmit, isLoadi
                 </div>
               </form>
             ) : mode === 'reset-password' ? (
-              <form onSubmit={handleResetPassword} className="space-y-4">
+              <form onSubmit={handleResetPassword} noValidate className="space-y-4">
                 {/* Hidden email field: helps browser associate the new password with the right account */}
                 <input type="hidden" autoComplete="username" value={forgotEmail || ''} />
 
@@ -265,7 +264,7 @@ export default function AuthPage({ mode, notice, onModeChange, onSubmit, isLoadi
                 </div>
               </form>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} noValidate className="space-y-4">
                 {mode === 'register' && (
                   <>
                     <div className="space-y-1.5">

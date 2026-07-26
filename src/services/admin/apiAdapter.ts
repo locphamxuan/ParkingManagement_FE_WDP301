@@ -164,12 +164,14 @@ const toAudit = (item: ApiAudit): AuditLog => ({
     : undefined,
 });
 
-export async function getApiAdminDataset(token: string): Promise<AdminDataset> {
+// Auth is the httpOnly cookie (apiClient.ts sends credentials:'include' on
+// every request) — no token argument needed or accepted anymore.
+export async function getApiAdminDataset(): Promise<AdminDataset> {
   const [overviewRes, buildingsRes, usersRes, auditRes] = await Promise.all([
-    api.get<ApiEnvelope<AdminOverviewData>>('/admin/dashboard', { token }),
-    api.get<ApiEnvelope<Paginated<ApiBuilding>>>('/admin/buildings?limit=200', { token }),
-    api.get<ApiEnvelope<Paginated<ApiUser>>>('/admin/users?limit=200', { token }),
-    api.get<ApiEnvelope<Paginated<ApiAudit>>>('/admin/audit-logs?limit=200', { token }),
+    api.get<ApiEnvelope<AdminOverviewData>>('/admin/dashboard'),
+    api.get<ApiEnvelope<Paginated<ApiBuilding>>>('/admin/buildings?limit=200'),
+    api.get<ApiEnvelope<Paginated<ApiUser>>>('/admin/users?limit=200'),
+    api.get<ApiEnvelope<Paginated<ApiAudit>>>('/admin/audit-logs?limit=200'),
   ]);
 
   const buildingItems = buildingsRes.data.items || [];

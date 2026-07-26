@@ -18,7 +18,7 @@ export function ProfileEditForm({
   ...plateEditorProps
 }: ProfileEditFormProps) {
   return (
-    <form onSubmit={handleSave} className="space-y-5 rounded-3xl bg-slate-950/40 p-6 border border-white/5 animate-fadeIn">
+    <form onSubmit={handleSave} noValidate className="space-y-5 rounded-3xl bg-slate-950/40 p-6 border border-white/5 animate-fadeIn">
 
       {/* Profile Error Box */}
       <AnimatePresence>

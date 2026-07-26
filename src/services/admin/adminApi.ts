@@ -184,6 +184,6 @@ export const adminApi = {
 };
 
 // Mutation helpers (create/update/delete users & buildings, assign/revoke
-// manager|staff) live in `./adminCrud` — kept separate because they use the
-// legacy token-explicit `requestJson` call style instead of the cookie-auth
-// `api` client above.
+// manager, revoke staff) live in `./adminCrud` — kept separate for historical
+// reasons (they used to take an explicit token before being migrated to
+// cookie-only auth like everything above; the split wasn't worth undoing).

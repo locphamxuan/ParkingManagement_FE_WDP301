@@ -137,7 +137,7 @@ export function ManagerProfilePage() {
           <p className="mb-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 font-mono">Account information</p>
 
           {isEditing ? (
-            <form onSubmit={handleSave} className="grid gap-5 md:grid-cols-2 relative z-10">
+            <form onSubmit={handleSave} noValidate className="grid gap-5 md:grid-cols-2 relative z-10">
               {/* Họ tên */}
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Full name</label>

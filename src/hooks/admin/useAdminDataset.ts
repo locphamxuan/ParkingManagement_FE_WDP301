@@ -31,7 +31,7 @@ export function useAdminDataset(): UseAdminDatasetResult {
     if (mountedRef.current) setIsLoading(true);
 
     try {
-      const result = await getAdminDataset(token);
+      const result = await getAdminDataset();
       if (mountedRef.current) {
         setData(result);
         setError(null);

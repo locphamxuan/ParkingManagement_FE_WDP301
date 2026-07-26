@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
-import { ChevronDown, ChevronLeft, Fingerprint } from 'lucide-react';
+import { ChevronDown, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/utils/cn';
+import { Logo } from '@/components/layout/Logo';
 
 export interface PortalNavItem {
   to: string;
@@ -41,11 +42,11 @@ interface PortalSidebarProps {
 
 const linkClass = (isActive: boolean, nested = false) =>
   cn(
-    'flex items-center gap-3.5 rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-all duration-300',
-    nested && 'py-2',
+    'portal-nav-link flex min-h-11 items-center gap-3 rounded-xl px-3 text-xs font-bold transition-[background-color,color,box-shadow,transform] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70',
+    nested && 'min-h-10 py-2',
     isActive
-      ? 'bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-md shadow-blue-500/20 scale-[1.02]'
-      : 'text-slate-600 hover:bg-sky-50 hover:text-blue-600',
+      ? 'portal-nav-link--active bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/20'
+      : 'text-slate-600 hover:bg-blue-50 hover:text-blue-700',
   );
 
 // Sidebar dùng chung cho các portal quản trị (admin/manager) — hỗ trợ cả mục
@@ -89,28 +90,43 @@ export function PortalSidebar({
   return (
     <aside
       className={cn(
-        'sticky top-0 h-screen border-r border-sky-100 bg-white/95 p-4 shadow-xs backdrop-blur-xl transition-all duration-350 ease-in-out',
+        'portal-sidebar sticky top-0 h-screen border-r p-3 shadow-2xl backdrop-blur-xl transition-[width] duration-300 ease-out',
         isDrawer ? 'w-full' : 'hidden lg:block',
-        !isDrawer && (effectiveCollapsed ? 'w-[84px]' : 'w-[264px]'),
+        !isDrawer && (effectiveCollapsed ? 'w-[84px]' : 'w-[272px]'),
       )}
     >
-      <div className="mb-6 flex items-center justify-between rounded-2xl border border-sky-100 bg-sky-50/70 p-3 shadow-xs backdrop-blur-md">
+      <div className="mb-5 flex min-h-[68px] items-center justify-between rounded-2xl border border-blue-100 bg-blue-50/70 p-3 shadow-inner backdrop-blur-md">
         {!effectiveCollapsed ? (
-          <div className="pl-1">
-            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-sky-600">Environment</p>
-            <p className="text-xs font-extrabold text-slate-900">{portalLabel}</p>
+          <div className="flex min-w-0 items-center gap-3">
+            <Logo variant="mark" size={36} className="shrink-0" />
+            <div className="min-w-0">
+              <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-blue-600">PBMS Workspace</p>
+              <p className="truncate text-xs font-extrabold text-slate-900">{portalLabel}</p>
+            </div>
           </div>
         ) : (
-          <Fingerprint className="text-blue-600 drop-shadow-[0_0_8px_rgba(37,99,235,0.25)] h-5 w-5 mx-auto" />
+          <Logo variant="mark" size={36} className="mx-auto" />
         )}
         {!isDrawer && (
-          <Button size="sm" variant="ghost" onClick={onToggle} className="h-7 w-7 rounded-lg p-0 hover:bg-sky-100/60 text-slate-500 hover:text-blue-600">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={onToggle}
+            aria-label={effectiveCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            className="h-9 w-9 shrink-0 rounded-xl p-0 text-slate-500 hover:bg-blue-100 hover:text-blue-700 focus-visible:ring-blue-400"
+          >
             <ChevronLeft className={cn('h-3.5 w-3.5 transition-all duration-300', effectiveCollapsed && 'rotate-180')} />
           </Button>
         )}
       </div>
 
-      <nav className="space-y-1.5 overflow-y-auto max-h-[calc(100vh-100px)] pr-1">
+      {!effectiveCollapsed ? (
+        <p className="mb-2 px-3 text-[9px] font-bold uppercase tracking-[0.18em] text-slate-500">
+          Navigation
+        </p>
+      ) : null}
+
+      <nav className="max-h-[calc(100vh-112px)] space-y-1 overflow-y-auto pr-1" aria-label={`${portalLabel} navigation`}>
         {items.map((entry) => {
           const Icon = entry.icon;
 
@@ -122,8 +138,9 @@ export function PortalSidebar({
                 end={entry.to === ''}
                 className={({ isActive }) => linkClass(isActive)}
                 onClick={onNavigate}
+                title={effectiveCollapsed ? entry.label : undefined}
               >
-                <Icon size={15} className="shrink-0" />
+                <Icon size={17} strokeWidth={2} className="shrink-0" />
                 {!effectiveCollapsed ? <span className="tracking-wide">{entry.label}</span> : null}
               </NavLink>
             );
@@ -137,14 +154,16 @@ export function PortalSidebar({
               <button
                 type="button"
                 onClick={() => toggleGroup(entry)}
+                aria-expanded={isOpen}
+                title={effectiveCollapsed ? entry.label : undefined}
                 className={cn(
-                  'w-full flex items-center gap-3.5 rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-all duration-300',
+                  'flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-xs font-bold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70',
                   hasActive && !isOpen
-                    ? 'text-blue-600 bg-blue-50/80 font-bold'
-                    : 'text-slate-600 hover:bg-sky-50 hover:text-blue-600',
+                    ? 'bg-blue-50 text-blue-700'
+                    : 'text-slate-600 hover:bg-blue-50 hover:text-blue-700',
                 )}
               >
-                <Icon size={15} className="shrink-0" />
+                <Icon size={17} strokeWidth={2} className="shrink-0" />
                 {!effectiveCollapsed ? (
                   <>
                     <span className="tracking-wide flex-1 text-left">{entry.label}</span>
@@ -154,7 +173,7 @@ export function PortalSidebar({
               </button>
 
               {!effectiveCollapsed && isOpen ? (
-                <div className="mt-1 mb-1.5 ml-4 space-y-1 border-l border-sky-100 pl-2.5">
+                <div className="mb-1.5 ml-5 mt-1 space-y-1 border-l border-blue-100 pl-2.5">
                   {entry.children.map((child) => {
                     const ChildIcon = child.icon;
                     return (
@@ -165,7 +184,7 @@ export function PortalSidebar({
                         className={({ isActive }) => linkClass(isActive, true)}
                         onClick={onNavigate}
                       >
-                        <ChildIcon size={14} className="shrink-0" />
+                        <ChildIcon size={15} className="shrink-0" />
                         <span className="tracking-wide">{child.label}</span>
                       </NavLink>
                     );

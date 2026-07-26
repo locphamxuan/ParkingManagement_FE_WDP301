@@ -21,21 +21,32 @@ export function Modal({ open, onOpenChange, title, children, isOpen, onClose }: 
   return (
     <Dialog.Root open={finalOpen} onOpenChange={finalOnOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-md transition-all duration-300 animate-fadeIn" />
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-slate-950/68 backdrop-blur-sm transition-opacity duration-200 animate-fadeIn" />
         <Dialog.Content
           className={cn(
-            'fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-[92vw] max-w-2xl rounded-3xl border border-border bg-card p-6 shadow-2xl animate-modalFadeIn focus:outline-none text-foreground'
+            'fixed left-1/2 top-1/2 z-50 max-h-[88svh] w-[calc(100vw-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-border bg-card p-5 text-foreground shadow-[0_28px_80px_rgba(2,6,23,0.32)] animate-modalFadeIn focus:outline-none sm:p-6'
           )}
         >
           {title ? (
-            <div className="mb-5 flex items-center justify-between">
-              <Dialog.Title className="text-lg font-bold tracking-tight text-foreground font-sans">{title}</Dialog.Title>
-              <Dialog.Close className="rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring">
-                <X size={16} />
+            <div className="mb-5 flex items-center justify-between gap-4 border-b border-border/70 pb-4">
+              <Dialog.Title className="text-lg font-extrabold tracking-tight text-foreground">{title}</Dialog.Title>
+              <Dialog.Close
+                aria-label="Close dialog"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <X size={17} />
               </Dialog.Close>
             </div>
           ) : (
-            <Dialog.Title className="sr-only">Modal Dialog</Dialog.Title>
+            <>
+              <Dialog.Title className="sr-only">Modal Dialog</Dialog.Title>
+              <Dialog.Close
+                aria-label="Close dialog"
+                className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <X size={17} />
+              </Dialog.Close>
+            </>
           )}
           {children}
         </Dialog.Content>

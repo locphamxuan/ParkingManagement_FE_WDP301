@@ -8,19 +8,26 @@ interface TimePickerProps {
   onChange: (value: string) => void;
   className?: string;
   disabled?: boolean;
+  ariaLabel?: string;
 }
 
-export function TimePicker({ value, onChange, className, disabled = false }: TimePickerProps) {
+export function TimePicker({
+  value,
+  onChange,
+  className,
+  disabled = false,
+  ariaLabel = 'Select time',
+}: TimePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   // Parse 24h format to 12h format components
   const parseTime = (timeStr: string) => {
-    if (!timeStr) return { hour: '12', minute: '00', period: 'SA' };
+    if (!timeStr) return { hour: '12', minute: '00', period: 'AM' };
     const [hStr, mStr] = timeStr.split(':');
     let h = parseInt(hStr, 10);
     const m = mStr || '00';
     if (isNaN(h)) h = 12;
-    const period = h >= 12 ? 'CH' : 'SA';
+    const period = h >= 12 ? 'PM' : 'AM';
     let hour12 = h % 12;
     if (hour12 === 0) hour12 = 12;
     return {
@@ -35,15 +42,15 @@ export function TimePicker({ value, onChange, className, disabled = false }: Tim
   // Convert 12h components to 24h string
   const updateTime = (h: string, m: string, p: string) => {
     let hourVal = parseInt(h, 10);
-    if (p === 'CH' && hourVal < 12) hourVal += 12;
-    if (p === 'SA' && hourVal === 12) hourVal = 0;
+    if (p === 'PM' && hourVal < 12) hourVal += 12;
+    if (p === 'AM' && hourVal === 12) hourVal = 0;
     const formatted = `${String(hourVal).padStart(2, '0')}:${m}`;
     onChange(formatted);
   };
 
   const hoursList = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
   const minutesList = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
-  const periodsList = ['SA', 'CH'];
+  const periodsList = ['AM', 'PM'];
 
   const displayTime = `${hour}:${minute} ${period}`;
 
@@ -54,9 +61,10 @@ export function TimePicker({ value, onChange, className, disabled = false }: Tim
           <button
             type="button"
             disabled={disabled}
+            aria-label={ariaLabel}
             className={cn(
-              "flex h-10 w-full items-center justify-between rounded-xl border border-border bg-card px-3 text-sm font-semibold text-foreground outline-none transition-all duration-300 hover:border-muted-foreground/30",
-              isOpen && "border-primary/50 ring-2 ring-primary/10",
+              "flex min-h-11 w-full items-center justify-between rounded-xl border border-border bg-card px-3.5 text-sm font-semibold text-foreground shadow-sm outline-none transition-[border-color,box-shadow,background-color] duration-200 hover:border-primary/25 focus:border-primary/45 focus:ring-4 focus:ring-ring/10",
+              isOpen && "border-primary/50 ring-4 ring-primary/10",
               disabled && "cursor-not-allowed opacity-50"
             )}
           >
@@ -68,8 +76,9 @@ export function TimePicker({ value, onChange, className, disabled = false }: Tim
         <DropdownMenu.Portal>
           <DropdownMenu.Content
             align="start"
-            sideOffset={6}
-            className="z-[9999] flex h-64 w-60 gap-1 rounded-2xl border border-border bg-card p-2 shadow-lg animate-in fade-in-50 zoom-in-95 duration-100 focus:outline-none"
+            sideOffset={8}
+            collisionPadding={12}
+            className="z-[9999] grid h-72 w-[min(18rem,calc(100vw-2rem))] grid-cols-[1fr_1fr_4.5rem] grid-rows-[1fr_auto] gap-1 rounded-2xl border border-slate-200 bg-white p-2 shadow-[0_18px_48px_rgba(15,23,42,0.16)] outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95"
           >
             {/* Hour Column */}
             <div className="flex-1 flex flex-col overflow-y-auto custom-scrollbar border-r border-border pr-1">
@@ -77,20 +86,19 @@ export function TimePicker({ value, onChange, className, disabled = false }: Tim
               {hoursList.map((h) => {
                 const isSelected = h === hour;
                 return (
-                  <button
-                    key={h}
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      updateTime(h, minute, period);
-                    }}
-                    className={cn(
-                      "py-1.5 px-2 text-xs font-semibold rounded-lg text-center transition-all duration-150 hover:bg-muted hover:text-foreground text-muted-foreground",
-                      isSelected && "bg-primary text-primary-foreground hover:bg-primary/90 font-black shadow-sm"
-                    )}
-                  >
-                    {h}
-                  </button>
+                  <DropdownMenu.Item key={h} asChild onSelect={(event) => event.preventDefault()}>
+                    <button
+                      type="button"
+                      aria-label={`${h} hour`}
+                      onClick={() => updateTime(h, minute, period)}
+                      className={cn(
+                        "min-h-10 rounded-lg px-2 text-center text-xs font-semibold text-muted-foreground outline-none transition-colors duration-150 hover:bg-muted hover:text-foreground focus:bg-muted focus:text-foreground",
+                        isSelected && "bg-primary text-primary-foreground hover:bg-primary/90 focus:bg-primary/90 font-black shadow-sm"
+                      )}
+                    >
+                      {h}
+                    </button>
+                  </DropdownMenu.Item>
                 );
               })}
             </div>
@@ -101,20 +109,19 @@ export function TimePicker({ value, onChange, className, disabled = false }: Tim
               {minutesList.map((m) => {
                 const isSelected = m === minute;
                 return (
-                  <button
-                    key={m}
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      updateTime(hour, m, period);
-                    }}
-                    className={cn(
-                      "py-1.5 px-2 text-xs font-semibold rounded-lg text-center transition-all duration-150 hover:bg-muted hover:text-foreground text-muted-foreground",
-                      isSelected && "bg-primary text-primary-foreground hover:bg-primary/90 font-black shadow-sm"
-                    )}
-                  >
-                    {m}
-                  </button>
+                  <DropdownMenu.Item key={m} asChild onSelect={(event) => event.preventDefault()}>
+                    <button
+                      type="button"
+                      aria-label={`${m} minutes`}
+                      onClick={() => updateTime(hour, m, period)}
+                      className={cn(
+                        "min-h-10 rounded-lg px-2 text-center text-xs font-semibold text-muted-foreground outline-none transition-colors duration-150 hover:bg-muted hover:text-foreground focus:bg-muted focus:text-foreground",
+                        isSelected && "bg-primary text-primary-foreground hover:bg-primary/90 focus:bg-primary/90 font-black shadow-sm"
+                      )}
+                    >
+                      {m}
+                    </button>
+                  </DropdownMenu.Item>
                 );
               })}
             </div>
@@ -126,23 +133,31 @@ export function TimePicker({ value, onChange, className, disabled = false }: Tim
                 {periodsList.map((p) => {
                   const isSelected = p === period;
                   return (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        updateTime(hour, minute, p);
-                      }}
-                      className={cn(
-                        "py-2 px-2 text-xs font-semibold rounded-lg text-center transition-all duration-150 hover:bg-muted hover:text-foreground text-muted-foreground",
-                        isSelected && "bg-primary text-primary-foreground hover:bg-primary/90 font-black shadow-sm"
-                      )}
-                    >
-                      {p}
-                    </button>
+                    <DropdownMenu.Item key={p} asChild onSelect={(event) => event.preventDefault()}>
+                      <button
+                        type="button"
+                        aria-label={p}
+                        onClick={() => updateTime(hour, minute, p)}
+                        className={cn(
+                          "min-h-10 rounded-lg px-2 text-center text-xs font-semibold text-muted-foreground outline-none transition-colors duration-150 hover:bg-muted hover:text-foreground focus:bg-muted focus:text-foreground",
+                          isSelected && "bg-primary text-primary-foreground hover:bg-primary/90 focus:bg-primary/90 font-black shadow-sm"
+                        )}
+                      >
+                        {p}
+                      </button>
+                    </DropdownMenu.Item>
                   );
                 })}
               </div>
+            </div>
+
+            <div className="col-span-3 border-t border-slate-100 pt-2">
+              <DropdownMenu.Item
+                className="flex min-h-10 cursor-pointer items-center justify-center rounded-xl bg-blue-600 px-4 text-xs font-black uppercase tracking-wider text-white outline-none transition-colors hover:bg-blue-700 focus:bg-blue-700"
+                onSelect={() => setIsOpen(false)}
+              >
+                Done
+              </DropdownMenu.Item>
             </div>
           </DropdownMenu.Content>
         </DropdownMenu.Portal>

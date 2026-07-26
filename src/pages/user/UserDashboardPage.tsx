@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import {
   Bell,
+  Bike,
   Building2,
   CalendarClock,
   Car,
@@ -161,7 +162,8 @@ export default function UserDashboardPage() {
                       : 'border-blue-500/30 bg-blue-500/10 text-blue-400'
                   }`}
                 >
-                  {p.vehicleType === 'motorcycle' ? '🏍️' : '🚗'} {p.plateNumber}
+                  {p.vehicleType === 'motorcycle' ? <Bike size={13} /> : <Car size={13} />}
+                  {p.plateNumber}
                   {p.isDefault && <span className="text-[9px] font-sans font-bold uppercase">(Default)</span>}
                 </span>
               ))}

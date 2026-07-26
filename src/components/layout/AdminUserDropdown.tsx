@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ChevronDown, LogOut, User } from 'lucide-react';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import { cn } from '@/utils/cn';
 
 interface Props {
   email: string;
@@ -11,27 +13,16 @@ interface Props {
 
 export function AdminUserDropdown({ email, onLogout, fullName, role }: Props) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
   const handleViewProfile = () => {
-    setOpen(false);
     if (location.pathname.startsWith('/manager')) {
       navigate('/manager/profile');
     } else if (location.pathname.startsWith('/admin')) {
-      navigate('/admin/dashboard/profile');
+      navigate('/admin/profile');
     }
   };
-
-  useEffect(() => {
-    function onDoc(e: MouseEvent) {
-      if (!ref.current) return;
-      if (!ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener('click', onDoc);
-    return () => document.removeEventListener('click', onDoc);
-  }, []);
 
   const initials = (fullName ?? email)[0]?.toUpperCase() ?? '?';
   const displayName = fullName || email;
@@ -43,35 +34,42 @@ export function AdminUserDropdown({ email, onLogout, fullName, role }: Props) {
       : 'text-emerald-600 dark:text-sky-400';
 
   return (
-    <div className="relative inline-block" ref={ref}>
-      <button
-        type="button"
-        className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-2 text-xs font-medium text-foreground shadow-sm transition hover:bg-muted/80 focus:outline-none focus:ring-2 focus:ring-primary/50"
-        aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-      >
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary border border-primary/20">
-          {initials}
-        </span>
-        <span className="max-w-[140px] truncate text-xs font-medium text-foreground">
-          {displayName}
-        </span>
-        <ChevronDown size={13} className="shrink-0 text-muted-foreground" />
-      </button>
+    <DropdownMenu.Root open={open} onOpenChange={setOpen}>
+      <DropdownMenu.Trigger asChild>
+        <button
+          type="button"
+          className="group inline-flex h-11 max-w-[220px] items-center gap-2 rounded-xl border border-border bg-white px-2.5 text-xs font-semibold text-slate-800 shadow-sm transition-[border-color,background-color,box-shadow] duration-200 hover:border-blue-300 hover:bg-blue-50/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60"
+        >
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-sm font-bold text-primary">
+            {initials}
+          </span>
+          <span className="min-w-0 flex-1 truncate text-xs font-semibold text-slate-800">
+            {displayName}
+          </span>
+          <ChevronDown
+            size={13}
+            className={cn('shrink-0 text-slate-400 transition-transform duration-200', open && 'rotate-180')}
+          />
+        </button>
+      </DropdownMenu.Trigger>
 
-      {open && (
-        <div className="absolute right-0 z-50 mt-2 w-64 overflow-hidden rounded-2xl border border-border bg-card shadow-xl text-foreground">
-          {/* Profile card */}
-          <div className="px-4 py-4 border-b border-border">
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content
+          align="end"
+          sideOffset={8}
+          collisionPadding={12}
+          className="z-50 w-72 overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-[0_20px_48px_rgba(15,23,42,0.16)] outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95"
+        >
+          <div className="border-b border-slate-100 px-4 py-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 border border-primary/20">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10">
                 <span className="text-sm font-bold text-primary">{initials}</span>
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-foreground truncate">{fullName || '—'}</p>
-                <p className="text-xs text-muted-foreground truncate">{email}</p>
+                <p className="truncate text-sm font-semibold text-slate-900">{fullName || '—'}</p>
+                <p className="truncate text-xs text-slate-500">{email}</p>
                 {role && (
-                  <p className={`text-[10px] font-bold uppercase tracking-widest mt-0.5 ${roleBadgeColor}`}>
+                  <p className={`mt-0.5 text-[10px] font-bold uppercase tracking-widest ${roleBadgeColor}`}>
                     {role}
                   </p>
                 )}
@@ -79,24 +77,26 @@ export function AdminUserDropdown({ email, onLogout, fullName, role }: Props) {
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="p-1">
-            <button
-              type="button"
-              className="user-dropdown-item flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-foreground hover:text-primary transition hover:bg-primary/10"
-              onClick={handleViewProfile}
+          <div className="space-y-1 p-1.5">
+            <DropdownMenu.Item
+              className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl px-3.5 text-xs font-bold text-slate-600 outline-none transition-colors duration-150 hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700"
+              onSelect={handleViewProfile}
             >
-              <User size={14} />View Profile</button>
-            <button
-              type="button"
-              className="user-dropdown-item flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-rose-500 hover:text-rose-600 dark:text-rose-400 dark:hover:text-rose-300 transition hover:bg-rose-500/10 mt-0.5"
-              onClick={() => { setOpen(false); onLogout(); }}
+              <User size={15} />
+              View Profile
+            </DropdownMenu.Item>
+            <DropdownMenu.Separator className="my-1 h-px bg-slate-100" />
+            <DropdownMenu.Item
+              className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl px-3.5 text-xs font-bold text-rose-500 outline-none transition-colors duration-150 hover:bg-rose-50 hover:text-rose-700 focus:bg-rose-50 focus:text-rose-700"
+              onSelect={onLogout}
             >
-              <LogOut size={14} />Log out</button>
+              <LogOut size={15} />
+              Log out
+            </DropdownMenu.Item>
           </div>
-        </div>
-      )}
-    </div>
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
   );
 }
 

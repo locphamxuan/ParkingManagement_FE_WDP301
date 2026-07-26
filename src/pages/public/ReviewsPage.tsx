@@ -10,7 +10,7 @@ export default function ReviewsPage() {
   const rv = useReviews();
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased">
+    <div className="public-light-theme min-h-screen bg-[#f4f7fb] text-slate-900 font-sans antialiased">
       {/* Background decoration */}
       <div className="absolute top-0 left-1/4 right-0 h-[500px] bg-orange-600/5 blur-[150px] rounded-full pointer-events-none" />
 

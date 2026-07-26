@@ -18,6 +18,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { UserNotificationBell } from '@/components/layout/UserNotificationBell';
 import { Logo } from '@/components/layout/Logo';
+import { AppBackdrop } from '@/components/layout/AppBackdrop';
 
 const userNavLinks = [
   { to: '/user-dashboard', label: 'Dashboard', icon: LayoutDashboard, requiresAuth: true },
@@ -56,17 +57,18 @@ export function UserLayout() {
   };
 
   return (
-    <div className="user-theme min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-blue-500 selection:text-white relative isolate">
+    <div className="user-theme relative isolate min-h-screen overflow-x-hidden bg-[#06101f] font-sans text-slate-100 selection:bg-cyan-400 selection:text-slate-950">
+      <AppBackdrop variant="midnight" />
       {/* Nền ambient sáng trắng xanh dương thống nhất cho mọi trang user */}
-      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden" aria-hidden="true">
+      <div className="pointer-events-none fixed inset-0 -z-10 hidden overflow-hidden" aria-hidden="true">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(37,99,235,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(37,99,235,0.02)_1px,transparent_1px)] bg-[size:44px_44px] opacity-70" />
         <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.06),transparent_55%)] blur-3xl" />
         <div className="absolute bottom-[-20%] right-[-15%] w-[55%] h-[55%] rounded-full bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.05),transparent_55%)] blur-3xl" />
       </div>
 
-      <header className="sticky top-0 z-40 border-b border-sky-100 bg-white/90 backdrop-blur-xl shadow-xs">
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-600 via-sky-400 to-indigo-600 opacity-80 pointer-events-none" />
-        <div className="max-w-6xl mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#06101f]/82 shadow-[0_12px_35px_rgba(0,0,0,0.18)] backdrop-blur-xl">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/70 to-transparent" />
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
           <Link to="/" aria-label="PBMS Home" className="shrink-0">
             <Logo size={36} tagline="My Parking Space" />
           </Link>
@@ -81,8 +83,8 @@ export function UserLayout() {
                   className={({ isActive }) =>
                     `inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[11px] font-bold transition-all duration-200 ${
                       isActive
-                        ? 'bg-blue-600/10 border border-blue-600/20 text-blue-600 shadow-xs'
-                        : 'border border-transparent text-slate-600 hover:text-blue-600 hover:bg-sky-50'
+                        ? 'border border-cyan-400/20 bg-cyan-400/10 text-cyan-200 shadow-sm'
+                        : 'border border-transparent text-slate-400 hover:bg-white/[0.06] hover:text-white'
                     }`
                   }
                 >
@@ -102,7 +104,7 @@ export function UserLayout() {
                     type="button"
                     aria-expanded={menuOpen}
                     onClick={() => setMenuOpen((v) => !v)}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/80 border border-white/5 hover:border-cyan-500/30 text-white transition-all duration-300"
+                    className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.05] px-2.5 text-white transition-all duration-200 hover:border-cyan-400/30 hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
                   >
                     <div className="w-5 h-5 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center">
                       <User size={10} className="text-cyan-400" />
@@ -142,7 +144,7 @@ export function UserLayout() {
             ) : (
               <Link
                 to="/auth/login"
-                className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.3)] font-black text-xs uppercase tracking-wider"
+                className="inline-flex min-h-10 items-center rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 px-4 text-xs font-black uppercase tracking-wider text-white shadow-[0_8px_22px_rgba(6,182,212,0.22)] transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
               >
                 Login
               </Link>
@@ -152,7 +154,7 @@ export function UserLayout() {
               type="button"
               aria-label="Toggle navigation"
               onClick={() => setMobileNavOpen((v) => !v)}
-              className="lg:hidden p-2 rounded-xl border border-white/5 bg-slate-900/80 text-slate-300 hover:text-white"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] text-slate-300 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 lg:hidden"
             >
               {mobileNavOpen ? <X size={16} /> : <Menu size={16} />}
             </button>
@@ -166,7 +168,7 @@ export function UserLayout() {
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.2 }}
-              className="lg:hidden border-t border-white/5 bg-slate-950/95 backdrop-blur-xl overflow-hidden"
+              className="overflow-hidden border-t border-white/10 bg-[#071326]/96 backdrop-blur-xl lg:hidden"
             >
               <div className="max-w-6xl mx-auto px-4 py-3 grid grid-cols-2 gap-1.5">
                 {visibleLinks.map((link) => {
@@ -193,7 +195,9 @@ export function UserLayout() {
         </AnimatePresence>
       </header>
 
-      <Outlet />
+      <main className="relative z-10">
+        <Outlet />
+      </main>
     </div>
   );
 }

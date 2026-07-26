@@ -32,12 +32,13 @@ export function DataTable<T extends object>({
       </CardHeader>
       <CardContent className="p-0">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-full border-collapse">
+          <table className="w-full min-w-full border-collapse" aria-label={title}>
             <thead>
               <tr className="bg-blue-50/20 border-b border-blue-100/30">
                 {columns.map((column) => (
                   <th
                     key={String(column.key)}
+                    scope="col"
                     className="px-2 py-3 text-left text-xs font-black uppercase tracking-[0.1em] text-slate-400 font-mono first:pl-5 last:pr-5"
                   >
                     {column.title}
@@ -58,7 +59,7 @@ export function DataTable<T extends object>({
                 ))
               ) : (
                 <tr>
-                  <td className="px-6 py-8 text-center text-sm text-stone-500 italic" colSpan={columns.length}>
+                  <td className="px-6 py-12 text-center text-sm font-medium text-muted-foreground" colSpan={columns.length}>
                     {emptyText}
                   </td>
                 </tr>

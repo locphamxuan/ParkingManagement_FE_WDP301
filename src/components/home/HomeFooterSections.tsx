@@ -4,6 +4,7 @@ import { ArrowRight, Building2, Mail, PhoneCall } from 'lucide-react';
 import footerBg from '@/assets/footer.png';
 import { TiltCard } from './TiltCard';
 import { BackToTopButton } from './BackToTopButton';
+import { showToast } from '@/components/common/ToastNotification';
 import styles from '@/styles/modules/HomeFooterSections.module.css';
 
 interface PremiumCTABannerProps {
@@ -84,7 +85,12 @@ export function PremiumFooter({ user, onViewProfile, navigationLinks }: PremiumF
 
   function handleSubscribe(e: React.FormEvent) {
     e.preventDefault();
-    if (!email) return;
+    const trimmed = email.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmed)) {
+      showToast('Please enter a valid email address.', 'error');
+      return;
+    }
     setSubscribed(true);
     setTimeout(() => {
       setSubscribed(false);
@@ -200,7 +206,7 @@ export function PremiumFooter({ user, onViewProfile, navigationLinks }: PremiumF
                 >
                   Subscribe to Newsletter
                 </label>
-                <form onSubmit={handleSubscribe} className="relative flex items-center">
+                <form onSubmit={handleSubscribe} noValidate className="relative flex items-center">
                   <input
                     id="footer-newsletter-email"
                     type="email"

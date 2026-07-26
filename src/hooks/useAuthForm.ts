@@ -157,6 +157,19 @@ export function useAuthForm({ mode, onModeChange, onSubmit }: UseAuthFormArgs) {
     setLocalNotice(null);
 
     if (mode === 'register') {
+      if (!form.fullName.trim() || !form.phone.trim() || !form.email.trim() || !form.password || !form.confirmPassword) {
+        setLocalNotice({ message: 'Please fill in all fields!', type: 'error' });
+        return;
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(form.email.trim())) {
+        setLocalNotice({ message: 'Invalid email address!', type: 'error' });
+        return;
+      }
+      if (form.password.length < 6) {
+        setLocalNotice({ message: 'Password must be at least 6 characters!', type: 'error' });
+        return;
+      }
       if (form.password !== form.confirmPassword) {
         setLocalNotice({ message: 'Confirm password does not match!', type: 'error' });
         return;
@@ -182,6 +195,10 @@ export function useAuthForm({ mode, onModeChange, onSubmit }: UseAuthFormArgs) {
         // Error already mapped in public auth flow hook
       }
     } else {
+      if (!form.email.trim() || !form.password) {
+        setLocalNotice({ message: 'Please enter your email and password!', type: 'error' });
+        return;
+      }
       const payload: Record<string, string> = {
         email: form.email.trim(),
         password: form.password,

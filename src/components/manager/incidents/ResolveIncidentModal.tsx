@@ -60,6 +60,7 @@ export function ResolveIncidentModal({ role, buildingId, incident, saving, messa
   const [penalizeViolator, setPenalizeViolator] = useState(false);
   const [penaltyFee, setPenaltyFee] = useState('');
   const [violationTypes, setViolationTypes] = useState<ViolationType[]>([]);
+  const [formError, setFormError] = useState<string | null>(null);
 
   // Reset lại khi mở incident khác.
   useEffect(() => {
@@ -91,6 +92,21 @@ export function ResolveIncidentModal({ role, buildingId, incident, saving, messa
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
+    if (!resolutionNote.trim()) {
+      setFormError('Resolution note is required.');
+      return;
+    }
+    if (penalizeViolator) {
+      if (!violatorPlate.trim()) {
+        setFormError('Violator plate is required to approve a penalty.');
+        return;
+      }
+      if (requiresManualFee && !penaltyFee.trim()) {
+        setFormError('Fine amount is required for this incident type.');
+        return;
+      }
+    }
     const payload: ResolveIncidentPayload = {
       status,
       resolutionNote: resolutionNote.trim(),
@@ -165,7 +181,12 @@ export function ResolveIncidentModal({ role, buildingId, incident, saving, messa
             Only a manager can resolve or penalize it. You can view details but not take action here.
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+          <form onSubmit={handleSubmit} noValidate className="mt-4 space-y-4">
+            {formError && (
+              <div className="p-3 rounded-xl border text-xs font-bold bg-rose-50 border-rose-250 text-rose-800">
+                {formError}
+              </div>
+            )}
             <div className="space-y-1">
               <label className="text-[10px] font-black uppercase tracking-wider text-slate-450 block">Incident Status</label>
               <select

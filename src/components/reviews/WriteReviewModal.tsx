@@ -153,7 +153,7 @@ export function WriteReviewModal({
             <p className="text-xs text-slate-400 font-semibold">Your feedback has been submitted to the system and is pending approval.</p>
           </div>
         ) : (
-          <form onSubmit={handleSubmitFeedback} className="space-y-4">
+          <form onSubmit={handleSubmitFeedback} noValidate className="space-y-4">
             <p className="text-xs text-slate-400">
               Your feedback helps us improve our parking lot quality every day.
             </p>

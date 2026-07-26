@@ -179,6 +179,11 @@ export function useProfileWorkflow() {
 
     const newPhone = form.phone.trim();
 
+    if (!form.fullName.trim()) {
+      setProfileError('Full name is required!');
+      return;
+    }
+
     // Format check (BE kiểm tra trùng SĐT khi PUT /users/profile → 409 PHONE_TAKEN).
     const phoneRegex = /^0[0-9]{9}$/;
     if (!phoneRegex.test(newPhone)) {

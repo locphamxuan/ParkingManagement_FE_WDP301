@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Building2, CheckCircle2, Mail, MapPin, PhoneCall, Send } from 'lucide-react';
 import { PublicPageShell, PageHero } from '@/components/home/PublicPageShell';
+import { showToast } from '@/components/common/ToastNotification';
 
 const contactChannels = [
   {
@@ -63,7 +64,15 @@ export default function ContactPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.email || !form.message) return;
+    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
+      showToast('Please fill in your name, email, and message.', 'error');
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email.trim())) {
+      showToast('Please enter a valid email address.', 'error');
+      return;
+    }
     // Chưa có endpoint contact ở BE — hiển thị xác nhận phía client.
     setSent(true);
   };
@@ -142,7 +151,7 @@ export default function ContactPage() {
                 </p>
               </motion.div>
             ) : (
-              <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+              <form onSubmit={handleSubmit} noValidate className="mt-6 space-y-4">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="contact-name" className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">

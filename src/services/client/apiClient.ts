@@ -11,13 +11,6 @@ interface ApiOptions {
   body?: unknown;
   query?: Record<string, string | number | boolean | undefined | null>;
   signal?: AbortSignal;
-  /**
-   * Chỉ dùng cho vài call site cũ (admin/*) còn giữ token trong state của
-   * session đang mở, KHÔNG đọc từ localStorage — auth mặc định đi qua cookie
-   * httpOnly (credentials:'include' bên dưới), thiếu header này request vẫn
-   * xác thực được bình thường.
-   */
-  token?: string;
 }
 
 function buildQuery(query?: ApiOptions['query']): string {
@@ -55,7 +48,6 @@ export async function apiRequest<T = unknown>(
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
     },
     body: options.body ? JSON.stringify(options.body) : undefined,
     signal: options.signal,
@@ -113,15 +105,13 @@ interface RequestJsonOptions {
   apiBase?: string;
   path: string;
   method?: Method;
-  token?: string;
   body?: unknown;
 }
 
 export function requestJson<T = unknown>({
   path,
   method = 'GET',
-  token,
   body,
 }: RequestJsonOptions): Promise<T> {
-  return apiRequest<T>(method, path, { body, token });
+  return apiRequest<T>(method, path, { body });
 }

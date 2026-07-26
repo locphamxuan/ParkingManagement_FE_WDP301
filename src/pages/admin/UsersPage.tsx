@@ -110,7 +110,7 @@ export function UsersPage() {
     try {
       setIsSaving(true);
       setActionError(null);
-      await createAdminUser(token, {
+      await createAdminUser({
         fullName: form.fullName,
         email: form.email,
         password: form.password,
@@ -131,7 +131,7 @@ export function UsersPage() {
     try {
       setIsSaving(true);
       setActionError(null);
-      await updateAdminUser(token, selectedUser.id, {
+      await updateAdminUser(selectedUser.id, {
         fullName: form.fullName,
         phone: form.phone,
       });
@@ -147,7 +147,7 @@ export function UsersPage() {
     if (!token) return;
     try {
       setActionError(null);
-      await updateAdminUserStatus(token, user.id, user.status !== 'active');
+      await updateAdminUserStatus(user.id, user.status !== 'active');
       await refresh();
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Unable to change user status');
@@ -159,7 +159,7 @@ export function UsersPage() {
     try {
       setIsDeleting(true);
       setActionError(null);
-      await deleteAdminUser(token, pendingDeleteUser.id);
+      await deleteAdminUser(pendingDeleteUser.id);
       await refresh();
       setPendingDeleteUser(null);
     } catch (err) {

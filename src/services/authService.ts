@@ -82,7 +82,16 @@ function mapAuthSession(payload: ApiAuthResponse): AuthSession {
     : [];
 
   return {
-    token,
+    // The real JWT the backend returns in the response body exists only so a
+    // couple of legacy call sites COULD send it as Bearer — we deliberately do
+    // NOT keep that secret around. `token` is persisted (via authStore.ts'
+    // Zustand `persist`) into sessionStorage/localStorage, so storing the raw
+    // JWT there would defeat the whole point of httpOnly-cookie auth (an XSS
+    // payload could just read it back out). This is only a non-secret truthy
+    // marker for "a session is loaded" checks (useAuth.ts, ProtectedRoute,
+    // profile pages) — no code sends it anywhere. See
+    // docs/HUONG_DAN_NOI_BO_CODEBASE.md for the full writeup.
+    token: 'cookie-session',
     userId: String(user._id),
     role: user.role,
     email: user.email,
@@ -157,20 +166,6 @@ export async function verifyRegistration(input: RegisterVerifyInput): Promise<Au
   });
 
   return mapAuthSession(payload);
-}
-
-/**
- * Fetch the current authenticated user. GET /users/auth/me → { user }.
- */
-export async function fetchCurrentUser(token: string): Promise<AuthSession> {
-  const payload = await requestJson<ApiAuthResponse>({
-    path: '/users/auth/me',
-    method: 'GET',
-    token,
-  });
-
-  // /me returns { data: { user } } (no token) — reuse the stored token.
-  return mapAuthSession({ data: { token, user: payload?.data?.user } });
 }
 
 export async function forgotPassword(email: string): Promise<{ message: string }> {

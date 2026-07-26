@@ -39,10 +39,11 @@ function mapLegacySession(): AuthSession | null {
     || (Array.isArray(user.licensePlates) ? user.licensePlates : []);
 
   return {
-    // Real auth is the httpOnly cookie, invisible to JS by design — this field
-    // is only populated fresh at login for the handful of admin/* call sites
-    // that still pass an explicit token; it's blank after a page reload (the
-    // cookie keeps authenticating those calls regardless, see apiClient.ts).
+    // Real auth is the httpOnly cookie, invisible to JS by design — `token`
+    // is never a real secret (see authService.ts::mapAuthSession), just a
+    // truthy "a session is loaded" marker for route guards. Blank here since
+    // this only runs before Zustand's persist rehydrates the real (still
+    // non-secret) value from the last login.
     token: '',
     userId: String(user._id ?? user.id ?? ''),
     role: (user.role as AuthSession['role']) ?? 'user',

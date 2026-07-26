@@ -130,7 +130,7 @@ export function BuildingsPage() {
     setIsMembersLoading(true);
     setMembersError(null);
     try {
-      await assignManagerToBuilding(token, membersState.buildingId, managerId);
+      await assignManagerToBuilding(membersState.buildingId, managerId);
       const res = await adminApi.buildings.getMembers(membersState.buildingId);
       setMembersState({
         ...membersState,
@@ -174,11 +174,11 @@ export function BuildingsPage() {
     try {
       setIsDeletingMember(true);
       if (isManager) {
-        await revokeManagerFromBuilding(token, buildingId, pendingDeleteMember._id);
+        await revokeManagerFromBuilding(buildingId, pendingDeleteMember._id);
       } else {
-        await revokeStaffFromBuilding(token, buildingId, pendingDeleteMember._id);
+        await revokeStaffFromBuilding(buildingId, pendingDeleteMember._id);
       }
-      await deleteAdminUser(token, pendingDeleteMember._id);
+      await deleteAdminUser(pendingDeleteMember._id);
       setMembersState((prev) =>
         prev
           ? {
@@ -228,14 +228,14 @@ export function BuildingsPage() {
       setIsSaving(true);
       setActionError(null);
       if (selectedBuilding) {
-        await updateBuilding(token, selectedBuilding.backendId || selectedBuilding.id, {
+        await updateBuilding(selectedBuilding.backendId || selectedBuilding.id, {
           name: form.name,
           code: form.code,
           fullAddress: form.address,
         });
       } else {
         // Floors & pricing: manager tự thiết lập (tạo floor + PricePolicy), admin không nhập.
-        await createBuilding(token, {
+        await createBuilding({
           name: form.name,
           code: form.code,
           fullAddress: form.address,
@@ -254,7 +254,7 @@ export function BuildingsPage() {
     try {
       setActionError(null);
       const nextStatus = building.status === 'active' ? 'inactive' : 'active';
-      await updateBuildingStatus(token, building.backendId || building.id, nextStatus);
+      await updateBuildingStatus(building.backendId || building.id, nextStatus);
       await refresh();
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Unable to change building status');
@@ -271,7 +271,7 @@ export function BuildingsPage() {
     try {
       setIsDeleting(true);
       setActionError(null);
-      await deleteBuilding(token, pendingDeleteBuilding.backendId || pendingDeleteBuilding.id);
+      await deleteBuilding(pendingDeleteBuilding.backendId || pendingDeleteBuilding.id);
       await refresh();
       setPendingDeleteBuilding(null);
     } catch (err) {

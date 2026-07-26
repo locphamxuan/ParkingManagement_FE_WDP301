@@ -40,7 +40,11 @@ export interface UpdateBuildingInput {
   fullAddress?: string;
 }
 
-export async function createAdminUser(token: string, payload: CreateAdminUserInput): Promise<string> {
+// All calls below authenticate via the httpOnly cookie (apiClient.ts sends
+// credentials:'include' on every request) — no explicit Bearer token needed
+// or accepted anymore, see docs/HUONG_DAN_NOI_BO_CODEBASE.md for why.
+
+export async function createAdminUser(payload: CreateAdminUserInput): Promise<string> {
   const { buildingId, role, ...rest } = payload;
   // staff / manager must be created as a plain user first, then promoted via the
   // building assign endpoint (which sets the role + building). user / admin are
@@ -49,7 +53,6 @@ export async function createAdminUser(token: string, payload: CreateAdminUserInp
   const res = await requestJson<ApiEnvelope<{ user: { _id: string } }>>({
     path: '/admin/users',
     method: 'POST',
-    token,
     body: { ...rest, role: needsAssignment ? 'user' : role },
   });
   const userId = res.data?.user?._id;
@@ -58,80 +61,71 @@ export async function createAdminUser(token: string, payload: CreateAdminUserInp
     await requestJson({
       path: `/admin/buildings/${buildingId}/${endpoint}`,
       method: 'POST',
-      token,
       body: { userId },
     });
   }
   return userId ?? '';
 }
 
-export async function assignStaffToBuilding(token: string, buildingId: string, userId: string): Promise<void> {
+export async function assignStaffToBuilding(buildingId: string, userId: string): Promise<void> {
   await requestJson({
     path: `/admin/buildings/${buildingId}/assign-staff`,
     method: 'POST',
-    token,
     body: { userId },
   });
 }
 
-export async function revokeStaffFromBuilding(token: string, buildingId: string, userId: string): Promise<void> {
+export async function revokeStaffFromBuilding(buildingId: string, userId: string): Promise<void> {
   await requestJson({
     path: `/admin/buildings/${buildingId}/revoke-staff`,
     method: 'POST',
-    token,
     body: { userId },
   });
 }
 
-export async function revokeManagerFromBuilding(token: string, buildingId: string, userId: string): Promise<void> {
+export async function revokeManagerFromBuilding(buildingId: string, userId: string): Promise<void> {
   await requestJson({
     path: `/admin/buildings/${buildingId}/revoke-manager`,
     method: 'POST',
-    token,
     body: { userId },
   });
 }
 
-export async function assignManagerToBuilding(token: string, buildingId: string, userId: string): Promise<void> {
+export async function assignManagerToBuilding(buildingId: string, userId: string): Promise<void> {
   await requestJson({
     path: `/admin/buildings/${buildingId}/assign-manager`,
     method: 'POST',
-    token,
     body: { userId },
   });
 }
 
-export async function updateAdminUser(token: string, userId: string, payload: UpdateAdminUserInput): Promise<void> {
+export async function updateAdminUser(userId: string, payload: UpdateAdminUserInput): Promise<void> {
   await requestJson<ApiEnvelope<{ user: unknown }>>({
     path: `/admin/users/${userId}`,
     method: 'PUT',
-    token,
     body: payload,
   });
 }
 
-export async function updateAdminUserStatus(token: string, userId: string, isActive: boolean): Promise<void> {
+export async function updateAdminUserStatus(userId: string, isActive: boolean): Promise<void> {
   await requestJson<ApiEnvelope<{ user: unknown }>>({
     path: `/admin/users/${userId}/status`,
     method: 'PATCH',
-    token,
     body: { isActive },
   });
 }
 
-export async function deleteAdminUser(token: string, userId: string): Promise<void> {
+export async function deleteAdminUser(userId: string): Promise<void> {
   await requestJson<ApiEnvelope<null>>({
     path: `/admin/users/${userId}`,
     method: 'DELETE',
-    token,
   });
 }
 
-export async function createBuilding(token: string, payload: CreateBuildingInput): Promise<void> {
+export async function createBuilding(payload: CreateBuildingInput): Promise<void> {
   await requestJson<ApiEnvelope<{ building: unknown }>>({
     path: '/admin/buildings',
     method: 'POST',
-    token,
     body: {
       name: payload.name,
       code: payload.code,
@@ -152,7 +146,7 @@ export async function createBuilding(token: string, payload: CreateBuildingInput
   });
 }
 
-export async function updateBuilding(token: string, buildingId: string, payload: UpdateBuildingInput): Promise<void> {
+export async function updateBuilding(buildingId: string, payload: UpdateBuildingInput): Promise<void> {
   const body: Record<string, unknown> = {};
 
   if (payload.name !== undefined) body.name = payload.name;
@@ -166,28 +160,24 @@ export async function updateBuilding(token: string, buildingId: string, payload:
   await requestJson<ApiEnvelope<{ building: unknown }>>({
     path: `/admin/buildings/${buildingId}`,
     method: 'PUT',
-    token,
     body,
   });
 }
 
 export async function updateBuildingStatus(
-  token: string,
   buildingId: string,
   status: 'active' | 'inactive' | 'maintenance'
 ): Promise<void> {
   await requestJson<ApiEnvelope<{ building: unknown }>>({
     path: `/admin/buildings/${buildingId}/status`,
     method: 'PATCH',
-    token,
     body: { status },
   });
 }
 
-export async function deleteBuilding(token: string, buildingId: string): Promise<void> {
+export async function deleteBuilding(buildingId: string): Promise<void> {
   await requestJson<ApiEnvelope<null>>({
     path: `/admin/buildings/${buildingId}`,
     method: 'DELETE',
-    token,
   });
 }

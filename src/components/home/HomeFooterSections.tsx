@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Building2, Mail, PhoneCall } from 'lucide-react';
 import footerBg from '@/assets/footer.png';
 import { TiltCard } from './TiltCard';
+import { BackToTopButton } from './BackToTopButton';
 import styles from '@/styles/modules/HomeFooterSections.module.css';
 
 interface PremiumCTABannerProps {
@@ -92,16 +93,18 @@ export function PremiumFooter({ user, onViewProfile, navigationLinks }: PremiumF
   }
 
   return (
-    <footer id="lien-he" className="bg-slate-950 py-20 relative z-10 overflow-hidden">
-      <div
-        className="absolute inset-0 opacity-[0.35] bg-cover bg-center pointer-events-none"
-        style={{ backgroundImage: `url(${footerBg})` }}
-      />
-      <div className="absolute bottom-0 left-1/4 w-[600px] h-[400px] bg-cyan-500/5 rounded-full blur-[140px] pointer-events-none" />
+    <>
+      <footer id="lien-he" className="relative z-10 overflow-hidden bg-slate-950 py-16 md:py-20">
+        <div
+          className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-20 saturate-[0.7]"
+          style={{ backgroundImage: `url(${footerBg})` }}
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-slate-50/20 via-slate-100/45 to-slate-200/70" />
+        <div className="pointer-events-none absolute bottom-0 left-1/4 h-[400px] w-[600px] rounded-full bg-cyan-500/5 blur-[140px]" />
 
-      <div className="max-w-6xl mx-auto px-4">
-        <TiltCard className="group border border-white/5 shadow-2xl relative">
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none rounded-[23px]" />
+        <div className="mx-auto max-w-6xl px-4">
+          <TiltCard className="group relative border border-white/5 shadow-2xl">
+            <div className="pointer-events-none absolute inset-0 rounded-[23px] bg-[linear-gradient(to_right,rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:32px_32px]" />
 
           <div className={`relative z-20 grid md:grid-cols-3 gap-10 lg:gap-16 pb-12 ${styles.preserve3d}`}>
             {/* Col 1: Platform Info */}
@@ -130,10 +133,6 @@ export function PremiumFooter({ user, onViewProfile, navigationLinks }: PremiumF
                 </span>
               </div>
 
-              <div className="text-[10px] text-slate-500 font-mono space-y-1">
-                <p>UI Version V2.5.0 - Cyberpunk Glassmorphism</p>
-                <p>Automatic real-time sync system</p>
-              </div>
             </div>
 
             {/* Col 2: Navigation Links */}
@@ -168,7 +167,7 @@ export function PremiumFooter({ user, onViewProfile, navigationLinks }: PremiumF
                   whileHover={{ scale: 1.03, backgroundColor: '#06b6d4', color: '#020617', boxShadow: '0 0 15px rgba(6,182,212,0.3)' }}
                   whileTap={{ scale: 0.98 }}
                   href="/auth/login"
-                  className="px-4 py-2.5 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 rounded-xl text-xs font-black uppercase transition-all"
+                className="inline-flex min-h-11 items-center px-4 py-2.5 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 rounded-xl text-xs font-black uppercase transition-all"
                 >
                   Login
                 </motion.a>
@@ -177,7 +176,7 @@ export function PremiumFooter({ user, onViewProfile, navigationLinks }: PremiumF
                   whileHover={{ scale: 1.03, borderColor: 'rgba(255,255,255,0.25)', backgroundColor: 'rgba(255,255,255,0.02)' }}
                   whileTap={{ scale: 0.98 }}
                   href="/auth/register"
-                  className="px-4 py-2.5 bg-slate-900 border border-white/5 text-slate-300 rounded-xl text-xs font-bold uppercase transition-all"
+                className="inline-flex min-h-11 items-center px-4 py-2.5 bg-slate-900 border border-white/5 text-slate-300 rounded-xl text-xs font-bold uppercase transition-all"
                 >
                   Register
                 </motion.a>
@@ -187,7 +186,7 @@ export function PremiumFooter({ user, onViewProfile, navigationLinks }: PremiumF
                     whileHover={{ scale: 1.03, borderColor: 'rgba(255,255,255,0.25)', backgroundColor: 'rgba(255,255,255,0.02)' }}
                     whileTap={{ scale: 0.98 }}
                     onClick={onViewProfile}
-                    className="px-4 py-2.5 bg-slate-900 border border-white/5 text-slate-300 rounded-xl text-xs font-bold uppercase transition-all"
+                    className="inline-flex min-h-11 items-center px-4 py-2.5 bg-slate-900 border border-white/5 text-slate-300 rounded-xl text-xs font-bold uppercase transition-all"
                   >
                     Profile
                   </motion.button>
@@ -195,26 +194,34 @@ export function PremiumFooter({ user, onViewProfile, navigationLinks }: PremiumF
               </div>
 
               <div className="pt-2">
-                <p className="text-[10px] font-black text-white uppercase tracking-wider font-mono mb-2">Subscribe to Newsletter</p>
+                <label
+                  htmlFor="footer-newsletter-email"
+                  className="mb-2 block text-[10px] font-black uppercase tracking-wider text-white font-mono"
+                >
+                  Subscribe to Newsletter
+                </label>
                 <form onSubmit={handleSubscribe} className="relative flex items-center">
                   <input
+                    id="footer-newsletter-email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Your email..."
-                    className="w-full px-4 py-3 bg-slate-900/60 border border-white/5 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-orange-500/35 transition-all"
+                    className="min-h-[52px] w-full rounded-xl border border-white/5 bg-slate-900/60 px-4 py-3 pr-16 text-xs text-white placeholder-slate-500 transition-all focus:border-cyan-500/40 focus:outline-none"
                     required
                   />
                   <button
                     type="submit"
-                    className="absolute right-1.5 p-2 bg-orange-500 text-slate-950 hover:bg-orange-400 rounded-lg transition-colors flex items-center justify-center"
+                    aria-label="Subscribe to newsletter"
+                    className="absolute right-1 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-cyan-500 text-white transition-all hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2"
                   >
-                    <ArrowRight size={14} strokeWidth={2.5} />
+                    <ArrowRight size={14} strokeWidth={2.5} aria-hidden="true" />
                   </button>
                 </form>
                 <AnimatePresence>
                   {subscribed && (
                     <motion.p
+                      role="status"
                       initial={{ opacity: 0, y: 5 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0 }}
@@ -228,35 +235,43 @@ export function PremiumFooter({ user, onViewProfile, navigationLinks }: PremiumF
             </div>
           </div>
 
-          {/* Bottom footer bar */}
-          <div className={`pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 ${styles.layerZ25}`}>
-            <small className="text-[10px] font-bold text-slate-500 font-mono tracking-tight">
-              © {new Date().getFullYear()} PBMS PARKING. PREMIUM INTERFACE DESIGN UNDER CENTRALIZED PROTOCOL.
-            </small>
+          <div className={`border-t border-white/10 pt-7 ${styles.layerZ25}`}>
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div className="max-w-xl text-center lg:text-left">
+                <p className="text-xs font-black text-slate-200">
+                  © {new Date().getFullYear()} PBMS Parking Management System
+                </p>
+                <p className="mt-1.5 text-[11px] font-medium leading-relaxed text-slate-500">
+                  Secure access, transparent operations, and dependable support for every parking journey.
+                </p>
+              </div>
 
-            <div className="flex items-center gap-3">
-              {[
-                { icon: Building2, label: 'Website', href: '#' },
-                { icon: Mail, label: 'Contact', href: 'mailto:support@pbms.com' },
-                { icon: PhoneCall, label: 'Hotline', href: 'tel:1900636447' },
-              ].map((social, index) => {
-                const Icon = social.icon;
-                return (
-                  <motion.a
-                    key={index}
-                    href={social.href}
-                    whileHover={{ scale: 1.1, y: -2, backgroundColor: 'rgba(6,182,212,0.1)', color: '#22d3ee', borderColor: 'rgba(6,182,212,0.2)' }}
-                    className="w-8 h-8 rounded-xl bg-slate-900/60 border border-white/5 flex items-center justify-center text-slate-500 hover:text-cyan-400 transition-colors"
-                    title={social.label}
-                  >
-                    <Icon size={14} />
-                  </motion.a>
-                );
-              })}
+              <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-center lg:justify-end">
+                {[
+                  { icon: Building2, label: 'PBMS Platform', href: '/' },
+                  { icon: Mail, label: 'support@pbms.com', href: 'mailto:support@pbms.com' },
+                  { icon: PhoneCall, label: '1900 636 447', href: 'tel:1900636447' },
+                ].map((contact) => {
+                  const Icon = contact.icon;
+                  return (
+                    <motion.a
+                      key={contact.label}
+                      href={contact.href}
+                      whileHover={{ y: -2, borderColor: 'rgba(6,182,212,0.28)' }}
+                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white/85 px-3.5 text-[11px] font-bold text-slate-600 shadow-sm transition-colors hover:border-cyan-300 hover:bg-cyan-50 hover:text-cyan-700"
+                    >
+                      <Icon size={14} aria-hidden="true" />
+                      <span>{contact.label}</span>
+                    </motion.a>
+                  );
+                })}
+              </div>
             </div>
           </div>
-        </TiltCard>
-      </div>
-    </footer>
+          </TiltCard>
+        </div>
+        <BackToTopButton />
+      </footer>
+    </>
   );
 }

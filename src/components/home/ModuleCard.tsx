@@ -28,7 +28,7 @@ export const CARD_THEMES = {
     boxShadowActive: '0 0 15px rgba(255, 255, 255, 0.1)',
     iconBg: 'bg-white/10 text-white shadow-[0_0_10px_rgba(255,255,255,0.05)]',
     iconBgHover: 'bg-white/20 text-white shadow-[0_0_15px_rgba(255,255,255,0.25)] scale-110',
-    buttonBg: 'btn-sand btn-sand-cyan border border-white/10 bg-white/[0.03] backdrop-blur-sm transition-all font-black',
+    buttonBg: 'btn-sand btn-sand-cyan border border-slate-300/80 bg-slate-200 text-slate-950 shadow-sm transition-all hover:bg-white font-black',
     buttonHoverGlow: '0 0 12px rgba(255,255,255,0.25)',
     sheenGradient: 'linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.05) 45%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.05) 55%, transparent 65%)',
     particleColors: ['#ffffff', '#cbd5e1', '#e2e8f0', '#94a3b8'],
@@ -41,7 +41,7 @@ export const CARD_THEMES = {
     boxShadowActive: '0 0 15px rgba(148, 163, 184, 0.1)',
     iconBg: 'bg-white/10 text-white shadow-[0_0_10px_rgba(255,255,255,0.05)]',
     iconBgHover: 'bg-white/20 text-white shadow-[0_0_15px_rgba(255,255,255,0.25)] scale-110',
-    buttonBg: 'btn-sand btn-sand-orange border border-white/10 bg-white/[0.03] backdrop-blur-sm transition-all font-black',
+    buttonBg: 'btn-sand btn-sand-orange border border-slate-300/80 bg-slate-200 text-slate-950 shadow-sm transition-all hover:bg-white font-black',
     buttonHoverGlow: '0 0 12px rgba(148,163,184,0.25)',
     sheenGradient: 'linear-gradient(115deg, transparent 35%, rgba(148, 163, 184, 0.05) 45%, rgba(255, 255, 255, 0.15) 50%, rgba(148, 163, 184, 0.05) 55%, transparent 65%)',
     particleColors: ['#ffffff', '#cbd5e1', '#e2e8f0', '#94a3b8'],
@@ -118,7 +118,7 @@ export function ModuleCard({
         />
       )}
 
-      <div className={`p-5 rounded-[15px] backdrop-blur-md flex flex-col justify-between h-[228px] w-full relative z-10 overflow-hidden ${module.available
+      <div className={`public-dark-visual p-5 rounded-[15px] backdrop-blur-md flex flex-col justify-between h-[228px] w-full relative z-10 overflow-hidden ${module.available
         ? 'bg-gradient-to-b from-slate-900/90 to-slate-950/95'
         : 'bg-slate-900/10'
         }`}>

@@ -3,7 +3,6 @@ import { AlertCircle, ArrowLeft, CheckCircle2, Eye, EyeOff, Loader2, X } from 'l
 import { useAuthForm } from '@/hooks/useAuthForm';
 import { AuthPromoPanel } from '@/components/auth/AuthPromoPanel';
 import { AuthNoticeModal } from '@/components/auth/AuthNoticeModal';
-import { showToast } from '@/components/common/ToastNotification';
 import styles from '@/styles/modules/AuthPage.module.css';
 
 export type AuthMode = 'login' | 'register' | 'forgot-password' | 'reset-password';

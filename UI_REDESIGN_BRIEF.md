@@ -2,7 +2,7 @@
 
 ## Goal
 
-Redesign the existing PBMS frontend into a polished, calm, operational product for parking customers, staff, managers, and administrators. Preserve the current routes, information architecture, business behavior, and API contracts.
+Redesign the active PBMS web frontend into a polished, calm operational product for visitors, staff, managers, and administrators. Preserve the current routes, information architecture, business behavior, and API contracts.
 
 The interface should feel premium and technically capable without becoming visually noisy. It must be easy to scan at a glance, comfortable during long operating shifts, and clear on both mobile and desktop.
 
@@ -15,9 +15,9 @@ The interface should feel premium and technically capable without becoming visua
 
 ## Design direction
 
-- Use a restrained **midnight operations + daylight workspace** visual language.
-- Public and customer-facing marketing surfaces use deep navy with crisp cyan/cobalt illumination.
-- Admin, manager, and staff workspaces use a bright neutral canvas with a dark navigation rail and high-contrast white surfaces.
+- Use a restrained **daylight workspace** visual language with white surfaces and cobalt/cyan accents.
+- Public, authentication, admin, manager, and staff surfaces share the same bright neutral canvas.
+- Keep dark navy only inside functional parking imagery and 2D/3D visualizations where contrast communicates depth.
 - Create depth with layered gradients, perspective grids, subtle shadows, and small transform/opacity interactions.
 - Reserve strong gradients and glow for primary actions, active navigation, live status, and key metrics.
 - Prefer clear rectangular surfaces with 12–20px radii over excessive pill shapes.
@@ -31,6 +31,7 @@ The interface should feel premium and technically capable without becoming visua
 - Do not introduce a second icon library.
 - Avoid layout shifts, horizontal overflow, low-contrast glass layers, and hover effects that move surrounding content.
 - Preserve existing 2D/3D functional parking visualizations.
+- Treat the legacy User Web workspace as compatibility-only; the customer product is delivered through Mobile.
 
 ## Interaction contract
 

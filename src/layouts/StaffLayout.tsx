@@ -221,7 +221,7 @@ export function StaffLayout() {
                   <DropdownMenu.Trigger asChild>
                     <button
                       type="button"
-                      className="group inline-flex min-h-10 items-center gap-2.5 rounded-xl border border-border bg-white px-2.5 text-xs font-semibold text-slate-800 shadow-sm transition-all duration-200 hover:border-blue-500/30 hover:bg-blue-50/60 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                      className="group inline-flex h-11 max-w-[220px] items-center gap-2.5 rounded-xl border border-border bg-white px-2.5 text-xs font-semibold text-slate-800 shadow-sm transition-[border-color,background-color,box-shadow] duration-200 hover:border-blue-300 hover:bg-blue-50/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60"
                     >
                       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-extrabold text-blue-600 border border-blue-200">
                         {(user?.fullName ?? user?.email ?? 'S')[0]?.toUpperCase()}
@@ -234,8 +234,10 @@ export function StaffLayout() {
                   </DropdownMenu.Trigger>
                   <DropdownMenu.Portal>
                     <DropdownMenu.Content
-                      sideOffset={6}
-                      className="z-50 w-72 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_45px_rgba(15,23,42,0.16)]"
+                      align="end"
+                      sideOffset={8}
+                      collisionPadding={12}
+                      className="z-50 w-72 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_48px_rgba(15,23,42,0.16)] outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95"
                     >
                       {/* Profile card */}
                       <div className="border-b border-slate-100 px-4 py-4">
@@ -276,17 +278,17 @@ export function StaffLayout() {
                       {/* Actions */}
                       <div className="p-1.5 space-y-1">
                         <DropdownMenu.Item
-                          className="flex cursor-pointer items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-600 outline-none transition-all duration-200 hover:bg-emerald-50 hover:text-emerald-700 focus:bg-emerald-50 focus:text-emerald-700"
-                          onClick={() => navigate('/staff/profile')}
+                          className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl px-3.5 text-xs font-bold text-slate-600 outline-none transition-colors duration-150 hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700"
+                          onSelect={() => navigate('/staff/profile')}
                         >
-                          <User size={14} className="text-emerald-400" /> View Profile
+                          <User size={15} className="text-blue-500" /> View Profile
                         </DropdownMenu.Item>
                         <DropdownMenu.Separator className="my-1.5 h-px bg-slate-100" />
                         <DropdownMenu.Item
-                          className="flex cursor-pointer items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-bold text-rose-400 outline-none transition-all duration-200 hover:bg-rose-500/10 hover:text-rose-300 focus:bg-rose-500/10 focus:text-rose-300"
-                          onClick={onLogout}
+                          className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl px-3.5 text-xs font-bold text-rose-500 outline-none transition-colors duration-150 hover:bg-rose-50 hover:text-rose-700 focus:bg-rose-50 focus:text-rose-700"
+                          onSelect={onLogout}
                         >
-                          <LogOut size={14} /> Sign Out
+                          <LogOut size={15} /> Sign Out
                         </DropdownMenu.Item>
                       </div>
                     </DropdownMenu.Content>

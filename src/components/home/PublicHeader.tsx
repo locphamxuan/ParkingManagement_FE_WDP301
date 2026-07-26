@@ -1,11 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BellRing, ChevronDown, LogOut, MapPinned, Menu, Ticket, User, Wallet, X } from 'lucide-react';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
 import { notificationApi } from '@/services/notificationApi';
 import { navigationLinks } from './homeNavigation.constants';
 import { Logo } from '@/components/layout/Logo';
+import { cn } from '@/utils/cn';
 
 // Header dùng chung cho mọi trang public (Home/About/Services/Contact) —
 // tự lấy session qua useAuth để các trang không phải truyền prop lặp lại.
@@ -16,7 +18,6 @@ export function PublicHeader() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [unreadNotif, setUnreadNotif] = useState(0);
-  const menuRef = useRef<HTMLDivElement | null>(null);
 
   const isUserRole = session?.role === 'user';
   const hasMissingInfo = Boolean(
@@ -40,17 +41,7 @@ export function PublicHeader() {
       .catch(() => undefined);
   }, [isUserRole]);
 
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (!menuRef.current) return;
-      if (!menuRef.current.contains(e.target as Node)) setMenuOpen(false);
-    }
-    document.addEventListener('click', handleClick);
-    return () => document.removeEventListener('click', handleClick);
-  }, []);
-
   const onLogout = () => {
-    setMenuOpen(false);
     logout();
     navigate('/', { replace: true });
   };
@@ -101,92 +92,102 @@ export function PublicHeader() {
           </div>
 
           {session ? (
-            <div className="relative animate-fadeIn" ref={menuRef}>
-              <button
-                type="button"
-                aria-expanded={menuOpen}
-                onClick={() => setMenuOpen((v) => !v)}
-                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl bg-slate-900/80 backdrop-blur-sm border border-white/5 hover:border-cyan-500/30 text-white transition-all duration-300 shadow-lg hover:shadow-cyan-500/5"
-              >
-                <div className="w-5 h-5 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center">
-                  <User size={10} className="text-cyan-400" />
-                </div>
-                <span className="text-xs font-extrabold tracking-tight">{session.displayName ?? session.email}</span>
-                <ChevronDown size={12} className="text-slate-400 transition-transform duration-300" style={{ transform: menuOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
-              </button>
+            <div className="relative animate-fadeIn">
+              <DropdownMenu.Root open={menuOpen} onOpenChange={setMenuOpen}>
+                <DropdownMenu.Trigger asChild>
+                  <button
+                    type="button"
+                    className="group inline-flex h-11 max-w-[220px] items-center gap-2 rounded-xl border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-800 shadow-sm transition-[border-color,background-color,box-shadow] duration-200 hover:border-blue-300 hover:bg-blue-50/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60"
+                  >
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-cyan-200 bg-cyan-50">
+                      <User size={13} className="text-cyan-700" />
+                    </span>
+                    <span className="min-w-0 flex-1 truncate font-extrabold tracking-tight">
+                      {session.displayName ?? session.email}
+                    </span>
+                    <ChevronDown
+                      size={13}
+                      className={cn('shrink-0 text-slate-400 transition-transform duration-200', menuOpen && 'rotate-180')}
+                    />
+                  </button>
+                </DropdownMenu.Trigger>
+
+                <DropdownMenu.Portal>
+                  <DropdownMenu.Content
+                    align="end"
+                    sideOffset={8}
+                    collisionPadding={12}
+                    className="z-50 w-64 overflow-hidden rounded-2xl border border-slate-200 bg-white p-1.5 text-slate-900 shadow-[0_20px_48px_rgba(15,23,42,0.16)] outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95"
+                  >
+                    <DropdownMenu.Item asChild>
+                      <Link
+                        to="/profile"
+                        className="flex min-h-11 cursor-pointer items-center justify-between rounded-xl px-3.5 text-xs font-bold text-slate-600 outline-none transition-colors duration-150 hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700"
+                      >
+                        <span className="flex items-center gap-3"><User size={15} /> My Profile</span>
+                        {hasMissingInfo && <span className="h-2 w-2 rounded-full bg-rose-500 shadow-[0_0_6px_#f43f5e]" />}
+                      </Link>
+                    </DropdownMenu.Item>
+                    <DropdownMenu.Item asChild>
+                      <Link
+                        to="/notifications"
+                        className="flex min-h-11 cursor-pointer items-center justify-between rounded-xl px-3.5 text-xs font-bold text-slate-600 outline-none transition-colors duration-150 hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700"
+                      >
+                        <span className="flex items-center gap-3"><BellRing size={15} /> Notifications</span>
+                        {unreadNotif > 0 && (
+                          <span className="rounded-full bg-rose-500 px-1.5 text-[9px] font-bold text-white">{unreadNotif > 9 ? '9+' : unreadNotif}</span>
+                        )}
+                      </Link>
+                    </DropdownMenu.Item>
+                    <DropdownMenu.Item asChild>
+                      <Link
+                        to="/wallet"
+                        className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl px-3.5 text-xs font-bold text-slate-600 outline-none transition-colors duration-150 hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700"
+                      >
+                        <Wallet size={15} /> E-Wallet
+                      </Link>
+                    </DropdownMenu.Item>
+                    <DropdownMenu.Item asChild>
+                      <Link
+                        to="/parking-history"
+                        className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl px-3.5 text-xs font-bold text-slate-600 outline-none transition-colors duration-150 hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700"
+                      >
+                        <MapPinned size={15} /> Parking History
+                      </Link>
+                    </DropdownMenu.Item>
+                    <DropdownMenu.Item asChild>
+                      <Link
+                        to="/long-term-subscriptions"
+                        className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl px-3.5 text-xs font-bold text-slate-600 outline-none transition-colors duration-150 hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700"
+                      >
+                        <Ticket size={15} /> Subscriptions
+                      </Link>
+                    </DropdownMenu.Item>
+                    <DropdownMenu.Separator className="my-1 h-px bg-slate-100" />
+                    <DropdownMenu.Item
+                      className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl px-3.5 text-xs font-bold text-rose-500 outline-none transition-colors duration-150 hover:bg-rose-50 hover:text-rose-700 focus:bg-rose-50 focus:text-rose-700"
+                      onSelect={onLogout}
+                    >
+                      <LogOut size={15} /> Logout
+                    </DropdownMenu.Item>
+                  </DropdownMenu.Content>
+                </DropdownMenu.Portal>
+              </DropdownMenu.Root>
 
               {unreadNotif > 0 && (
-                <span className="absolute -top-1 -left-1 z-30 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[8px] font-black text-white shadow-[0_0_8px_rgba(244,63,94,0.6)]">
+                <span className="absolute -left-1 -top-1 z-30 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[8px] font-black text-white shadow-[0_0_8px_rgba(244,63,94,0.6)]">
                   {unreadNotif > 9 ? '9+' : unreadNotif}
                 </span>
               )}
 
               {hasMissingInfo && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 z-30 pointer-events-none">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-4 w-4 bg-rose-600 text-[8px] font-mono font-black text-white items-center justify-center animate-bounce shadow-[0_0_8px_rgba(225,29,72,0.6)]">
+                <span className="pointer-events-none absolute -right-1 -top-1 z-30 flex h-4 w-4">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-75" />
+                  <span className="relative inline-flex h-4 w-4 items-center justify-center rounded-full bg-rose-600 font-mono text-[8px] font-black text-white shadow-[0_0_8px_rgba(225,29,72,0.6)]">
                     1
                   </span>
                 </span>
               )}
-
-              <AnimatePresence>
-                {menuOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    transition={{ duration: 0.15, ease: 'easeOut' }}
-                    className="absolute right-0 mt-2 w-52 bg-slate-950/95 border border-white/10 rounded-2xl shadow-2xl py-2 backdrop-blur-xl z-50 overflow-hidden"
-                  >
-                    <Link
-                      to="/profile"
-                      className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-between"
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      <span className="flex items-center"><User size={12} className="inline-block mr-2" /> My Profile</span>
-                      {hasMissingInfo && <span className="flex h-2 w-2 rounded-full bg-rose-500 animate-pulse shadow-[0_0_6px_#f43f5e]" />}
-                    </Link>
-                    <Link
-                      to="/notifications"
-                      onClick={() => setMenuOpen(false)}
-                      className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-between"
-                    >
-                      <span className="flex items-center"><BellRing size={12} className="mr-2" /> Notifications</span>
-                      {unreadNotif > 0 && (
-                        <span className="rounded-full bg-rose-500 px-1.5 text-[9px] font-bold text-white">{unreadNotif > 9 ? '9+' : unreadNotif}</span>
-                      )}
-                    </Link>
-                    <Link
-                      to="/wallet"
-                      onClick={() => setMenuOpen(false)}
-                      className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white flex items-center"
-                    >
-                      <Wallet size={12} className="inline-block mr-2" /> E-Wallet
-                    </Link>
-                    <Link
-                      to="/parking-history"
-                      className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white flex items-center"
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      <MapPinned size={12} className="inline-block mr-2" /> Parking History
-                    </Link>
-                    <Link
-                      to="/long-term-subscriptions"
-                      className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-slate-300 hover:text-white flex items-center"
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      <Ticket size={12} className="inline-block mr-2" /> Subscriptions
-                    </Link>
-                    <button
-                      className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-slate-800 text-rose-400 hover:text-rose-300 border-t border-white/5 mt-1"
-                      onClick={onLogout}
-                    >
-                      <LogOut size={12} className="inline-block mr-2" /> Logout
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </div>
           ) : (
             <motion.button

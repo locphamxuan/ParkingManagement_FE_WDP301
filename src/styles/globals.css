@@ -1346,10 +1346,20 @@ button:not(:disabled) {
   box-shadow: 0 12px 34px rgba(15, 23, 42, 0.06) !important;
 }
 
-.public-light-theme [class*='bg-slate-95'],
-.public-light-theme [class*='bg-slate-9'],
-.public-light-theme [class*='bg-slate-8'],
-.public-light-theme [class*='bg-black'] {
+.public-light-theme [class~='bg-slate-800'],
+.public-light-theme [class~='bg-slate-900'],
+.public-light-theme [class~='bg-slate-900/10'],
+.public-light-theme [class~='bg-slate-900/20'],
+.public-light-theme [class~='bg-slate-900/30'],
+.public-light-theme [class~='bg-slate-900/40'],
+.public-light-theme [class~='bg-slate-900/60'],
+.public-light-theme [class~='bg-slate-900/80'],
+.public-light-theme [class~='bg-slate-950'],
+.public-light-theme [class~='bg-slate-950/40'],
+.public-light-theme [class~='bg-slate-950/80'],
+.public-light-theme [class~='bg-slate-950/85'],
+.public-light-theme [class~='bg-slate-950/95'],
+.public-light-theme [class~='bg-black'] {
   border-color: rgba(148, 163, 184, 0.2) !important;
   background-color: rgba(255, 255, 255, 0.86) !important;
 }
@@ -1450,10 +1460,20 @@ button:not(:disabled) {
 }
 
 .public-light-theme .public-dark-visual,
-.public-light-theme .public-dark-visual [class*='bg-slate-95'],
-.public-light-theme .public-dark-visual [class*='bg-slate-9'],
-.public-light-theme .public-dark-visual [class*='bg-slate-8'],
-.public-light-theme .public-dark-visual [class*='bg-black'] {
+.public-light-theme .public-dark-visual [class~='bg-slate-800'],
+.public-light-theme .public-dark-visual [class~='bg-slate-900'],
+.public-light-theme .public-dark-visual [class~='bg-slate-900/10'],
+.public-light-theme .public-dark-visual [class~='bg-slate-900/20'],
+.public-light-theme .public-dark-visual [class~='bg-slate-900/30'],
+.public-light-theme .public-dark-visual [class~='bg-slate-900/40'],
+.public-light-theme .public-dark-visual [class~='bg-slate-900/60'],
+.public-light-theme .public-dark-visual [class~='bg-slate-900/80'],
+.public-light-theme .public-dark-visual [class~='bg-slate-950'],
+.public-light-theme .public-dark-visual [class~='bg-slate-950/40'],
+.public-light-theme .public-dark-visual [class~='bg-slate-950/80'],
+.public-light-theme .public-dark-visual [class~='bg-slate-950/85'],
+.public-light-theme .public-dark-visual [class~='bg-slate-950/95'],
+.public-light-theme .public-dark-visual [class~='bg-black'] {
   border-color: rgba(148, 163, 184, 0.18) !important;
   background-color: #071326 !important;
 }

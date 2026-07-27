@@ -32,23 +32,23 @@ const fmtTime = (value?: string | null) =>
         dateStyle: 'short',
         timeStyle: 'short',
       }).format(new Date(value))
-    : 'Chưa đối soát';
+    : 'Not reconciled';
 
 const SOURCE_LABELS: Record<string, string> = {
-  parking: 'Phí gửi xe',
-  reservation: 'Đặt chỗ',
-  subscription: 'Gói dài hạn',
-  penalty: 'Phí phạt',
+  parking: 'Parking fee',
+  reservation: 'Reservation',
+  subscription: 'Subscription package',
+  penalty: 'Penalty fee',
 };
 
 const TYPE_LABELS: Record<string, string> = {
-  session: 'Phí gửi xe',
-  reservation: 'Đặt chỗ',
-  subscription: 'Gói dài hạn',
-  penalty: 'Phí phạt',
-  refund: 'Hoàn tiền',
-  topup: 'Nạp tiền',
-  cancellation_fee: 'Phí hủy (lịch sử)',
+  session: 'Parking fee',
+  reservation: 'Reservation',
+  subscription: 'Subscription package',
+  penalty: 'Penalty fee',
+  refund: 'Refund',
+  topup: 'Top-up',
+  cancellation_fee: 'Cancellation fee (legacy)',
 };
 
 const STATUS_STYLE: Record<string, string> = {
@@ -124,7 +124,7 @@ export function RevenueAnalyticsPage() {
         (paymentsRes as { data?: { items?: AdminPayment[] } }).data?.items ?? [],
       );
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Không thể tải dữ liệu doanh thu.');
+      setError(caught instanceof Error ? caught.message : 'Failed to load revenue data.');
     } finally {
       setLoading(false);
     }
@@ -162,17 +162,17 @@ export function RevenueAnalyticsPage() {
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600">
                 System-owner finance
               </p>
-              <h2 className="text-lg font-black text-slate-850">Dòng tiền toàn hệ thống</h2>
+              <h2 className="text-lg font-black text-slate-850">System-wide cash flow</h2>
               <p className="text-xs text-slate-500">
-                Theo dõi tiền đã thu, hoàn tiền, tiền mặt chưa bàn giao và các khoản cần đối soát.
+                Track collected revenue, refunds, cash not yet handed over and items needing reconciliation.
               </p>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
             {[
-              { label: 'Từ ngày', value: from, set: setFrom },
-              { label: 'Đến ngày', value: to, set: setTo },
+              { label: 'From', value: from, set: setFrom },
+              { label: 'To', value: to, set: setTo },
             ].map((field) => (
               <label
                 key={field.label}
@@ -196,7 +196,7 @@ export function RevenueAnalyticsPage() {
               className="h-10 gap-2 rounded-xl bg-blue-600 px-5 text-xs font-black text-white"
             >
               <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-              Làm mới
+              Refresh
             </Button>
           </div>
         </div>
@@ -210,37 +210,37 @@ export function RevenueAnalyticsPage() {
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         <MetricCard
-          label="Doanh thu gộp"
+          label="Gross revenue"
           value={fmtVnd(summary?.grossRevenue)}
-          note="Các khoản dịch vụ đã thanh toán thành công, trước hoàn tiền."
+          note="Successfully paid service charges, before refunds."
           icon={ArrowUpRight}
           tone="border-emerald-200 bg-emerald-50 text-emerald-650"
         />
         <MetricCard
-          label="Đã hoàn khách"
+          label="Refunded to customers"
           value={fmtVnd(summary?.refunds)}
-          note="Tiền đã trả lại khách, được khấu trừ khỏi doanh thu gộp."
+          note="Money paid back to customers, deducted from gross revenue."
           icon={TrendingDown}
           tone="border-rose-200 bg-rose-50 text-rose-600"
         />
         <MetricCard
-          label="Doanh thu thuần"
+          label="Net revenue"
           value={fmtVnd(summary?.netRevenue)}
-          note="Doanh thu gộp trừ các khoản hoàn tiền."
+          note="Gross revenue minus refunds."
           icon={Scale}
           tone="border-blue-200 bg-blue-50 text-blue-650"
         />
         <MetricCard
-          label="Tiền mặt chờ bàn giao"
+          label="Cash pending handover"
           value={fmtVnd(summary?.pendingCash)}
-          note={`${summary?.pendingCashPayments || 0} khoản Staff đã ghi nhận, Manager chưa xác nhận.`}
+          note={`${summary?.pendingCashPayments || 0} item(s) recorded by Staff, not yet confirmed by Manager.`}
           icon={Banknote}
           tone="border-amber-200 bg-amber-50 text-amber-650"
         />
         <MetricCard
-          label="Nạp vốn / ví"
+          label="Top-up / wallet funding"
           value={fmtVnd(summary?.walletFunding)}
-          note="Luân chuyển tiền vào ví bãi, không được tính là doanh thu."
+          note="Money moved into building wallets, not counted as revenue."
           icon={Coins}
           tone="border-violet-200 bg-violet-50 text-violet-650"
         />
@@ -252,7 +252,7 @@ export function RevenueAnalyticsPage() {
             Pending cash
           </p>
           <p className="mt-2 text-lg font-black text-slate-850">
-            {reconciliation?.pendingCash.count || 0} khoản
+            {reconciliation?.pendingCash.count || 0} item(s)
           </p>
           <p className="text-xs font-bold text-amber-700">
             {fmtVnd(reconciliation?.pendingCash.amount)}
@@ -260,10 +260,10 @@ export function RevenueAnalyticsPage() {
         </div>
         <div className="rounded-2xl border border-orange-200 bg-orange-50/70 p-4">
           <p className="text-[9px] font-black uppercase tracking-wider text-orange-650">
-            Điện tử quá 24 giờ
+            Electronic over 24h
           </p>
           <p className="mt-2 text-lg font-black text-slate-850">
-            {reconciliation?.staleElectronic.count || 0} khoản
+            {reconciliation?.staleElectronic.count || 0} item(s)
           </p>
           <p className="text-xs font-bold text-orange-700">
             {fmtVnd(reconciliation?.staleElectronic.amount)}
@@ -271,10 +271,10 @@ export function RevenueAnalyticsPage() {
         </div>
         <div className="rounded-2xl border border-rose-200 bg-rose-50/70 p-4">
           <p className="text-[9px] font-black uppercase tracking-wider text-rose-650">
-            Cần đối soát
+            Needs reconciliation
           </p>
           <p className="mt-2 text-lg font-black text-slate-850">
-            {reconciliation?.reconciliationRequired.count || 0} khoản
+            {reconciliation?.reconciliationRequired.count || 0} item(s)
           </p>
           <p className="text-xs font-bold text-rose-700">
             {fmtVnd(reconciliation?.reconciliationRequired.amount)}
@@ -282,13 +282,13 @@ export function RevenueAnalyticsPage() {
         </div>
         <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4">
           <p className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-emerald-650">
-            <ShieldCheck size={13} /> Ví và sổ cái
+            <ShieldCheck size={13} /> Wallet & ledger
           </p>
           <p className="mt-2 text-lg font-black text-slate-850">
-            {reconciliation?.walletIntegrity.mismatchCount || 0} sai lệch
+            {reconciliation?.walletIntegrity.mismatchCount || 0} mismatch(es)
           </p>
           <p className="text-xs font-semibold text-emerald-700">
-            Đã kiểm tra {reconciliation?.walletIntegrity.checked || 0} ví bãi.
+            Checked {reconciliation?.walletIntegrity.checked || 0} building wallet(s).
           </p>
         </div>
       </section>
@@ -296,9 +296,9 @@ export function RevenueAnalyticsPage() {
       <section className="grid gap-6 xl:grid-cols-5">
         <div className="rounded-3xl border border-sky-100/70 bg-white/65 p-5 shadow-sm xl:col-span-2">
           <div className="mb-5">
-            <h3 className="text-sm font-black text-slate-850">Nguồn tạo doanh thu</h3>
+            <h3 className="text-sm font-black text-slate-850">Revenue by source</h3>
             <p className="text-[10px] font-semibold text-slate-500">
-              Phí phạt được tách riêng khỏi phí gửi xe.
+              Penalty fees are tracked separately from parking fees.
             </p>
           </div>
           <div className="space-y-5">
@@ -323,16 +323,16 @@ export function RevenueAnalyticsPage() {
 
         <div className="overflow-hidden rounded-3xl border border-sky-100/70 bg-white/65 shadow-sm xl:col-span-3">
           <div className="border-b border-sky-100/70 p-5">
-            <h3 className="text-sm font-black text-slate-850">Doanh thu theo bãi</h3>
+            <h3 className="text-sm font-black text-slate-850">Revenue by building</h3>
             <p className="text-[10px] font-semibold text-slate-500">
-              Gross, refund, net và tiền mặt chưa bàn giao của từng bãi.
+              Gross, refund, net and cash not yet handed over per building.
             </p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-left text-xs">
               <thead className="bg-slate-50/80 text-[9px] font-black uppercase tracking-wider text-slate-400">
                 <tr>
-                  <th className="px-5 py-3">Bãi xe</th>
+                  <th className="px-5 py-3">Building</th>
                   <th className="px-4 py-3 text-right">Gross</th>
                   <th className="px-4 py-3 text-right">Refund</th>
                   <th className="px-4 py-3 text-right">Net</th>
@@ -369,7 +369,7 @@ export function RevenueAnalyticsPage() {
                 ) : (
                   <tr>
                     <td colSpan={5} className="px-5 py-12 text-center text-slate-400">
-                      Không có dòng tiền trong khoảng thời gian này.
+                      No cash flow in this date range.
                     </td>
                   </tr>
                 )}
@@ -383,10 +383,10 @@ export function RevenueAnalyticsPage() {
         <div className="flex flex-col justify-between gap-3 border-b border-sky-100/70 p-5 md:flex-row md:items-center">
           <div>
             <h3 className="flex items-center gap-2 text-sm font-black text-slate-850">
-              <ReceiptText size={16} className="text-blue-600" /> Sổ giao dịch toàn hệ thống
+              <ReceiptText size={16} className="text-blue-600" /> System-wide transaction ledger
             </h3>
             <p className="text-[10px] font-semibold text-slate-500">
-              Payment là nguồn sự thật để Admin kiểm tra và truy vết.
+              Payment is the source of truth for Admin to review and trace.
             </p>
           </div>
           <div className="flex gap-2">
@@ -395,7 +395,7 @@ export function RevenueAnalyticsPage() {
               onChange={(event) => setPaymentType(event.target.value)}
               className="h-9 rounded-xl border border-sky-100 bg-white px-3 text-xs font-bold text-slate-600 outline-none"
             >
-              <option value="">Mọi loại tiền</option>
+              <option value="">All types</option>
               {Object.entries(TYPE_LABELS).map(([value, label]) => (
                 <option key={value} value={value}>{label}</option>
               ))}
@@ -405,11 +405,11 @@ export function RevenueAnalyticsPage() {
               onChange={(event) => setPaymentStatus(event.target.value)}
               className="h-9 rounded-xl border border-sky-100 bg-white px-3 text-xs font-bold text-slate-600 outline-none"
             >
-              <option value="">Mọi trạng thái</option>
-              <option value="success">Đã thu</option>
-              <option value="pending">Đang chờ</option>
-              <option value="failed">Thất bại</option>
-              <option value="reconciliation_required">Cần đối soát</option>
+              <option value="">All statuses</option>
+              <option value="success">Collected</option>
+              <option value="pending">Pending</option>
+              <option value="failed">Failed</option>
+              <option value="reconciliation_required">Needs reconciliation</option>
             </select>
           </div>
         </div>
@@ -418,12 +418,12 @@ export function RevenueAnalyticsPage() {
           <table className="w-full min-w-[980px] text-left text-xs">
             <thead className="bg-slate-50/80 text-[9px] font-black uppercase tracking-wider text-slate-400">
               <tr>
-                <th className="px-5 py-3">Thời điểm</th>
-                <th className="px-4 py-3">Bãi / Biển số</th>
-                <th className="px-4 py-3">Loại dòng tiền</th>
-                <th className="px-4 py-3">Kênh</th>
-                <th className="px-4 py-3">Trạng thái</th>
-                <th className="px-5 py-3 text-right">Số tiền</th>
+                <th className="px-5 py-3">Time</th>
+                <th className="px-4 py-3">Building / Plate</th>
+                <th className="px-4 py-3">Cash flow type</th>
+                <th className="px-4 py-3">Channel</th>
+                <th className="px-4 py-3">Status</th>
+                <th className="px-5 py-3 text-right">Amount</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-sky-50">
@@ -437,11 +437,11 @@ export function RevenueAnalyticsPage() {
                         <Clock3 size={12} /> {fmtTime(effectiveTime)}
                       </p>
                       {payment.status === 'pending' && (
-                        <p className="mt-1 text-[9px] font-bold text-amber-600">Chưa ghi nhận doanh thu</p>
+                        <p className="mt-1 text-[9px] font-bold text-amber-600">Not yet recorded as revenue</p>
                       )}
                     </td>
                     <td className="px-4 py-4">
-                      <p className="font-bold text-slate-750">{payment.building?.name || 'Không gắn bãi'}</p>
+                      <p className="font-bold text-slate-750">{payment.building?.name || 'No building'}</p>
                       <p className="font-mono text-[9px] text-slate-400">
                         {payment.parkingSession?.plateNumber || payment.user?.email || '—'}
                       </p>
@@ -468,7 +468,7 @@ export function RevenueAnalyticsPage() {
               }) : (
                 <tr>
                   <td colSpan={6} className="px-5 py-12 text-center text-slate-400">
-                    Không có giao dịch phù hợp bộ lọc.
+                    No transactions match the current filter.
                   </td>
                 </tr>
               )}
@@ -480,10 +480,11 @@ export function RevenueAnalyticsPage() {
       <div className="flex gap-3 rounded-2xl border border-blue-200 bg-blue-50/70 p-4 text-xs text-blue-850">
         <CircleAlert size={18} className="mt-0.5 shrink-0 text-blue-600" />
         <div>
-          <p className="font-black">Nguyên tắc phân tách trách nhiệm</p>
+          <p className="font-black">Separation of duties principle</p>
           <p className="mt-1 leading-relaxed text-blue-750">
-            Admin giám sát và điều tra bất thường toàn hệ thống. Manager vẫn là người xác nhận
-            tiền mặt thực tế của bãi; Admin không xác nhận thay để bảo đảm khả năng đối soát.
+            Admin monitors and investigates anomalies system-wide. The building Manager remains
+            the one who confirms actual cash on site; Admin never confirms on their behalf, to
+            preserve reconciliation integrity.
           </p>
         </div>
       </div>

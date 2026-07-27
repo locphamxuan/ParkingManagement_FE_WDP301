@@ -12,7 +12,7 @@ import { usageLabel, type StaffOperations } from '@/hooks/staff/useStaffOperatio
 export function MultiCamCheckIn({ ops }: { ops: StaffOperations }) {
   const {
     buildingId, loading, plateNumber, setPlateNumber, vehicleBrand, vehicleType, setVehicleType,
-    plateImage, plateCamRef, qrCamRef, portraitCamRef, assignment, distinctDeviceCount, multiCamMode,
+    plateCamRef, qrCamRef, portraitCamRef, assignment, distinctDeviceCount, multiCamMode,
     plateAccountInfo, freeSlots, selectedSlotId, setSelectedSlotId, selectedZoneId, setSelectedZoneId,
     availableZones, setRejectOpen, allowedTypes, plateTypeWarning, buildingSupportWarning,
     hasActivePackage, checkInKind, needsSlotSelection, isMotorcycle,

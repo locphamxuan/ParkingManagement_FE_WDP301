@@ -1,66 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-import {
-  userApi,
-  type LongTermPackage,
-  type LongTermSubscription,
-} from '@/services/user/userApi';
+import { userApi, type LongTermSubscription } from '@/services/user/userApi';
 import type { ListFetchState } from './apiState';
-
-// ========== LONG-TERM PACKAGES HOOKS ==========
-
-export function useLongTermPackages(query?: {
-  buildingId?: string;
-  limit?: number;
-  page?: number;
-}) {
-  const [state, setState] = useState<ListFetchState<LongTermPackage>>({
-    items: [],
-    isLoading: true,
-    error: null,
-  });
-
-  useEffect(() => {
-    const fetchPackages = async () => {
-      setState((prev) => ({ ...prev, isLoading: true, error: null }));
-      try {
-        const result = await userApi.longTermPackages.list(query);
-        setState({
-          items: result.data.packages,
-          isLoading: false,
-          error: null,
-        });
-      } catch (error) {
-        setState((prev) => ({
-          ...prev,
-          isLoading: false,
-          error: error instanceof Error ? error : new Error('Unknown error'),
-        }));
-      }
-    };
-
-    fetchPackages();
-  }, [query?.buildingId, query?.page, query?.limit]);
-
-  const refresh = useCallback(async () => {
-    setState((prev) => ({ ...prev, isLoading: true }));
-    try {
-      const result = await userApi.longTermPackages.list(query);
-      setState({
-        items: result.data.packages,
-        isLoading: false,
-        error: null,
-      });
-    } catch (error) {
-      setState((prev) => ({
-        ...prev,
-        isLoading: false,
-        error: error instanceof Error ? error : new Error('Unknown error'),
-      }));
-    }
-  }, [query]);
-
-  return { ...state, refresh };
-}
 
 // ========== LONG-TERM SUBSCRIPTIONS HOOKS ==========
 
@@ -118,37 +58,6 @@ export function useLongTermSubscriptions(query?: {
   }, [query]);
 
   return { ...state, refresh };
-}
-
-export function useSubscribeToPackage() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-
-  const subscribe = useCallback(
-    async (body: { packageId: string; linkedPlates: string[]; slotId?: string; startDate?: string; paymentMethod?: string }) => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        // Backend takes a single plateNumber — use the first linked plate.
-        const result = await userApi.longTermSubscriptions.create({
-          packageId: body.packageId,
-          plateNumber: body.linkedPlates[0],
-          ...(body.slotId ? { slotId: body.slotId } : {}),
-          ...(body.startDate ? { startDate: body.startDate } : {}),
-        });
-        return result.data.subscription;
-      } catch (err) {
-        const error = err instanceof Error ? err : new Error('Unknown error');
-        setError(error);
-        throw error;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    []
-  );
-
-  return { subscribe, isLoading, error };
 }
 
 export function useRenewSubscription() {

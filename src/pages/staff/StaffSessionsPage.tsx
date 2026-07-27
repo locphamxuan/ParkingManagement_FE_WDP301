@@ -3,7 +3,6 @@ import { RefreshCw, Car, MapPin, Clock, CircleDollarSign } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useBuildingContext } from '@/hooks/useBuildingContext';
-import { useAssignedGates } from '@/hooks/staff/useAssignedGates';
 import { LicensePlate } from '@/components/common/LicensePlate';
 import { staffApi, type ParkingSession } from '@/services/staff/staffApi';
 import styles from '@/styles/modules/StaffSessionsPage.module.css';

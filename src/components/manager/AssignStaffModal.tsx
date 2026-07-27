@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Loader } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
-import { managerApi, type StaffShift, type Gate } from '@/services/manager/managerApi';
+import { managerApi, type StaffShift } from '@/services/manager/managerApi';
 import { CustomSelect } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
 
@@ -20,12 +20,6 @@ interface AssignStaffModalProps {
   editingData?: StaffShift | null;
   isSubmitting?: boolean;
 }
-
-const directionLabel: Record<Gate['direction'], string> = {
-  in: 'Entry gate',
-  out: 'Exit gate',
-  both: 'Two-way',
-};
 
 interface Staff {
   _id: string;

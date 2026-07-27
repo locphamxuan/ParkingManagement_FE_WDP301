@@ -1,0 +1,19 @@
+.preserve3d {
+  transform-style: preserve-3d;
+}
+
+.layerZ8 {
+  transform: translateZ(8px);
+}
+
+.layerZ10 {
+  transform: translateZ(10px);
+}
+
+.layerZ28 {
+  transform: translateZ(28px);
+}
+
+.layerZ40 {
+  transform: translateZ(40px);
+}

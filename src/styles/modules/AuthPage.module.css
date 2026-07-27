@@ -1,0 +1,26 @@
+/* Light enterprise auth shell — matches the Manager Portal surface (#f8fafc). */
+.authShell {
+  background-color: #f8fafc;
+}
+
+/* Hidden field that keeps the browser password manager associated with the
+   right account without being reachable by keyboard or screen readers. */
+.hiddenInput {
+  position: absolute;
+  opacity: 0;
+  height: 0;
+  width: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Motion here is decorative only — drop it entirely when the user opts out. */
+@media (prefers-reduced-motion: reduce) {
+  .authShell *,
+  .authShell *::before,
+  .authShell *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

@@ -1,0 +1,300 @@
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { loginWithBackend, type AuthSession } from '@/services/authService';
+import { saveSession, clearSession, loadSession } from '@/services/client/storage';
+import { AUTH_STORAGE_KEY } from '@/utils/constants';
+import { api } from '@/services/client/apiClient';
+import { showToast } from '@/components/common/ToastNotification';
+
+interface AuthState {
+  session: AuthSession | null;
+  isAuthenticating: boolean;
+  error: string | null;
+  login: (email: string, password: string) => Promise<AuthSession>;
+  logout: () => void;
+  updateProfile: (profile: { fullName: string; phone: string; licensePlates: Array<{ _id?: string; plateNumber: string; vehicleType: 'car' | 'motorcycle'; brand?: string | null; isDefault?: boolean }> }) => void;
+  setDefaultLicensePlate: (plateId: string) => Promise<void>;
+}
+
+function mapLegacySession(): AuthSession | null {
+  const legacy = loadSession();
+  if (!legacy.user) {
+    return null;
+  }
+
+  const user = legacy.user as Record<string, unknown>;
+  const email = String(user.email ?? '');
+
+  // SYNC: check overrides from shared localStorage to always load the latest data
+  const locallyUpdated = JSON.parse(localStorage.getItem('pbms.locallyUpdatedUsers') || '{}');
+  // Case-insensitive lookup
+  const matchingKey = Object.keys(locallyUpdated).find(
+    (key) => key.trim().toLowerCase() === email.trim().toLowerCase()
+  );
+  const localData = matchingKey ? locallyUpdated[matchingKey] : null;
+
+  const finalName = localData?.fullName || String(user.fullName ?? user.displayName ?? '');
+  const finalPhone = localData?.phone || String(user.phone ?? '');
+  const rawPlates = localData?.licensePlates
+    || (Array.isArray(user.licensePlates) ? user.licensePlates : []);
+
+  return {
+    // Real auth is the httpOnly cookie, invisible to JS by design — `token`
+    // is never a real secret (see authService.ts::mapAuthSession), just a
+    // truthy "a session is loaded" marker for route guards. Blank here since
+    // this only runs before Zustand's persist rehydrates the real (still
+    // non-secret) value from the last login.
+    token: '',
+    userId: String(user._id ?? user.id ?? ''),
+    role: (user.role as AuthSession['role']) ?? 'user',
+    email,
+    displayName: finalName,
+    assignedBuildingIds: Array.isArray(user.assignedBuildings)
+      ? user.assignedBuildings.map((item) => String(typeof item === 'string' ? item : (item as { _id?: string })._id ?? '')).filter(Boolean)
+      : [],
+    phone: finalPhone,
+    licensePlates: (rawPlates as unknown[])
+      .map((item): { _id?: string; plateNumber: string; vehicleType: 'car' | 'motorcycle'; brand?: string | null; isDefault?: boolean } | null => {
+        if (!item) return null;
+        if (typeof item === 'string') {
+          const plate = item.toUpperCase().trim();
+          return plate ? { plateNumber: plate, vehicleType: 'car', brand: null, isDefault: false } : null;
+        }
+        if (typeof item === 'object') {
+          const p = item as Record<string, unknown>;
+          const plate = String(p.plateNumber ?? '').toUpperCase().trim();
+          return plate
+            ? {
+                _id: p._id ? String(p._id) : undefined,
+                plateNumber: plate,
+                vehicleType: p.vehicleType === 'motorcycle' ? 'motorcycle' : 'car',
+                brand: typeof p.brand === 'string' && p.brand.trim() ? p.brand.trim() : null,
+                isDefault: p.isDefault === true || p.isDefault === 'true',
+              }
+            : null;
+        }
+        return null;
+      })
+      .filter((p): p is { _id?: string; plateNumber: string; vehicleType: 'car' | 'motorcycle'; brand?: string | null; isDefault?: boolean } => Boolean(p && p.plateNumber)),
+  };
+}
+
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      session: mapLegacySession(),
+      isAuthenticating: false,
+      error: null,
+      async login(email, password) {
+        set({ isAuthenticating: true, error: null });
+        try {
+          let session = await loginWithBackend({ email, password });
+
+          // Sync: merge locally saved info into the newly signed-in session
+          const locallyUpdated = JSON.parse(localStorage.getItem('pbms.locallyUpdatedUsers') || '{}');
+          const matchingKey = Object.keys(locallyUpdated).find(
+            (key) => key.trim().toLowerCase() === email.trim().toLowerCase()
+          );
+          const localData = matchingKey ? locallyUpdated[matchingKey] : null;
+
+          if (localData) {
+            // Merge local profile data on top of fresh backend session
+            const localPlates: Array<{ _id?: string; plateNumber: string; vehicleType: 'car' | 'motorcycle'; brand?: string | null; isDefault?: boolean }> =
+              (localData.licensePlates || []).map((p: any) => ({
+                _id: p?._id ? String(p._id) : undefined,
+                plateNumber: String(p?.plateNumber || p || '').toUpperCase().trim(),
+                vehicleType: p?.vehicleType === 'motorcycle' ? ('motorcycle' as const) : ('car' as const),
+                brand: typeof p?.brand === 'string' && p.brand.trim() ? p.brand.trim() : null,
+                isDefault: p?.isDefault === true || p?.isDefault === 'true',
+              })).filter((p: any) => p.plateNumber);
+
+            // Merge uniquely: prefer local type info, include backend plates too
+            const mergedPlates = [...localPlates];
+            (session.licensePlates || []).forEach((p) => {
+              const matched = mergedPlates.find((lp) => lp.plateNumber === p.plateNumber.toUpperCase());
+              if (!matched) {
+                mergedPlates.push(p);
+              } else {
+                if (!matched._id && p._id) {
+                  matched._id = p._id;
+                }
+              }
+            });
+
+            session = {
+              ...session,
+              displayName: localData.fullName || session.displayName,
+              phone: localData.phone || session.phone,
+              licensePlates: mergedPlates,
+            };
+          }
+
+          set({ session, isAuthenticating: false, error: null });
+          saveSession({
+            user: {
+              _id: session.userId,
+              email: session.email,
+              fullName: session.displayName,
+              role: session.role,
+              assignedBuildings: session.assignedBuildingIds,
+              phone: session.phone,
+              licensePlates: session.licensePlates,
+            },
+          });
+          return session;
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Login failed';
+          set({ error: message, isAuthenticating: false });
+          throw error;
+        }
+      },
+      logout() {
+        // Fire-and-forget: the cookie is httpOnly, so only the BE can clear it.
+        // Don't block clearing local state on this — a slow/unreachable BE
+        // shouldn't leave the user stuck on a "logged in" screen.
+        api.post('/users/auth/logout').catch(() => undefined);
+        clearSession();
+        set({ session: null, error: null });
+      },
+      updateProfile(profile) {
+        set((state) => {
+          if (!state.session) return {};
+          const updatedSession: AuthSession = {
+            ...state.session,
+            displayName: profile.fullName,
+            phone: profile.phone,
+            licensePlates: profile.licensePlates,
+          };
+          saveSession({
+            user: {
+              _id: updatedSession.userId,
+              email: updatedSession.email,
+              fullName: updatedSession.displayName,
+              role: updatedSession.role,
+              assignedBuildings: updatedSession.assignedBuildingIds,
+              phone: updatedSession.phone,
+              // Persist full plate objects including _id so DELETE by ID works across page reloads
+              licensePlates: updatedSession.licensePlates,
+            },
+          });
+
+          // Mirror in shared registry so Admin / UsersPage can read updated info
+          const locallyUpdated = JSON.parse(localStorage.getItem('pbms.locallyUpdatedUsers') || '{}');
+          const data = {
+            fullName: profile.fullName,
+            phone: profile.phone,
+            licensePlates: profile.licensePlates,
+          };
+          locallyUpdated[updatedSession.email] = data;
+          locallyUpdated[updatedSession.email.trim().toLowerCase()] = data;
+          localStorage.setItem('pbms.locallyUpdatedUsers', JSON.stringify(locallyUpdated));
+
+          return { session: updatedSession };
+        });
+      },
+      async setDefaultLicensePlate(plateId) {
+        const res = await api.patch<{ data?: { licensePlates?: any[] } }>(`/users/license-plates/${plateId}/default`);
+        const updatedPlates = Array.isArray(res?.data?.licensePlates)
+          ? res.data.licensePlates.map((item: any) => ({
+              _id: item._id ? String(item._id) : undefined,
+              plateNumber: String(item.plateNumber || '').toUpperCase().trim(),
+              vehicleType: item.vehicleType === 'motorcycle' ? ('motorcycle' as const) : ('car' as const),
+              isDefault: item.isDefault === true || item.isDefault === 'true',
+            }))
+          : [];
+
+        set((state) => {
+          if (!state.session) return {};
+          const updatedSession: AuthSession = {
+            ...state.session,
+            licensePlates: updatedPlates,
+          };
+
+          saveSession({
+            user: {
+              _id: updatedSession.userId,
+              email: updatedSession.email,
+              fullName: updatedSession.displayName,
+              role: updatedSession.role,
+              assignedBuildings: updatedSession.assignedBuildingIds,
+              phone: updatedSession.phone,
+              licensePlates: updatedSession.licensePlates,
+            },
+          });
+
+          const locallyUpdated = JSON.parse(localStorage.getItem('pbms.locallyUpdatedUsers') || '{}');
+          const data = {
+            fullName: updatedSession.displayName,
+            phone: updatedSession.phone,
+            licensePlates: updatedSession.licensePlates,
+          };
+          locallyUpdated[updatedSession.email] = data;
+          locallyUpdated[updatedSession.email.trim().toLowerCase()] = data;
+          localStorage.setItem('pbms.locallyUpdatedUsers', JSON.stringify(locallyUpdated));
+
+          return { session: updatedSession };
+        });
+      },
+    }),
+    {
+      name: AUTH_STORAGE_KEY,
+      storage: createJSONStorage(() => ({
+        getItem: (name: string) => {
+          try {
+            const s = sessionStorage.getItem(name);
+            if (s) return s;
+          } catch {}
+          try { return localStorage.getItem(name); } catch { return null; }
+        },
+        setItem: (name: string, value: string) => {
+          try { sessionStorage.setItem(name, value); } catch {}
+          try { localStorage.setItem(name, value); } catch {}
+        },
+        removeItem: (name: string) => {
+          try { sessionStorage.removeItem(name); } catch {}
+          try { localStorage.removeItem(name); } catch {}
+        },
+      })),
+      partialize: (state) => ({ session: state.session }),
+    }
+  )
+);
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('auth-unauthorized', () => {
+    useAuthStore.getState().logout();
+  });
+
+  // Cross-tab account-switch guard.
+  // The REAL auth channel is a single httpOnly cookie shared by every tab in
+  // this browser (see apiClient.ts). If tab B logs in as a different account,
+  // tab B overwrites that shared cookie — tab A's UI keeps showing its own
+  // (now stale) role/session, but any API call it makes next is silently
+  // authenticated as tab B's account. Detect that here via the localStorage
+  // mirror zustand `persist` writes on every login/logout, and drop tab A's
+  // stale belief that it's still logged in rather than let it act under the
+  // wrong identity. We deliberately do NOT call the store's `logout()` (which
+  // POSTs to /users/auth/logout) — that would clear the cookie tab B just
+  // legitimately set. Only this tab's local state is cleared.
+  window.addEventListener('storage', (event) => {
+    if (event.key !== AUTH_STORAGE_KEY || event.newValue === event.oldValue) return;
+
+    const currentUserId = useAuthStore.getState().session?.userId;
+    if (!currentUserId) return; // this tab isn't logged in — nothing to protect
+
+    let incomingUserId: string | null = null;
+    try {
+      const parsed = event.newValue ? JSON.parse(event.newValue) : null;
+      incomingUserId = parsed?.state?.session?.userId ?? null;
+    } catch {
+      incomingUserId = null;
+    }
+
+    if (incomingUserId !== currentUserId) {
+      clearSession();
+      useAuthStore.setState({ session: null, error: null });
+      showToast('You were signed out because a different account logged in from another tab.', 'info');
+    }
+  });
+}
+

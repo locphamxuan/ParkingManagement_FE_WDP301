@@ -1,0 +1,298 @@
+import { useCallback, useEffect, useState } from 'react';
+import { Navigate } from 'react-router-dom';
+import { AlertTriangle, CheckCircle2, Loader2, ParkingCircle, ShieldAlert } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { userApi, type ParkingHistory, type UserIncident, type UserIncidentType, type ViolationTypeOption } from '@/services/user/userApi';
+import { resolveErrorMessage } from '@/utils/apiErrors';
+import { normalizePlate, isValidVietnamPlate } from '@/utils/plate';
+
+// Sự cố "tự thân" — cố định, không liên quan tới phạt 1 xe/biển số khác.
+const GENERAL_INCIDENT_TYPES: { value: UserIncidentType; label: string }[] = [
+  { value: 'vehicle_damaged', label: 'My vehicle was damaged while parked' },
+  { value: 'facility_issue', label: 'Facility issue (flooding, lighting, floor...)' },
+  { value: 'wrong_scan', label: 'Wrong plate scan / vehicle mismatch' },
+  { value: 'payment_dispute', label: 'Payment / fee dispute' },
+  { value: 'security', label: 'Security concern (theft, suspicious person)' },
+];
+const OTHER_TYPE = { value: 'other', label: 'Other' } as const;
+
+const STATUS_BADGE: Record<string, string> = {
+  open: 'border-amber-500/30 bg-amber-500/10 text-amber-300',
+  investigating: 'border-sky-500/30 bg-sky-500/10 text-sky-300',
+  escalated: 'border-orange-500/30 bg-orange-500/10 text-orange-300',
+  resolved: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300',
+  closed: 'border-slate-500/30 bg-slate-500/10 text-slate-300',
+};
+const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleString('en-US') : '—');
+
+export default function ReportIncidentPage() {
+  const { session } = useAuth();
+
+  const [type, setType] = useState<UserIncidentType>('other');
+  const [note, setNote] = useState('');
+  const [violatorPlate, setViolatorPlate] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+
+  const [items, setItems] = useState<UserIncident[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Phiên đang đỗ hiện tại (nếu có) — hiển thị để user biết báo cáo sẽ gắn vào
+  // xe/tòa nhà nào, và gửi kèm buildingId/slotId rõ ràng thay vì để BE tự suy đoán.
+  const [activeSession, setActiveSession] = useState<ParkingHistory | null>(null);
+  const [loadingSession, setLoadingSession] = useState(true);
+
+  // Loại vi phạm manager đã cấu hình cho building này (bảng giá — chỉ label/code,
+  // KHÔNG có phí, phí là nội bộ manager/staff).
+  const [violationTypes, setViolationTypes] = useState<ViolationTypeOption[]>([]);
+  const isViolationReport = violationTypes.some((v) => v.code === type) || type === 'other';
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await userApi.incidents.listMine({ limit: 20 });
+      setItems(res.data.items ?? []);
+    } catch {
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!session) return;
+    void refresh();
+    setLoadingSession(true);
+    userApi.parkingHistory.list({ limit: 5 })
+      .then((res) => {
+        const found = (res.data.items ?? []).find((s) => s.status === 'active');
+        setActiveSession(found ?? null);
+      })
+      .catch(() => setActiveSession(null))
+      .finally(() => setLoadingSession(false));
+  }, [session, refresh]);
+
+  // Building của phiên đang đỗ (nếu có) → nếu không, building của gói dài hạn đang
+  // active (subscriber không nhất thiết đang có xe trong bãi) — mirror đúng thứ tự
+  // suy luận building mà BE dùng ở createIncident, để user luôn thấy ĐỦ số loại vi
+  // phạm manager đang cấu hình cho building của họ, không chỉ khi đang có xe đỗ.
+  useEffect(() => {
+    if (!session) return;
+    let cancelled = false;
+    (async () => {
+      let buildingId = activeSession?.building?._id;
+      if (!buildingId) {
+        try {
+          const res = await userApi.longTermSubscriptions.list({ status: 'active' });
+          const sub = res.data.items?.[0];
+          const building = sub?.building;
+          buildingId = typeof building === 'string' ? building : building?._id;
+        } catch {
+          // ignore — no active subscription either, leave violationTypes empty
+        }
+      }
+      try {
+        const types = buildingId ? (await userApi.buildings.violationTypes(buildingId)).data.items ?? [] : [];
+        if (!cancelled) setViolationTypes(types);
+      } catch {
+        if (!cancelled) setViolationTypes([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [session, activeSession?.building?._id]);
+
+  const typeLabel = (t: string) =>
+    GENERAL_INCIDENT_TYPES.find((x) => x.value === t)?.label
+    ?? violationTypes.find((v) => v.code === t)?.label
+    ?? (t === 'other' ? OTHER_TYPE.label : t);
+
+  if (!session) return <Navigate to="/auth/login" replace />;
+
+  const handleSubmit = async () => {
+    setMessage(null);
+    if (!note.trim()) {
+      setMessage({ type: 'err', text: 'Please describe the incident.' });
+      return;
+    }
+
+    let normalizedViolatorPlate: string | undefined = undefined;
+    if (isViolationReport) {
+      const trimmed = violatorPlate.trim();
+      if (trimmed) {
+        const norm = normalizePlate(trimmed);
+        if (!isValidVietnamPlate(norm)) {
+          setMessage({ type: 'err', text: 'Invalid license plate format (e.g. 59G2-038.80).' });
+          return;
+        }
+        normalizedViolatorPlate = norm;
+      }
+    }
+
+    setSubmitting(true);
+    try {
+      await userApi.incidents.create({
+        type,
+        note: note.trim(),
+        violatorPlate: normalizedViolatorPlate,
+        buildingId: activeSession?.building?._id,
+        slotId: activeSession?.slot?._id,
+      });
+      setMessage({ type: 'ok', text: 'Incident reported. Staff and the building manager will handle it.' });
+      setNote('');
+      setViolatorPlate('');
+      await refresh();
+    } catch (err) {
+      setMessage({ type: 'err', text: resolveErrorMessage(err, 'Failed to report incident.') });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <main className="relative z-10">
+      <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+        <div className="mb-6">
+          <h1 className="flex items-center gap-2 text-2xl font-black text-white">
+            <ShieldAlert size={20} className="text-cyan-400" /> Report an Incident
+          </h1>
+          <p className="mt-1 text-xs font-semibold text-slate-400">Tell us what happened — on-site staff will handle it and you will be notified.</p>
+        </div>
+
+        {/* Current parking session */}
+        {loadingSession ? (
+          <div className="mb-4 rounded-2xl border border-white/10 bg-slate-900/50 p-4 text-center text-xs text-slate-400">
+            <Loader2 size={14} className="mx-auto mb-1 animate-spin text-cyan-300" /> Checking your active session...
+          </div>
+        ) : activeSession ? (
+          <div className="mb-4 flex items-center gap-3 rounded-2xl border border-cyan-400/25 bg-cyan-500/10 p-4">
+            <ParkingCircle size={20} className="shrink-0 text-cyan-300" />
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-cyan-300">This report will be linked to your current session</p>
+              <p className="mt-0.5 text-sm font-semibold text-white">
+                {activeSession.plateNumber} · {activeSession.building?.name ?? 'Unknown building'}
+                {activeSession.slot?.code ? ` · Slot ${activeSession.slot.code}` : ''}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="mb-4 rounded-2xl border border-amber-400/25 bg-amber-500/10 p-4 text-xs font-semibold text-amber-300">
+            No active parking session found. The report will be linked to your active package's building, if any.
+          </div>
+        )}
+
+        {/* Form */}
+        <div className="rounded-3xl border border-white/10 bg-slate-900/55 p-6">
+          <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Incident type</label>
+          <select
+            value={type}
+            onChange={(e) => setType(e.target.value as UserIncidentType)}
+            className="w-full rounded-xl px-3 py-2.5 text-sm font-semibold text-white"
+          >
+            {violationTypes.length > 0 && (
+              <optgroup label="Report a violation">
+                {violationTypes.map((v) => (
+                  <option key={v._id} value={v.code}>{v.label}</option>
+                ))}
+              </optgroup>
+            )}
+            <optgroup label="General issues">
+              {GENERAL_INCIDENT_TYPES.map((t) => (
+                <option key={t.value} value={t.value}>{t.label}</option>
+              ))}
+            </optgroup>
+            <option value={OTHER_TYPE.value}>{OTHER_TYPE.label}</option>
+          </select>
+
+          {isViolationReport && (
+            <div className="mt-4">
+              <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Offending vehicle plate (optional)
+              </label>
+              <input
+                value={violatorPlate}
+                onChange={(e) => setViolatorPlate(e.target.value.toUpperCase())}
+                placeholder="e.g. 59G2-038.80"
+                className="w-full rounded-xl border border-white/10 bg-slate-950 px-3 py-2.5 text-sm font-semibold text-white outline-none focus:border-orange-400/60"
+              />
+            </div>
+          )}
+
+          <div className="mt-4">
+            <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Description</label>
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              rows={4}
+              placeholder="Describe what happened..."
+              className="w-full resize-none rounded-xl border border-white/10 bg-slate-950 px-3 py-2.5 text-sm font-semibold text-white outline-none focus:border-orange-400/60"
+            />
+          </div>
+
+          {message && (
+            <div
+              className={`mt-4 flex items-center gap-2 rounded-xl border p-3 text-sm font-semibold ${
+                message.type === 'ok'
+                  ? 'border-emerald-400/30 bg-emerald-500/10 text-emerald-300'
+                  : 'border-rose-400/30 bg-rose-500/10 text-rose-300'
+              }`}
+            >
+              {message.type === 'ok' ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
+              {message.text}
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={submitting}
+            className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-orange-600 px-5 py-3 text-sm font-black uppercase tracking-wider text-white transition-all hover:bg-orange-500 disabled:opacity-60"
+          >
+            {submitting ? <Loader2 size={16} className="animate-spin" /> : <ShieldAlert size={16} />}
+            {submitting ? 'Reporting...' : 'Submit Report'}
+          </button>
+        </div>
+
+        {/* My incidents */}
+        <div className="mt-8">
+          <h2 className="mb-3 text-sm font-black uppercase tracking-wider text-white">My Incidents</h2>
+          {loading ? (
+            <div className="rounded-xl border border-white/10 bg-slate-900/50 p-4 text-center text-xs text-slate-400">
+              <Loader2 size={16} className="mx-auto mb-2 animate-spin text-orange-300" /> Loading...
+            </div>
+          ) : items.length === 0 ? (
+            <p className="rounded-xl border border-white/10 bg-slate-900/50 p-4 text-center text-xs text-slate-500">
+              You have not reported any incidents.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {items.map((it) => (
+                <div key={it._id} className="rounded-xl border border-white/10 bg-slate-950/60 p-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-xs font-black text-orange-300">{it.code}</span>
+                    <span className={`rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${STATUS_BADGE[it.status] ?? STATUS_BADGE.open}`}>
+                      {it.status}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs font-semibold text-slate-200">{typeLabel(it.type)}</p>
+                  {it.note && <p className="mt-1 text-[11px] text-slate-400">{it.note}</p>}
+                  {it.slot?.code && <p className="mt-1 text-[10px] text-slate-500">Slot: {it.slot.code}</p>}
+                  {it.status === 'escalated' && (
+                    <p className="mt-1 text-[10px] text-orange-300">
+                      The reported plate has no registered account in this building — a manager is handling it directly.
+                    </p>
+                  )}
+                  {it.resolutionNote && (
+                    <p className="mt-1 text-[11px] text-emerald-300/90">Resolution: {it.resolutionNote}</p>
+                  )}
+                  <p className="mt-1 text-[10px] text-slate-500">{fmtDate(it.createdAt)}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </main>
+  );
+}

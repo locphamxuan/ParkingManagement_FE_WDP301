@@ -94,6 +94,20 @@ export interface RevenueReportRow {
   cashAmount: number;
   walletAmount: number;
   qrAmount: number;
+  grossRevenue: number;
+  refunds: number;
+  netRevenue: number;
+  pendingCash: number;
+  walletFunding: number;
+  paymentCount: number;
+  pendingCashCount: number;
+  onlineAmount: number;
+  bySource: {
+    parking: number;
+    reservation: number;
+    subscription: number;
+    penalty: number;
+  };
 }
 
 export interface RevenueReport {
@@ -101,6 +115,66 @@ export interface RevenueReport {
   to: string;
   items: RevenueReportRow[];
   grandTotal: number;
+  summary: {
+    grossRevenue: number;
+    refunds: number;
+    netRevenue: number;
+    pendingCash: number;
+    walletFunding: number;
+    successfulPayments: number;
+    pendingCashPayments: number;
+  };
+  definitions: Record<string, string>;
+}
+
+export interface AdminPayment {
+  _id: string;
+  building?: { _id: string; name: string; code: string } | null;
+  type: 'session' | 'reservation' | 'subscription' | 'penalty' | 'refund' | 'topup' | 'cancellation_fee';
+  method: 'cash' | 'wallet' | 'qr' | 'card' | 'payos';
+  amount: number;
+  status: 'pending' | 'success' | 'failed' | 'refunded' | 'reconciliation_required';
+  settledAt?: string | null;
+  createdAt: string;
+  parkingSession?: { _id: string; plateNumber?: string } | null;
+  user?: { _id: string; fullName?: string; email?: string } | null;
+  staff?: { _id: string; fullName?: string; email?: string } | null;
+  note?: string;
+}
+
+export interface RevenueReconciliation {
+  generatedAt: string;
+  staleThresholdHours: number;
+  pendingCash: { count: number; amount: number };
+  staleElectronic: { count: number; amount: number };
+  reconciliationRequired: { count: number; amount: number };
+  walletIntegrity: {
+    checked: number;
+    mismatchCount: number;
+    mismatches: Array<{
+      buildingId: string;
+      walletBalance: number;
+      ledgerBalance: number;
+      difference: number;
+    }>;
+  };
+  responsibility: { admin: string; manager: string };
+}
+
+export interface RoleGovernance {
+  operatingModel: Record<'admin' | 'manager' | 'staff' | 'user', string>;
+  roles: Array<{
+    role: 'admin' | 'manager' | 'staff' | 'user';
+    purpose: string;
+    capabilities: string[];
+    boundaries: string[];
+  }>;
+  separationOfDuties: Array<{
+    flow: string;
+    staff?: string;
+    manager?: string;
+    admin?: string;
+  }>;
 }
 
 interface ListResult<T> {
@@ -174,6 +248,16 @@ export const adminApi = {
     /** GET /admin/revenue?from=&to=&buildingId= */
     report: (q: { from: string; to: string; buildingId?: string }) =>
       api.get<Wrap<RevenueReport>>('/admin/revenue', { query: q }),
+    transactions: (q?: Record<string, string | number | undefined>) =>
+      api.get<Wrap<ListResult<AdminPayment>>>('/admin/revenue/transactions', { query: q }),
+    reconciliation: (staleHours = 24) =>
+      api.get<Wrap<RevenueReconciliation>>('/admin/revenue/reconciliation', {
+        query: { staleHours },
+      }),
+  },
+
+  governance: {
+    roles: () => api.get<Wrap<RoleGovernance>>('/admin/governance/roles'),
   },
 
   /** Read-only price policies across buildings (managers own pricing). */

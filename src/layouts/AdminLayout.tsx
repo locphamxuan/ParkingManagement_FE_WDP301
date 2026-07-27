@@ -5,6 +5,7 @@ import {
   CircleDollarSign,
   FileSearch,
   LayoutDashboard,
+  ShieldCheck,
   Users,
 } from 'lucide-react';
 import { PortalSidebar, type PortalNavItem } from '@/components/layout/PortalSidebar';
@@ -19,6 +20,7 @@ const navItems: readonly PortalNavItem[] = [
   { to: 'buildings', label: 'Buildings', icon: Building2 },
   { to: 'users', label: 'Users', icon: Users },
   { to: 'revenue-analytics', label: 'Revenue Analytics', icon: CircleDollarSign },
+  { to: 'role-governance', label: 'Roles & Governance', icon: ShieldCheck },
   { to: 'audit-logs', label: 'Audit Logs', icon: FileSearch },
 ];
 
@@ -28,6 +30,7 @@ const titles: Record<string, string> = {
   '/admin/buildings': 'Building Management',
   '/admin/users': 'User Management',
   '/admin/revenue-analytics': 'Revenue Analytics',
+  '/admin/role-governance': 'Roles & Governance',
   '/admin/audit-logs': 'Audit Logs',
   '/admin/notifications': 'Notifications',
   '/admin/profile': 'Profile',

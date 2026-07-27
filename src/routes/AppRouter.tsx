@@ -67,6 +67,7 @@ const DashboardOverviewPage = lazy(() => import('@/pages/admin/DashboardOverview
 const BuildingsPage = lazy(() => import('@/pages/admin/BuildingsPage').then((m) => ({ default: m.BuildingsPage })));
 const UsersPage = lazy(() => import('@/pages/admin/UsersPage').then((m) => ({ default: m.UsersPage })));
 const RevenueAnalyticsPage = lazy(() => import('@/pages/admin/RevenueAnalyticsPage').then((m) => ({ default: m.RevenueAnalyticsPage })));
+const RoleGovernancePage = lazy(() => import('@/pages/admin/RoleGovernancePage').then((m) => ({ default: m.RoleGovernancePage })));
 const AuditLogsPage = lazy(() => import('@/pages/admin/AuditLogsPage').then((m) => ({ default: m.AuditLogsPage })));
 const AdminProfilePage = lazy(() => import('@/pages/admin/AdminProfilePage').then((m) => ({ default: m.AdminProfilePage })));
 const ModulePlaceholderPage = lazy(() => import('@/pages/admin/ModulePlaceholderPage').then((m) => ({ default: m.ModulePlaceholderPage })));
@@ -185,6 +186,7 @@ export function AppRouter() {
           <Route path="buildings" element={<BuildingsPage />} />
           <Route path="users" element={<UsersPage />} />
           <Route path="revenue-analytics" element={<RevenueAnalyticsPage />} />
+          <Route path="role-governance" element={<RoleGovernancePage />} />
           <Route path="audit-logs" element={<AuditLogsPage />} />
           <Route path="profile" element={<AdminProfilePage />} />
           <Route

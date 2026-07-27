@@ -383,6 +383,24 @@ export function useStaffOperations() {
     const currentPlate = normalizePlate(plateNumber) || plateNumber.trim().toUpperCase();
     const plateImg = plateImage ?? plateCamRef.current?.capture() ?? null;
     const portraitImg = portraitImage ?? portraitCamRef.current?.capture() ?? null;
+    if (!plateImg || !portraitImg) {
+      setLoading(false);
+      setOpMessage({
+        type: 'err',
+        text: !plateImg
+          ? 'Capture a license-plate photo before admitting the vehicle.'
+          : 'Capture a driver portrait before admitting the vehicle.',
+      });
+      return;
+    }
+    if (vehicleTypeMismatch) {
+      setLoading(false);
+      setOpMessage({
+        type: 'err',
+        text: 'Vehicle type differs from the registered vehicle. Reject the entry or correct the vehicle record first.',
+      });
+      return;
+    }
     try {
       await staffApi.checkIn({
         plateNumber: currentPlate,

@@ -214,6 +214,7 @@ export function MultiCamCheckIn({ ops }: { ops: StaffOperations }) {
             !!buildingSupportWarning ||
             zoneUsageBlocked ||
             slotSelectionBlocked ||
+            vehicleTypeMismatch ||
             (needsSlotSelection && freeSlots.length > 0 && !selectedZoneId) ||
             (!isMotorcycle && needsSlotSelection && freeSlots.length > 0 && !selectedSlotId)
           }

@@ -308,7 +308,7 @@ export function StaffOperationsPage() {
                 <div className="grid grid-cols-2 gap-3.5">
                   <div className="space-y-1">
                     <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
-                      Plate photo{checkInKind !== 'standard' ? ' (optional)' : ''}
+                      Plate photo
                     </p>
                     <div className="aspect-[4/3] overflow-hidden rounded-xl border border-sky-100 bg-slate-50 flex items-center justify-center shadow-inner">
                       {plateImage ? (
@@ -510,6 +510,11 @@ export function StaffOperationsPage() {
                     <AlertCircle size={13} /> Requires a <strong>portrait photo</strong> to check in (go back to capture).
                   </p>
                 )}
+                {!plateImage && (
+                  <p className="text-[11px] text-rose-600 flex items-center gap-1.5 font-semibold">
+                    <AlertCircle size={13} /> Requires a <strong>license-plate photo</strong> to check in.
+                  </p>
+                )}
 
                 {/* Action Buttons */}
                 <div className="flex gap-2.5">
@@ -518,7 +523,7 @@ export function StaffOperationsPage() {
                   </Button>
                   <Button
                     onClick={onCheckIn}
-                    disabled={!plateNumber.trim() || loading || !!buildingSupportWarning || zoneUsageBlocked || slotSelectionBlocked || !portraitImage || (needsSlotSelection && freeSlots.length > 0 && !selectedZoneId) || (!isMotorcycle && needsSlotSelection && freeSlots.length > 0 && !selectedSlotId)}
+                    disabled={!plateNumber.trim() || loading || !!buildingSupportWarning || zoneUsageBlocked || slotSelectionBlocked || vehicleTypeMismatch || !plateImage || !portraitImage || (needsSlotSelection && freeSlots.length > 0 && !selectedZoneId) || (!isMotorcycle && needsSlotSelection && freeSlots.length > 0 && !selectedSlotId)}
                     className="flex-1 h-11 gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-extrabold hover:brightness-110 disabled:opacity-60 rounded-xl shadow-md shadow-emerald-500/10"
                   >
                     <ScanLine size={16} /> Confirm &amp; Admit

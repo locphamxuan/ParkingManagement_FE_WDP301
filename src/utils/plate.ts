@@ -11,7 +11,7 @@
  * `normalizePlate` is idempotent on canonical input.
  */
 
-export const CANONICAL_PLATE_REGEX = /^\d{2}(?:[A-Z]{1,2}|[A-Z]\d)-(?:\d{3}\.\d{2}|\d{4})$/;
+const CANONICAL_PLATE_REGEX = /^\d{2}(?:[A-Z]{1,2}|[A-Z]\d)-(?:\d{3}\.\d{2}|\d{4})$/;
 
 /** Popular car makes on Vietnamese roads. */
 export const CAR_BRANDS = [

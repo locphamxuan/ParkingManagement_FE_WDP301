@@ -208,7 +208,7 @@ export function DatePicker({
 
             {/* Calendar Grid */}
             <div className="grid grid-cols-7 gap-1 text-center">
-              {days.map((item, idx) => {
+              {days.map((item) => {
                 const isSelected =
                   isValidDate &&
                   item.currentMonth &&

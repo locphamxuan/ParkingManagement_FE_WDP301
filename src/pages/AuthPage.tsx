@@ -5,7 +5,7 @@ import { AuthPromoPanel } from '@/components/auth/AuthPromoPanel';
 import { AuthNoticeModal } from '@/components/auth/AuthNoticeModal';
 import styles from '@/styles/modules/AuthPage.module.css';
 
-export type AuthMode = 'login' | 'register' | 'forgot-password' | 'reset-password';
+export type AuthMode = 'login' | 'register' | 'verify-registration' | 'forgot-password' | 'reset-password';
 
 const fieldLabel =
   'block font-mono text-[10px] font-black uppercase tracking-[0.16em] text-sky-600';
@@ -54,11 +54,11 @@ interface AuthPageProps {
 export default function AuthPage({ mode, notice, onModeChange, onSubmit, isLoading }: AuthPageProps) {
   const {
     localNotice, setLocalNotice, form, forgotEmail, setForgotEmail,
-    resetPasswordForm, setResetPasswordForm, savedAccounts, showDropdown, setShowDropdown,
+    resetPasswordForm, setResetPasswordForm, registrationOtp, setRegistrationOtp, savedAccounts, showDropdown, setShowDropdown,
     setResetToken, showPassword, setShowPassword, showConfirmPassword, setShowConfirmPassword,
     modal, closeModal, dropdownRef, emailInputRef, passwordInputRef,
     deleteSavedAccount, handleSelectAccount,
-    title, description, handleChange, handleSubmit, handleForgotPassword, handleResetPassword,
+    title, description, handleChange, handleSubmit, handleResendRegistration, handleForgotPassword, handleResetPassword,
   } = useAuthForm({ mode, onModeChange, onSubmit });
 
   const prefersReducedMotion = useReducedMotion();
@@ -262,6 +262,61 @@ export default function AuthPage({ mode, notice, onModeChange, onSubmit, isLoadi
                     )}
                   </button>
                 </div>
+              </form>
+            ) : mode === 'verify-registration' ? (
+              <form onSubmit={handleSubmit} noValidate className="space-y-4">
+                <div className="rounded-2xl border border-blue-100 bg-blue-50/70 p-4 text-center">
+                  <p className="text-xs font-bold leading-relaxed text-slate-600">
+                    We sent a code to <span className="font-black text-blue-700">{form.email}</span>.
+                  </p>
+                  <p className="mt-1 text-[11px] font-semibold text-slate-500">The code expires in 5 minutes.</p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label htmlFor="registration-otp" className={fieldLabel}>Verification code</label>
+                  <input
+                    id="registration-otp"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    value={registrationOtp}
+                    onChange={(e) => setRegistrationOtp(e.target.value.replace(/\D/g, ''))}
+                    className={`${fieldInput} text-center font-mono text-lg tracking-[0.45em]`}
+                    placeholder="000000"
+                    aria-describedby="registration-otp-help"
+                    autoFocus
+                  />
+                  <p id="registration-otp-help" className="text-[11px] font-medium text-slate-500">
+                    Check your inbox and spam folder.
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-3 pt-2 sm:flex-row">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onModeChange('register');
+                      setRegistrationOtp('');
+                      setLocalNotice(null);
+                    }}
+                    className={`${secondaryButton} sm:flex-1`}
+                  >
+                    Edit details
+                  </button>
+                  <button type="submit" disabled={isLoading} aria-busy={isLoading} className={`${primaryButton} sm:flex-1`}>
+                    {isLoading ? <><Loader2 size={14} className="animate-spin" /> Verifying...</> : 'Verify & create account'}
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleResendRegistration}
+                  disabled={isLoading}
+                  className="mx-auto flex h-11 items-center rounded-lg px-2 text-xs font-bold text-blue-600 transition-colors hover:text-blue-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 disabled:opacity-60"
+                >
+                  Resend verification code
+                </button>
               </form>
             ) : (
               <form onSubmit={handleSubmit} noValidate className="space-y-4">

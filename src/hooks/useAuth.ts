@@ -3,6 +3,7 @@ import { useAuthStore } from '@/store/authStore';
 export function useAuth() {
   const session = useAuthStore((state) => state.session);
   const login = useAuthStore((state) => state.login);
+  const completeRegistration = useAuthStore((state) => state.completeRegistration);
   const logout = useAuthStore((state) => state.logout);
   const updateProfile = useAuthStore((state) => state.updateProfile);
   const setDefaultLicensePlate = useAuthStore((state) => state.setDefaultLicensePlate);
@@ -33,6 +34,7 @@ export function useAuth() {
     user,
     refresh,
     login,
+    completeRegistration,
     logout,
     updateProfile,
     setDefaultLicensePlate,

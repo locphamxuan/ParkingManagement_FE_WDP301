@@ -154,7 +154,7 @@ export default function ReportIncidentPage() {
     <main className="relative z-10">
       <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
         <div className="mb-6">
-          <h1 className="flex items-center gap-2 text-2xl font-black text-white">
+          <h1 className="flex items-center gap-2 text-2xl font-black text-slate-900">
             <ShieldAlert size={20} className="text-cyan-400" /> Report an Incident
           </h1>
           <p className="mt-1 text-xs font-semibold text-slate-400">Tell us what happened — on-site staff will handle it and you will be notified.</p>
@@ -162,7 +162,7 @@ export default function ReportIncidentPage() {
 
         {/* Current parking session */}
         {loadingSession ? (
-          <div className="mb-4 rounded-2xl border border-white/10 bg-slate-900/50 p-4 text-center text-xs text-slate-400">
+          <div className="user-surface-muted mb-4 rounded-2xl p-4 text-center text-xs text-slate-500">
             <Loader2 size={14} className="mx-auto mb-1 animate-spin text-cyan-300" /> Checking your active session...
           </div>
         ) : activeSession ? (
@@ -170,25 +170,25 @@ export default function ReportIncidentPage() {
             <ParkingCircle size={20} className="shrink-0 text-cyan-300" />
             <div>
               <p className="text-[10px] font-bold uppercase tracking-wider text-cyan-300">This report will be linked to your current session</p>
-              <p className="mt-0.5 text-sm font-semibold text-white">
+              <p className="mt-0.5 text-sm font-semibold text-slate-900">
                 {activeSession.plateNumber} · {activeSession.building?.name ?? 'Unknown building'}
                 {activeSession.slot?.code ? ` · Slot ${activeSession.slot.code}` : ''}
               </p>
             </div>
           </div>
         ) : (
-          <div className="mb-4 rounded-2xl border border-amber-400/25 bg-amber-500/10 p-4 text-xs font-semibold text-amber-300">
+          <div className="mb-4 rounded-2xl border border-amber-400/25 bg-amber-50 p-4 text-xs font-semibold text-amber-800">
             No active parking session found. The report will be linked to your active package's building, if any.
           </div>
         )}
 
         {/* Form */}
-        <div className="rounded-3xl border border-white/10 bg-slate-900/55 p-6">
+        <div className="user-surface rounded-3xl p-6">
           <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Incident type</label>
           <select
             value={type}
             onChange={(e) => setType(e.target.value as UserIncidentType)}
-            className="w-full rounded-xl px-3 py-2.5 text-sm font-semibold text-white"
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:border-orange-400/60 focus:ring-4 focus:ring-orange-400/10"
           >
             {violationTypes.length > 0 && (
               <optgroup label="Report a violation">
@@ -214,7 +214,7 @@ export default function ReportIncidentPage() {
                 value={violatorPlate}
                 onChange={(e) => setViolatorPlate(e.target.value.toUpperCase())}
                 placeholder="e.g. 59G2-038.80"
-                className="w-full rounded-xl border border-white/10 bg-slate-950 px-3 py-2.5 text-sm font-semibold text-white outline-none focus:border-orange-400/60"
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:border-orange-400/60 focus:ring-4 focus:ring-orange-400/10"
               />
             </div>
           )}
@@ -226,7 +226,7 @@ export default function ReportIncidentPage() {
               onChange={(e) => setNote(e.target.value)}
               rows={4}
               placeholder="Describe what happened..."
-              className="w-full resize-none rounded-xl border border-white/10 bg-slate-950 px-3 py-2.5 text-sm font-semibold text-white outline-none focus:border-orange-400/60"
+              className="w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:border-orange-400/60 focus:ring-4 focus:ring-orange-400/10"
             />
           </div>
 
@@ -234,8 +234,8 @@ export default function ReportIncidentPage() {
             <div
               className={`mt-4 flex items-center gap-2 rounded-xl border p-3 text-sm font-semibold ${
                 message.type === 'ok'
-                  ? 'border-emerald-400/30 bg-emerald-500/10 text-emerald-300'
-                  : 'border-rose-400/30 bg-rose-500/10 text-rose-300'
+                  ? 'border-emerald-400/30 bg-emerald-50 text-emerald-700'
+                  : 'border-rose-400/30 bg-rose-50 text-rose-700'
               }`}
             >
               {message.type === 'ok' ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
@@ -256,35 +256,35 @@ export default function ReportIncidentPage() {
 
         {/* My incidents */}
         <div className="mt-8">
-          <h2 className="mb-3 text-sm font-black uppercase tracking-wider text-white">My Incidents</h2>
+          <h2 className="mb-3 text-sm font-black uppercase tracking-wider text-slate-900">My Incidents</h2>
           {loading ? (
-            <div className="rounded-xl border border-white/10 bg-slate-900/50 p-4 text-center text-xs text-slate-400">
+            <div className="user-surface-muted rounded-xl p-4 text-center text-xs text-slate-500">
               <Loader2 size={16} className="mx-auto mb-2 animate-spin text-orange-300" /> Loading...
             </div>
           ) : items.length === 0 ? (
-            <p className="rounded-xl border border-white/10 bg-slate-900/50 p-4 text-center text-xs text-slate-500">
+            <p className="user-surface-muted rounded-xl p-4 text-center text-xs text-slate-500">
               You have not reported any incidents.
             </p>
           ) : (
             <div className="space-y-2">
               {items.map((it) => (
-                <div key={it._id} className="rounded-xl border border-white/10 bg-slate-950/60 p-4">
+                <div key={it._id} className="user-surface-muted rounded-xl p-4">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-mono text-xs font-black text-orange-300">{it.code}</span>
+                    <span className="font-mono text-xs font-black text-orange-700">{it.code}</span>
                     <span className={`rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${STATUS_BADGE[it.status] ?? STATUS_BADGE.open}`}>
                       {it.status}
                     </span>
                   </div>
-                  <p className="mt-1 text-xs font-semibold text-slate-200">{typeLabel(it.type)}</p>
+                  <p className="mt-1 text-xs font-semibold text-slate-800">{typeLabel(it.type)}</p>
                   {it.note && <p className="mt-1 text-[11px] text-slate-400">{it.note}</p>}
                   {it.slot?.code && <p className="mt-1 text-[10px] text-slate-500">Slot: {it.slot.code}</p>}
                   {it.status === 'escalated' && (
-                    <p className="mt-1 text-[10px] text-orange-300">
+                    <p className="mt-1 text-[10px] text-orange-700">
                       The reported plate has no registered account in this building — a manager is handling it directly.
                     </p>
                   )}
                   {it.resolutionNote && (
-                    <p className="mt-1 text-[11px] text-emerald-300/90">Resolution: {it.resolutionNote}</p>
+                    <p className="mt-1 text-[11px] text-emerald-700">Resolution: {it.resolutionNote}</p>
                   )}
                   <p className="mt-1 text-[10px] text-slate-500">{fmtDate(it.createdAt)}</p>
                 </div>

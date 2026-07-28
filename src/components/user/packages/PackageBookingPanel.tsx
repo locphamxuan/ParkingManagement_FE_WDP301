@@ -28,16 +28,16 @@ export function PackageBookingPanel({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
-      className={`space-y-5 transition-all duration-200 ${disabled ? 'opacity-30' : ''}`}
+      className="space-y-5"
     >
       {/* Package Cards */}
-      <div className="glass-panel-white rounded-3xl p-6 relative">
-        {disabled && (
-          <div className="absolute inset-0 bg-transparent cursor-not-allowed z-20" title="Please select vehicle type before selecting package." />
-        )}
+      <div className="user-surface rounded-3xl p-6">
         <div className="flex items-center gap-2 mb-4">
           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-300/70">Select long-term package</span>
         </div>
+        {disabled && (
+          <p className="mb-4 rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-xs font-medium text-blue-700">Choose a vehicle type to see which packages fit your vehicle.</p>
+        )}
 
         {packages.length === 0 ? (
           <p className="text-sm text-slate-500 font-semibold py-4 text-center">
@@ -58,10 +58,11 @@ export function PackageBookingPanel({
                   pkg={pkg}
                   isSelected={isSelected}
                   isLocked={isLocked}
+                  isDisabled={disabled}
                   cat={cat}
                   colors={colors}
                   onClick={() => {
-                    if (isLocked) return;
+                    if (disabled || isLocked) return;
                     onSelectPackage(pkg);
                   }}
                 />
@@ -73,10 +74,7 @@ export function PackageBookingPanel({
 
       {/* Package Date — always starts immediately at purchase time */}
       {selectedPkg && (
-        <div className="glass-panel-white rounded-3xl p-6 relative">
-          {disabled && (
-            <div className="absolute inset-0 bg-transparent cursor-not-allowed z-20" title="Please select vehicle type before purchasing." />
-          )}
+        <div className="user-surface rounded-3xl p-6">
           <div className="flex items-center gap-2 mb-2">
             <CalendarClock size={16} className="text-purple-300/70" />
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-300/70">Package Start Date</span>

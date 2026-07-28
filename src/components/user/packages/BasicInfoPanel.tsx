@@ -30,7 +30,7 @@ export function BasicInfoPanel({
   plateOptions,
 }: BasicInfoPanelProps) {
   return (
-    <div className="glass-panel-white rounded-3xl p-6 relative z-30">
+    <div className="user-surface rounded-3xl p-6 relative z-30">
       <div className="flex items-center gap-2 mb-4">
         <Building2 size={16} className="text-cyan-400" />
         <span className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-400">Basic Information</span>
@@ -65,10 +65,7 @@ export function BasicInfoPanel({
       </div>
 
       {/* Plate selection right below vehicle type */}
-      <div className={`mt-4 relative z-10 transition-all duration-200 ${!selectedVehicleType ? 'opacity-40' : ''}`}>
-        {!selectedVehicleType && (
-          <div className="absolute inset-0 bg-transparent cursor-not-allowed z-20" title="Please select vehicle type before selecting plate." />
-        )}
+      <div className="mt-4 relative z-10">
         <div className="flex items-center gap-2 mb-2">
           <Zap size={14} className="text-amber-500" />
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">License Plate</span>
@@ -86,6 +83,9 @@ export function BasicInfoPanel({
           ]}
           placeholder="-- Select plate --"
         />
+        {!selectedVehicleType && (
+          <p className="mt-2 text-xs font-medium text-slate-500">Choose a vehicle type to unlock your registered plates.</p>
+        )}
       </div>
     </div>
   );

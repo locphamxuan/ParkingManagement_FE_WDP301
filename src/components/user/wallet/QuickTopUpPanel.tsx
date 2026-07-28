@@ -31,10 +31,10 @@ export function QuickTopUpPanel({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.05 }}
-      className="flex flex-col justify-between rounded-3xl border border-white/[0.06] bg-white/[0.02] p-6 shadow-glass backdrop-blur-xl"
+      className="user-surface flex flex-col justify-between rounded-3xl p-6"
     >
       <div>
-        <h2 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-white">
+        <h2 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-slate-900">
           <Plus size={16} className="text-emerald-400" /> Quick Deposit
         </h2>
 
@@ -49,7 +49,7 @@ export function QuickTopUpPanel({
                 onClick={() => onSelectAmount(amount)}
                 className={`relative overflow-hidden rounded-xl border py-3.5 text-sm font-bold transition-all duration-300 active:scale-95 ${isSelected
                     ? 'border-orange-500 bg-gradient-to-br from-orange-500/15 to-amber-500/5 text-orange-200 shadow-[0_0_15px_rgba(249,115,22,0.15)] ring-1 ring-orange-500/20'
-                    : 'border-white/[0.05] bg-white/[0.02] text-slate-300 hover:border-white/[0.15] hover:bg-white/[0.05] hover:text-white'
+                    : 'border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50'
                   }`}
               >
                 {fmtMoney(amount)}
@@ -70,7 +70,7 @@ export function QuickTopUpPanel({
                 value={customAmount}
                 onChange={(e) => onChangeCustomAmount(e.target.value)}
                 placeholder="Enter custom amount"
-                className="w-full rounded-xl border border-white/[0.08] bg-white/[0.01] px-4 py-3 text-sm font-semibold text-white placeholder-slate-500 outline-none transition-all duration-300 focus:border-orange-500/40 focus:bg-white/[0.03] focus:ring-1 focus:ring-orange-500/20"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 placeholder-slate-400 outline-none transition-all duration-300 focus:border-orange-500/40 focus:ring-4 focus:ring-orange-500/10"
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-500">đ</span>
             </div>
@@ -78,7 +78,7 @@ export function QuickTopUpPanel({
               type="button"
               onClick={onCustomTopUp}
               disabled={isSubmitting}
-              className="rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 text-xs font-bold text-white transition-all duration-300 hover:bg-orange-500 hover:text-black hover:border-orange-500 hover:shadow-[0_0_10px_rgba(249,115,22,0.3)] disabled:opacity-50 disabled:pointer-events-none active:scale-95"
+              className="rounded-xl border border-slate-200 bg-slate-50 px-4 text-xs font-bold text-slate-700 transition-all duration-300 hover:bg-orange-500 hover:text-slate-950 hover:border-orange-500 hover:shadow-[0_0_10px_rgba(249,115,22,0.3)] disabled:opacity-50 disabled:pointer-events-none active:scale-95"
             >
               OK
             </button>

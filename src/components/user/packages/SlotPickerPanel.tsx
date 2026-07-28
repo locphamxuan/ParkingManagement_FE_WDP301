@@ -16,10 +16,7 @@ export function SlotPickerPanel({
   onOpenSlotModal,
 }: SlotPickerPanelProps) {
   return (
-    <div className={`glass-panel-white rounded-3xl p-6 transition-all duration-200 relative ${disabled ? 'opacity-50' : ''}`}>
-      {disabled && (
-        <div className="absolute inset-0 bg-transparent cursor-not-allowed z-20" title="Please select vehicle type before selecting slot." />
-      )}
+    <div className="user-surface rounded-3xl p-6">
       <div className="flex items-center gap-2 mb-3">
         <MapPin size={16} className="text-cyan-300/70" />
         <span className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300/70">Select Slot</span>
@@ -29,7 +26,7 @@ export function SlotPickerPanel({
         <motion.button
           type="button"
           onClick={onOpenSlotModal}
-          disabled={!selectedBuildingId}
+          disabled={disabled || !selectedBuildingId}
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
           className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-cyan-300/20 bg-cyan-300/5 px-4 py-4 text-sm font-black uppercase tracking-wider text-cyan-200 transition-all hover:bg-cyan-300/10 disabled:cursor-not-allowed disabled:border-slate-700 disabled:text-slate-500 disabled:bg-transparent"
@@ -41,6 +38,7 @@ export function SlotPickerPanel({
           <p className="mt-1 font-mono text-xl font-black text-cyan-300">{selectedSlot || '—'}</p>
         </div>
       </div>
+      {disabled && <p className="mt-3 text-xs font-medium text-slate-500">Choose a vehicle type before selecting a fixed slot.</p>}
     </div>
   );
 }
@@ -51,7 +49,7 @@ interface PackageInfoPanelProps {
 
 export function PackageInfoPanel({ selectedPkg }: PackageInfoPanelProps) {
   return (
-    <div className="glass-panel-white rounded-3xl border border-blue-500/20 bg-blue-500/5 p-6 shadow-lg">
+    <div className="user-surface rounded-3xl border border-blue-200 bg-blue-50/70 p-6">
       <p className="text-[11px] text-cyan-200/90">
         Package allows free parking up to <strong>{selectedPkg?.maxHoursPerDay ? `${selectedPkg.maxHoursPerDay}h` : 'according to package'}/day</strong>
         {' '}(excess hours billed at regular hourly rates). You may optionally <strong>reserve a fixed slot</strong> that stays yours

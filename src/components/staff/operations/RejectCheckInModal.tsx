@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { normalizePlate } from '@/utils/plate';
 import type { StaffOperations } from '@/hooks/staff/useStaffOperations';
@@ -17,7 +18,14 @@ export function RejectCheckInModal({ ops }: { ops: StaffOperations }) {
             <p className="text-[10px] font-black uppercase tracking-[0.24em] text-rose-400">Reject entry</p>
             <h3 className="text-xl font-semibold text-foreground">Rejection reason</h3>
           </div>
-          <button onClick={() => { setRejectOpen(false); setRejectReason(''); }} className="text-muted-foreground hover:text-foreground transition">✕</button>
+          <button
+            type="button"
+            onClick={() => { setRejectOpen(false); setRejectReason(''); }}
+            aria-label="Close rejection dialog"
+            className="flex h-11 w-11 items-center justify-center rounded-xl text-muted-foreground transition hover:bg-muted hover:text-foreground"
+          >
+            <X size={18} />
+          </button>
         </div>
         <p className="text-xs text-muted-foreground mb-3">
           Plate <strong className="text-foreground font-mono">{normalizePlate(plateNumber) || plateNumber || '—'}</strong>. The system will send a notification with the reason to the guest account (if the plate is registered).

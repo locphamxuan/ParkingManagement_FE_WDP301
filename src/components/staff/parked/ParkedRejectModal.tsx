@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface ParkedRejectModalProps {
@@ -22,7 +23,14 @@ export function ParkedRejectModal({ open, reason, setReason, onClose, onReject }
             <p className="text-[10px] font-black uppercase tracking-[0.24em] text-rose-400">Reject exit</p>
             <h3 className="text-xl font-semibold text-foreground">Rejection reason</h3>
           </div>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition">✕</button>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close rejection dialog"
+            className="flex h-11 w-11 items-center justify-center rounded-xl text-muted-foreground transition hover:bg-muted hover:text-foreground"
+          >
+            <X size={18} />
+          </button>
         </div>
         <textarea
           value={reason}

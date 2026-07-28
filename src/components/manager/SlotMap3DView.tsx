@@ -60,7 +60,8 @@ export function SlotMap3DView({
               type="button"
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0}
-              className="p-1 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              aria-label="Show previous bays"
+              className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-300 transition-all hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
             >
               <ChevronLeft size={14} />
             </button>
@@ -71,7 +72,8 @@ export function SlotMap3DView({
               type="button"
               onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
               disabled={page >= pageCount - 1}
-              className="p-1 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              aria-label="Show next bays"
+              className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-300 transition-all hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
             >
               <ChevronRight size={14} />
             </button>
@@ -84,21 +86,21 @@ export function SlotMap3DView({
             <button
               type="button"
               onClick={() => onOpenMultiSlot(5)}
-              className="px-3.5 py-2 rounded-xl bg-blue-600/90 border border-blue-400/40 text-white font-mono text-[10px] font-black uppercase tracking-wider backdrop-blur-md shadow-lg hover:bg-blue-500 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-1.5 cursor-pointer"
+              className="flex min-h-11 items-center gap-1.5 rounded-xl border border-blue-400/40 bg-blue-600/90 px-3.5 py-2 text-[10px] font-black uppercase tracking-wider text-white shadow-lg backdrop-blur-md transition-all duration-200 hover:scale-105 hover:bg-blue-500 active:scale-95"
             >
               <Plus size={12} className="stroke-[3]" /> +5 Slots
             </button>
             <button
               type="button"
               onClick={() => onOpenMultiSlot(10)}
-              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 border border-blue-400/40 text-white font-mono text-[10px] font-black uppercase tracking-wider backdrop-blur-md shadow-lg hover:brightness-110 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-1.5 cursor-pointer"
+              className="flex min-h-11 items-center gap-1.5 rounded-xl border border-blue-400/40 bg-gradient-to-r from-blue-600 to-indigo-600 px-3.5 py-2 text-[10px] font-black uppercase tracking-wider text-white shadow-lg backdrop-blur-md transition-all duration-200 hover:scale-105 hover:brightness-110 active:scale-95"
             >
               <Zap size={12} className="text-amber-300 fill-amber-300" /> +10 Slots
             </button>
             <button
               type="button"
               onClick={() => onOpenMultiSlot(20)}
-              className="px-3.5 py-2 rounded-xl bg-slate-900/80 border border-white/10 text-slate-200 font-mono text-[10px] font-black uppercase tracking-wider backdrop-blur-md shadow-lg hover:bg-slate-800 hover:border-white/20 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
+              className="min-h-11 rounded-xl border border-white/10 bg-slate-900/80 px-3.5 py-2 text-[10px] font-black uppercase tracking-wider text-slate-200 shadow-lg backdrop-blur-md transition-all duration-200 hover:scale-105 hover:border-white/20 hover:bg-slate-800 active:scale-95"
             >
               +20 Batch
             </button>
@@ -149,7 +151,7 @@ export function SlotMap3DView({
             <button
               type="button"
               onClick={() => { setRx(60); setRz(-45); }}
-              className="w-full py-2.5 rounded-xl border border-white/10 hover:border-blue-500/30 text-white font-mono text-[9px] font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 hover:bg-slate-950/50 cursor-pointer"
+              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-white/10 py-2.5 text-[9px] font-black uppercase tracking-widest text-white transition-all duration-300 hover:border-blue-500/30 hover:bg-slate-950/50"
             >
               <RotateCcw size={12} /> Reset View
             </button>

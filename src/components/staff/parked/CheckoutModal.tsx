@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { CheckCircle2, UserSquare, ArrowLeft, ArrowRight, Wallet, Banknote, QrCode as QrIcon } from 'lucide-react';
+import { CheckCircle2, UserSquare, ArrowLeft, ArrowRight, Wallet, Banknote, QrCode as QrIcon, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LivePortraitCamera } from '@/components/staff/LivePortraitCamera';
 import type { LiveCameraHandle } from '@/components/staff/LivePlateCamera';
@@ -79,8 +79,13 @@ export function CheckoutModal({
             <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-sky-500">Payment &amp; Release</p>
             <LicensePlate plateNumber={checkoutTarget.plateNumber} className="mt-1.5" />
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-700 transition text-lg">
-            ✕
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close checkout dialog"
+            className="flex h-11 w-11 items-center justify-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+          >
+            <X size={18} />
           </button>
         </div>
 

@@ -424,7 +424,7 @@ export function ManagerWalletPage() {
                           size="sm"
                           disabled={confirmingId === pay._id}
                           onClick={() => handleConfirmCash(pay._id)}
-                          className="h-8 px-3 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-650 text-white font-extrabold text-[10px] uppercase tracking-wider shadow-sm hover:brightness-110"
+                          className="h-11 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-650 px-3 text-[10px] font-extrabold uppercase tracking-wider text-white shadow-sm hover:brightness-110"
                         >
                           {confirmingId === pay._id ? (
                             <Loader2 size={10} className="animate-spin" />

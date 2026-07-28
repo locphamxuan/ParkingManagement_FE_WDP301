@@ -116,14 +116,16 @@ export function StaffOperationsPage() {
                 <button
                   type="button"
                   onClick={() => setMultiCamMode(false)}
-                  className={`rounded-lg px-3 py-1.5 transition-all duration-200 ${!multiCamMode ? 'bg-sky-500 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                  aria-pressed={!multiCamMode}
+                  className={`min-h-11 rounded-lg px-3 py-1.5 transition-all duration-200 ${!multiCamMode ? 'bg-sky-500 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
                 >
                   Sequential
                 </button>
                 <button
                   type="button"
                   onClick={() => setMultiCamMode(true)}
-                  className={`rounded-lg px-3 py-1.5 transition-all duration-200 ${multiCamMode ? 'bg-sky-500 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                  aria-pressed={multiCamMode}
+                  className={`min-h-11 rounded-lg px-3 py-1.5 transition-all duration-200 ${multiCamMode ? 'bg-sky-500 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
                 >
                   Multi-camera
                 </button>
@@ -133,7 +135,7 @@ export function StaffOperationsPage() {
                 variant="secondary"
                 size="sm"
                 onClick={() => { setCameraSettingsOpen(true); void requestAndRefresh(); }}
-                className="gap-1.5 text-xs h-8 rounded-lg bg-sky-50 border border-sky-100 text-sky-700 hover:bg-sky-100/70"
+                className="h-11 gap-1.5 rounded-lg border border-sky-100 bg-sky-50 text-xs text-sky-700 hover:bg-sky-100/70"
               >
                 <Settings size={13} /> Camera settings
               </Button>
@@ -183,14 +185,16 @@ export function StaffOperationsPage() {
                   <button
                     type="button"
                     onClick={() => setIdentifyMode('plate')}
-                    className={`flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg text-xs font-extrabold transition-all duration-200 ${identifyMode === 'plate' ? 'bg-white text-sky-600 shadow-sm border border-sky-100/50' : 'text-slate-500 hover:text-slate-800'}`}
+                    aria-pressed={identifyMode === 'plate'}
+                    className={`flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg text-xs font-extrabold transition-all duration-200 ${identifyMode === 'plate' ? 'bg-white text-sky-600 shadow-sm border border-sky-100/50' : 'text-slate-500 hover:text-slate-800'}`}
                   >
                     <ScanLine size={13} className="text-sky-500" /> Scan plate (AI)
                   </button>
                   <button
                     type="button"
                     onClick={() => setIdentifyMode('qr')}
-                    className={`flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg text-xs font-extrabold transition-all duration-200 ${identifyMode === 'qr' ? 'bg-white text-sky-600 shadow-sm border border-sky-100/50' : 'text-slate-500 hover:text-slate-800'}`}
+                    aria-pressed={identifyMode === 'qr'}
+                    className={`flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg text-xs font-extrabold transition-all duration-200 ${identifyMode === 'qr' ? 'bg-white text-sky-600 shadow-sm border border-sky-100/50' : 'text-slate-500 hover:text-slate-800'}`}
                   >
                     <QrCode size={13} className="text-sky-500" /> Scan QR
                   </button>

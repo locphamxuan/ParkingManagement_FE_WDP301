@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Settings } from 'lucide-react';
+import { Settings, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { type CameraRole } from '@/hooks/useCameraDevices';
 import type { StaffOperations } from '@/hooks/staff/useStaffOperations';
@@ -18,7 +18,14 @@ export function CameraSettingsModal({ ops }: { ops: StaffOperations }) {
             <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary">Device</p>
             <h3 className="text-xl font-semibold text-foreground">Camera settings</h3>
           </div>
-          <button onClick={() => setCameraSettingsOpen(false)} className="text-muted-foreground hover:text-foreground transition">✕</button>
+          <button
+            type="button"
+            onClick={() => setCameraSettingsOpen(false)}
+            aria-label="Close camera settings"
+            className="flex h-11 w-11 items-center justify-center rounded-xl text-muted-foreground transition hover:bg-muted hover:text-foreground"
+          >
+            <X size={18} />
+          </button>
         </div>
 
         <p className="mb-4 text-xs text-muted-foreground">

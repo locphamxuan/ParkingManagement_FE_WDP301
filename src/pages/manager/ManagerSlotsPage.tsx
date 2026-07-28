@@ -412,9 +412,7 @@ export function ManagerSlotsPage() {
       ) : (
         <div>
           {viewMode === 'list' ? (
-            <div className="bg-white rounded-2xl border-2 border-blue-105 p-6 shadow-sm">
-              <DataTable title={`Slots (${items.length})`} rows={items} columns={columns} />
-            </div>
+            <DataTable title={`Slots (${items.length})`} rows={items} columns={columns} />
           ) : (
             /* Sci-Fi 3D Visual Map Mode */
             <SlotMap3DView

@@ -252,20 +252,18 @@ export function ManagerGatesPage() {
 
       {/* Main Table Card */}
       {loading ? (
-        <div className="flex items-center gap-2 text-slate-650 text-xs font-bold p-8 justify-center bg-white rounded-2xl border border-slate-200/80 shadow-sm">
+        <div className="flex items-center gap-2 text-slate-600 text-xs font-bold p-8 justify-center bg-white rounded-2xl border border-slate-200 shadow-sm">
           <Loader2 className="animate-spin mr-2" size={16} />
           <span>Loading gate configurations...</span>
         </div>
       ) : error ? (
         <p className="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 p-3.5 rounded-2xl">{error}</p>
       ) : items.length === 0 ? (
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-8 text-center text-xs font-bold text-slate-500 italic shadow-sm">
+        <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-xs font-bold text-slate-500 italic shadow-sm">
           No gates configured yet. Tap “Add gate” to create one.
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm">
-          <DataTable title="Gates" rows={items} columns={columns} />
-        </div>
+        <DataTable title="Gates" rows={items} columns={columns} />
       )}
 
       <ModalForm

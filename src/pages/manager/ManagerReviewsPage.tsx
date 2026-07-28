@@ -253,21 +253,19 @@ export function ManagerReviewsPage() {
       )}
 
       {/* Data Table */}
-      <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm overflow-hidden">
-        {loading ? (
-          <div className="flex items-center gap-2 text-slate-650 text-xs font-bold p-8 justify-center bg-white rounded-2xl">
-            <Loader2 className="animate-spin mr-2" size={16} />
-            <span>Loading reviews and feedback...</span>
-          </div>
-        ) : filteredReviews.length === 0 ? (
-          <div className="py-12 text-center text-slate-800">
-            <MessageSquare size={32} className="mx-auto mb-2 text-slate-300" />
-            <p className="text-slate-500 font-semibold text-xs">No reviews found matching this filter.</p>
-          </div>
-        ) : (
-          <DataTable title="Reviews" columns={columns} rows={filteredReviews} />
-        )}
-      </div>
+      {loading ? (
+        <div className="flex items-center gap-2 text-slate-600 text-xs font-bold p-8 justify-center bg-white rounded-2xl border border-slate-200 shadow-sm">
+          <Loader2 className="animate-spin mr-2" size={16} />
+          <span>Loading reviews and feedback...</span>
+        </div>
+      ) : filteredReviews.length === 0 ? (
+        <div className="py-12 text-center text-slate-800 bg-white rounded-2xl border border-slate-200 shadow-sm">
+          <MessageSquare size={32} className="mx-auto mb-2 text-slate-300" />
+          <p className="text-slate-500 font-semibold text-xs">No reviews found matching this filter.</p>
+        </div>
+      ) : (
+        <DataTable title="Reviews" columns={columns} rows={filteredReviews} />
+      )}
 
       {/* Reply Modal */}
       <Modal title="Reply to Review" open={replyModalOpen} onOpenChange={setReplyModalOpen}>

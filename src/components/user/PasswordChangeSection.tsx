@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AlertCircle, CheckCircle2, KeyRound, Loader2 } from 'lucide-react';
 import { userApi } from '@/services/user/userApi';
+import { findPasswordWeakness } from '@/utils/passwordPolicy';
 
 export function PasswordChangeSection() {
   const [form, setForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
@@ -17,8 +18,9 @@ export function PasswordChangeSection() {
       setError('Please fill in all fields.');
       return;
     }
-    if (form.newPassword.length < 6) {
-      setError('New password must be at least 6 characters.');
+    const weakness = findPasswordWeakness(form.newPassword);
+    if (weakness) {
+      setError(weakness);
       return;
     }
     if (form.newPassword !== form.confirmPassword) {
@@ -32,8 +34,12 @@ export function PasswordChangeSection() {
         currentPassword: form.currentPassword,
         newPassword: form.newPassword,
       });
-      setSuccess('Password changed successfully!');
+      // Changing the password revokes every existing session server-side
+      // (tokenVersion bump), including this one — send the user back to login
+      // rather than letting the next request fail with a confusing 401.
+      setSuccess('Password changed successfully. Please sign in again.');
       setForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      window.setTimeout(() => window.dispatchEvent(new Event('auth-unauthorized')), 1500);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Password change failed. Check your current password.');
     } finally {

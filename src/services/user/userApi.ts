@@ -156,6 +156,10 @@ export interface UserWalletTransaction {
   createdAt: string;
 }
 
+/**
+ * Full record — only ever returned by authenticated endpoints (the owner's own
+ * /feedbacks/me, or the building-scoped manager endpoints).
+ */
 export interface Feedback {
   _id: string;
   user: { _id: string; fullName: string; email: string; avatar?: string | null };
@@ -168,6 +172,24 @@ export interface Feedback {
   status: 'pending' | 'resolved';
   staffReply?: string | null;
   repliedBy?: { _id: string; fullName: string; role: string } | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Public reviews DTO from the unauthenticated GET /users/feedbacks feed.
+ * Mirrors src/dtos/publicFeedback.dto.js on the backend. It deliberately has no
+ * reviewer identity, no parking-session/plate data and no image URLs — do not
+ * add them here expecting the server to send them.
+ */
+export interface PublicReview {
+  id: string;
+  rating: number;
+  comment: string;
+  building: { id: string; name: string | null; code: string | null } | null;
+  staffReply?: string | null;
+  repliedAt?: string | null;
+  status: 'resolved';
   createdAt: string;
   updatedAt: string;
 }
@@ -409,8 +431,9 @@ export const userApi = {
     list: (query?: { status?: 'pending' | 'resolved'; rating?: number; limit?: number; page?: number }) =>
       api.get<Wrap<ListResult<Feedback>>>('/users/feedbacks/me', { query }),
 
+    /** Public reviews feed — returns the PublicReview DTO, never full records. */
     listAll: (query?: { building?: string; rating?: number; limit?: number; page?: number }) =>
-      api.get<Wrap<ListResult<Feedback>>>('/users/feedbacks', { query }),
+      api.get<Wrap<ListResult<PublicReview>>>('/users/feedbacks', { query }),
 
     remove: (id: string) =>
       api.delete<Wrap<{ id: string }>>(`/users/feedbacks/${id}`),

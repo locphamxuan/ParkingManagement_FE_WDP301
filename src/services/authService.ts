@@ -44,6 +44,11 @@ export interface RegisterInput {
 export interface RegisterVerifyInput {
   email: string;
   otp: string;
+  /**
+   * Sent only here, in the OTP-verified request. The backend passes it straight
+   * to bcrypt — it is never stored anywhere before the email is verified.
+   */
+  password: string;
 }
 
 /**
@@ -116,34 +121,18 @@ export async function loginWithBackend(input: LoginInput): Promise<AuthSession> 
 }
 
 /**
- * Register directly (no OTP). POST /users/auth/register → { token, user }.
- */
-export async function registerWithBackend(input: RegisterInput): Promise<AuthSession> {
-  const payload = await requestJson<ApiAuthResponse>({
-    path: '/users/auth/register',
-    method: 'POST',
-    body: {
-      email: input.email.trim().toLowerCase(),
-      password: input.password,
-      fullName: input.fullName.trim(),
-      ...(input.phone ? { phone: input.phone.trim() } : {}),
-    },
-  });
-
-  return mapAuthSession(payload);
-}
-
-/**
  * Step 1 of OTP registration. POST /users/auth/register-request → sends an OTP
- * to the email. Returns the server message.
+ * to the email. Deliberately sends NO password: the backend would reject it
+ * anyway, and it must not exist server-side before the address is verified.
  */
-export async function requestRegistration(input: RegisterInput): Promise<{ message: string }> {
+export async function requestRegistration(
+  input: Omit<RegisterInput, 'password'>,
+): Promise<{ message: string }> {
   const payload = await requestJson<{ message?: string }>({
     path: '/users/auth/register-request',
     method: 'POST',
     body: {
       email: input.email.trim().toLowerCase(),
-      password: input.password,
       fullName: input.fullName.trim(),
       ...(input.phone ? { phone: input.phone.trim() } : {}),
     },
@@ -162,6 +151,7 @@ export async function verifyRegistration(input: RegisterVerifyInput): Promise<Au
     body: {
       email: input.email.trim().toLowerCase(),
       otp: input.otp.trim(),
+      password: input.password,
     },
   });
 

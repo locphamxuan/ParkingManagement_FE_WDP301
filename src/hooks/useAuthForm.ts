@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useSearchParams } from 'react-router-dom';
 import { forgotPassword, resetPassword } from '@/services/authService';
+import { findPasswordWeakness } from '@/utils/passwordPolicy';
 
 export type AuthMode = 'login' | 'register' | 'verify-registration' | 'forgot-password' | 'reset-password';
 
@@ -170,8 +171,9 @@ export function useAuthForm({ mode, onModeChange, onSubmit }: UseAuthFormArgs) {
         setLocalNotice({ message: 'Invalid email address!', type: 'error' });
         return;
       }
-      if (form.password.length < 6) {
-        setLocalNotice({ message: 'Password must be at least 6 characters!', type: 'error' });
+      const weakness = findPasswordWeakness(form.password);
+      if (weakness) {
+        setLocalNotice({ message: weakness, type: 'error' });
         return;
       }
       if (form.password !== form.confirmPassword) {
@@ -204,8 +206,17 @@ export function useAuthForm({ mode, onModeChange, onSubmit }: UseAuthFormArgs) {
         setLocalNotice({ message: 'Please enter the 6-digit verification code.', type: 'error' });
         return;
       }
+      // The password lives only in this form's React state and is sent for the
+      // first time here, with the verified OTP.
+      if (!form.password) {
+        setLocalNotice({
+          message: 'Your registration details were lost. Please start registration again.',
+          type: 'error',
+        });
+        return;
+      }
       try {
-        await onSubmit({ mode, payload: { email: form.email.trim(), otp } });
+        await onSubmit({ mode, payload: { email: form.email.trim(), otp, password: form.password } });
       } catch {
         // Error already mapped in public auth flow hook
       }
@@ -296,8 +307,9 @@ export function useAuthForm({ mode, onModeChange, onSubmit }: UseAuthFormArgs) {
       setLocalNotice({ message: 'Please enter password!', type: 'error' });
       return;
     }
-    if (newPassword.length < 6) {
-      setLocalNotice({ message: 'Password must be at least 6 characters!', type: 'error' });
+    const resetWeakness = findPasswordWeakness(newPassword);
+    if (resetWeakness) {
+      setLocalNotice({ message: resetWeakness, type: 'error' });
       return;
     }
     if (newPassword !== confirmPassword) {

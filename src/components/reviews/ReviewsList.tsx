@@ -1,15 +1,12 @@
 import { MessageSquare, RefreshCw } from 'lucide-react';
-import type { Feedback } from '@/services/user/userApi';
+import type { PublicReview } from '@/services/user/userApi';
 import { ReviewCard } from '@/components/reviews/ReviewCard';
 
 interface ReviewsListProps {
   loading: boolean;
-  reviews: Feedback[];
+  reviews: PublicReview[];
   selectedBuilding: string;
   selectedRating: string;
-  currentUserId?: string;
-  deletingId: string | null;
-  onDelete: (feedbackId: string) => void;
   onWriteReview: () => void;
   page: number;
   totalPages: number;
@@ -22,9 +19,6 @@ export function ReviewsList({
   reviews,
   selectedBuilding,
   selectedRating,
-  currentUserId,
-  deletingId,
-  onDelete,
   onWriteReview,
   page,
   totalPages,
@@ -65,13 +59,7 @@ export function ReviewsList({
       {/* Reviews Grid */}
       <div className="grid gap-6 md:grid-cols-2">
         {reviews.map((item) => (
-          <ReviewCard
-            key={item._id}
-            item={item}
-            currentUserId={currentUserId}
-            deletingId={deletingId}
-            onDelete={onDelete}
-          />
+          <ReviewCard key={item.id} item={item} />
         ))}
       </div>
 

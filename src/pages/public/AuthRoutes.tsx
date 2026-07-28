@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import AuthPage, { AuthMode } from '@/pages/AuthPage';
-import { registerWithBackend } from '@/services/authService';
+import { requestRegistration, verifyRegistration } from '@/services/authService';
 import { useAuth } from '@/hooks/useAuth';
 
 function mapAuthErrorMessage(message: string): string {
@@ -28,6 +28,15 @@ function mapAuthErrorMessage(message: string): string {
   if (normalized.includes('invalid phone number')) {
     return 'Invalid phone number.';
   }
+  if (normalized.includes('otp must be a 6-digit number')) {
+    return 'Please enter the 6-digit code from your email.';
+  }
+  if (normalized.includes('invalid otp code')) {
+    return 'That verification code is incorrect. Please try again.';
+  }
+  if (normalized.includes('otp has expired') || normalized.includes('otp does not exist')) {
+    return 'This verification code has expired. Request a new code and try again.';
+  }
 
   return message || 'Unable to process your request, please try again.';
 }
@@ -47,7 +56,7 @@ function usePublicAuthFlow(initialMode: 'login' | 'register') {
     [navigate],
   );
 
-  const { login } = useAuth();
+  const { login, completeRegistration } = useAuth();
 
   const onSubmit = useCallback(
     async ({
@@ -77,13 +86,25 @@ function usePublicAuthFlow(initialMode: 'login' | 'register') {
           } else {
             navigate('/user-dashboard', { replace: true });
           }
-        } else {
-          await registerWithBackend({
+        } else if (m === 'register') {
+          await requestRegistration({
             email: payload.email,
             password: payload.password,
             fullName: payload.fullName,
             phone: payload.phone || undefined,
           });
+
+          setNotice({
+            message: 'We sent a verification code to your email.',
+            type: 'success',
+          });
+          setMode('verify-registration');
+        } else {
+          const session = await verifyRegistration({
+            email: payload.email,
+            otp: payload.otp,
+          });
+          completeRegistration(session);
 
           setNotice({
             message: 'Registration successful.',
@@ -99,7 +120,7 @@ function usePublicAuthFlow(initialMode: 'login' | 'register') {
         setLoading(false);
       }
     },
-    [login, navigate],
+    [completeRegistration, login, navigate],
   );
 
   return { mode, notice, onModeChange, onBackHome, onSubmit, isLoading };

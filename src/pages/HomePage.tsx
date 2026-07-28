@@ -329,26 +329,26 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
             className="sticky top-[57px] z-30 w-full"
           >
             <div className="max-w-6xl mx-auto px-4 py-2">
-              <div className="flex items-center gap-3 rounded-2xl border border-amber-500/25 bg-amber-500/10 backdrop-blur-md px-4 py-2.5 shadow-lg">
-                <div className="flex-shrink-0 p-1.5 rounded-lg bg-amber-500/15 text-amber-400">
+              <div className="flex items-center gap-3 rounded-2xl border border-amber-300 bg-amber-50/95 px-4 py-3 shadow-[0_12px_28px_rgba(180,83,9,0.1)] backdrop-blur-md">
+                <div className="flex-shrink-0 rounded-lg bg-amber-100 p-1.5 text-amber-700">
                   <CarFront size={15} />
                 </div>
                 <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                  <AlertTriangle size={12} className="text-amber-400 flex-shrink-0" />
-                  <p className="text-[11px] font-semibold text-amber-200/90 truncate">
+                  <AlertTriangle size={14} className="text-amber-700 flex-shrink-0" />
+                  <p className="text-[11px] font-semibold leading-relaxed text-amber-900">
                     Your account has no license plate registered — automatic check-in/out is disabled.
                   </p>
                 </div>
                 <a
                   href="/profile"
-                  className="flex-shrink-0 px-3 py-1 rounded-lg bg-amber-500/20 border border-amber-500/30 text-amber-300 font-black text-[10px] uppercase tracking-wider hover:bg-amber-500/30 transition-all duration-200 whitespace-nowrap"
+                  className="flex-shrink-0 rounded-lg bg-amber-500 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-amber-950 transition-colors duration-200 hover:bg-amber-600 whitespace-nowrap"
                 >
                   Update Now
                 </a>
                 <button
                   type="button"
                   onClick={() => setShowPlateBanner(false)}
-                  className="flex-shrink-0 p-1 rounded-lg text-amber-500/50 hover:text-amber-300 hover:bg-amber-500/10 transition-all duration-200"
+                  className="flex-shrink-0 rounded-lg p-1 text-amber-700/70 hover:bg-amber-100 hover:text-amber-900 transition-colors duration-200"
                   aria-label="Close notification"
                 >
                   <X size={13} className="stroke-[3]" />

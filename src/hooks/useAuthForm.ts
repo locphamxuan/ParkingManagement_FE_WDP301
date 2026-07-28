@@ -4,7 +4,7 @@ import { useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useSearchParams } from 'react-router-dom';
 import { forgotPassword, resetPassword } from '@/services/authService';
 
-export type AuthMode = 'login' | 'register' | 'forgot-password' | 'reset-password';
+export type AuthMode = 'login' | 'register' | 'verify-registration' | 'forgot-password' | 'reset-password';
 
 const initialForm = {
   fullName: '',
@@ -30,6 +30,7 @@ export function useAuthForm({ mode, onModeChange, onSubmit }: UseAuthFormArgs) {
   const [form, setForm] = useState(initialForm);
   const [forgotEmail, setForgotEmail] = useState('');
   const [resetPasswordForm, setResetPasswordForm] = useState({ newPassword: '', confirmPassword: '' });
+  const [registrationOtp, setRegistrationOtp] = useState('');
   // Chỉ ghi nhớ EMAIL để gợi ý đăng nhập — KHÔNG bao giờ lưu mật khẩu ở client.
   const [savedAccounts, setSavedAccounts] = useState<{ email: string }[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -134,6 +135,7 @@ export function useAuthForm({ mode, onModeChange, onSubmit }: UseAuthFormArgs) {
   const title = useMemo(() => {
     if (mode === 'reset-password') return 'Reset Password';
     if (mode === 'forgot-password') return 'Recover Password';
+    if (mode === 'verify-registration') return 'Verify your email';
     return mode === 'login' ? 'Login to PBMS' : 'Create PBMS Account';
   }, [mode]);
 
@@ -142,6 +144,8 @@ export function useAuthForm({ mode, onModeChange, onSubmit }: UseAuthFormArgs) {
       return 'Enter your new password to complete the reset process.';
     if (mode === 'forgot-password')
       return 'Enter the email address associated with your account to receive a reset link.';
+    if (mode === 'verify-registration')
+      return 'Enter the 6-digit verification code we sent to your email.';
     return mode === 'login'
       ? 'Log in to continue using the smart parking management system.'
       : 'Create a new account to start using the smart parking platform.';
@@ -194,6 +198,17 @@ export function useAuthForm({ mode, onModeChange, onSubmit }: UseAuthFormArgs) {
       } catch {
         // Error already mapped in public auth flow hook
       }
+    } else if (mode === 'verify-registration') {
+      const otp = registrationOtp.trim();
+      if (!/^\d{6}$/.test(otp)) {
+        setLocalNotice({ message: 'Please enter the 6-digit verification code.', type: 'error' });
+        return;
+      }
+      try {
+        await onSubmit({ mode, payload: { email: form.email.trim(), otp } });
+      } catch {
+        // Error already mapped in public auth flow hook
+      }
     } else {
       if (!form.email.trim() || !form.password) {
         setLocalNotice({ message: 'Please enter your email and password!', type: 'error' });
@@ -212,6 +227,24 @@ export function useAuthForm({ mode, onModeChange, onSubmit }: UseAuthFormArgs) {
           type: 'error',
         });
       }
+    }
+  }
+
+  async function handleResendRegistration() {
+    setLocalNotice(null);
+    try {
+      await onSubmit({
+        mode: 'register',
+        payload: {
+          email: form.email.trim(),
+          password: form.password,
+          fullName: form.fullName.trim(),
+          phone: form.phone.trim(),
+        },
+      });
+      setRegistrationOtp('');
+    } catch {
+      // Error already mapped in public auth flow hook
     }
   }
 
@@ -315,6 +348,7 @@ export function useAuthForm({ mode, onModeChange, onSubmit }: UseAuthFormArgs) {
     form, setForm,
     forgotEmail, setForgotEmail,
     resetPasswordForm, setResetPasswordForm,
+    registrationOtp, setRegistrationOtp,
     savedAccounts, showDropdown, setShowDropdown,
     resetToken, setResetToken, showPassword, setShowPassword, showConfirmPassword, setShowConfirmPassword,
     modal, closeModal,
@@ -322,7 +356,7 @@ export function useAuthForm({ mode, onModeChange, onSubmit }: UseAuthFormArgs) {
     saveAccount, deleteSavedAccount, handleSelectAccount,
     rotateX, rotateY,
     title, description,
-    handleChange, handleSubmit, handleForgotPassword, handleResetPassword,
+    handleChange, handleSubmit, handleResendRegistration, handleForgotPassword, handleResetPassword,
     handleMouseMove, handleMouseLeave,
   };
 }

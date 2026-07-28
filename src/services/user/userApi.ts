@@ -148,7 +148,7 @@ export interface UserWallet {
 
 export interface UserWalletTransaction {
   _id: string;
-  type: 'credit' | 'debit';
+  type: 'credit' | 'debit' | 'refund';
   reason: string;
   amount: number;
   balanceAfter: number;

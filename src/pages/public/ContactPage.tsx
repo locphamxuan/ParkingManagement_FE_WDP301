@@ -73,7 +73,11 @@ export default function ContactPage() {
       showToast('Please enter a valid email address.', 'error');
       return;
     }
-    // Chưa có endpoint contact ở BE — hiển thị xác nhận phía client.
+    const subject = encodeURIComponent(`[PBMS] ${form.topic}`);
+    const body = encodeURIComponent(
+      `Name: ${form.name.trim()}\nEmail: ${form.email.trim()}\n\n${form.message.trim()}`,
+    );
+    window.location.href = `mailto:support@pbms.com?subject=${subject}&body=${body}`;
     setSent(true);
   };
 
@@ -145,9 +149,9 @@ export default function ContactPage() {
                 className="mt-6 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-8 text-center"
               >
                 <CheckCircle2 size={36} className="mx-auto text-emerald-400" />
-                <h3 className="mt-3 text-sm font-black text-white">Message received!</h3>
+                <h3 className="mt-3 text-sm font-black text-white">Email draft prepared</h3>
                 <p className="mt-2 text-xs text-slate-400 font-semibold">
-                  Thanks {form.name} — we will reply to {form.email} as soon as possible.
+                  Your email app should now be open. Review the draft and press Send to contact PBMS.
                 </p>
               </motion.div>
             ) : (

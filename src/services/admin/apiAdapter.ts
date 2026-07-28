@@ -212,12 +212,18 @@ export async function getApiAdminDataset(): Promise<AdminDataset> {
       sessions: Number(point.sessions || 0),
     }));
 
-  const paymentMethodDistribution = Object.entries(overviewRes.data.revenue.byMethod || {}).map(
-    ([method, summary]) => ({
-      name: METHOD_LABELS[method] || method,
-      value: Number(summary.amount || 0),
-    }),
+  const paymentMethodRows = Object.entries(overviewRes.data.revenue.byMethod || {});
+  const paymentMethodTotal = paymentMethodRows.reduce(
+    (total, [, summary]) => total + Number(summary.amount || 0),
+    0,
   );
+  const paymentMethodDistribution = paymentMethodRows.map(([method, summary]) => ({
+    name: METHOD_LABELS[method] || method,
+    value:
+      paymentMethodTotal > 0
+        ? Math.round((Number(summary.amount || 0) / paymentMethodTotal) * 1000) / 10
+        : 0,
+  }));
 
   const dashboardStats = [
     {
@@ -270,9 +276,15 @@ export async function getApiAdminDataset(): Promise<AdminDataset> {
     },
   ];
 
-  const liveActivities = auditLogs.slice(0, 5).map(
-    (log) => `${log.action}: ${log.details}`,
-  );
+  const liveActivities = auditLogs.slice(0, 5).map((log) => ({
+    id: log.id,
+    type: log.target,
+    message: log.details,
+    timestamp: log.timestamp,
+    action: log.action,
+    details: log.details,
+    actor: log.actor,
+  }));
 
   return {
     dashboardStats,

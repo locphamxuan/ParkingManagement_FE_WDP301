@@ -17,10 +17,8 @@ function sameLocalDay(iso: string, now: Date): boolean {
  * Falls back to the most recent shift's gate when there is no shift dated today,
  * so the dashboard/nav still reflect where the staff works.
  *
- * NOTE: gate direction is NO LONGER a hard restriction — a staff member on shift
- * may do BOTH check-in and check-out regardless of the assigned gate's direction
- * (the backend dropped the WRONG_GATE_DIRECTION rule). `hasIn`/`hasOut` are kept
- * only as hints (e.g. default tab); `showCheckIn`/`showCheckOut` are always true.
+ * Gate direction is used as an operational hint. Legacy deployments without
+ * gate assignments remain usable until a manager finishes gate configuration.
  */
 export function useAssignedGates() {
   const [gates, setGates] = useState<Gate[]>([]);
@@ -59,8 +57,7 @@ export function useAssignedGates() {
     hasIn,
     hasOut,
     unassigned,
-    // Gate direction is only a hint now — never hide an action based on it.
-    showCheckIn: true,
-    showCheckOut: true,
+    showCheckIn: hasIn || unassigned,
+    showCheckOut: hasOut || unassigned,
   };
 }

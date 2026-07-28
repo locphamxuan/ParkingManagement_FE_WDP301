@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react';
-import { Navigate, Route, Routes, useParams } from 'react-router-dom';
+import { lazy, Suspense, useEffect } from 'react';
+import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
 import { ScrollToTop } from '@/components/common/ScrollToTop';
 // Guards + layouts: eager (nhỏ, là khung luôn cần). Page: lazy để tách chunk.
 import { ProtectedRoute } from '@/routes/ProtectedRoute';
@@ -33,7 +33,6 @@ const UserDashboardPage = lazy(() => import('@/pages/user/UserDashboardPage'));
 // ── Manager ─────────────────────────────────────────────────────────────────
 const ManagerBuildingsPage = lazy(() => import('@/pages/manager/ManagerBuildingsPage').then((m) => ({ default: m.ManagerBuildingsPage })));
 const ManagerDashboardPage = lazy(() => import('@/pages/manager/ManagerDashboardPage').then((m) => ({ default: m.ManagerDashboardPage })));
-const ManagerPlaceholderPage = lazy(() => import('@/pages/manager/ManagerPlaceholderPage').then((m) => ({ default: m.ManagerPlaceholderPage })));
 const ManagerProfilePage = lazy(() => import('@/pages/manager/ManagerProfilePage').then((m) => ({ default: m.ManagerProfilePage })));
 const ManagerVehicleTypesPage = lazy(() => import('@/pages/manager/ManagerVehicleTypesPage').then((m) => ({ default: m.ManagerVehicleTypesPage })));
 const ManagerFloorsPage = lazy(() => import('@/pages/manager/ManagerFloorsPage').then((m) => ({ default: m.ManagerFloorsPage })));
@@ -70,12 +69,37 @@ const RevenueAnalyticsPage = lazy(() => import('@/pages/admin/RevenueAnalyticsPa
 const RoleGovernancePage = lazy(() => import('@/pages/admin/RoleGovernancePage').then((m) => ({ default: m.RoleGovernancePage })));
 const AuditLogsPage = lazy(() => import('@/pages/admin/AuditLogsPage').then((m) => ({ default: m.AuditLogsPage })));
 const AdminProfilePage = lazy(() => import('@/pages/admin/AdminProfilePage').then((m) => ({ default: m.AdminProfilePage })));
-const ModulePlaceholderPage = lazy(() => import('@/pages/admin/ModulePlaceholderPage').then((m) => ({ default: m.ModulePlaceholderPage })));
 
 /** Giữ tương thích bookmark cũ: /admin/dashboard/<page> → /admin/<page>. */
 function LegacyAdminRedirect() {
   const { page } = useParams();
   return <Navigate to={`/admin/${page ?? ''}`} replace />;
+}
+
+function RouteTitle() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    const section = pathname.startsWith('/admin')
+      ? 'Admin'
+      : pathname.startsWith('/manager')
+        ? 'Manager'
+        : pathname.startsWith('/staff')
+          ? 'Staff'
+          : pathname.startsWith('/auth')
+            ? 'Account'
+            : pathname === '/'
+              ? 'Smart Parking'
+              : pathname
+                  .split('/')
+                  .filter(Boolean)
+                  .map((part) => part.replace(/-/g, ' '))
+                  .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+                  .join(' · ');
+    document.title = `${section || 'Smart Parking'} | PBMS`;
+  }, [pathname]);
+
+  return null;
 }
 
 /** Fallback hiển thị khi chunk của page đang được tải. */
@@ -94,6 +118,7 @@ export function AppRouter() {
   return (
     <>
       <ScrollToTop />
+      <RouteTitle />
       <Suspense fallback={<RouteFallback />}>
       <Routes>
       <Route path="/" element={<HomeRoute />} />
@@ -107,14 +132,18 @@ export function AppRouter() {
       <Route path="/auth/reset_password" element={<PublicResetPasswordRoute />} />
       <Route element={<UserLayout />}>
         <Route path="/buildings" element={<BuildingsUserPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/wallet" element={<WalletPage />} />
-        <Route path="/packages/buy" element={<PackagePurchasePage />} />
-        <Route path="/long-term-subscriptions" element={<LongTermSubscriptionsPage />} />
-        <Route path="/notifications" element={<UserNotificationsPage />} />
-        <Route path="/parking-history" element={<ParkingHistoryPage />} />
-        <Route path="/report-incident" element={<ReportIncidentPage />} />
-        <Route path="/user-dashboard" element={<UserDashboardPage />} />
+      </Route>
+      <Route element={<ProtectedRoute role="user" />}>
+        <Route element={<UserLayout />}>
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/wallet" element={<WalletPage />} />
+          <Route path="/packages/buy" element={<PackagePurchasePage />} />
+          <Route path="/long-term-subscriptions" element={<LongTermSubscriptionsPage />} />
+          <Route path="/notifications" element={<UserNotificationsPage />} />
+          <Route path="/parking-history" element={<ParkingHistoryPage />} />
+          <Route path="/report-incident" element={<ReportIncidentPage />} />
+          <Route path="/user-dashboard" element={<UserDashboardPage />} />
+        </Route>
       </Route>
       <Route path="/reservations" element={<Navigate to="/packages/buy" replace />} />
       <Route path="/reviews" element={<ReviewsPage />} />
@@ -147,15 +176,7 @@ export function AppRouter() {
           <Route path="sessions" element={<ManagerSessionsPage />} />
           <Route path="session-history" element={<ManagerSessionHistoryPage />} />
           <Route path="wallet" element={<ManagerWalletPage />} />
-          <Route
-            path="settings"
-            element={
-              <ManagerPlaceholderPage
-                title="Settings"
-                description="Configure security, notifications, and operating parameters for managers."
-              />
-            }
-          />
+          <Route path="settings" element={<Navigate to="/manager/profile" replace />} />
         </Route>
       </Route>
 
@@ -189,14 +210,8 @@ export function AppRouter() {
           <Route path="role-governance" element={<RoleGovernancePage />} />
           <Route path="audit-logs" element={<AuditLogsPage />} />
           <Route path="profile" element={<AdminProfilePage />} />
-          <Route
-            path="notifications"
-            element={<ModulePlaceholderPage title="Notifications" description="Notification templates, queue monitoring, and delivery channels." />}
-          />
-          <Route
-            path="settings"
-            element={<ModulePlaceholderPage title="Settings" description="Platform configuration, access policies, and operating preferences." />}
-          />
+          <Route path="notifications" element={<Navigate to="/admin/audit-logs" replace />} />
+          <Route path="settings" element={<Navigate to="/admin/role-governance" replace />} />
         </Route>
       </Route>
 

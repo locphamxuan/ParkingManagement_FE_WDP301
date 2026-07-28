@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /manager/
+Disallow: /staff/
+Disallow: /user-dashboard
+Disallow: /wallet
+Disallow: /profile
+Disallow: /notifications

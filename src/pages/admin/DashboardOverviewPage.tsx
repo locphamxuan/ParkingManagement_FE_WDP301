@@ -205,7 +205,7 @@ export function DashboardOverviewPage() {
         <div className="relative overflow-hidden rounded-3xl glass-premium p-6 shadow-lg border border-sky-100/80 transition-all duration-500 hover:shadow-[0_22px_45px_rgba(37,99,235,0.08)] hover:-translate-y-1 hover:border-blue-500/30 group">
           {/* Crystal Bevel Border */}
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500/10 via-blue-500/40 to-indigo-500/10" />
-          <ActivityTimeline title="Live parking activity" items={data.liveActivities as any} />
+          <ActivityTimeline title="Live parking activity" items={data.liveActivities} />
         </div>
 
         {/* Buildings performance */}

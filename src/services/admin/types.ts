@@ -38,7 +38,7 @@ export interface AdminDataset {
   auditLogs: AuditLog[];
   fraudAlerts: FraudAlert[];
   monitoringMetrics: MonitoringMetric[];
-  liveActivities: string[];
+  liveActivities: LiveActivityItem[];
   operationalGuardrails: string[];
 }
 
@@ -49,5 +49,5 @@ export interface LiveActivityItem {
   timestamp: string;
   action: string;
   details?: string;
-  actor?: any;
+  actor?: string;
 }

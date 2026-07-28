@@ -136,8 +136,13 @@ export function useWallet() {
     }
   };
 
-  const filteredTx = filter === 'all' ? transactions : transactions.filter((t) => t.type === filter);
-  const totalCredit = transactions.filter((t) => t.type === 'credit').reduce((s, t) => s + t.amount, 0);
+  const isInflow = (type: UserWalletTransaction['type']) =>
+    type === 'credit' || type === 'refund';
+  const filteredTx =
+    filter === 'all'
+      ? transactions
+      : transactions.filter((t) => (filter === 'credit' ? isInflow(t.type) : t.type === 'debit'));
+  const totalCredit = transactions.filter((t) => isInflow(t.type)).reduce((s, t) => s + t.amount, 0);
   const totalDebit = transactions.filter((t) => t.type === 'debit').reduce((s, t) => s + t.amount, 0);
 
   return {

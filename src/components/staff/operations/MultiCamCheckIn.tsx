@@ -45,7 +45,21 @@ export function MultiCamCheckIn({ ops }: { ops: StaffOperations }) {
           onChange={(e) => setPlateNumber(e.target.value)}
           onBlur={(e) => { const n = normalizePlate(e.target.value); if (n) setPlateNumber(n); }}
           placeholder="59G2-038.80"
-          onKeyDown={(e) => { if (e.key === 'Enter' && !(!plateNumber.trim() || loading || !!buildingSupportWarning || zoneUsageBlocked || slotSelectionBlocked || (hasActivePackage && !selectedSlotId))) onCheckIn(); }}
+          onKeyDown={(e) => {
+            if (e.key !== 'Enter') return;
+            const missingZone = needsSlotSelection && freeSlots.length > 0 && !selectedZoneId;
+            const missingCarSlot = needsSlotSelection && !isMotorcycle && freeSlots.length > 0 && !selectedSlotId;
+            const canSubmit =
+              Boolean(plateNumber.trim()) &&
+              !loading &&
+              !buildingSupportWarning &&
+              !zoneUsageBlocked &&
+              !slotSelectionBlocked &&
+              !vehicleTypeMismatch &&
+              !missingZone &&
+              !missingCarSlot;
+            if (canSubmit) onCheckIn();
+          }}
         />
         {vehicleBrand && (
           <span className="inline-flex w-fit items-center gap-1 rounded-full border border-sky-500/30 bg-sky-500/10 px-2.5 py-1 text-[11px] font-semibold text-sky-300">
@@ -64,7 +78,7 @@ export function MultiCamCheckIn({ ops }: { ops: StaffOperations }) {
         )}
         {plateNumber.trim().length >= 7 && checkInKind === 'package' && (
           <div className="mt-1 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-300">
-            🅿️ Vehicle has a long-term package{plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''} — pick a free slot below.
+            🅿️ Vehicle has a long-term package{plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''} — {isMotorcycle ? 'select a parking zone below; the system will assign capacity automatically.' : 'pick a free slot below.'}
           </div>
         )}
         {plateNumber.trim().length >= 7 && checkInKind === 'reservation' && (

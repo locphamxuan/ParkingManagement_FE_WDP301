@@ -5,14 +5,14 @@ import type { AuthSession } from '@/services/authService';
 type UserRole = AuthSession['role'];
 
 interface ProtectedRouteProps {
-  role: Extract<UserRole, 'admin' | 'manager' | 'staff'>;
+  role: UserRole;
 }
 
 const fallbackFor = (userRole: UserRole): string => {
   if (userRole === 'admin') return '/admin/dashboard';
   if (userRole === 'manager') return '/manager';
   if (userRole === 'staff') return '/staff';
-  return '/auth/login';
+  return '/user-dashboard';
 };
 
 export function ProtectedRoute({ role }: ProtectedRouteProps) {

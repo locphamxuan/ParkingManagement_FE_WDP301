@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Building2, Mail, PhoneCall } from 'lucide-react';
-import footerBg from '@/assets/footer.png';
+import footerBg from '@/assets/footer.jpg';
 import { TiltCard } from './TiltCard';
 import { BackToTopButton } from './BackToTopButton';
 import { showToast } from '@/components/common/ToastNotification';

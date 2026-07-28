@@ -49,8 +49,9 @@ export function AnimatedParkingMap3D({
 }: AnimatedParkingMap3DProps = {}) {
   const compact = variant === 'compact';
   const prefersReducedMotion = useReducedMotion();
-  // Bản preview đứng yên khi người dùng yêu cầu giảm chuyển động.
-  const paused = compact && Boolean(prefersReducedMotion);
+  // Decorative previews remain static to avoid wasting CPU/GPU on auth pages.
+  // The full simulation also respects the user's reduced-motion preference.
+  const paused = compact || Boolean(prefersReducedMotion);
 
   const {
     hudMessage, simPhase,
@@ -67,8 +68,8 @@ export function AnimatedParkingMap3D({
       aria-hidden={compact || undefined}
       className={
         compact
-          ? 'relative w-full h-[200px] sm:h-[210px] rounded-xl bg-slate-950 overflow-hidden flex flex-col justify-between pointer-events-none select-none'
-          : 'relative w-full h-full min-h-[460px] rounded-3xl bg-slate-950 border border-white/5 shadow-2xl p-6 overflow-hidden flex flex-col justify-between'
+          ? 'relative h-[240px] w-full overflow-hidden rounded-xl bg-slate-950 sm:h-[260px] pointer-events-none select-none'
+          : 'relative h-[430px] w-full overflow-hidden rounded-3xl border border-white/5 bg-slate-950 p-3 shadow-2xl sm:h-[520px] sm:p-5 lg:h-[600px]'
       }
     >
 
@@ -77,12 +78,15 @@ export function AnimatedParkingMap3D({
 
       {/* Cyberpunk HUD Indicator Top */}
       {!compact && (
-        <div className="relative z-10 flex items-center justify-between bg-slate-900/60 border border-white/5 px-4 py-2.5 rounded-2xl backdrop-blur-md shadow-lg border-glow-neon">
+        <div className="relative z-10 flex items-center justify-between rounded-2xl border border-white/5 bg-slate-900/60 px-3 py-2.5 shadow-lg backdrop-blur-md border-glow-neon sm:px-4">
           <div className="flex items-center gap-2.5">
             <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse shadow-[0_0_8px_#f97316]" />
             <span className="text-[10px] font-black uppercase tracking-wider text-slate-300 font-mono flex items-center gap-1.5">
               <Activity size={12} className="text-orange-400" />
-              {interactive ? '3D INTERACTIVE BOOKING MAP' : 'LIVE SIMULATION V3.0'}
+              <span className="hidden sm:inline">
+                {interactive ? '3D INTERACTIVE BOOKING MAP' : 'LIVE SIMULATION V3.0'}
+              </span>
+              <span className="sm:hidden">{interactive ? '3D SLOT MAP' : 'LIVE MAP'}</span>
             </span>
           </div>
           <span className="text-[9px] font-mono font-black text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20 uppercase tracking-widest">
@@ -93,9 +97,7 @@ export function AnimatedParkingMap3D({
 
       {/* High-Fidelity Smart City Isometric Arena */}
       <div
-        className={`w-full flex-1 relative flex items-center justify-center perspective-1000 preserve-3d ${
-          compact ? 'scale-[0.84] sm:scale-100' : ''
-        }`}
+        className="relative flex h-full w-full flex-1 items-center justify-center perspective-1000 preserve-3d"
       >
         
         {/* DATA STREAMING HUD CALLOUT FOR TEAL SEDAN IN ENTRY PHASE */}
@@ -126,14 +128,21 @@ export function AnimatedParkingMap3D({
           </svg>
         )}
 
-        <motion.div 
+        <div
+          className={
+            compact
+              ? 'relative flex h-[280px] w-[500px] shrink-0 origin-center scale-[0.76] items-center justify-center sm:scale-[0.9]'
+              : 'relative flex h-[300px] w-[520px] shrink-0 origin-center scale-[0.68] items-center justify-center sm:scale-[0.82] md:scale-[0.96] lg:scale-100'
+          }
+        >
+        <motion.div
           style={{
             transformStyle: 'preserve-3d',
             width: '450px',
             height: '240px',
             rotateX: rotateX ?? 55,
             rotateZ: rotateZ ?? -45,
-            scale: scale ?? (compact ? 0.66 : 1.0),
+            scale: scale ?? 1,
             x: x ?? 0,
             y: y ?? 0,
           }}
@@ -573,11 +582,12 @@ export function AnimatedParkingMap3D({
           )}
 
         </motion.div>
+        </div>
       </div>
 
       {/* Cyber HUD Status Panel */}
       {!compact && (
-        <div className="absolute bottom-4 right-4 w-[280px] z-20 flex gap-2.5 items-start bg-slate-950/80 border border-orange-500/30 border-l-4 border-l-orange-500 p-3 rounded-xl backdrop-blur-md shadow-[0_12px_40px_rgba(0,0,0,0.5)] transition-all duration-300 hover:border-orange-500/50">
+        <div className="absolute bottom-3 left-3 right-3 z-20 flex items-start gap-2.5 rounded-xl border border-orange-500/30 border-l-4 border-l-orange-500 bg-slate-950/85 p-3 shadow-[0_12px_40px_rgba(0,0,0,0.5)] backdrop-blur-md transition-all duration-300 hover:border-orange-500/50 sm:bottom-4 sm:left-auto sm:right-4 sm:w-[280px]">
           <Info size={14} className="text-orange-400 shrink-0 mt-0.5 animate-pulse" />
           <div className="space-y-0.5">
             <p className="text-[8px] font-black uppercase text-slate-400 font-mono tracking-wider flex items-center gap-1.5">Operating status<span className="relative flex h-1.5 w-1.5">

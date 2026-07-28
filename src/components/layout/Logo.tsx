@@ -1,4 +1,4 @@
-import pbmsMark from '@/assets/pbms-mark-professional.png';
+import pbmsMark from '@/assets/pbms-mark-professional-small.png';
 
 interface LogoProps {
   /** 'mark' = icon only (favicon-style square). 'full' = icon + wordmark. */

@@ -59,7 +59,7 @@ export function WalletTransactionsSection({ isLoading, filter, onChangeFilter, t
           </div>
         ) : (
           transactions.map((tx) => {
-            const isCredit = tx.type === 'credit';
+            const isCredit = tx.type === 'credit' || tx.type === 'refund';
             const Icon = isCredit ? ArrowDownLeft : ArrowUpRight;
             return (
               <motion.div

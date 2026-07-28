@@ -84,6 +84,10 @@ export default function LongTermSubscriptionsPage() {
     return <Navigate to="/auth/login" replace />;
   }
 
+  const currentSubscriptionCount = subscriptions.filter(
+    (item) => item.status === 'active' || item.status === 'pending',
+  ).length;
+
   return (
     <main className="relative z-10">
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
@@ -125,10 +129,10 @@ export default function LongTermSubscriptionsPage() {
           <div className="mb-4 flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-white">
               <Building2 size={16} className="text-cyan-300" />
-              Active Packages
+              Subscription Packages
             </h2>
             <span className="rounded-full bg-slate-950 px-2 py-1 text-[11px] font-bold text-slate-400">
-              {subscriptions.length}
+              {currentSubscriptionCount} current / {subscriptions.length} total
             </span>
           </div>
 
@@ -221,7 +225,7 @@ export default function LongTermSubscriptionsPage() {
               })
             ) : (
               <p className="rounded-xl border border-white/10 bg-slate-950/60 p-4 text-center text-xs font-semibold text-slate-500">
-                No active subscriptions found.
+                No subscriptions found.
               </p>
             )}
           </div>

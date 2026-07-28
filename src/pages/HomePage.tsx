@@ -376,7 +376,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
               A real-time simulation of vehicles entering/parking/exiting with automatic gates, EV charging stations and per-slot status — a visual overview of the PBMS system.
             </p>
           </div>
-          <div className="public-dark-visual max-w-3xl mx-auto">
+          <div className="public-dark-visual mx-auto max-w-5xl">
             <AnimatedParkingMap3D />
           </div>
         </div>

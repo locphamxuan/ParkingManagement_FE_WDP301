@@ -11,7 +11,6 @@ interface AnalyticsCardProps {
 }
 
 export function AnalyticsCard({ label, value, delta, index = 0, icon }: AnalyticsCardProps) {
-  const isPositive = !delta.includes('-');
   const ref = useRef<HTMLDivElement>(null);
 
   // Configuration settings for different card themes
@@ -121,15 +120,11 @@ export function AnalyticsCard({ label, value, delta, index = 0, icon }: Analytic
 
           {/* Delta badge */}
           <div className={`mt-4 flex items-center gap-2 ${styles.layerZ10}`}>
-            <span className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-0.5 text-[9px] font-black tracking-wider uppercase font-mono border ${
-              isPositive 
-                ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 shadow-[0_0_8px_rgba(16,185,129,0.15)]' 
-                : 'bg-rose-500/10 text-rose-500 border-rose-500/20 shadow-[0_0_8px_rgba(244,63,94,0.15)]'
-            }`}>
-              <span>{isPositive ? '▲' : '▼'}</span>
+            <span className="inline-flex items-center gap-1.5 rounded-lg border border-blue-500/20 bg-blue-500/10 px-2.5 py-0.5 font-mono text-[9px] font-black uppercase tracking-wider text-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.12)]">
+              <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
               {delta}
             </span>
-            <span className="text-[10px] font-bold text-slate-500">vs last month</span>
+            <span className="text-[10px] font-bold text-slate-500">current state</span>
           </div>
         </div>
 

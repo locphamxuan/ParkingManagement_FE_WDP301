@@ -9,7 +9,7 @@ import {
   ShieldCheck,
   WalletCards,
 } from 'lucide-react';
-import carGarage from '@/assets/white_car_garage.png';
+import carGarage from '@/assets/white_car_garage.jpg';
 
 const heroHighlights = [
   { value: '24/7', label: 'Live operations' },
@@ -126,9 +126,9 @@ export function HomeHero({ user, heroButtonText }: HomeHeroProps) {
           initial={{ opacity: 0, x: 30, rotateY: -6 }}
           animate={{ opacity: 1, x: 0, rotateY: 0 }}
           transition={{ duration: 0.8, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
-          className="public-dark-visual depth-card relative mx-auto w-full max-w-[590px] [perspective:1200px]"
+          className="public-dark-visual depth-card relative mx-auto w-full max-w-[640px] [perspective:1200px]"
         >
-          <div className="relative aspect-[4/4.4] overflow-hidden rounded-[28px] border border-white/15 bg-[#0b1b31] shadow-[0_34px_90px_rgba(0,0,0,0.38)]">
+          <div className="relative aspect-[4/3] min-h-[340px] overflow-hidden rounded-[28px] border border-white/15 bg-[#0b1b31] shadow-[0_34px_90px_rgba(0,0,0,0.38)] sm:min-h-0">
             <img
               src={carGarage}
               alt="A vehicle in a modern, digitally managed parking facility"
@@ -192,7 +192,7 @@ export function HomeHero({ user, heroButtonText }: HomeHeroProps) {
           <motion.div
             animate={{ y: [0, -6, 0] }}
             transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
-            className="absolute -left-4 top-[30%] hidden rounded-2xl border border-white/12 bg-[#0a1a30]/92 p-3 shadow-2xl backdrop-blur-xl sm:block"
+            className="absolute left-4 top-[30%] hidden rounded-2xl border border-white/12 bg-[#0a1a30]/92 p-3 shadow-2xl backdrop-blur-xl sm:block"
           >
             <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500">Gate A1</p>
             <p className="mt-1 flex items-center gap-2 text-xs font-extrabold text-white">

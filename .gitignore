@@ -39,3 +39,6 @@ claude.md
 
 # Local review reports and remediation notes
 docs/
+
+# Local Netlify folder
+.netlify

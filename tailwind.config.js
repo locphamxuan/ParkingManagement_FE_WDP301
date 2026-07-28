@@ -5,6 +5,59 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Intermediate shades used by the operations surfaces. Declaring them
+        // here keeps existing utility classes deterministic instead of relying
+        // on browser fallbacks for unsupported Tailwind shades.
+        slate: {
+          350: '#b0bfce',
+          450: '#7c8fa6',
+          550: '#556a80',
+          605: '#485e75',
+          650: '#3d4a61',
+          850: '#172033',
+          855: '#162033',
+        },
+        blue: {
+          105: '#d5e7fe',
+          150: '#cde3fe',
+          450: '#4f8df5',
+          650: '#1d57d8',
+          655: '#1b55d2',
+          755: '#1f4db3',
+        },
+        emerald: {
+          105: '#d0fae5',
+          250: '#a0efcd',
+          650: '#07835f',
+          655: '#077d5a',
+          755: '#075f46',
+        },
+        indigo: {
+          105: '#e0e7ff',
+          150: '#d2dafe',
+          650: '#4b46c7',
+          655: '#4944c1',
+          750: '#3730a3',
+        },
+        purple: {
+          650: '#7e22ce',
+        },
+        red: {
+          650: '#c92a2a',
+        },
+        rose: {
+          105: '#ffe2e8',
+          250: '#fec5d1',
+          550: '#e11d61',
+          655: '#bf123f',
+        },
+        amber: {
+          250: '#fde68a',
+        },
+        sky: {
+          650: '#0875b9',
+          755: '#075b93',
+        },
         border: 'hsl(var(--app-border) / <alpha-value>)',
         input: 'hsl(var(--app-input) / <alpha-value>)',
         ring: 'hsl(var(--app-ring) / <alpha-value>)',

@@ -207,8 +207,8 @@ export function useReviews() {
 
     try {
       await userApi.feedbacks.create({
-        buildingId: sessionObj.building._id,
-        parkingSessionId: selectedSessionId,
+        building: sessionObj.building._id,
+        parkingSession: selectedSessionId,
         rating: ratingInput,
         comment: commentInput.trim(),
       });

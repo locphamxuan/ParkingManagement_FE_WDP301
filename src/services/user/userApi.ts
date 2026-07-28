@@ -254,7 +254,7 @@ export const userApi = {
   // ========== PARKING HISTORY ==========
   parkingHistory: {
     /** Get user's parking history */
-    list: (query?: { limit?: number; page?: number; fromDate?: string; toDate?: string }) =>
+    list: (query?: { limit?: number; page?: number; buildingId?: string }) =>
       api.get<Wrap<ListResult<ParkingHistory>>>('/users/parking-history', { query }),
 
     /** Get parking session detail */
@@ -400,18 +400,16 @@ export const userApi = {
   // ========== FEEDBACK ==========
   feedbacks: {
     create: (body: {
-      buildingId: string;
-      parkingSessionId: string;
+      building?: string;
+      parkingSession: string;
       rating: number;
       comment: string;
-      portraitImageUrl?: string | null;
-      plateImageUrl?: string | null;
     }) => api.post<Wrap<{ feedback: Feedback }>>('/users/feedbacks', body),
 
     list: (query?: { status?: 'pending' | 'resolved'; rating?: number; limit?: number; page?: number }) =>
       api.get<Wrap<ListResult<Feedback>>>('/users/feedbacks/me', { query }),
 
-    listAll: (query?: { buildingId?: string; rating?: number; limit?: number; page?: number; status?: string }) =>
+    listAll: (query?: { building?: string; rating?: number; limit?: number; page?: number }) =>
       api.get<Wrap<ListResult<Feedback>>>('/users/feedbacks', { query }),
 
     remove: (id: string) =>

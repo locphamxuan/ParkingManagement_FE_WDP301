@@ -13,14 +13,14 @@ interface WalletTransactionsSectionProps {
 /** Lịch sử giao dịch ví với filter Inflow/Outflow dạng pill trượt. */
 export function WalletTransactionsSection({ isLoading, filter, onChangeFilter, transactions }: WalletTransactionsSectionProps) {
   return (
-    <section className="rounded-3xl border border-white/[0.06] bg-white/[0.02] p-6 shadow-glass backdrop-blur-xl">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.06] pb-5">
-        <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-white">
+    <section className="user-surface rounded-3xl p-6">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-5">
+        <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-slate-900">
           <ReceiptText size={16} className="text-cyan-400" /> Transaction History
         </h2>
 
         {/* Sliding Pill Tab Filter */}
-        <div className="relative flex rounded-2xl border border-white/[0.08] bg-slate-950/60 p-1">
+        <div className="relative flex rounded-2xl border border-slate-200 bg-slate-50 p-1">
           {(['all', 'credit', 'debit'] as const).map((f) => {
             const isActive = filter === f;
             return (
@@ -28,7 +28,7 @@ export function WalletTransactionsSection({ isLoading, filter, onChangeFilter, t
                 key={f}
                 type="button"
                 onClick={() => onChangeFilter(f)}
-                className={`relative rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-wider transition-colors duration-300 ${isActive ? 'text-slate-950 font-black' : 'text-slate-400 hover:text-slate-200'
+                className={`relative rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-wider transition-colors duration-300 ${isActive ? 'text-slate-950 font-black' : 'text-slate-500 hover:text-slate-900'
                   }`}
               >
                 {isActive && (
@@ -53,8 +53,8 @@ export function WalletTransactionsSection({ isLoading, filter, onChangeFilter, t
             Loading data...
           </div>
         ) : transactions.length === 0 ? (
-          <div className="rounded-2xl border border-white/[0.05] bg-white/[0.01] p-12 text-center">
-            <WalletCards size={36} className="mx-auto text-slate-700 mb-3" />
+          <div className="user-surface-muted rounded-2xl p-12 text-center">
+            <WalletCards size={36} className="mx-auto text-slate-400 mb-3" />
             <p className="text-sm font-bold text-slate-500">No transactions recorded in this period.</p>
           </div>
         ) : (
@@ -65,7 +65,7 @@ export function WalletTransactionsSection({ isLoading, filter, onChangeFilter, t
               <motion.div
                 layout
                 key={tx._id}
-                className="grid gap-4 rounded-2xl border border-white/[0.04] bg-white/[0.01] p-4 transition-all duration-300 hover:bg-white/[0.03] hover:border-white/[0.08] hover:-translate-y-0.5 sm:grid-cols-[auto_1fr_auto] sm:items-center shadow-sm"
+                className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-4 transition-all duration-300 hover:border-blue-200 hover:bg-blue-50/40 hover:-translate-y-0.5 sm:grid-cols-[auto_1fr_auto] sm:items-center shadow-sm"
               >
                 {/* Direction icon container */}
                 <div

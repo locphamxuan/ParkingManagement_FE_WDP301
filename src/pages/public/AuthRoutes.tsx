@@ -75,7 +75,7 @@ function usePublicAuthFlow(initialMode: 'login' | 'register') {
           } else if (session.role === 'staff') {
             navigate('/staff', { replace: true });
           } else {
-            navigate('/', { replace: true });
+            navigate('/user-dashboard', { replace: true });
           }
         } else {
           await registerWithBackend({
@@ -110,7 +110,7 @@ export function PublicLoginRoute() {
   const flow = usePublicAuthFlow('login');
 
   if (token && user) {
-    const redirectPath = user.role === 'admin' ? '/admin/dashboard' : user.role === 'manager' ? '/manager/dashboard' : user.role === 'staff' ? '/staff' : '/';
+    const redirectPath = user.role === 'admin' ? '/admin/dashboard' : user.role === 'manager' ? '/manager/dashboard' : user.role === 'staff' ? '/staff' : '/user-dashboard';
     return <Navigate to={redirectPath} replace />;
   }
 

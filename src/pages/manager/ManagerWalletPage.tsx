@@ -341,10 +341,10 @@ export function ManagerWalletPage() {
             </div>
 
             <div className="rounded-xl border border-amber-100 bg-white p-4">
-              <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
                 Today's penalty revenue
               </p>
-              <p className="mt-1 text-2xl font-black text-amber-600 font-mono">
+              <p className="mt-1 text-2xl font-black text-amber-600">
                 {fmtVnd(penaltyData?.todayPenaltyRevenue)}
               </p>
               <p className="mt-1 text-[10px] text-slate-400 font-semibold">
@@ -355,7 +355,7 @@ export function ManagerWalletPage() {
 
           {penaltyData?.recentPayments && penaltyData.recentPayments.length > 0 && (
             <div className="space-y-2 pt-2">
-              <p className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
                 Recent violation fine collections
               </p>
               <div className="divide-y divide-rose-50 rounded-xl border border-rose-100 bg-white">
@@ -371,8 +371,8 @@ export function ManagerWalletPage() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-mono font-black text-rose-600">{fmtVnd(p.amount)}</p>
-                      <p className="text-[9px] uppercase font-mono text-slate-400">{p.method}</p>
+                      <p className="font-bold text-rose-600">{fmtVnd(p.amount)}</p>
+                      <p className="text-[9px] uppercase font-bold text-slate-400">{p.method}</p>
                     </div>
                   </div>
                 ))}
@@ -457,22 +457,22 @@ export function ManagerWalletPage() {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[520px] text-sm">
                 <thead>
-                  <tr className="border-b border-border text-[10px] font-black uppercase tracking-wider text-muted-foreground">
-                    <th className="py-2 text-left">Date</th>
-                    <th className="py-2 text-right">Cash</th>
-                    <th className="py-2 text-right">Wallet</th>
-                    <th className="py-2 text-right">Bank / QR</th>
-                    <th className="py-2 text-right">Total</th>
+                  <tr className="border-b border-slate-200/80 bg-slate-50/70 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                    <th className="px-4 py-3 text-left">Date</th>
+                    <th className="px-4 py-3 text-right">Cash</th>
+                    <th className="px-4 py-3 text-right">Wallet</th>
+                    <th className="px-4 py-3 text-right">Bank / QR</th>
+                    <th className="px-4 py-3 text-right">Total</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-slate-100">
                   {breakdown.days.map((d: any) => (
-                    <tr key={d.date} className="border-b border-border/50 last:border-0">
-                      <td className="py-2 font-medium text-foreground">{fmtDay(d.date)}</td>
-                      <td className="py-2 text-right font-mono text-emerald-600">{fmtVnd(d.byMethod.cash)}</td>
-                      <td className="py-2 text-right font-mono text-purple-600">{fmtVnd(d.byMethod.wallet)}</td>
-                      <td className="py-2 text-right font-mono text-sky-600">{fmtVnd(d.byMethod.online)}</td>
-                      <td className="py-2 text-right font-mono font-bold text-foreground">{fmtVnd(d.total)}</td>
+                    <tr key={d.date} className="hover:bg-blue-500/[0.02] transition-colors">
+                      <td className="px-4 py-3 font-semibold text-slate-800">{fmtDay(d.date)}</td>
+                      <td className="px-4 py-3 text-right font-bold text-emerald-600">{fmtVnd(d.byMethod.cash)}</td>
+                      <td className="px-4 py-3 text-right font-bold text-purple-600">{fmtVnd(d.byMethod.wallet)}</td>
+                      <td className="px-4 py-3 text-right font-bold text-sky-600">{fmtVnd(d.byMethod.online)}</td>
+                      <td className="px-4 py-3 text-right font-black text-slate-900">{fmtVnd(d.total)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -515,16 +515,16 @@ export function ManagerWalletPage() {
                           {TX_REASON_LABELS[tx.reason] ?? tx.reason}
                         </p>
                         {tx.note && <p className="text-xs text-slate-450 font-medium">{tx.note}</p>}
-                        <p className="text-[10px] text-slate-400 font-bold font-mono">
-                          Balance: {fmtVnd(tx.balanceAfter)}
+                        <p className="text-[11px] text-slate-400 font-medium mt-0.5">
+                          Balance: <span className="font-bold text-slate-700">{fmtVnd(tx.balanceAfter)}</span>
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className={`font-mono font-black ${isCredit ? 'text-emerald-700' : 'text-rose-700'}`}>
+                      <p className={`font-extrabold text-sm ${isCredit ? 'text-emerald-600' : 'text-rose-600'}`}>
                         {isCredit ? '+' : '-'}{fmtVnd(tx.amount)}
                       </p>
-                      <p className="text-[10px] text-slate-450 font-bold font-mono">{fmtTime(tx.createdAt)}</p>
+                      <p className="text-[10px] text-slate-400 font-medium mt-0.5">{fmtTime(tx.createdAt)}</p>
                     </div>
                   </div>
                 );

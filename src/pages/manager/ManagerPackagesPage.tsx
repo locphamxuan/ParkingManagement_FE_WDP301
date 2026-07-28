@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Pencil, Plus, Trash2, Ticket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -210,28 +210,30 @@ export function ManagerPackagesPage() {
               Configure long-term parking passes, custom durations, and multi-vehicle bundle discounts.
             </p>
           </div>
-          <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
-            <Button
-              onClick={openCreate}
-              className="h-11 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-wider shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
-            >
-              <Plus size={14} className="stroke-[3] mr-1.5" /> Add package
-            </Button>
-          </div>
         </div>
       </div>
 
       {loading ? (
-        <div className="flex items-center gap-2 text-slate-650 text-xs font-bold p-8 justify-center bg-white rounded-2xl border-2 border-blue-100 shadow-sm">
+        <div className="flex items-center gap-2 text-slate-600 text-xs font-bold p-8 justify-center bg-white rounded-2xl border border-slate-200 shadow-sm">
           <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent mr-2" />
           <span>Loading packages...</span>
         </div>
       ) : error ? (
         <p className="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 p-3.5 rounded-2xl">{error}</p>
       ) : (
-        <div className="bg-white rounded-2xl border-2 border-blue-100 p-6 shadow-sm">
-          <DataTable title="Long-term packages" rows={items} columns={columns} />
-        </div>
+        <DataTable
+          title="Long-term packages"
+          rows={items}
+          columns={columns}
+          rightElement={
+            <Button
+              onClick={openCreate}
+              className="h-9 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm transition-all duration-200 active:scale-[0.98] flex items-center gap-1.5"
+            >
+              <Plus size={14} className="stroke-[2.5]" /> Add package
+            </Button>
+          }
+        />
       )}
 
       <ModalForm

@@ -111,7 +111,7 @@ export function ManagerRefundPolicyPage() {
         <CardContent className="p-6">
           <form onSubmit={onSubmit} noValidate className="space-y-6">
             <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-650 uppercase tracking-wider block">
+              <label className="text-xs font-bold text-slate-700 block">
                 Refund Percentage (%)
               </label>
               <div className="relative max-w-xs">

@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pencil, Plus, Trash2, Truck, X, CheckCircle2, Settings } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -303,12 +303,12 @@ export function ManagerVehicleTypesPage() {
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="rounded-lg bg-blue-50 border border-blue-150 px-2.5 py-0.5 font-mono text-xs font-black text-blue-700">
+                          <span className="rounded-md bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-xs font-extrabold text-blue-700">
                             {item.code}
                           </span>
                           <span className="font-extrabold text-slate-800 text-sm">{item.name}</span>
                           {!item.isActive && (
-                            <span className="rounded-lg border-2 border-rose-200 bg-rose-50 px-2 py-0.5 text-[9px] font-black uppercase text-rose-600 font-mono tracking-wider">
+                            <span className="rounded-full border border-rose-200 bg-rose-50 px-2.5 py-0.5 text-[10px] font-bold uppercase text-rose-600">
                               Disabled
                             </span>
                           )}

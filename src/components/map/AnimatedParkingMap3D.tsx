@@ -100,33 +100,7 @@ export function AnimatedParkingMap3D({
         className="relative flex h-full w-full flex-1 items-center justify-center perspective-1000 preserve-3d"
       >
         
-        {/* DATA STREAMING HUD CALLOUT FOR TEAL SEDAN IN ENTRY PHASE */}
-        {!compact && simPhase === 1 && carAState === 'driving' && (
-          <svg className="absolute inset-0 w-full h-full pointer-events-none z-20">
-            {/* Dynamic leader line linking from HUD to Teal Sedan path */}
-            <motion.path 
-              d="M 115,75 Q 150,110 135,160"
-              fill="none" 
-              stroke="#06b6d4" 
-              strokeWidth="1.5"
-              strokeDasharray="4 3"
-              initial={{ strokeDashoffset: 0 }}
-              animate={{ strokeDashoffset: -20 }}
-              transition={{ repeat: Infinity, duration: 1.2, ease: 'linear' }}
-            />
-            {/* Floating Glassmorphic Callout Tag */}
-            <foreignObject x="55" y="38" width="135" height="48">
-              <div style={{ background: 'rgba(15, 23, 42, 0.92)', backdropFilter: 'blur(12px)', border: '1px solid rgba(6,182,212,0.35)' }} className="text-[7px] font-black text-cyan-300 rounded px-2.5 py-1.5 tracking-wider uppercase font-mono shadow-xl animate-bounce flex flex-col gap-0.5">
-                <div className="flex justify-between items-center text-[8px] text-cyan-200 border-b border-cyan-500/20 pb-0.5 mb-0.5">
-                  <span>TEAL_SEDAN_EV</span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
-                </div>
-                <div>SYS: AUTOPARK_ALIGN</div>
-                <div>BATTERY: 81%</div>
-              </div>
-            </foreignObject>
-          </svg>
-        )}
+        {/* High-Fidelity Smart City Isometric Arena */}
 
         <div
           className={
@@ -444,8 +418,9 @@ export function AnimatedParkingMap3D({
                     {!isOccupied && !isReserved && !isMaintenance && <span className="text-emerald-400 font-bold text-[7px] uppercase tracking-normal">FREE</span>}
                   </div>
                   
-                  {/* Render vehicle icon in occupied slots — motorcycle emoji for moto slots, CartoonCar3D for car slots */}
-                  {isOccupied && (
+                  {/* Render vehicle icon in occupied slots — motorcycle emoji for moto slots, CartoonCar3D for car slots.
+                      In simulation mode, slots 3 & 4 are reserved for dynamic Car A & Car B to avoid double-rendering */}
+                  {isOccupied && (!showSimCars || (id !== 3 && id !== 4)) && (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ transform: 'translateZ(4px)' }}>
                       {isMotoSlot ? (
                         <div style={{ fontSize: '20px', lineHeight: 1, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}>🏍️</div>
@@ -501,6 +476,51 @@ export function AnimatedParkingMap3D({
                   <svg className="w-full h-full overflow-visible" opacity="0.35">
                     <polygon points="0,8 50,0 50,16" fill="rgba(254, 240, 138, 0.75)" filter="blur(1.5px)" />
                   </svg>
+                </div>
+              )}
+
+              {/* Holographic HUD Callout pinned to Teal Sedan roof (when driving) */}
+              {!compact && carAState === 'driving' && (
+                <div className="absolute overflow-visible pointer-events-none" style={{ top: 0, left: 0, width: '100%', height: '100%', transformStyle: 'preserve-3d' }}>
+                  {/* SVG dashed leader line */}
+                  <svg className="absolute overflow-visible pointer-events-none z-30" style={{ top: -75, left: -25, width: 80, height: 80 }}>
+                    <path 
+                      d="M 15,10 Q 55,35 44,70" 
+                      fill="none" 
+                      stroke="#06b6d4" 
+                      strokeWidth="1.5"
+                      strokeDasharray="3 3"
+                      className="animate-pulse"
+                    />
+                    <circle cx="44" cy="70" r="3" fill="#06b6d4" className="shadow-[0_0_8px_#06b6d4]" />
+                  </svg>
+
+                  {/* Counter-rotated HUD Card facing user */}
+                  <div 
+                    className="absolute border border-cyan-500/40 rounded-xl p-2.5 tracking-wider uppercase font-mono shadow-2xl flex flex-col gap-0.5 pointer-events-auto backdrop-blur-md"
+                    style={{
+                      width: '135px',
+                      height: '52px',
+                      left: '-105px',
+                      top: '-120px',
+                      transform: 'rotateZ(45deg) rotateX(-55deg) scale(0.95)',
+                      transformOrigin: 'bottom right',
+                      background: 'rgba(15, 23, 42, 0.92)',
+                      boxShadow: '0 8px 32px 0 rgba(6, 182, 212, 0.3)',
+                    }}
+                  >
+                    <div className="flex justify-between items-center text-[9px] font-black text-white border-b border-cyan-500/20 pb-1 mb-1">
+                      <span>TEAL_SEDAN_EV</span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
+                    </div>
+                    <div className="text-[7.5px] font-bold text-cyan-300 flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_6px_#10b981]" />
+                      SYS: AUTOPARK_ALIGN
+                    </div>
+                    <div className="text-[7.5px] font-bold text-cyan-300/80">
+                      BATTERY: 81%
+                    </div>
+                  </div>
                 </div>
               )}
             </motion.div>

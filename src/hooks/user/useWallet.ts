@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { userApi, type UserWallet, type UserWalletTransaction } from '@/services/user/userApi';
 import {
   fmtMoney,
+  MAX_TOP_UP_AMOUNT,
   TOP_UP_OPTIONS,
   type CopyField,
   type PendingTopUp,
@@ -89,6 +90,10 @@ export function useWallet() {
 
   const handleTopUp = async (amount: number) => {
     setMessage(null);
+    if (amount > MAX_TOP_UP_AMOUNT) {
+      setCustomError(`Maximum amount is ${fmtMoney(MAX_TOP_UP_AMOUNT)}.`);
+      return;
+    }
     setIsSubmitting(true);
     try {
       const res = await userApi.wallet.topup({ amount });
@@ -110,6 +115,10 @@ export function useWallet() {
     }
     if (amount < 10_000) {
       setCustomError('Minimum amount is 10,000 VND.');
+      return;
+    }
+    if (amount > MAX_TOP_UP_AMOUNT) {
+      setCustomError(`Maximum amount is ${fmtMoney(MAX_TOP_UP_AMOUNT)}.`);
       return;
     }
     setCustomAmount('');

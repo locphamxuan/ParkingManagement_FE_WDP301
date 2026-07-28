@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { AlertCircle, CheckCircle2, Plus, QrCode } from 'lucide-react';
-import { fmtMoney, TOP_UP_OPTIONS } from './wallet.constants';
+import { fmtMoney, MAX_TOP_UP_AMOUNT, TOP_UP_OPTIONS } from './wallet.constants';
 
 interface QuickTopUpPanelProps {
   selectedAmount: number;
@@ -65,6 +65,7 @@ export function QuickTopUpPanel({
               <input
                 type="number"
                 min="10000"
+                max={MAX_TOP_UP_AMOUNT}
                 step="1000"
                 value={customAmount}
                 onChange={(e) => onChangeCustomAmount(e.target.value)}
@@ -87,6 +88,9 @@ export function QuickTopUpPanel({
               <AlertCircle size={12} /> {customError}
             </p>
           )}
+          <p className="mt-1.5 text-[10px] font-medium text-slate-500">
+            Maximum {fmtMoney(MAX_TOP_UP_AMOUNT)} per top-up.
+          </p>
         </div>
       </div>
 

@@ -11,6 +11,7 @@ interface AuthState {
   isAuthenticating: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<AuthSession>;
+  completeRegistration: (session: AuthSession) => void;
   logout: () => void;
   updateProfile: (profile: { fullName: string; phone: string; licensePlates: Array<{ _id?: string; plateNumber: string; vehicleType: 'car' | 'motorcycle'; brand?: string | null; isDefault?: boolean }> }) => void;
   setDefaultLicensePlate: (plateId: string) => Promise<void>;
@@ -147,6 +148,20 @@ export const useAuthStore = create<AuthState>()(
           set({ error: message, isAuthenticating: false });
           throw error;
         }
+      },
+      completeRegistration(session) {
+        set({ session, isAuthenticating: false, error: null });
+        saveSession({
+          user: {
+            _id: session.userId,
+            email: session.email,
+            fullName: session.displayName,
+            role: session.role,
+            assignedBuildings: session.assignedBuildingIds,
+            phone: session.phone,
+            licensePlates: session.licensePlates,
+          },
+        });
       },
       logout() {
         // Fire-and-forget: the cookie is httpOnly, so only the BE can clear it.

@@ -32,6 +32,7 @@ export const TX_REASON_LABELS: Record<string, string> = {
 };
 
 export const TOP_UP_OPTIONS = [50_000, 100_000, 200_000, 500_000];
+export const MAX_TOP_UP_AMOUNT = 10_000_000;
 
 export type TxFilter = 'all' | 'credit' | 'debit';
 

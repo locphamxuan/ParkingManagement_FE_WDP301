@@ -312,13 +312,13 @@ export function BuildingsPage() {
               setQuery(e.target.value);
             }}
             placeholder="Search buildings by name or address..."
-            className="pl-9 bg-white/90 border-sky-100 focus-visible:ring-blue-500 rounded-xl text-xs font-semibold w-full h-10"
+            className="h-11 w-full rounded-xl border-sky-100 bg-white/90 pl-9 text-xs font-semibold focus-visible:ring-blue-500"
           />
         </div>
 
         {/* Status Filter Dropdown */}
         <CustomSelect
-          className="h-10 w-full md:w-48 shrink-0"
+          className="h-11 w-full md:w-48 shrink-0"
           value={statusFilter}
           onChange={(value) => {
             setPage(1);
@@ -330,7 +330,7 @@ export function BuildingsPage() {
         {/* Create Building Gem Button */}
         <Button
           onClick={openCreateModal}
-          className="bg-gradient-to-r from-blue-600 to-indigo-650 hover:from-blue-500 hover:to-indigo-600 hover:shadow-lg hover:shadow-blue-500/15 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-white rounded-xl font-black px-5 py-2.5 h-10 text-xs border-0 shadow-md flex items-center gap-1.5 shrink-0 w-full md:w-auto justify-center"
+          className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-600 hover:shadow-lg hover:shadow-blue-500/15 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-white rounded-xl font-black px-5 py-2.5 h-11 text-xs border-0 shadow-md flex items-center gap-1.5 shrink-0 w-full md:w-auto justify-center"
         >
           <Plus size={14} /> Create building
         </Button>

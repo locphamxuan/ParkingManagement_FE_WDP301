@@ -361,11 +361,12 @@ export function AdminProfilePage() {
               <button
                 key={tab.key}
                 type="button"
+                aria-pressed={isActive}
                 onClick={() => {
                   setActiveRole(tab.key);
                   setSearch('');
                 }}
-                className={`flex items-center gap-2.5 rounded-xl border px-4 py-2.5 text-xs font-black uppercase tracking-wider transition-all duration-300 hover:scale-[1.02] cursor-pointer ${
+                className={`flex min-h-11 items-center gap-2.5 rounded-xl border px-4 py-2.5 text-xs font-black uppercase tracking-wider transition-all duration-300 hover:scale-[1.02] cursor-pointer ${
                   isActive
                     ? `${tab.border} ${tab.bg} ${tab.color}`
                     : 'border-slate-100 bg-slate-50 text-slate-400 hover:bg-slate-50 hover:text-slate-700'
@@ -409,7 +410,7 @@ export function AdminProfilePage() {
             </div>
           ) : filteredUsers.length === 0 ? (
             <div className="py-16 text-center border border-dashed border-slate-100 rounded-3xl bg-slate-50">
-              <activeTab.icon size={36} className="mx-auto mb-3 text-slate-650 opacity-40" />
+              <activeTab.icon size={36} className="mx-auto mb-3 text-slate-600 opacity-40" />
               <p className="text-sm font-semibold text-slate-400">
                 {search ? `No matching ${activeTab.label} found.` : `No ${activeTab.label} yet.`}
               </p>

@@ -127,7 +127,7 @@ export function AuditLogsPage() {
       title: 'Actor',
       render: (row) => (
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-full bg-slate-500/10 border border-slate-200/50 text-slate-650 flex items-center justify-center font-bold text-[10px] uppercase shrink-0">
+          <div className="w-7 h-7 rounded-full bg-slate-500/10 border border-slate-200/50 text-slate-600 flex items-center justify-center font-bold text-[10px] uppercase shrink-0">
             {row.actor.slice(0, 2)}
           </div>
           <span className="text-xs font-bold text-slate-700">{row.actor}</span>
@@ -161,7 +161,7 @@ export function AuditLogsPage() {
         const date = parts[1] || '';
         return (
           <div className="font-mono text-xs">
-            <span className="font-bold text-slate-750 block">{time}</span>
+            <span className="font-bold text-slate-700 block">{time}</span>
             <span className="text-[10px] text-slate-400 block mt-0.5 font-semibold">{date}</span>
           </div>
         );
@@ -176,7 +176,7 @@ export function AuditLogsPage() {
           if (s === 'low') return 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600';
           if (s === 'medium') return 'bg-amber-500/10 border-amber-500/20 text-amber-600';
           if (s === 'high') return 'bg-orange-500/10 border-orange-500/20 text-orange-600';
-          return 'bg-rose-500/10 border-rose-500/20 text-rose-605';
+          return 'bg-rose-500/10 border-rose-500/20 text-rose-600';
         };
         return (
           <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider border ${getSeverityStyle(row.severity)}`}>
@@ -260,13 +260,13 @@ export function AuditLogsPage() {
                 setActiveTab(g.key);
                 setPage(1);
               }}
-              className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-bold transition-all duration-200 ${
+              className={`inline-flex min-h-11 items-center gap-2 rounded-xl border px-4 py-2 text-xs font-bold transition-all duration-200 ${
                 isActive
                   ? 'border-blue-500/30 bg-blue-500/10 text-blue-600 shadow-[0_0_12px_rgba(59,130,246,0.08)]'
                   : 'border-sky-100/60 bg-white/60 text-slate-500 hover:text-slate-800 hover:bg-slate-50'
               }`}
             >
-              <FileText size={12} className={isActive ? 'text-blue-550' : 'text-slate-400'} />
+              <FileText size={12} className={isActive ? 'text-blue-600' : 'text-slate-400'} />
               <span>{targetLabel(g.key)}</span>
               <span
                 className={`rounded-lg px-2 py-0.5 text-[9px] font-black font-mono border ${
@@ -294,13 +294,13 @@ export function AuditLogsPage() {
               setQuery(e.target.value);
             }}
             placeholder="Search by actor, details or location..."
-            className="pl-9 bg-white/90 border-sky-100 focus-visible:ring-blue-500 rounded-xl text-xs font-semibold w-full h-10"
+            className="h-11 w-full rounded-xl border-sky-100 bg-white/90 pl-9 text-xs font-semibold focus-visible:ring-blue-500"
           />
         </div>
 
         {/* Severity Filter Dropdown */}
         <CustomSelect
-          className="h-10 w-full md:w-48 shrink-0"
+          className="h-11 w-full md:w-48 shrink-0"
           value={severity}
           onChange={(val) => {
             setPage(1);

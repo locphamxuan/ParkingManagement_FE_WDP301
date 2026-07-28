@@ -105,7 +105,7 @@ export function RoleGovernancePage() {
                   <Icon size={19} />
                 </span>
                 <div>
-                  <h3 className="text-sm font-black text-slate-850">{meta.label}</h3>
+                  <h3 className="text-sm font-black text-slate-900">{meta.label}</h3>
                   <p className="mt-1 text-xs leading-relaxed text-slate-500">{role.purpose}</p>
                 </div>
               </div>
@@ -117,7 +117,7 @@ export function RoleGovernancePage() {
                   </p>
                   <ul className="space-y-2">
                     {role.capabilities.map((capability) => (
-                      <li key={capability} className="flex gap-2 text-[11px] leading-relaxed text-slate-650">
+                      <li key={capability} className="flex gap-2 text-[11px] leading-relaxed text-slate-600">
                         <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
                         {capability}
                       </li>
@@ -131,7 +131,7 @@ export function RoleGovernancePage() {
                   </p>
                   <ul className="space-y-2">
                     {role.boundaries.map((boundary) => (
-                      <li key={boundary} className="flex gap-2 text-[11px] leading-relaxed text-slate-650">
+                      <li key={boundary} className="flex gap-2 text-[11px] leading-relaxed text-slate-600">
                         <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-rose-400" />
                         {boundary}
                       </li>
@@ -146,7 +146,7 @@ export function RoleGovernancePage() {
 
       <section className="rounded-3xl border border-sky-100/80 bg-white/70 p-5 shadow-sm">
         <div className="mb-5">
-          <h3 className="flex items-center gap-2 text-sm font-black text-slate-850">
+          <h3 className="flex items-center gap-2 text-sm font-black text-slate-900">
             <WalletCards size={17} className="text-blue-600" />
             Separation of duties for money flows
           </h3>
@@ -168,10 +168,10 @@ export function RoleGovernancePage() {
             <tbody className="divide-y divide-sky-50">
               {data?.separationOfDuties.map((flow) => (
                 <tr key={flow.flow}>
-                  <td className="px-4 py-4 font-black text-slate-750">{flow.flow}</td>
-                  <td className="px-4 py-4 leading-relaxed text-slate-550">{flow.staff || '—'}</td>
-                  <td className="px-4 py-4 leading-relaxed text-slate-550">{flow.manager || '—'}</td>
-                  <td className="px-4 py-4 leading-relaxed text-slate-550">{flow.admin || '—'}</td>
+                  <td className="px-4 py-4 font-black text-slate-700">{flow.flow}</td>
+                  <td className="px-4 py-4 leading-relaxed text-slate-600">{flow.staff || '—'}</td>
+                  <td className="px-4 py-4 leading-relaxed text-slate-600">{flow.manager || '—'}</td>
+                  <td className="px-4 py-4 leading-relaxed text-slate-600">{flow.admin || '—'}</td>
                 </tr>
               ))}
             </tbody>

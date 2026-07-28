@@ -206,7 +206,7 @@ export function UsersPage() {
         {/* Blocked Users */}
         <div className="relative overflow-hidden rounded-2xl glass-premium p-4 shadow-sm border border-sky-100/60 bg-white/45 flex items-center gap-4 group hover:border-rose-500/20 transition-all duration-300">
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-rose-500/10 via-rose-500/30 to-red-500/10" />
-          <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-650 flex items-center justify-center font-bold shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center font-bold shrink-0">
             <UserX size={18} />
           </div>
           <div>
@@ -239,13 +239,13 @@ export function UsersPage() {
               setQuery(e.target.value);
             }}
             placeholder="Search customers by name, email or plate..."
-            className="pl-9 bg-white/90 border-sky-100 focus-visible:ring-blue-500 rounded-xl text-xs font-semibold w-full h-10"
+            className="h-11 w-full rounded-xl border-sky-100 bg-white/90 pl-9 text-xs font-semibold focus-visible:ring-blue-500"
           />
         </div>
 
         {/* Status Filter Dropdown */}
         <CustomSelect
-          className="h-10 w-full md:w-48 shrink-0"
+          className="h-11 w-full md:w-48 shrink-0"
           value={statusFilter}
           onChange={setStatusFilter}
           options={[
@@ -259,7 +259,7 @@ export function UsersPage() {
         {/* Create User Gem Button */}
         <Button 
           onClick={openCreateModal}
-          className="bg-gradient-to-r from-blue-600 to-indigo-650 hover:from-blue-500 hover:to-indigo-600 hover:shadow-lg hover:shadow-blue-500/15 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-white rounded-xl font-black px-5 py-2.5 h-10 text-xs border-0 shadow-md flex items-center gap-1.5 shrink-0 w-full md:w-auto justify-center"
+          className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-600 hover:shadow-lg hover:shadow-blue-500/15 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-white rounded-xl font-black px-5 py-2.5 h-11 text-xs border-0 shadow-md flex items-center gap-1.5 shrink-0 w-full md:w-auto justify-center"
         >
           <Plus size={14} /> Create user
         </Button>
@@ -301,14 +301,14 @@ export function UsersPage() {
                 {/* Card Info Details */}
                 <div className="mt-4 space-y-2.5">
                   <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold">
-                    <Mail size={13} className="text-slate-455 shrink-0" />
-                    <span className="text-xs text-slate-650 truncate max-w-[200px] block">
+                    <Mail size={13} className="text-slate-500 shrink-0" />
+                    <span className="text-xs text-slate-600 truncate max-w-[200px] block">
                       {u.email}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold">
-                    <Phone size={13} className={hasPhone ? 'text-slate-455 shrink-0' : 'text-slate-350 shrink-0'} />
-                    <span className={`text-xs ${hasPhone ? 'text-slate-650 font-bold' : 'italic text-slate-400 font-medium'}`}>
+                    <Phone size={13} className={hasPhone ? 'text-slate-500 shrink-0' : 'text-slate-400 shrink-0'} />
+                    <span className={`text-xs ${hasPhone ? 'text-slate-600 font-bold' : 'italic text-slate-400 font-medium'}`}>
                       {u.phone || 'Not updated'}
                     </span>
                   </div>
@@ -345,21 +345,24 @@ export function UsersPage() {
                 <div className="mt-4 pt-3.5 border-t border-sky-100/40 flex items-center justify-end gap-1.5">
                   <button
                     onClick={() => openEditModal(u)}
-                    className="p-2 rounded-xl bg-amber-50 border border-amber-100 hover:bg-amber-500 hover:text-white text-amber-600 hover:shadow-md hover:shadow-amber-500/10 transition-all duration-200"
+                    aria-label={`Edit ${u.name}`}
+                    className="flex h-11 w-11 items-center justify-center rounded-xl border border-amber-100 bg-amber-50 text-amber-600 transition-all duration-200 hover:bg-amber-500 hover:text-white hover:shadow-md hover:shadow-amber-500/10"
                     title="Edit"
                   >
                     <Edit size={14} />
                   </button>
                   <button
                     onClick={() => toggleStatus(u)}
-                    className="p-2 rounded-xl bg-orange-50 border border-orange-100 hover:bg-orange-500 hover:text-white text-orange-600 hover:shadow-md hover:shadow-orange-500/10 transition-all duration-200"
+                    aria-label={`${u.status === 'active' ? 'Lock' : 'Unlock'} ${u.name}`}
+                    className="flex h-11 w-11 items-center justify-center rounded-xl border border-orange-100 bg-orange-50 text-orange-600 transition-all duration-200 hover:bg-orange-500 hover:text-white hover:shadow-md hover:shadow-orange-500/10"
                     title={u.status === 'active' ? 'Lock account' : 'Unlock'}
                   >
                     {u.status === 'active' ? <Lock size={14} /> : <Unlock size={14} />}
                   </button>
                   <button
                     onClick={() => setPendingDeleteUser(u)}
-                    className="p-2 rounded-xl bg-red-50 border border-red-100 hover:bg-red-500 hover:text-white text-red-650 hover:shadow-md hover:shadow-red-500/10 transition-all duration-200"
+                    aria-label={`Delete ${u.name}`}
+                    className="flex h-11 w-11 items-center justify-center rounded-xl border border-red-100 bg-red-50 text-red-600 transition-all duration-200 hover:bg-red-500 hover:text-white hover:shadow-md hover:shadow-red-500/10"
                     title="Delete"
                   >
                     <Trash2 size={14} />

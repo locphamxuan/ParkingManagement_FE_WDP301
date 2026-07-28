@@ -64,7 +64,7 @@ export function DashboardOverviewPage() {
         initial="hidden"
         animate="visible"
         variants={sectionVariants}
-        className="relative overflow-hidden rounded-3xl p-8 shadow-xl bg-gradient-to-br from-blue-700 via-indigo-650 to-purple-650 text-white border border-indigo-400/20"
+        className="relative overflow-hidden rounded-3xl border border-indigo-400/20 bg-gradient-to-br from-blue-700 via-indigo-600 to-purple-600 p-8 text-white shadow-xl"
       >
         {/* Radial glows inside the hero */}
         <div className="absolute -right-12 -top-12 h-64 w-64 rounded-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.15),transparent_70%)] pointer-events-none blur-xl animate-pulse" />

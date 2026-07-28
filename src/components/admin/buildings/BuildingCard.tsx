@@ -58,8 +58,8 @@ export function BuildingCard({
       {/* Card Info Details */}
       <div className="mt-4 space-y-2.5">
         <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold">
-          <MapPin size={13} className={isNotUpdated ? 'text-slate-350' : 'text-slate-455 shrink-0'} />
-          <span className={`truncate text-xs ${isNotUpdated ? 'italic text-slate-400' : 'text-slate-650'}`}>
+          <MapPin size={13} className={isNotUpdated ? 'text-slate-400' : 'text-slate-500 shrink-0'} />
+          <span className={`truncate text-xs ${isNotUpdated ? 'italic text-slate-400' : 'text-slate-600'}`}>
             {b.address}
           </span>
         </div>
@@ -109,35 +109,39 @@ export function BuildingCard({
       <div className="mt-4 pt-3.5 border-t border-sky-100/40 flex items-center justify-between gap-2">
         <button
           onClick={() => onViewDetail(b)}
-          className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-blue-50 border border-blue-100 hover:bg-blue-500 hover:text-white text-blue-600 hover:shadow-md hover:shadow-blue-500/10 text-xs font-black transition-all duration-250"
+          className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border border-blue-100 bg-blue-50 px-4 py-2 text-xs font-black text-blue-600 transition-all duration-250 hover:bg-blue-500 hover:text-white hover:shadow-md hover:shadow-blue-500/10"
         >
           <Eye size={14} /> Details
         </button>
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => onViewMembers(b)}
-            className="p-2 rounded-xl bg-purple-50 border border-purple-100 hover:bg-purple-500 hover:text-white text-purple-600 hover:shadow-md hover:shadow-purple-500/10 transition-all duration-200"
+            aria-label={`View members of ${b.name}`}
+            className="flex h-11 w-11 items-center justify-center rounded-xl border border-purple-100 bg-purple-50 text-purple-600 transition-all duration-200 hover:bg-purple-500 hover:text-white hover:shadow-md hover:shadow-purple-500/10"
             title="Members"
           >
             <Users size={14} />
           </button>
           <button
             onClick={() => onEdit(b)}
-            className="p-2 rounded-xl bg-amber-50 border border-amber-100 hover:bg-amber-500 hover:text-white text-amber-600 hover:shadow-md hover:shadow-amber-500/10 transition-all duration-200"
+            aria-label={`Edit ${b.name}`}
+            className="flex h-11 w-11 items-center justify-center rounded-xl border border-amber-100 bg-amber-50 text-amber-600 transition-all duration-200 hover:bg-amber-500 hover:text-white hover:shadow-md hover:shadow-amber-500/10"
             title="Edit"
           >
             <Edit size={14} />
           </button>
           <button
             onClick={() => onToggleStatus(b)}
-            className="p-2 rounded-xl bg-orange-50 border border-orange-100 hover:bg-orange-500 hover:text-white text-orange-600 hover:shadow-md hover:shadow-orange-500/10 transition-all duration-200"
+            aria-label={`${b.status === 'active' ? 'Deactivate' : 'Activate'} ${b.name}`}
+            className="flex h-11 w-11 items-center justify-center rounded-xl border border-orange-100 bg-orange-50 text-orange-600 transition-all duration-200 hover:bg-orange-500 hover:text-white hover:shadow-md hover:shadow-orange-500/10"
             title={b.status === 'active' ? 'Deactivate' : 'Activate'}
           >
             <Power size={14} />
           </button>
           <button
             onClick={() => onDelete(b)}
-            className="p-2 rounded-xl bg-red-50 border border-red-100 hover:bg-red-500 hover:text-white text-red-650 hover:shadow-md hover:shadow-red-500/10 transition-all duration-200"
+            aria-label={`Delete ${b.name}`}
+            className="flex h-11 w-11 items-center justify-center rounded-xl border border-red-100 bg-red-50 text-red-600 transition-all duration-200 hover:bg-red-500 hover:text-white hover:shadow-md hover:shadow-red-500/10"
             title="Delete"
           >
             <Trash2 size={14} />

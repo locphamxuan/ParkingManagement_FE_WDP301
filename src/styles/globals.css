@@ -700,13 +700,6 @@ button[aria-expanded="true"] .chev {
   color: #475569 !important;
 }
 
-.admin-theme h1:not(.bg-clip-text),
-.admin-theme h2:not(.bg-clip-text),
-.admin-theme h3:not(.bg-clip-text),
-.admin-theme h4:not(.bg-clip-text) {
-  color: #0f172a !important;
-}
-
 .admin-theme input:not([type="range"]):not(:disabled),
 .admin-theme select:not(:disabled),
 .admin-theme textarea:not(:disabled) {
@@ -818,12 +811,15 @@ button[aria-expanded="true"] .chev {
 .manager-theme [class*="bg-slate-9"] .text-slate-500,
 .manager-theme [class*="bg-slate-95"] .text-slate-500,
 .manager-theme [class*="bg-slate-8"] .text-slate-500,
-.manager-theme .glass-premium .text-slate-500,
 .admin-theme [class*="bg-slate-9"] .text-slate-500,
 .admin-theme [class*="bg-slate-95"] .text-slate-500,
-.admin-theme [class*="bg-slate-8"] .text-slate-500,
-.admin-theme .glass-premium .text-slate-500 {
+.admin-theme [class*="bg-slate-8"] .text-slate-500 {
   color: #cbd5e1 !important;
+}
+
+.manager-theme .glass-premium .text-slate-500,
+.admin-theme .glass-premium .text-slate-500 {
+  color: #64748b !important;
 }
 
 /* ── Light glass panels overrides for manager & admin themes ── */

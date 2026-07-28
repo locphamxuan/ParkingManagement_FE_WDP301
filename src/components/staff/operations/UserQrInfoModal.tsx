@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { StaffOperations } from '@/hooks/staff/useStaffOperations';
 
@@ -18,7 +19,14 @@ export function UserQrInfoModal({ ops }: { ops: StaffOperations }) {
             <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary">Scanned account</p>
             <h3 className="text-lg font-semibold text-foreground">{userQrInfo.fullName}</h3>
           </div>
-          <button onClick={() => setUserQrInfo(null)} className="text-muted-foreground hover:text-foreground transition">✕</button>
+          <button
+            type="button"
+            onClick={() => setUserQrInfo(null)}
+            aria-label="Close scanned account dialog"
+            className="flex h-11 w-11 items-center justify-center rounded-xl text-muted-foreground transition hover:bg-muted hover:text-foreground"
+          >
+            <X size={18} />
+          </button>
         </div>
 
         <div className="mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">

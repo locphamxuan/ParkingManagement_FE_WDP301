@@ -154,7 +154,8 @@ export function StaffLayout() {
               size="sm"
               variant="ghost"
               onClick={() => setCollapsed((p) => !p)}
-              className="h-7 w-7 shrink-0 rounded-lg p-0 text-slate-500 hover:bg-sky-100/60 hover:text-blue-600"
+              aria-label={collapsed ? 'Expand navigation' : 'Collapse navigation'}
+              className="h-11 w-11 shrink-0 rounded-lg p-0 text-slate-500 hover:bg-sky-100/60 hover:text-blue-600"
             >
               <ChevronLeft
                 size={14}
@@ -207,7 +208,7 @@ export function StaffLayout() {
                     value={selectedBuildingId ?? ''}
                     onChange={(e) => setSelectedBuildingId(e.target.value)}
                     aria-label="Select building"
-                    className="h-10 rounded-xl border border-border bg-white px-3 text-sm font-semibold text-slate-800 shadow-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10"
+                    className="h-11 rounded-xl border border-border bg-white px-3 text-sm font-semibold text-slate-800 shadow-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10"
                   >
                     {buildings.map((b) => (
                       <option key={b._id} value={b._id}>
@@ -302,11 +303,12 @@ export function StaffLayout() {
           <main className="portal-main flex-1 p-4 md:p-6 lg:p-8">
             <div className="mx-auto w-full max-w-[1600px]">
             {bootstrapping && !isProfileRoute ? (
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-slate-400">
-                Loading...
+              <div className="flex items-center gap-3 rounded-2xl border border-sky-200 bg-white/90 p-6 text-sm font-semibold text-slate-600" aria-live="polite">
+                <span className="h-5 w-5 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+                Loading assigned building...
               </div>
             ) : !selectedBuildingId && !isProfileRoute ? (
-              <div className="rounded-2xl border border-amber-500/20 bg-amber-500/8 p-6 text-sm text-amber-200">
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-sm font-semibold text-amber-800" role="alert">
                 This account has not been assigned to any building. Please contact your manager.
               </div>
             ) : (

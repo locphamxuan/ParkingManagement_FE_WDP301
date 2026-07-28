@@ -98,13 +98,13 @@ export default function LongTermSubscriptionsPage() {
           className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
         >
           <div>
-            <h1 className="text-3xl font-black text-white md:text-4xl">Your Subscriptions</h1>
+            <h1 className="text-3xl font-black text-slate-900 md:text-4xl">Your Subscriptions</h1>
             <p className="mt-2 text-sm font-semibold text-slate-400">Manage, renew, and track your active subscriptions</p>
           </div>
           <button
             type="button"
             onClick={() => navigate('/packages/buy')}
-            className="inline-flex items-center gap-2 rounded-xl border border-orange-500/30 bg-orange-500/10 px-5 py-2.5 text-xs font-black uppercase tracking-wider text-orange-300 hover:bg-orange-500/20 transition-all shrink-0"
+            className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-orange-300 bg-orange-50 px-5 py-2.5 text-xs font-black uppercase tracking-wider text-orange-700 transition-all hover:bg-orange-100"
           >
             <CheckCircle2 size={14} /> Buy New Package
           </button>
@@ -115,8 +115,8 @@ export default function LongTermSubscriptionsPage() {
           <div
             className={`mb-6 flex items-center gap-2 rounded-2xl border p-4 text-sm font-semibold ${
               message.type === 'success'
-                ? 'border-emerald-400/30 bg-emerald-500/10 text-emerald-300'
-                : 'border-rose-400/30 bg-rose-500/10 text-rose-300'
+                ? 'border-emerald-400/30 bg-emerald-50 text-emerald-700'
+                : 'border-rose-400/30 bg-rose-50 text-rose-700'
             }`}
           >
             <CheckCircle2 size={18} />
@@ -125,20 +125,20 @@ export default function LongTermSubscriptionsPage() {
         )}
 
         {/* Subscriptions list */}
-        <div className="rounded-3xl border border-white/10 bg-slate-900/55 p-6">
+        <div className="user-surface rounded-3xl p-6">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-white">
-              <Building2 size={16} className="text-cyan-300" />
+            <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-slate-900">
+              <Building2 size={16} className="text-cyan-600" />
               Subscription Packages
             </h2>
-            <span className="rounded-full bg-slate-950 px-2 py-1 text-[11px] font-bold text-slate-400">
+            <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] font-bold text-slate-600">
               {currentSubscriptionCount} current / {subscriptions.length} total
             </span>
           </div>
 
           <div className="space-y-3">
             {isLoadingSubscriptions ? (
-              <div className="rounded-xl border border-white/10 bg-slate-950/60 p-4 text-center">
+              <div className="user-surface-muted rounded-xl p-4 text-center">
                 <Loader2 size={16} className="animate-spin mx-auto text-orange-300 mb-2" />
                 <p className="text-xs font-semibold text-slate-400">Loading data...</p>
               </div>
@@ -155,31 +155,31 @@ export default function LongTermSubscriptionsPage() {
                 const canCancel = isPendingOrActive && (now <= startDate || diffDays <= 3);
 
                 return (
-                  <div key={item._id} className="rounded-xl border border-white/10 bg-slate-950/60 p-4">
+                  <div key={item._id} className="user-surface-muted rounded-xl p-4">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs font-black text-orange-300">{item.package.name}</p>
+                      <p className="text-xs font-black text-orange-700">{item.package.name}</p>
                       <span className={`rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider shrink-0 ${packageStatusBadgeClass(item.status)}`}>
                         {packageStatusLabel(item.status)}
                       </span>
                     </div>
-                    <p className="mt-1 text-xs font-semibold text-slate-300">
+                    <p className="mt-1 text-xs font-semibold text-slate-700">
                       {item.plateNumber ?? item.linkedPlates?.join(', ') ?? '—'} • {item.package.code}
                     </p>
                     <p className="mt-1 text-[11px] text-slate-400">
                       {formatDate(item.startDate)} - {formatDate(item.endDate)}
                     </p>
-                    <p className="mt-1 text-[11px] font-black text-cyan-300">
+                    <p className="mt-1 text-[11px] font-black text-cyan-700">
                       {formatMoney(item.price ?? item.package.price)}
                     </p>
 
                     {typeof item.package.maxHoursPerDay === 'number' && item.package.maxHoursPerDay > 0 && (
                       <p className="mt-1 text-[10px] text-slate-400">
-                        Free hours: <span className="font-bold text-slate-200">{item.package.maxHoursPerDay}h/day</span>
+                        Free hours: <span className="font-bold text-slate-800">{item.package.maxHoursPerDay}h/day</span>
                       </p>
                     )}
                     {(item.status === 'active' || item.status === 'pending') && (
                       item.slot?.code ? (
-                        <p className="mt-1.5 inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-300">
+                        <p className="mt-1.5 inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-700">
                           Slot reserved: {item.slot.code}
                         </p>
                       ) : (
@@ -199,7 +199,7 @@ export default function LongTermSubscriptionsPage() {
                         type="button"
                         disabled={isRenewing}
                         onClick={() => handleRenew(item)}
-                        className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 hover:bg-emerald-500/20 px-3 py-1.5 text-xs font-black uppercase tracking-wider text-emerald-300 transition-all active:scale-95 disabled:opacity-60"
+                        className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl border border-emerald-500/20 bg-emerald-50 px-3 py-1.5 text-xs font-black uppercase tracking-wider text-emerald-700 transition-all hover:bg-emerald-100 active:scale-95 disabled:opacity-60"
                       >
                         <RefreshCw size={12} /> {isRenewing ? 'Renewing...' : 'Renew'}
                       </button>
@@ -224,7 +224,7 @@ export default function LongTermSubscriptionsPage() {
                 );
               })
             ) : (
-              <p className="rounded-xl border border-white/10 bg-slate-950/60 p-4 text-center text-xs font-semibold text-slate-500">
+              <p className="user-surface-muted rounded-xl p-4 text-center text-xs font-semibold text-slate-500">
                 No subscriptions found.
               </p>
             )}

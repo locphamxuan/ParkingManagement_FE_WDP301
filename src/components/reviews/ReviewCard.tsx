@@ -1,26 +1,20 @@
-import { Quote, RefreshCw, Trash2 } from 'lucide-react';
-import type { Feedback } from '@/services/user/userApi';
+import { Quote, User } from 'lucide-react';
+import type { PublicReview } from '@/services/user/userApi';
 import { StarRating } from '@/components/reviews/StarRating';
 import { fmtTime } from '@/hooks/useReviews';
 
 interface ReviewCardProps {
-  item: Feedback;
-  currentUserId?: string;
-  deletingId: string | null;
-  onDelete: (feedbackId: string) => void;
+  item: PublicReview;
 }
 
-/** Single review card: reviewer info, star rating, comment and optional staff reply. */
-export function ReviewCard({ item, currentUserId, deletingId, onDelete }: ReviewCardProps) {
-  const userInitials = item.user?.fullName
-    ? item.user.fullName
-        .split(' ')
-        .slice(-2)
-        .map((word) => word[0])
-        .join('')
-        .toUpperCase()
-    : 'U';
-
+/**
+ * Single review card — read-only. Reviews are published anonymously (the public
+ * feed carries no reviewer name, avatar or replier identity by design, see
+ * PublicReview / publicFeedback.dto.js), and the feed only ever contains
+ * `resolved` feedback, which the backend refuses to delete. So there is
+ * deliberately no delete control here.
+ */
+export function ReviewCard({ item }: ReviewCardProps) {
   return (
     <div className="group relative rounded-3xl border border-white/6 bg-white/3 p-6 hover:border-orange-500/20 hover:bg-white/5 transition-all duration-350 shadow-lg hover:shadow-orange-500/2 shadow-slate-950/20 hover:scale-[1.01]">
       {/* Background decoration inside card */}
@@ -28,46 +22,15 @@ export function ReviewCard({ item, currentUserId, deletingId, onDelete }: Review
         <Quote size={40} className="transform rotate-180" />
       </div>
 
-      {currentUserId && item.user?._id === currentUserId && (
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(item._id);
-          }}
-          disabled={deletingId === item._id}
-          className="absolute top-4 right-4 z-10 flex h-8 w-8 items-center justify-center rounded-lg border border-red-500/25 bg-red-950/20 text-red-400 hover:text-white hover:bg-red-500 hover:border-red-500 transition-all duration-200 disabled:opacity-40 cursor-pointer shadow-lg hover:scale-105"
-          title="Delete review"
-        >
-          {deletingId === item._id ? (
-            <RefreshCw size={14} className="animate-spin" />
-          ) : (
-            <Trash2 size={14} />
-          )}
-        </button>
-      )}
-
       <div className="flex items-start gap-4">
-        {/* Avatar */}
-        {item.user?.avatar ? (
-          <img
-            src={item.user.avatar}
-            alt={item.user?.fullName || 'User'}
-            className="h-11 w-11 rounded-full object-cover border border-white/10"
-          />
-        ) : (
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-amber-600 text-white font-bold text-sm shadow-md shadow-orange-500/10">
-            {userInitials}
-          </div>
-        )}
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-amber-600 text-white shadow-md shadow-orange-500/10">
+          <User size={18} />
+        </div>
 
-        {/* Header details */}
         <div className="space-y-1">
-          <p className="font-bold text-white leading-tight">
-            {item.user?.fullName || item.user?.email || 'Anonymous user'}
-          </p>
+          <p className="font-bold text-white leading-tight">Verified customer</p>
           <p className="text-[10px] font-semibold text-slate-450 tracking-wide">
-            Customer · {item.building?.name || 'Parking lot'}
+            {item.building?.name || 'Parking lot'}
           </p>
         </div>
       </div>
@@ -92,11 +55,8 @@ export function ReviewCard({ item, currentUserId, deletingId, onDelete }: Review
           <div className="flex items-center gap-1.5">
             <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />
             <p className="text-[10px] font-black uppercase tracking-wider text-orange-400">
-              Reply from administrator
+              Reply from the parking operator
             </p>
-            {item.repliedBy?.fullName && (
-              <span className="text-[10px] text-slate-450">({item.repliedBy.fullName})</span>
-            )}
           </div>
           <p className="text-xs text-slate-300 leading-relaxed font-medium">
             {item.staffReply}

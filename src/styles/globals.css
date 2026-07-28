@@ -1559,3 +1559,24 @@ button:not(:disabled) {
     0 12px 30px rgba(15, 23, 42, 0.1) !important;
 }
 
+/* Explicit customer surfaces keep light screens readable without relying on
+   broad dark-utility overrides. */
+.public-light-theme .user-surface {
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.07);
+}
+
+.public-light-theme .user-surface-muted {
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(248, 250, 252, 0.92);
+}
+
+.public-light-theme .user-wallet-card {
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  background:
+    radial-gradient(circle at 95% 8%, rgba(34, 211, 238, 0.2), transparent 30%),
+    linear-gradient(135deg, #ffffff 0%, #eff6ff 52%, #e0f2fe 100%);
+  box-shadow: 0 22px 50px rgba(30, 64, 175, 0.15);
+}
+

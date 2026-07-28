@@ -32,7 +32,7 @@ export function BookingSummarySidebar({
 }: BookingSummarySidebarProps) {
   return (
     <div className="lg:sticky lg:top-6 lg:self-start">
-      <div className="glass-panel-white rounded-3xl p-6">
+      <div className="user-surface rounded-3xl p-6">
         <div className="flex items-center gap-2 mb-5">
           <CalendarClock size={16} className="text-orange-400" />
           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-300/70">
@@ -72,14 +72,14 @@ export function BookingSummarySidebar({
 
           <div className={`grid gap-2 ${selectedSlot ? 'grid-cols-2' : 'grid-cols-1'}`}>
             {selectedSlot && (
-              <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3 shadow-inner">
+              <div className="user-surface-muted rounded-xl p-3">
                 <p className="text-[9px] font-bold uppercase text-slate-500">Slot</p>
                 <p className="mt-1 font-mono text-lg font-black text-orange-400">
                   {selectedSlot}
                 </p>
               </div>
             )}
-            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3 shadow-inner">
+            <div className="user-surface-muted rounded-xl p-3">
               <p className="text-[9px] font-bold uppercase text-slate-500">Plate Number</p>
               <p className="mt-1 font-mono text-sm font-black text-cyan-200 truncate">
                 {selectedPlate || '—'}
@@ -87,13 +87,13 @@ export function BookingSummarySidebar({
             </div>
           </div>
 
-          <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3 shadow-inner">
+          <div className="user-surface-muted rounded-xl p-3">
             <p className="text-[9px] font-bold uppercase text-slate-500">Check-in</p>
             <p className="mt-1 text-sm font-black text-white">
               {startDateTime ? fmtShort(startDateTime) : '—'}
             </p>
           </div>
-          <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3 shadow-inner">
+          <div className="user-surface-muted rounded-xl p-3">
             <p className="text-[9px] font-bold uppercase text-slate-500">Check-out</p>
             <p className="mt-1 text-sm font-black text-white">
               {endDateTime ? fmtShort(endDateTime) : '—'}

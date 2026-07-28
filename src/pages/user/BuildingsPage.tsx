@@ -91,8 +91,8 @@ function BuildingCard({
       whileTap={{ scale: 0.99 }}
       className={`group relative w-full overflow-hidden rounded-2xl border p-5 text-left transition-all duration-300 backdrop-blur-md ${
         selected
-          ? 'border-orange-500/30 bg-gradient-to-br from-orange-500/10 via-slate-900/40 to-slate-900/40 shadow-[0_0_30px_rgba(249,115,22,0.12)]'
-          : 'border-white/[0.06] bg-slate-900/20 hover:border-white/10 hover:bg-slate-900/30'
+          ? 'border-orange-300 bg-gradient-to-br from-orange-50 via-white to-amber-50 shadow-[0_16px_34px_rgba(249,115,22,0.12)]'
+          : 'border-slate-200 bg-white/90 shadow-sm hover:border-blue-200 hover:bg-blue-50/40'
       }`}
     >
       {/* Selected Indicator Bar on Left */}
@@ -105,7 +105,7 @@ function BuildingCard({
           <p className="text-[9px] font-black uppercase tracking-[0.2em] text-orange-400/80">
             {building.code || 'BUILDING'}
           </p>
-          <h2 className="mt-1.5 text-base font-extrabold text-white group-hover:text-orange-200 transition-colors">
+          <h2 className="mt-1.5 text-base font-extrabold text-slate-900 group-hover:text-orange-700 transition-colors">
             {building.name}
           </h2>
           <p className="mt-2 flex items-start gap-1.5 text-xs font-semibold leading-relaxed text-slate-400">
@@ -158,7 +158,7 @@ function VehiclePlateDropdown({
         className={`flex h-14 w-full items-center justify-between gap-3 rounded-2xl border px-4 transition-all duration-300 backdrop-blur-md ${
           open
             ? 'border-orange-500 bg-orange-500/[0.04] shadow-[0_0_24px_rgba(249,115,22,0.15)]'
-            : 'border-white/10 bg-slate-900/30 hover:border-white/20'
+            : 'border-slate-200 bg-white hover:border-blue-300'
         }`}
       >
         <div className="flex items-center gap-3 min-w-0">
@@ -168,7 +168,7 @@ function VehiclePlateDropdown({
                 {vehicleIcon(selected.vehicleType)}
               </div>
               <div className="text-left min-w-0">
-                <p className="text-sm font-black text-white tracking-wide truncate">{selected.plateNumber}</p>
+                <p className="text-sm font-black text-slate-900 tracking-wide truncate">{selected.plateNumber}</p>
                 <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500">{vehicleLabel(selected.vehicleType)}</p>
               </div>
             </>
@@ -188,7 +188,7 @@ function VehiclePlateDropdown({
             animate={{ opacity: 1, y: 4, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.98 }}
             transition={{ duration: 0.15 }}
-            className="absolute left-0 top-full z-50 w-full overflow-hidden rounded-2xl border border-white/10 bg-[#0c1220]/95 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] backdrop-blur-xl"
+            className="absolute left-0 top-full z-50 w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_42px_rgba(15,23,42,0.16)]"
           >
             {plates.length === 0 ? (
               <div className="px-4 py-6 text-center text-xs font-semibold text-slate-500">
@@ -373,7 +373,7 @@ export default function BuildingsPage() {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search by name, code, or address"
-              className="h-12 w-full rounded-2xl border border-white/10 bg-slate-900/30 pl-11 pr-4 text-sm font-semibold text-white outline-none transition placeholder:text-slate-500 focus:border-orange-500 focus:shadow-[0_0_20px_rgba(249,115,22,0.15)]"
+              className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-4 text-sm font-semibold text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
             />
           </label>
         </motion.div>
@@ -411,7 +411,7 @@ export default function BuildingsPage() {
 
             {/* ── Detail Panel ── */}
             {selectedBuilding && (
-              <aside className="rounded-3xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-md p-6 shadow-2xl lg:sticky lg:top-6 lg:self-start">
+              <aside className="user-surface rounded-3xl p-6 lg:sticky lg:top-6 lg:self-start">
                 {/* Header */}
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
@@ -453,7 +453,7 @@ export default function BuildingsPage() {
                 </div>
 
                 {/* Vehicle Types */}
-                <div className="mt-5 rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-md p-4">
+                <div className="user-surface-muted mt-5 rounded-2xl p-4">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Supported Vehicles</p>
                   {detailLoading ? (
                     <p className="mt-2 text-sm font-semibold text-slate-500 animate-pulse">Loading...</p>
@@ -509,7 +509,7 @@ export default function BuildingsPage() {
                   className={`mt-6 flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-4 text-sm font-black uppercase tracking-wider transition-all duration-300 ${
                     canProceed
                       ? 'bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 shadow-[0_4px_20px_rgba(249,115,22,0.3)] hover:shadow-[0_4px_30px_rgba(249,115,22,0.45)] cursor-pointer'
-                      : 'bg-gradient-to-r from-slate-800 to-slate-900 border border-slate-700/30 text-slate-500 cursor-not-allowed opacity-50 shadow-none'
+                      : 'border border-slate-200 bg-slate-100 text-slate-500 cursor-not-allowed shadow-none'
                   }`}
                 >
                   <ShieldCheck size={16} />

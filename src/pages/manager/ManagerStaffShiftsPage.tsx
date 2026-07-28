@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Pencil, Plus, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable, type DataColumn } from '@/components/common/DataTable';
@@ -177,19 +177,8 @@ export function ManagerStaffShiftsPage() {
 
   return (
     <div className="space-y-4">
-      {/* Top action row */}
-      <div className="flex justify-end">
-        <Button
-          onClick={openCreate}
-          disabled={loading}
-          className="h-10 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-wider shadow-sm transition-all duration-200 active:scale-[0.98]"
-        >
-          <Plus size={14} className="stroke-[3] mr-1.5" /> Assign staff
-        </Button>
-      </div>
-
       {loading ? (
-        <div className="flex items-center gap-2 text-slate-650 text-xs font-bold p-8 justify-center bg-white rounded-2xl border border-slate-200/80 shadow-sm">
+        <div className="flex items-center gap-2 text-slate-600 text-xs font-bold p-8 justify-center bg-white rounded-2xl border border-slate-200/80 shadow-sm">
           <Loader2 className="animate-spin mr-2" size={16} />
           <span>Loading shift configurations...</span>
         </div>
@@ -198,14 +187,25 @@ export function ManagerStaffShiftsPage() {
       ) : items.length === 0 ? (
         <div className="rounded-2xl border border-slate-200/80 bg-white p-8 text-center text-slate-800 shadow-sm flex flex-col items-center justify-center">
           <p className="text-slate-500 font-semibold mb-4 text-xs">No staff members assigned to shifts yet.</p>
-          <Button onClick={openCreate} className="h-10 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-wider shadow-sm transition-all duration-200 active:scale-[0.98]">
-            <Plus size={14} className="stroke-[3] mr-1.5" /> Assign first staff
+          <Button onClick={openCreate} className="h-9 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm transition-all duration-200 active:scale-[0.98]">
+            <Plus size={14} className="stroke-[2.5] mr-1.5" /> Assign first staff
           </Button>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm">
-          <DataTable title="Shift assignments" rows={items} columns={columns} />
-        </div>
+        <DataTable
+          title="Shift assignments"
+          rows={items}
+          columns={columns}
+          rightElement={
+            <Button
+              onClick={openCreate}
+              disabled={loading}
+              className="h-9 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm transition-all duration-200 active:scale-[0.98] flex items-center gap-1.5"
+            >
+              <Plus size={14} className="stroke-[2.5]" /> Assign staff
+            </Button>
+          }
+        />
       )}
 
       <AssignStaffModal

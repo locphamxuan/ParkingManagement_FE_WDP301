@@ -34,12 +34,12 @@ export function DataTable<T extends object>({
         <div className="overflow-x-auto">
           <table className="w-full min-w-full border-collapse" aria-label={title}>
             <thead>
-              <tr className="bg-blue-50/20 border-b border-blue-100/30">
+              <tr className="bg-slate-50/70 border-b border-slate-200/80">
                 {columns.map((column) => (
                   <th
                     key={String(column.key)}
                     scope="col"
-                    className="px-2 py-3 text-left text-xs font-black uppercase tracking-[0.1em] text-slate-400 font-mono first:pl-5 last:pr-5"
+                    className="px-4 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500 first:pl-6 last:pr-6"
                   >
                     {column.title}
                   </th>
@@ -51,7 +51,7 @@ export function DataTable<T extends object>({
                 rows.map((row, rowIndex) => (
                   <tr key={rowIndex} className="premium-row group hover:bg-blue-500/[0.02] transition-colors border-b border-blue-100/10">
                     {columns.map((column) => (
-                      <td key={String(column.key)} className="px-2 py-3 text-sm font-semibold text-slate-700 whitespace-nowrap first:pl-5 last:pr-5">
+                      <td key={String(column.key)} className="px-4 py-3.5 text-sm font-semibold text-slate-700 whitespace-nowrap first:pl-6 last:pr-6">
                         {column.render ? column.render(row) : String((row as Record<string, unknown>)[column.key as string] ?? '-')}
                       </td>
                     ))}

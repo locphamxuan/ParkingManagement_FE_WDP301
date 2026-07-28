@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Clock, Save, Loader2, DoorOpen, DoorClosed } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -84,11 +84,11 @@ export function ManagerOperatingHoursPage() {
             {openNow ? <DoorOpen size={20} className="stroke-[2.5]" /> : <DoorClosed size={20} className="stroke-[2.5]" />}
           </div>
           <div>
-            <p className={`text-sm font-black uppercase tracking-wider font-mono ${openNow ? 'text-emerald-700' : 'text-rose-700'}`}>
+            <p className={`text-sm font-extrabold uppercase tracking-wide ${openNow ? 'text-emerald-700' : 'text-rose-700'}`}>
               {openNow ? 'Currently open' : 'Currently closed'}
             </p>
-            <p className="text-xs font-semibold text-slate-500 mt-0.5">
-              {building ? `${building.code} · ${building.name}` : ''} · Hours: <span className="font-bold text-slate-700 font-mono">{open} – {close}</span>
+            <p className="text-xs font-medium text-slate-500 mt-0.5">
+              {building ? `${building.code} · ${building.name}` : ''} · Hours: <span className="font-bold text-slate-700 font-sans">{open} – {close}</span>
             </p>
           </div>
         </CardContent>
@@ -96,16 +96,16 @@ export function ManagerOperatingHoursPage() {
 
       <Card className="border-2 border-blue-100 rounded-2xl overflow-hidden shadow-sm">
         <CardHeader className="border-b border-blue-50 bg-blue-50/20 p-5">
-          <CardTitle className="text-sm font-black uppercase tracking-wider text-slate-700">Configure opening / closing hours</CardTitle>
+          <CardTitle className="text-sm font-bold uppercase tracking-wide text-slate-700">Configure opening / closing hours</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 p-5 text-slate-800">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-1.5">
-              <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Opening time</label>
+              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Opening time</label>
               <TimePicker value={open} onChange={setOpen} />
             </div>
             <div className="grid gap-1.5">
-              <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Closing time</label>
+              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Closing time</label>
               <TimePicker value={close} onChange={setClose} />
             </div>
           </div>

@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { RefreshCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable, type DataColumn } from '@/components/common/DataTable';
@@ -51,28 +51,34 @@ export function ManagerStaffPage() {
   ];
 
   return (
-    <div className="grid gap-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-base font-semibold text-foreground">Building staff</h2>
-        <Button variant="ghost" size="sm" className="gap-1" onClick={refresh}>
-          <RefreshCcw size={14} /> Refresh
-        </Button>
-      </div>
-
+    <div className="space-y-4">
       {loading ? (
-        <div className="text-sm text-muted-foreground">Loading staff...</div>
+        <div className="text-sm text-slate-500 font-semibold p-6 bg-white rounded-2xl border border-slate-200 shadow-sm text-center">Loading building staff...</div>
       ) : error ? (
-        <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-400">
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700 shadow-sm">
           {error}
         </div>
       ) : items.length === 0 ? (
-        <div className="rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
-          No staff assigned to this building yet.
-          <br />
-          <span className="text-xs">An admin must use the "Members" feature to assign staff.</span>
+        <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-slate-600 shadow-sm flex flex-col items-center justify-center">
+          <p className="font-bold text-sm text-slate-700">No staff assigned to this building yet.</p>
+          <span className="text-xs text-slate-400 mt-1">An admin must use the "Members" feature to assign staff members.</span>
         </div>
       ) : (
-        <DataTable title={`Staff (${items.length})`} rows={items} columns={columns} />
+        <DataTable
+          title={`Building Staff (${items.length})`}
+          rows={items}
+          columns={columns}
+          rightElement={
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 px-3 rounded-lg border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-xs flex items-center gap-1.5"
+              onClick={refresh}
+            >
+              <RefreshCcw size={13} className={loading ? 'animate-spin' : ''} /> Refresh
+            </Button>
+          }
+        />
       )}
     </div>
   );

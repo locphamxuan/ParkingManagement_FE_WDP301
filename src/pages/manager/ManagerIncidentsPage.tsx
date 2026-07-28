@@ -40,23 +40,30 @@ const STATUS_COLORS = {
   closed: 'bg-slate-200 text-slate-600',
 };
 
-const INCIDENT_TYPE_LABELS: Record<string, string> = {
-  // Parking violations
-  wrong_spot:          '🚫 Wrong spot / wrong row',
-  wrong_vehicle_type:  '🚌 Wrong vehicle type (car/moto)',
-  slot_occupied:       "🔒 Occupying another customer's slot",
-  overstay:            '⏰ Overstaying limit (overstay)',
-  // Facility / infrastructure
-  facility_issue:      '🔧 Damaged parking equipment',
-  gate_violation:      '🚪 Gate violation / skipped check-in/out',
-  // Identification
-  wrong_scan:          '📸 Plate mismatch / forged',
-  plate_mismatch:      '🪪 Registered plate mismatch',
-  // General incidents
-  vehicle_damaged:     '🚗 Vehicle damaged on premises',
-  payment_dispute:     '💳 Parking fee payment dispute',
-  security:            '🛡️ Security concern',
-  other:               '📋 Other / Unclassified',
+const formatIncidentTypeLabel = (rawType?: string): string => {
+  if (!rawType) return '📋 Other / Unclassified';
+  const norm = rawType.toLowerCase().trim().replace(/[\s-]+/g, '_');
+  const dict: Record<string, string> = {
+    wrong_spot:          '🚫 Wrong spot / wrong row',
+    wrong_vehicle_type:  '🚌 Wrong vehicle type',
+    slot_occupied:       "🔒 Occupying customer's slot",
+    occupying_another_customers_slot: "🔒 Occupying customer's slot",
+    occupying_another_customer_s_slot: "🔒 Occupying customer's slot",
+    occupying_slot:      "🔒 Occupying customer's slot",
+    overstay:            '⏰ Overstaying limit',
+    facility_issue:      '🔧 Damaged parking equipment',
+    equipment_damage:    '🔧 Damaged parking equipment',
+    gate_violation:      '🚪 Gate violation',
+    wrong_scan:          '📸 Plate mismatch / forged',
+    plate_mismatch:      '🪪 Plate mismatch',
+    vehicle_damaged:     '🚗 Vehicle damaged',
+    payment_dispute:     '💳 Payment dispute',
+    security:            '🛡️ Security concern',
+    other:               '📋 Other / Unclassified',
+  };
+  if (dict[norm]) return dict[norm];
+  // Fallback: format raw string nicely
+  return norm.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 };
 
 export function ManagerIncidentsPage() {
@@ -200,41 +207,41 @@ export function ManagerIncidentsPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-100 text-[10px] font-black uppercase tracking-wider text-slate-400">
-                    <th className="py-2 text-left">Code</th>
-                    <th className="py-2 text-left">Incident Type</th>
-                    <th className="py-2 text-left">Reporter</th>
-                    <th className="py-2 text-left">Target Info</th>
-                    <th className="py-2 text-center">Status</th>
-                    <th className="py-2 text-center">Action</th>
+                  <tr className="border-b border-slate-200/80 bg-slate-50/70 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                    <th className="px-4 py-3 text-left">Code</th>
+                    <th className="px-4 py-3 text-left">Incident Type</th>
+                    <th className="px-4 py-3 text-left">Reporter</th>
+                    <th className="px-4 py-3 text-left">Target Info</th>
+                    <th className="px-4 py-3 text-center">Status</th>
+                    <th className="px-4 py-3 text-center">Action</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-slate-100">
                   {filtered.map((inc) => (
-                    <tr key={inc._id} className="border-b border-slate-100/50 last:border-0 hover:bg-slate-50/20 transition-colors">
-                      <td className="py-3 font-mono font-bold text-slate-800">
+                    <tr key={inc._id} className="hover:bg-blue-500/[0.02] transition-colors">
+                      <td className="px-4 py-3.5 font-bold text-slate-800 text-xs">
                         {inc.code}
-                        <p className="text-[9px] text-slate-400 font-normal">{fmtTime(inc.createdAt || '')}</p>
+                        <p className="text-[10px] text-slate-400 font-normal mt-0.5">{fmtTime(inc.createdAt || '')}</p>
                       </td>
-                      <td className="py-3 text-slate-800 font-bold text-xs">
-                        <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-black uppercase ${inc.severity ? SEVERITY_COLORS[inc.severity] : 'bg-slate-100'}`}>
-                          {(inc.type && INCIDENT_TYPE_LABELS[inc.type]) || inc.type || 'Incident'}
+                      <td className="px-4 py-3.5 text-slate-800 font-bold text-xs">
+                        <span className="inline-flex items-center rounded-lg border border-amber-200/80 bg-amber-50/80 px-2.5 py-1 text-xs font-bold text-amber-900 shadow-2xs">
+                          {formatIncidentTypeLabel(inc.type)}
                         </span>
                       </td>
-                      <td className="py-3 text-slate-700 font-semibold text-xs">
-                        {inc.reportedBy?.fullName}
-                        <p className="text-[10px] text-slate-400 font-normal">{inc.reportedBy?.email}</p>
+                      <td className="px-4 py-3.5 text-slate-700 font-semibold text-xs">
+                        {inc.reportedBy?.fullName || '—'}
+                        <p className="text-[10px] text-slate-400 font-normal mt-0.5">{inc.reportedBy?.email}</p>
                       </td>
-                      <td className="py-3 text-slate-600 text-xs font-medium">
+                      <td className="px-4 py-3.5 text-slate-600 text-xs font-medium">
                         {inc.target ? (
-                          <span className="font-mono bg-slate-100/80 px-1.5 py-0.5 rounded text-[10px] font-bold">{inc.target}</span>
+                          <span className="bg-slate-100 px-2 py-0.5 rounded-md text-[11px] font-bold text-slate-700">{inc.target}</span>
                         ) : (
                           <span className="text-slate-400 italic">No target plate/zone</span>
                         )}
-                        {inc.note && <p className="text-[10px] text-slate-450 mt-1 truncate max-w-xs">{inc.note}</p>}
+                        {inc.note && <p className="text-[10px] text-slate-500 mt-1 truncate max-w-xs">{inc.note}</p>}
                       </td>
-                      <td className="py-3 text-center">
-                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase ${inc.status ? (STATUS_COLORS as Record<string, string>)[inc.status] : 'bg-slate-100'}`}>
+                      <td className="px-4 py-3.5 text-center">
+                        <span className={`inline-flex items-center rounded-full px-3 py-0.5 text-[10px] font-extrabold uppercase ${inc.status ? (STATUS_COLORS as Record<string, string>)[inc.status] : 'bg-slate-100'}`}>
                           {inc.status ? ((STATUS_LABELS as Record<string, string>)[inc.status] || inc.status) : '—'}
                         </span>
                       </td>

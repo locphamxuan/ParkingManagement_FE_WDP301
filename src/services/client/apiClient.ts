@@ -1,9 +1,16 @@
 // Hỗ trợ cả hai tên biến môi trường từng dùng (VITE_API_BASE và VITE_API_BASE_URL)
 // để giữ tương thích sau khi hợp nhất 2 HTTP client về một.
-const API_BASE =
+const configuredApiBase =
   (import.meta.env.VITE_API_BASE as string | undefined) ||
-  (import.meta.env.VITE_API_BASE_URL as string | undefined) ||
-  'http://localhost:5000/api';
+  (import.meta.env.VITE_API_BASE_URL as string | undefined);
+
+if (import.meta.env.PROD && !configuredApiBase) {
+  throw new Error(
+    'VITE_API_BASE must be configured with the production backend URL before building.',
+  );
+}
+
+const API_BASE = (configuredApiBase || 'http://localhost:5000/api').replace(/\/+$/, '');
 
 type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 

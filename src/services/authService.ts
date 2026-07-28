@@ -172,9 +172,8 @@ export async function forgotPassword(email: string): Promise<{ message: string }
   const payload = await requestJson<{ message?: string }>({
     path: '/users/auth/forgot-password',
     method: 'POST',
-    body: { 
+    body: {
       email: email.trim().toLowerCase(),
-      frontendUrl: window.location.origin
     },
   });
 

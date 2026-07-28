@@ -12,15 +12,22 @@ export function AuthNoticeModal({ modal, onClose }: AuthNoticeModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm px-4"
-      onClick={onClose}
+      className="fixed inset-0 z-[100] flex items-center justify-center px-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="auth-notice-title"
     >
+      <button
+        type="button"
+        aria-label="Close notification"
+        className="absolute inset-0 cursor-default bg-slate-900/40 backdrop-blur-sm"
+        onClick={onClose}
+      />
       <motion.div
         initial={{ opacity: 0, scale: 0.92, y: 12 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 260, damping: 22 }}
-        onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-sm rounded-3xl border border-blue-200 bg-white p-6 text-center shadow-[0_20px_50px_-24px_rgba(37,99,235,0.35)]"
+        className="relative z-10 w-full max-w-sm rounded-3xl border border-blue-200 bg-white p-6 text-center shadow-[0_20px_50px_-24px_rgba(37,99,235,0.35)]"
       >
         <button
           type="button"
@@ -45,7 +52,9 @@ export function AuthNoticeModal({ modal, onClose }: AuthNoticeModalProps) {
           )}
         </div>
 
-        <h3 className="text-base font-black tracking-tight text-slate-900">{modal.title}</h3>
+        <h3 id="auth-notice-title" className="text-base font-black tracking-tight text-slate-900">
+          {modal.title}
+        </h3>
         <p className="mt-2 text-sm font-semibold leading-relaxed text-[#576b85]">{modal.message}</p>
 
         <button

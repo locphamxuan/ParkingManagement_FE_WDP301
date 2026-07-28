@@ -63,7 +63,7 @@ export function UserNotificationBell() {
           setOpen((o) => !o);
           load();
         }}
-        className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-400 transition-colors hover:text-white"
+        className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm transition-colors hover:border-cyan-300 hover:bg-cyan-50 hover:text-cyan-700"
         aria-label="Notifications"
       >
         <Bell size={14} />
@@ -75,14 +75,14 @@ export function UserNotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-80 overflow-hidden rounded-2xl border border-white/10 bg-slate-900 shadow-2xl">
-          <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-            <p className="text-xs font-black uppercase tracking-wider text-orange-300">Notifications</p>
+        <div className="absolute right-0 z-50 mt-2 w-80 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_48px_rgba(15,23,42,0.16)]">
+          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+            <p className="text-xs font-black uppercase tracking-wider text-cyan-700">Notifications</p>
             {unread > 0 && (
               <button
                 type="button"
                 onClick={markAll}
-                className="flex items-center gap-1 text-[11px] font-semibold text-orange-400 hover:text-orange-300"
+                className="flex items-center gap-1 text-[11px] font-semibold text-cyan-700 hover:text-cyan-900"
               >
                 <CheckCheck size={12} />Mark all read</button>
             )}
@@ -97,8 +97,8 @@ export function UserNotificationBell() {
                   key={n._id}
                   type="button"
                   onClick={() => markOne(n)}
-                  className={`block w-full border-b border-white/5 px-4 py-3 text-left transition-colors last:border-0 hover:bg-white/5 ${
-                    n.isRead ? '' : 'bg-rose-500/5'
+                  className={`block w-full border-b border-slate-100 px-4 py-3 text-left transition-colors last:border-0 hover:bg-blue-50 ${
+                    n.isRead ? '' : 'bg-rose-50/70'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -112,7 +112,7 @@ export function UserNotificationBell() {
                       {new Date(n.createdAt).toLocaleDateString('vi-VN')}
                     </span>
                   </div>
-                  <p className="mt-1 text-sm font-semibold text-slate-100">{n.title}</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-800">{n.title}</p>
                   <p className="mt-0.5 text-xs leading-relaxed text-slate-400">{n.message}</p>
                 </button>
               ))
@@ -125,7 +125,7 @@ export function UserNotificationBell() {
               setOpen(false);
               navigate('/notifications');
             }}
-            className="block w-full border-t border-white/10 px-4 py-2.5 text-center text-[11px] font-semibold text-orange-400 hover:bg-white/5 hover:text-orange-300"
+            className="block w-full border-t border-slate-100 px-4 py-2.5 text-center text-[11px] font-semibold text-cyan-700 hover:bg-blue-50 hover:text-cyan-900"
           >View all notifications →</button>
         </div>
       )}

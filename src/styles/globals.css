@@ -1352,12 +1352,22 @@ button:not(:disabled) {
 .public-light-theme [class~='bg-slate-900/80'],
 .public-light-theme [class~='bg-slate-950'],
 .public-light-theme [class~='bg-slate-950/40'],
+.public-light-theme [class~='bg-slate-950/50'],
+.public-light-theme [class~='bg-slate-950/60'],
+.public-light-theme [class~='bg-slate-950/70'],
 .public-light-theme [class~='bg-slate-950/80'],
 .public-light-theme [class~='bg-slate-950/85'],
 .public-light-theme [class~='bg-slate-950/95'],
 .public-light-theme [class~='bg-black'] {
   border-color: rgba(148, 163, 184, 0.2) !important;
   background-color: rgba(255, 255, 255, 0.86) !important;
+}
+
+.public-light-theme [class*='bg-[#0b0f19]'],
+.public-light-theme [class*='bg-[#0c1220]'],
+.public-light-theme [class*='bg-[#060a11]'] {
+  border-color: rgba(148, 163, 184, 0.2) !important;
+  background-color: rgba(255, 255, 255, 0.94) !important;
 }
 
 .public-light-theme section[class*='bg-slate'],
@@ -1409,6 +1419,25 @@ button:not(:disabled) {
 .public-light-theme .text-orange-300,
 .public-light-theme .text-orange-400 {
   color: #c2410c !important;
+}
+
+.public-light-theme .text-amber-200,
+.public-light-theme .text-amber-300,
+.public-light-theme .text-amber-400 {
+  color: #b45309 !important;
+}
+
+.public-light-theme .text-emerald-300,
+.public-light-theme .text-emerald-400 {
+  color: #047857 !important;
+}
+
+.public-light-theme .text-blue-400 {
+  color: #1d4ed8 !important;
+}
+
+.public-light-theme .text-purple-400 {
+  color: #7e22ce !important;
 }
 
 .public-light-theme [class*='border-white'] {

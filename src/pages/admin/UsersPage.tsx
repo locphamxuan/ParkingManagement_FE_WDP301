@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Edit, Lock, Mail, Phone, Plus, Search, Trash2, Unlock, Users, UserCheck, UserX, Wallet } from 'lucide-react';
+import { Edit, Lock, Mail, Phone, Plus, Search, Trash2, Unlock, Users, UserCheck, UserX } from 'lucide-react';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { ModalForm } from '@/components/modals/ModalForm';
 import { StatusBadge } from '@/components/common/StatusBadge';
@@ -65,8 +65,7 @@ export function UsersPage() {
     const total = source.length;
     const active = source.filter((u) => u.status === 'active').length;
     const blocked = source.filter((u) => u.status === 'blocked').length;
-    const totalBalance = source.reduce((sum, u) => sum + (u.walletBalance || 0), 0);
-    return { total, active, blocked, totalBalance };
+    return { total, active, blocked };
   }, [data?.users]);
 
   if (isLoading) {
@@ -178,7 +177,7 @@ export function UsersPage() {
       ) : null}
 
       {/* Analytics Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Total Users */}
         <div className="relative overflow-hidden rounded-2xl glass-premium p-4 shadow-sm border border-sky-100/60 bg-white/45 flex items-center gap-4 group hover:border-blue-500/20 transition-all duration-300">
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500/10 via-blue-500/30 to-indigo-500/10" />
@@ -215,17 +214,6 @@ export function UsersPage() {
           </div>
         </div>
 
-        {/* Total Wallet Balance */}
-        <div className="relative overflow-hidden rounded-2xl glass-premium p-4 shadow-sm border border-sky-100/60 bg-white/45 flex items-center gap-4 group hover:border-amber-500/20 transition-all duration-300">
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-amber-500/10 via-amber-500/30 to-orange-500/10" />
-          <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold shrink-0">
-            <Wallet size={18} />
-          </div>
-          <div>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total wallet balance</p>
-            <p className="text-base font-black text-slate-800 mt-0.5">{stats.totalBalance.toLocaleString('vi-VN')} ₫</p>
-          </div>
-        </div>
       </div>
 
       {/* Control Actions Row (Search, filter, create button) grouped together beautifully */}

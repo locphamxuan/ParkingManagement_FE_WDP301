@@ -14,6 +14,7 @@ import {
   Scale,
   ShieldCheck,
   TrendingDown,
+  Wallet,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -96,6 +97,7 @@ export function RevenueAnalyticsPage() {
   const [report, setReport] = useState<RevenueReport | null>(null);
   const [reconciliation, setReconciliation] = useState<RevenueReconciliation | null>(null);
   const [payments, setPayments] = useState<AdminPayment[]>([]);
+  const [totalWalletBalance, setTotalWalletBalance] = useState(0);
   const [paymentType, setPaymentType] = useState('');
   const [paymentStatus, setPaymentStatus] = useState('');
   const [loading, setLoading] = useState(true);
@@ -105,7 +107,7 @@ export function RevenueAnalyticsPage() {
     setLoading(true);
     setError(null);
     try {
-      const [reportRes, reconciliationRes, paymentsRes] = await Promise.all([
+      const [reportRes, reconciliationRes, paymentsRes, usersRes] = await Promise.all([
         adminApi.revenue.report({ from, to }),
         adminApi.revenue.reconciliation(24),
         adminApi.revenue.transactions({
@@ -115,6 +117,7 @@ export function RevenueAnalyticsPage() {
           type: paymentType || undefined,
           status: paymentStatus || undefined,
         }),
+        adminApi.users.list({ role: 'user', limit: '200' }),
       ]);
       setReport((reportRes as { data?: RevenueReport }).data ?? null);
       setReconciliation(
@@ -122,6 +125,13 @@ export function RevenueAnalyticsPage() {
       );
       setPayments(
         (paymentsRes as { data?: { items?: AdminPayment[] } }).data?.items ?? [],
+      );
+      const users = (usersRes as { data?: { items?: Array<{ role?: string; walletBalance?: number }> } })
+        .data?.items ?? [];
+      setTotalWalletBalance(
+        users
+          .filter((user) => user.role === 'user')
+          .reduce((total, user) => total + Number(user.walletBalance || 0), 0),
       );
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Failed to load revenue data.');
@@ -208,7 +218,7 @@ export function RevenueAnalyticsPage() {
         </div>
       )}
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <MetricCard
           label="Gross revenue"
           value={fmtVnd(summary?.grossRevenue)}
@@ -243,6 +253,13 @@ export function RevenueAnalyticsPage() {
           note="Money moved into building wallets, not counted as revenue."
           icon={Coins}
           tone="border-violet-200 bg-violet-50 text-violet-600"
+        />
+        <MetricCard
+          label="Customer wallet balance"
+          value={fmtVnd(totalWalletBalance)}
+          note="Prepaid customer credit held by the system; tracked separately and never counted as revenue."
+          icon={Wallet}
+          tone="border-amber-200 bg-amber-50 text-amber-600"
         />
       </section>
 

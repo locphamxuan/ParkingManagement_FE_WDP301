@@ -21,6 +21,8 @@ export interface AdminUser {
   fullName: string;
   role: 'admin' | 'manager' | 'staff' | 'user';
   phone?: string;
+  /** Customer's currently prepaid credit; this is a wallet liability, not revenue. */
+  walletBalance?: number;
   isActive: boolean;
   lastLoginAt?: string | null;
   assignedBuildings?: string[];

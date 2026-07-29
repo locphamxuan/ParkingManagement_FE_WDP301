@@ -68,7 +68,13 @@ export function RoleGovernancePage() {
 
   return (
     <div className="space-y-6 pb-12">
-      <section className="relative overflow-hidden rounded-3xl border border-blue-400/20 bg-gradient-to-br from-blue-700 via-indigo-600 to-violet-600 p-8 text-white shadow-xl">
+      <section
+        className="relative overflow-hidden rounded-3xl p-8 text-white shadow-2xl"
+        style={{
+          background: 'linear-gradient(90deg, #003B73 0%, #0056B3 30%, #0080FF 60%, #38BDF8 85%, #90E0EF 100%)',
+          boxShadow: '0 20px 60px -12px rgba(0,86,179,0.45), 0 8px 24px -6px rgba(0,0,0,0.12)',
+        }}
+      >
         {/* Decorative ambient glows */}
         <div className="absolute -right-12 -top-12 h-64 w-64 rounded-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.15),transparent_70%)] pointer-events-none blur-xl animate-pulse" />
         <div className="absolute -left-8 -bottom-8 h-40 w-40 rounded-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.08),transparent_70%)] pointer-events-none blur-xl" />

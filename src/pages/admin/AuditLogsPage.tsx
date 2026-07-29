@@ -200,8 +200,8 @@ export function AuditLogsPage() {
       <section
         className="relative overflow-hidden rounded-3xl p-7 text-white shadow-2xl"
         style={{
-          background: 'linear-gradient(135deg, #0052D4 0%, #1a6fe8 30%, #4364F7 65%, #2979ff 100%)',
-          boxShadow: '0 20px 60px -12px rgba(0,82,212,0.55), 0 8px 24px -6px rgba(0,0,0,0.15)',
+          background: 'linear-gradient(90deg, #003B73 0%, #0056B3 30%, #0080FF 60%, #38BDF8 85%, #90E0EF 100%)',
+          boxShadow: '0 20px 60px -12px rgba(0,86,179,0.45), 0 8px 24px -6px rgba(0,0,0,0.12)',
         }}
       >
         <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none" />

@@ -103,7 +103,7 @@ export function DashboardOverviewPage() {
 
   return (
     <div className="space-y-6 pb-12">
-      <section className="premium-hero-card relative overflow-hidden rounded-2xl bg-[#0b132b] px-6 py-7 text-white shadow-[0_18px_44px_-24px_rgba(15,23,42,0.8)] sm:px-8">
+      <section className="premium-hero-card relative overflow-hidden rounded-2xl bg-[linear-gradient(118deg,#073b8f_0%,#075fc7_54%,#0093e9_100%)] px-6 py-7 text-white shadow-[0_18px_44px_-24px_rgba(0,93,190,0.55)] sm:px-8">
         <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_80%_28%,rgba(0,147,233,0.48),transparent_45%),radial-gradient(circle_at_58%_100%,rgba(128,208,199,0.22),transparent_42%)]" />
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">

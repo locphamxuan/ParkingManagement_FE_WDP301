@@ -103,7 +103,7 @@ export function RevenueAnalyticsPage() {
   const reconciliationCount = (reconciliation?.pendingCash.count || 0) + (reconciliation?.staleElectronic.count || 0) + (reconciliation?.reconciliationRequired.count || 0) + (reconciliation?.walletIntegrity.mismatchCount || 0);
 
   return <div className="space-y-5 pb-12">
-    <section className="premium-hero-card relative overflow-hidden rounded-3xl bg-[#0b132b] p-5 text-white shadow-[0_22px_46px_-24px_rgba(11,19,43,0.8)] sm:p-6">
+    <section className="premium-hero-card relative overflow-hidden rounded-3xl bg-[linear-gradient(118deg,#073b8f_0%,#075fc7_54%,#0093e9_100%)] p-5 text-white shadow-[0_22px_46px_-24px_rgba(0,93,190,0.55)] sm:p-6">
       <div className="absolute inset-y-0 right-0 w-3/5 bg-[radial-gradient(circle_at_90%_20%,rgba(0,147,233,0.52),transparent_44%),radial-gradient(circle_at_50%_100%,rgba(128,208,199,0.22),transparent_44%)]" />
       <div className="relative flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
         <div className="max-w-xl"><p className="text-[10px] font-black uppercase tracking-[0.18em] text-blue-200">System-owner finance</p><h2 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">Revenue, without the noise.</h2><p className="mt-2 text-sm leading-5 text-slate-300">A focused view of collected revenue, exceptions and the payment ledger.</p></div>

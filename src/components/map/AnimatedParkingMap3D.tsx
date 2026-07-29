@@ -462,7 +462,7 @@ export function AnimatedParkingMap3D({
               style={{
                 width: '56px',
                 height: '36px',
-                left: '25px',
+                left: '0px',
                 top: '0px',
                 transformStyle: 'preserve-3d',
                 willChange: 'transform'
@@ -534,7 +534,7 @@ export function AnimatedParkingMap3D({
               style={{
                 width: '58px',
                 height: '38px',
-                left: '25px',
+                left: '0px',
                 top: '0px',
                 transformStyle: 'preserve-3d',
                 willChange: 'transform'

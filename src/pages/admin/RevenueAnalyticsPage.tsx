@@ -138,7 +138,7 @@ export function RevenueAnalyticsPage() {
                   type="date"
                   value={field.value}
                   onChange={(event) => field.set(event.target.value)}
-                  className="w-28 bg-transparent text-xs font-mono font-bold text-white outline-none cursor-pointer [color-scheme:dark]"
+                  className="admin-hero-date-input w-28 bg-transparent text-xs font-mono font-bold text-white outline-none cursor-pointer"
                 />
               </label>
             ))}

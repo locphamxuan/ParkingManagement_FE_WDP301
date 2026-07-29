@@ -120,6 +120,61 @@
   border-color: rgba(37, 99, 235, 0.25) !important;
 }
 
+/* Shared depth layer for the light Admin portal.  The effect stays subtle so
+   dense operational screens remain readable, while cards still feel tangible. */
+.card-3d {
+  position: relative;
+  isolation: isolate;
+  transform: translateZ(0);
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition:
+    transform 280ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 280ms ease,
+    border-color 280ms ease;
+}
+
+.glass-premium-deep {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(248, 251, 255, 0.72)),
+    rgba(255, 255, 255, 0.76);
+  box-shadow:
+    0 18px 42px -22px rgba(15, 23, 42, 0.28),
+    0 5px 14px -10px rgba(37, 99, 235, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px) saturate(145%);
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
+}
+
+@keyframes float-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.float-up {
+  animation: float-up 460ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card-3d:hover {
+    transform: perspective(1200px) translate3d(0, -6px, 0) rotateX(1.25deg) rotateY(-0.7deg);
+    box-shadow:
+      0 26px 48px -24px rgba(15, 23, 42, 0.32),
+      0 12px 24px -18px rgba(37, 99, 235, 0.26),
+      inset 0 1px 0 rgba(255, 255, 255, 0.98);
+  }
+
+  .premium-hero-card:hover {
+    transform: perspective(1200px) translateY(-5px) rotateX(1deg) rotateY(-0.5deg);
+  }
+}
+
 * {
   box-sizing: border-box;
 }

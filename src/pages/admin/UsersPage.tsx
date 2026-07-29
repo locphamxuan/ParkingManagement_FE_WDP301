@@ -314,14 +314,6 @@ export function UsersPage() {
                   </div>
                 </div>
 
-                {/* Wallet Balance Section */}
-                <div className="mt-4 pt-4 border-t border-sky-100/40 flex items-center justify-between gap-3">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Wallet balance</span>
-                  <span className="text-xs font-black text-emerald-600 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-lg inline-block shadow-sm">
-                    {u.walletBalance.toLocaleString('vi-VN')} ₫
-                  </span>
-                </div>
-
                 {/* Linked Plates Container */}
                 <div className="mt-4">
                   <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">Linked plates ({plates.length})</p>

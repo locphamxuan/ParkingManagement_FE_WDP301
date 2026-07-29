@@ -35,8 +35,9 @@ export function BuildingCard({
   const isNotUpdated = b.address.includes('not updated') || !b.address;
   return (
     <motion.div
-      whileHover={{ scale: 1.01, y: -4 }}
-      className="relative overflow-hidden rounded-3xl glass-premium p-6 shadow-md border border-sky-100/85 transition-all duration-300 hover:shadow-[0_20px_40px_rgba(37,99,235,0.06)] hover:border-blue-500/25 group bg-white/40"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="card-3d glass-premium-deep relative overflow-hidden rounded-3xl p-6 shadow-md border border-sky-100/85 transition-all duration-300 hover:border-blue-500/25 group"
     >
       {/* Crystal Bevel Border */}
       <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500/10 via-blue-500/40 to-indigo-500/10" />

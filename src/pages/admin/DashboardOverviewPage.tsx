@@ -64,7 +64,7 @@ export function DashboardOverviewPage() {
         initial="hidden"
         animate="visible"
         variants={sectionVariants}
-        className="relative overflow-hidden rounded-3xl border border-indigo-400/20 bg-gradient-to-br from-blue-700 via-indigo-600 to-purple-600 p-8 text-white shadow-xl"
+        className="premium-hero-card relative overflow-hidden rounded-3xl border border-indigo-400/20 bg-gradient-to-br from-blue-700 via-indigo-600 to-purple-600 p-8 text-white shadow-xl"
       >
         {/* Radial glows inside the hero */}
         <div className="absolute -right-12 -top-12 h-64 w-64 rounded-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.15),transparent_70%)] pointer-events-none blur-xl animate-pulse" />
@@ -82,8 +82,8 @@ export function DashboardOverviewPage() {
             <h1 className="mt-4 text-3xl font-black tracking-tight text-white sm:text-4xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]">
               PBMS System Overview
             </h1>
-            <p className="mt-3.5 max-w-2xl text-xs font-semibold text-blue-50/90 leading-relaxed drop-shadow-[0_1px_2px_rgba(0,0,0,0.1)]">
-              A comprehensive monitoring center for multi-story parking. Track real-time revenue, manage payment-method distribution, review recent transactions and monitor live parking activity.
+            <p className="mt-3 max-w-xl text-sm font-medium leading-6 text-blue-50/90 drop-shadow-[0_1px_2px_rgba(0,0,0,0.1)]">
+              One clear view of revenue, payments, occupancy and live parking activity across every building.
             </p>
           </div>
           <div className="inline-flex items-center gap-2.5 rounded-full bg-white/10 border border-white/20 px-4 py-2.5 text-xs font-black text-white uppercase font-mono shadow-md backdrop-blur-md">
@@ -124,7 +124,7 @@ export function DashboardOverviewPage() {
         <RevenueChart data={data.revenueTrend} />
 
         {/* Pie Distribution Card */}
-        <div className="relative overflow-hidden rounded-3xl glass-premium p-6 shadow-lg border border-sky-100/80 transition-all duration-500 hover:shadow-[0_22px_45px_rgba(37,99,235,0.08)] hover:-translate-y-1 hover:border-blue-500/30 group">
+        <div className="card-3d glass-premium-deep relative overflow-hidden rounded-3xl p-6 shadow-lg border border-sky-100/80 transition-all duration-500 hover:border-blue-500/30 group">
           {/* Crystal Bevel Border */}
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500/10 via-blue-500/40 to-indigo-500/10" />
           
@@ -202,14 +202,14 @@ export function DashboardOverviewPage() {
         className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3"
       >
         {/* Activity logs */}
-        <div className="relative overflow-hidden rounded-3xl glass-premium p-6 shadow-lg border border-sky-100/80 transition-all duration-500 hover:shadow-[0_22px_45px_rgba(37,99,235,0.08)] hover:-translate-y-1 hover:border-blue-500/30 group">
+        <div className="card-3d glass-premium-deep relative overflow-hidden rounded-3xl p-6 shadow-lg border border-sky-100/80 transition-all duration-500 hover:border-blue-500/30 group">
           {/* Crystal Bevel Border */}
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500/10 via-blue-500/40 to-indigo-500/10" />
           <ActivityTimeline title="Live parking activity" items={data.liveActivities} />
         </div>
 
         {/* Buildings performance */}
-        <div className="relative overflow-hidden rounded-3xl glass-premium p-6 shadow-lg border border-sky-100/80 transition-all duration-500 hover:shadow-[0_22px_45px_rgba(37,99,235,0.08)] hover:-translate-y-1 hover:border-blue-500/30 group">
+        <div className="card-3d glass-premium-deep relative overflow-hidden rounded-3xl p-6 shadow-lg border border-sky-100/80 transition-all duration-500 hover:border-blue-500/30 group">
           {/* Crystal Bevel Border */}
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500/10 via-blue-500/40 to-indigo-500/10" />
           <div className="mb-4 flex items-center justify-between">

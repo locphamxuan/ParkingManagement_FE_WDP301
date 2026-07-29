@@ -90,7 +90,7 @@ export function AnalyticsCard({ label, value, delta, index = 0, icon }: Analytic
         perspective: '900px',
       }}
     >
-      <div className={`h-full relative overflow-hidden rounded-2xl p-6 glass-premium shadow-2xl transition-all duration-500 group cursor-default ${theme.borderHover}`}>
+      <div className={`card-3d glass-premium-deep h-full relative overflow-hidden rounded-2xl p-6 shadow-2xl transition-all duration-500 group cursor-default ${theme.borderHover}`}>
         
         {/* Dynamic corner neon spot glow — shifts on hover */}
         <div className={`absolute -right-6 -top-6 h-24 w-24 rounded-full ${theme.glowRight} pointer-events-none transition-all duration-500 group-hover:scale-150 group-hover:opacity-75`} />

@@ -73,7 +73,7 @@ function MetricCard({
   tone: string;
 }) {
   return (
-    <div className="rounded-2xl border border-sky-100/70 bg-white/70 p-4 shadow-sm backdrop-blur-xl">
+    <div className="card-3d glass-premium-deep rounded-2xl border border-sky-100/70 p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[9px] font-black uppercase tracking-[0.16em] text-slate-400">{label}</p>
@@ -152,7 +152,7 @@ export function RevenueAnalyticsPage() {
 
   return (
     <div className="space-y-6 pb-12">
-      <section className="rounded-3xl border border-sky-100/70 bg-white/65 p-5 shadow-sm backdrop-blur-xl">
+      <section className="card-3d glass-premium-deep rounded-3xl border border-sky-100/70 p-5">
         <div className="flex flex-col justify-between gap-4 xl:flex-row xl:items-center">
           <div className="flex items-center gap-3">
             <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-blue-200 bg-blue-50 text-blue-600">
@@ -294,7 +294,7 @@ export function RevenueAnalyticsPage() {
       </section>
 
       <section className="grid gap-6 xl:grid-cols-5">
-        <div className="rounded-3xl border border-sky-100/70 bg-white/65 p-5 shadow-sm xl:col-span-2">
+        <div className="card-3d glass-premium-deep rounded-3xl border border-sky-100/70 p-5 xl:col-span-2">
           <div className="mb-5">
             <h3 className="text-sm font-black text-slate-900">Revenue by source</h3>
             <p className="text-[10px] font-semibold text-slate-500">
@@ -321,7 +321,7 @@ export function RevenueAnalyticsPage() {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-3xl border border-sky-100/70 bg-white/65 shadow-sm xl:col-span-3">
+        <div className="card-3d glass-premium-deep overflow-hidden rounded-3xl border border-sky-100/70 xl:col-span-3">
           <div className="border-b border-sky-100/70 p-5">
             <h3 className="text-sm font-black text-slate-900">Revenue by building</h3>
             <p className="text-[10px] font-semibold text-slate-500">
@@ -330,7 +330,7 @@ export function RevenueAnalyticsPage() {
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-left text-xs">
-              <thead className="bg-slate-50/80 text-[9px] font-black uppercase tracking-wider text-slate-400">
+              <thead className="bg-slate-100/75 text-[9px] font-black uppercase tracking-[0.12em] text-slate-500">
                 <tr>
                   <th className="px-5 py-3">Building</th>
                   <th className="px-4 py-3 text-right">Gross</th>
@@ -342,7 +342,7 @@ export function RevenueAnalyticsPage() {
               <tbody className="divide-y divide-sky-50">
                 {report?.items.length ? (
                   report.items.map((row) => (
-                    <tr key={row.buildingId} className="hover:bg-sky-50/40">
+                    <tr key={row.buildingId} className="transition-colors hover:bg-sky-50/70">
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-2">
                           <Building2 size={14} className="text-blue-600" />
@@ -379,7 +379,7 @@ export function RevenueAnalyticsPage() {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-3xl border border-sky-100/70 bg-white/65 shadow-sm">
+      <section className="card-3d glass-premium-deep overflow-hidden rounded-3xl border border-sky-100/70">
         <div className="flex flex-col justify-between gap-3 border-b border-sky-100/70 p-5 md:flex-row md:items-center">
           <div>
             <h3 className="flex items-center gap-2 text-sm font-black text-slate-900">
@@ -416,7 +416,7 @@ export function RevenueAnalyticsPage() {
 
         <div className="overflow-x-auto">
           <table className="w-full min-w-[980px] text-left text-xs">
-            <thead className="bg-slate-50/80 text-[9px] font-black uppercase tracking-wider text-slate-400">
+            <thead className="bg-slate-100/75 text-[9px] font-black uppercase tracking-[0.12em] text-slate-500">
               <tr>
                 <th className="px-5 py-3">Time</th>
                 <th className="px-4 py-3">Building / Plate</th>
@@ -431,7 +431,7 @@ export function RevenueAnalyticsPage() {
                 const isOutflow = payment.type === 'refund';
                 const effectiveTime = payment.settledAt || payment.createdAt;
                 return (
-                  <tr key={payment._id} className="hover:bg-sky-50/40">
+                  <tr key={payment._id} className="transition-colors hover:bg-sky-50/70">
                     <td className="px-5 py-4">
                       <p className="flex items-center gap-1.5 font-semibold text-slate-600">
                         <Clock3 size={12} /> {fmtTime(effectiveTime)}

@@ -656,18 +656,17 @@ button[aria-expanded="true"] .chev {
 
 .manager-theme .text-slate-500,
 .manager-theme .text-muted-foreground {
-  color: #576b85 !important; /* Rich contrast label */
+  color: #576b85;
 }
 
 .manager-theme .text-slate-400 {
-  color: #475569 !important; /* Riper label contrast */
+  color: #475569;
 }
 
-.manager-theme h1,
-.manager-theme h2,
-.manager-theme h3,
-.manager-theme h4 {
-  color: #0f172a !important; /* Proper text-slate-900 contrast */
+/* Ensure text-white utility is respected inside manager-theme */
+.manager-theme .text-white,
+.manager-theme [class*="text-white"] {
+  color: #ffffff !important;
 }
 
 /* Active inputs background color fix */

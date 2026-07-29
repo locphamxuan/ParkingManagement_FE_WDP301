@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Building2, Car, Crown, Square, TrendingUp, Ticket } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -102,10 +102,12 @@ export function ManagerDashboardPage() {
       initial="hidden"
       animate="show"
       variants={containerVariants}
-      className="mx-auto max-w-6xl space-y-6 pb-12 relative"    >      {/* Hero: Clean, Premium Layered Welcome Panel */}
+      className="mx-auto max-w-6xl space-y-6 pb-12 relative"
+    >
+      {/* Hero: Clean, Premium Layered Welcome Panel */}
       <motion.section
         variants={itemVariants}
-        className="relative overflow-hidden rounded-3xl border-2 border-blue-200 bg-gradient-to-tr from-white via-blue-50/10 to-indigo-50/20 p-8 shadow-lg hover:shadow-xl transition-all duration-300"
+        className="relative overflow-hidden rounded-3xl border border-blue-200/80 bg-gradient-to-tr from-white via-blue-50/20 to-indigo-50/30 p-6 md:p-8 shadow-sm hover:shadow-md transition-all duration-300"
       >
         {/* Subtle Ambient Glows */}
         <div className="absolute -right-20 -top-20 h-52 w-52 rounded-full bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.08),transparent_70%)] pointer-events-none blur-3xl animate-pulse" />
@@ -116,13 +118,13 @@ export function ManagerDashboardPage() {
           <div className="flex-1 flex flex-col justify-between space-y-4">
             <div>
               <div className="inline-flex items-center gap-2">
-                <div className="px-2.5 py-0.5 rounded-md bg-blue-600 text-[9px] font-black uppercase tracking-widest text-white shadow-md shadow-blue-500/10 font-mono">
+                <div className="px-3 py-1 rounded-lg bg-blue-600 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
                   Manager Portal
                 </div>
                 {selectedBuilding && selectedState && (
                   <div
                     title={BUILDING_STATE_HINTS[selectedState]}
-                    className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-[9px] font-black uppercase tracking-wider font-mono select-none ${BUILDING_STATE_BADGE[selectedState]}`}
+                    className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider select-none ${BUILDING_STATE_BADGE[selectedState]}`}
                   >
                     <span className="relative flex h-1.5 w-1.5">
                       {isOperationalNow(selectedState) && (
@@ -135,41 +137,41 @@ export function ManagerDashboardPage() {
                 )}
               </div>
 
-              <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">
+              <h1 className="mt-3 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
                 Welcome back,{' '}
-                <span className="bg-gradient-to-r from-blue-700 via-indigo-650 to-indigo-800 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-blue-700 via-indigo-600 to-indigo-800 bg-clip-text text-transparent">
                   {userName}
                 </span>
               </h1>
-              <p className="mt-2.5 max-w-2xl text-xs font-bold text-slate-500 leading-relaxed">
+              <p className="mt-2 max-w-2xl text-xs sm:text-sm font-medium text-slate-600 leading-relaxed">
                 Monitor real-time occupancy levels, configure price tiers, assign staff shifts, and manage long-term parking package subscriptions below.
               </p>
             </div>
 
             {/* Clean Horizontal API Info Row */}
             {selectedBuilding && (
-              <div className="flex flex-wrap items-center gap-2.5 pt-4 border-t border-slate-100/80">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-[10px] font-bold text-slate-700 shadow-sm transition-all duration-200 hover:border-blue-300">
-                  <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">Code:</span>
-                  <span className="font-black text-slate-900">{selectedBuilding.code}</span>
+              <div className="flex flex-wrap items-center gap-2.5 pt-4 border-t border-slate-200/60">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:border-blue-300">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Code:</span>
+                  <span className="font-extrabold text-slate-900">{selectedBuilding.code}</span>
                 </div>
                 
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-[10px] font-bold text-slate-700 shadow-sm transition-all duration-200 hover:border-blue-300">
-                  <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">Floors:</span>
-                  <span className="font-black text-slate-900">{selectedBuilding.totalFloors} floors</span>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:border-blue-300">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Floors:</span>
+                  <span className="font-extrabold text-slate-900">{selectedBuilding.totalFloors} floors</span>
                 </div>
 
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-[10px] font-bold text-slate-700 shadow-sm transition-all duration-200 hover:border-blue-300">
-                  <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">Hours:</span>
-                  <span className="font-black text-slate-900">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:border-blue-300">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Hours:</span>
+                  <span className="font-extrabold text-slate-900">
                     {selectedBuilding.operatingHours ? `${selectedBuilding.operatingHours.open} - ${selectedBuilding.operatingHours.close}` : '24/7'}
                   </span>
                 </div>
 
                 {selectedBuilding.contactPhone && (
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-[10px] font-bold text-slate-700 shadow-sm transition-all duration-200 hover:border-blue-300">
-                    <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 font-mono">Support:</span>
-                    <span className="font-black text-slate-900">{selectedBuilding.contactPhone}</span>
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:border-blue-300">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Support:</span>
+                    <span className="font-extrabold text-slate-900">{selectedBuilding.contactPhone}</span>
                   </div>
                 )}
               </div>
@@ -178,30 +180,30 @@ export function ManagerDashboardPage() {
 
           {/* Right Column: Premium Interactive Building Status Card */}
           {selectedBuilding && selectedState && (
-            <div className="hidden lg:flex flex-col justify-between p-5 rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-600 via-blue-600 to-indigo-800 text-white shadow-lg shadow-blue-500/10 min-w-[220px] max-w-[260px] relative overflow-hidden group hover:scale-[1.02] hover:shadow-xl transition-all duration-300">
+            <div className="hidden lg:flex flex-col justify-between p-5 rounded-2xl border border-blue-400/30 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white shadow-md shadow-blue-500/10 min-w-[220px] max-w-[260px] relative overflow-hidden group hover:scale-[1.02] transition-all duration-300">
               <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-white/20 via-white/5 to-transparent pointer-events-none" />
               <div className="absolute -right-8 -top-8 w-24 h-24 rounded-full bg-white/10 blur-xl pointer-events-none" />
               
               <div className="flex items-center justify-between">
-                <div className="p-2 rounded-xl bg-white/10 border border-white/20">
-                  <Building2 size={16} className="text-white" />
+                <div className="p-2 rounded-xl bg-white/15 border border-white/20">
+                  <Building2 size={18} className="text-white" />
                 </div>
                 <div
                   title={BUILDING_STATE_HINTS[selectedState]}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider border border-white/10 font-mono"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider border border-white/20 text-white"
                 >
                   <span
                     className={`inline-flex h-1.5 w-1.5 rounded-full ${BUILDING_STATE_DOT[selectedState]} ${
                       isOperationalNow(selectedState) ? 'animate-pulse' : ''
                     }`}
                   />
-                  {BUILDING_STATE_LABELS[selectedState]}
+                  <span>{BUILDING_STATE_LABELS[selectedState]}</span>
                 </div>
               </div>
 
               <div className="mt-6">
-                <p className="text-[9px] font-bold text-blue-200 uppercase tracking-widest font-mono">Facility</p>
-                <h3 className="text-base font-black tracking-tight mt-0.5 truncate">{selectedBuilding.name}</h3>
+                <p className="text-[10px] font-extrabold text-blue-100 uppercase tracking-widest">Facility</p>
+                <h3 className="text-lg font-black tracking-tight mt-0.5 truncate text-white !text-white">{selectedBuilding.name}</h3>
               </div>
             </div>
           )}
@@ -211,19 +213,19 @@ export function ManagerDashboardPage() {
       {/* Quick actions: Glass Cards */}
       <motion.div variants={itemVariants} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          { label: 'Pricing', desc: 'Adjust parking price policies', href: '/manager/price-policies', color: 'border-orange-200 bg-orange-500/[0.04] text-orange-700 hover:bg-orange-500/[0.08] hover:border-orange-400' },
-          { label: 'Staff & shifts', desc: 'Assign shifts and manage staff', href: '/manager/shifts', color: 'border-blue-200 bg-blue-500/[0.04] text-blue-700 hover:bg-blue-500/[0.08] hover:border-blue-400' },
-          { label: 'Long-term packages', desc: 'Manage packages and subscriptions', href: '/manager/packages', color: 'border-purple-200 bg-purple-500/[0.04] text-purple-700 hover:bg-purple-500/[0.08] hover:border-purple-400' },
-          { label: 'Reviews', desc: 'View and respond to complaints', href: '/manager/reviews', color: 'border-indigo-200 bg-indigo-500/[0.04] text-indigo-700 hover:bg-indigo-500/[0.08] hover:border-indigo-400' },
+          { label: 'Pricing', desc: 'Adjust parking price policies', href: '/manager/price-policies', color: 'border-orange-200/80 bg-orange-50/50 text-orange-800 hover:bg-orange-100/50 hover:border-orange-300' },
+          { label: 'Staff & shifts', desc: 'Assign shifts and manage staff', href: '/manager/shifts', color: 'border-blue-200/80 bg-blue-50/50 text-blue-800 hover:bg-blue-100/50 hover:border-blue-300' },
+          { label: 'Long-term packages', desc: 'Manage packages and subscriptions', href: '/manager/packages', color: 'border-purple-200/80 bg-purple-50/50 text-purple-800 hover:bg-purple-100/50 hover:border-purple-300' },
+          { label: 'Reviews', desc: 'View and respond to complaints', href: '/manager/reviews', color: 'border-indigo-200/80 bg-indigo-50/50 text-indigo-800 hover:bg-indigo-100/50 hover:border-indigo-300' },
         ].map((action) => (
           <button
             key={action.href}
             type="button"
             onClick={() => navigate(action.href)}
-            className={`rounded-2xl border-2 p-4 text-left transition-all duration-300 hover:scale-[1.03] hover:shadow-md ${action.color}`}
+            className={`rounded-2xl border p-4 text-left transition-all duration-300 hover:scale-[1.02] hover:shadow-sm ${action.color}`}
           >
-            <p className="font-black text-sm text-indigo-950">{action.label}</p>
-            <p className="mt-1 text-[10px] font-bold text-slate-600 leading-normal">{action.desc}</p>
+            <p className="font-extrabold text-sm text-slate-900">{action.label}</p>
+            <p className="mt-1 text-xs font-semibold text-slate-500 leading-normal">{action.desc}</p>
           </button>
         ))}
       </motion.div>
@@ -232,18 +234,18 @@ export function ManagerDashboardPage() {
         <div className="space-y-6">
           {/* Assigned buildings */}
           <motion.div variants={itemVariants}>
-            <Card className="border-2 border-blue-200 bg-white shadow-md overflow-hidden rounded-3xl">
-              <CardHeader className="border-b-2 border-blue-100 bg-slate-50 p-5">
-                <CardTitle className="text-xs font-black uppercase tracking-wider text-indigo-950 font-mono">Assigned buildings</CardTitle>
+            <Card className="border border-slate-200/80 bg-white shadow-sm overflow-hidden rounded-2xl">
+              <CardHeader className="border-b border-slate-100 bg-slate-50/70 px-5 py-4">
+                <CardTitle className="text-xs font-extrabold uppercase tracking-wider text-slate-800">Assigned buildings</CardTitle>
               </CardHeader>
               <CardContent className="p-5">
                 {isBuildingsLoading ? (
-                  <div className="flex items-center gap-2 text-slate-605 text-xs font-bold">
+                  <div className="flex items-center gap-2 text-slate-650 text-xs font-semibold">
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
                     <span>Loading buildings...</span>
                   </div>
                 ) : buildingsError ? (
-                  <p className="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 p-3.5 rounded-2xl">{buildingsError}</p>
+                  <p className="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 p-3.5 rounded-xl">{buildingsError}</p>
                 ) : buildings.length === 0 ? (
                   <p className="text-xs text-slate-500 italic">This account is not assigned to manage any building.</p>
                 ) : (
@@ -256,18 +258,18 @@ export function ManagerDashboardPage() {
                           key={b._id}
                           type="button"
                           onClick={() => setSelectedBuildingId(b._id)}
-                          className={`rounded-2xl border-2 p-4 text-left transition-all duration-300 ${
+                          className={`rounded-xl border p-4 text-left transition-all duration-200 ${
                             isSelected
-                              ? 'border-blue-600 bg-blue-500/10 shadow-[0_4px_20px_rgba(37,99,235,0.12)] scale-[1.01]'
-                              : 'border-slate-200 bg-white text-slate-700 hover:border-blue-400 hover:bg-slate-50/50'
+                              ? 'border-blue-500 bg-blue-50/70 shadow-sm ring-1 ring-blue-500/20'
+                              : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-slate-50/60'
                           }`}
                         >
-                          <p className={`font-black text-sm ${isSelected ? 'text-blue-800' : 'text-slate-800'}`}>
+                          <p className={`font-extrabold text-sm ${isSelected ? 'text-blue-900' : 'text-slate-800'}`}>
                             {b.name || b.code || 'Building'}
                           </p>
                           <p
                             title={BUILDING_STATE_HINTS[state]}
-                            className="mt-2.5 text-[10px] font-black text-slate-600 flex items-center gap-1.5 font-mono uppercase tracking-wide"
+                            className="mt-2 text-[11px] font-bold text-slate-500 flex items-center gap-1.5 uppercase tracking-wider"
                           >
                             <span
                               className={`h-2 w-2 rounded-full ${BUILDING_STATE_DOT[state]} ${
@@ -287,9 +289,9 @@ export function ManagerDashboardPage() {
 
           {/* Quick report today */}
           <motion.div variants={itemVariants}>
-            <Card className="border-2 border-blue-200 bg-white shadow-md overflow-hidden rounded-3xl">
-              <CardHeader className="border-b-2 border-blue-100 bg-slate-50 p-5">
-                <CardTitle className="text-xs font-black uppercase tracking-wider text-indigo-950 font-mono">Quick report today</CardTitle>
+            <Card className="border border-slate-200/80 bg-white shadow-sm overflow-hidden rounded-2xl">
+              <CardHeader className="border-b border-slate-100 bg-slate-50/70 px-5 py-4">
+                <CardTitle className="text-xs font-extrabold uppercase tracking-wider text-slate-800">Quick report today</CardTitle>
               </CardHeader>
               <CardContent className="p-5">
                 {isLoadingOverview ? (
@@ -299,50 +301,50 @@ export function ManagerDashboardPage() {
                   </div>
                 ) : overviewError ? (
                   needsSubscription ? (
-                    <div className="rounded-2xl border-2 border-amber-300 bg-amber-55/10 p-4">
+                    <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4">
                       <div className="flex items-center gap-2 text-amber-800">
-                        <Crown size={15} />
-                        <p className="text-xs font-black uppercase tracking-wider font-mono">Subscription required</p>
+                        <Crown size={16} />
+                        <p className="text-xs font-extrabold uppercase tracking-wider">Subscription required</p>
                       </div>
-                      <p className="mt-2 text-xs font-bold text-amber-700">
+                      <p className="mt-2 text-xs font-semibold text-amber-700 leading-relaxed">
                         This building has no active system subscription. Purchase one to unlock the manager dashboard.
                       </p>
                       <button
                         type="button"
                         onClick={() => navigate('/manager/wallet')}
-                        className="mt-3 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-650 px-4 py-2 text-xs font-black text-white shadow-md transition hover:brightness-110"
+                        className="mt-3 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-650 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:brightness-110"
                       >
-                        <Crown size={13} /> Buy subscription
+                        <Crown size={14} /> Buy subscription
                       </button>
                     </div>
                   ) : (
-                    <p className="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 p-3.5 rounded-2xl">{overviewError}</p>
+                    <p className="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 p-3.5 rounded-xl">{overviewError}</p>
                   )
                 ) : overview ? (
-                  <div className="grid gap-4 grid-cols-2 xl:grid-cols-4">
+                  <div className="grid gap-3.5 grid-cols-2 xl:grid-cols-4">
                     {cards.map((card) => {
                       const Icon = card.icon;
                       return (
-                        <div key={card.label} className="rounded-2xl border-2 border-blue-100 bg-slate-50/50 p-4 transition-all duration-300 hover:border-blue-450 hover:shadow-sm hover:scale-[1.02]">
-                          <div className="flex items-center gap-2.5">
-                            <div className={`p-2 rounded-lg border-2 ${card.bg} ${card.color}`}>
-                              <Icon size={14} className="stroke-[3]" />
+                        <div key={card.label} className="rounded-xl border border-slate-200/80 bg-slate-50/40 p-3.5 transition-all duration-200 hover:border-blue-300 hover:shadow-sm">
+                          <div className="flex items-center gap-2">
+                            <div className={`p-1.5 rounded-lg border ${card.bg} ${card.color}`}>
+                              <Icon size={14} className="stroke-[2.5]" />
                             </div>
-                            <p className="text-[9px] font-black uppercase tracking-wider text-slate-550 font-mono">{card.label}</p>
+                            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{card.label}</p>
                           </div>
-                          <p className={`mt-4 text-2xl font-black ${card.color} font-mono`}>{card.value}</p>
+                          <p className={`mt-3 text-2xl font-black ${card.color}`}>{card.value}</p>
                         </div>
                       );
                     })}
                   </div>
                 ) : (
-                  <p className="text-xs text-slate-500 font-bold italic text-center py-4">Select a building above to see detailed metrics.</p>
+                  <p className="text-xs text-slate-500 font-medium italic text-center py-4">Select a building above to see detailed metrics.</p>
                 )}
               </CardContent>
             </Card>
           </motion.div>
 
-          {/* Xu hướng doanh thu 7 ngày — dùng chung RevenueChart với admin (BE trả revenue.weekly). */}
+          {/* Xu hướng doanh thu 7 ngày */}
           <motion.div variants={itemVariants}>
             <RevenueChart
               data={(overview?.revenue?.weekly ?? []).map((w) => ({
@@ -359,9 +361,9 @@ export function ManagerDashboardPage() {
         <div className="space-y-6">
           {/* Parking performance */}
           <motion.div variants={itemVariants}>
-            <Card className="border-2 border-blue-200 bg-white shadow-md overflow-hidden rounded-3xl">
-              <CardHeader className="border-b-2 border-blue-100 bg-slate-50 p-5">
-                <CardTitle className="text-xs font-black uppercase tracking-wider text-indigo-950 font-mono">Parking performance</CardTitle>
+            <Card className="border border-slate-200/80 bg-white shadow-sm overflow-hidden rounded-2xl">
+              <CardHeader className="border-b border-slate-100 bg-slate-50/70 px-5 py-4">
+                <CardTitle className="text-xs font-extrabold uppercase tracking-wider text-slate-800">Parking performance</CardTitle>
               </CardHeader>
               <CardContent className="p-5 space-y-4">
                 <SlotOccupancyChart
@@ -371,16 +373,16 @@ export function ManagerDashboardPage() {
                   maintenance={overview?.slots?.maintenance ?? 0}
                 />
 
-                <div className="rounded-2xl border-2 border-blue-100 bg-slate-50/50 p-4">
-                  <p className="text-[9px] font-black uppercase tracking-wider text-slate-550 font-mono">Occupancy rate</p>
-                  <p className="mt-2 text-2xl font-black bg-gradient-to-r from-blue-700 via-indigo-700 to-indigo-800 bg-clip-text text-transparent font-mono">{overview?.slots?.occupancyRate ?? 0}%</p>
+                <div className="rounded-xl border border-slate-200/80 bg-slate-50/50 p-3.5">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Occupancy rate</p>
+                  <p className="mt-1.5 text-2xl font-black bg-gradient-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent">{overview?.slots?.occupancyRate ?? 0}%</p>
                 </div>
 
-                <div className="rounded-2xl border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50/30 p-4 border-l-4 border-l-blue-600 shadow-md">
-                  <p className="text-[9px] font-black uppercase tracking-wider text-blue-700 font-mono">Revenue today</p>
-                  <p className="mt-2.5 text-2xl font-black bg-gradient-to-r from-blue-700 via-indigo-750 to-blue-600 bg-clip-text text-transparent font-mono">
+                <div className="rounded-xl border border-blue-200/80 bg-gradient-to-r from-blue-50/80 to-indigo-50/40 p-4 border-l-4 border-l-blue-600 shadow-sm">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-blue-800">Revenue today</p>
+                  <p className="mt-2 text-2xl font-black bg-gradient-to-r from-blue-700 via-indigo-750 to-blue-600 bg-clip-text text-transparent">
                     {(overview?.revenue?.today ?? 0).toLocaleString('vi-VN')}{' '}
-                    <span className="text-xs font-black text-slate-500">VND</span>
+                    <span className="text-xs font-bold text-slate-500">VND</span>
                   </p>
                 </div>
               </CardContent>
@@ -389,16 +391,16 @@ export function ManagerDashboardPage() {
 
           {/* Customer long-term packages */}
           <motion.div variants={itemVariants}>
-            <Card className="border-2 border-blue-200 bg-white shadow-md overflow-hidden rounded-3xl">
-              <CardHeader className="border-b-2 border-blue-100 bg-slate-50 p-5">
-                <CardTitle className="text-xs font-black uppercase tracking-wider text-indigo-950 font-mono">Customer long-term packages</CardTitle>
+            <Card className="border border-slate-200/80 bg-white shadow-sm overflow-hidden rounded-2xl">
+              <CardHeader className="border-b border-slate-100 bg-slate-50/70 px-5 py-4">
+                <CardTitle className="text-xs font-extrabold uppercase tracking-wider text-slate-800">Customer long-term packages</CardTitle>
               </CardHeader>
               <CardContent className="p-5 space-y-3">
-                <div className="rounded-2xl border-2 border-blue-100 bg-slate-50/50 p-4">
-                  <p className="text-[9px] font-black uppercase tracking-wider text-slate-550 font-mono">Active long-term packages</p>
-                  <p className="mt-1.5 text-xl font-black text-blue-700 font-mono">
+                <div className="rounded-xl border border-slate-200/80 bg-slate-50/50 p-3.5">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Active long-term packages</p>
+                  <p className="mt-1.5 text-xl font-black text-blue-700">
                     {overview?.subscriptions?.active ?? 0}{' '}
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">packages</span>
+                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">packages</span>
                   </p>
                 </div>
               </CardContent>

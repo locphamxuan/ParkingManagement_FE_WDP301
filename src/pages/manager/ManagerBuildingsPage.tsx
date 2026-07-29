@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Building2, Save, Layers, Clock, MapPin, Phone, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -52,12 +52,12 @@ export function ManagerBuildingsPage() {
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* Premium Header Hero Card */}
-      <div className="premium-hero-card relative overflow-hidden rounded-3xl border-2 border-blue-100 bg-gradient-to-br from-white via-blue-50/5 to-indigo-50/10 p-6 shadow-md transition-all duration-300">
+      <div className="premium-hero-card relative overflow-hidden rounded-3xl border border-blue-200/80 bg-gradient-to-br from-white via-blue-50/10 to-indigo-50/20 p-6 shadow-sm transition-all duration-300">
         {/* Ambient Glows */}
         <div className="absolute -right-16 -top-16 h-36 w-36 rounded-full bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.06),transparent_70%)] pointer-events-none blur-2xl animate-pulse" />
         
         <div className="relative z-10">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-blue-600 text-[9px] font-black uppercase tracking-widest text-white shadow-sm font-mono">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-blue-600 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
             Infrastructure
           </div>
           <h1 className="mt-2 text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">

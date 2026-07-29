@@ -199,7 +199,7 @@ export function ManagerPackagesPage() {
         
         <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-blue-600 text-[9px] font-black uppercase tracking-widest text-white shadow-sm font-mono">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-blue-600 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
               Policies & Subscriptions
             </div>
             <h1 className="mt-2 text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">

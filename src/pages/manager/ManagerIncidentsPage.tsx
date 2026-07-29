@@ -147,7 +147,7 @@ export function ManagerIncidentsPage() {
         
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 relative z-10">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-blue-600 text-[9px] font-black uppercase tracking-widest text-white shadow-sm font-mono">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-blue-600 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
               Shift Oversight
             </div>
             <h1 className="mt-2 text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">

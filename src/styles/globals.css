@@ -668,7 +668,11 @@ button[aria-expanded="true"] .chev {
 /* UI Finish Polish Rules */
 .manager-theme .card,
 .manager-theme [class*="Card"] {
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  /* Avoid animating layout-affecting properties across a portal full of cards.
+     This keeps large tables and Manager pages responsive on modest devices. */
+  transition-property: border-color, box-shadow, transform, background-color !important;
+  transition-duration: 0.25s !important;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .manager-theme .card:hover,

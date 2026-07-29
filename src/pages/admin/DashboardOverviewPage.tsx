@@ -6,11 +6,13 @@ import { AnalyticsCard } from '@/components/charts/AnalyticsCard';
 import { ActivityTimeline } from '@/components/charts/ActivityTimeline';
 import { RevenueChart } from '@/components/charts/RevenueChart';
 import { Modal } from '@/components/ui/modal';
+import { AdminHeroBanner } from '@/components/admin/AdminHeroBanner';
 import { useAdminDataset } from '@/hooks/admin/useAdminDataset';
 import { adminApi } from '@/services/admin/adminApi';
 import type { AdminPayment, RevenueReconciliation } from '@/services/admin/adminApi';
 import type { LiveActivityItem } from '@/services/admin/types';
 import styles from '@/styles/modules/DashboardOverviewPage.module.css';
+
 
 const STAT_ICONS = [<Building2 size={18} />, <Activity size={18} />, <CreditCard size={18} />, <ShieldCheck size={18} />];
 
@@ -121,37 +123,11 @@ export function DashboardOverviewPage() {
       <div className="absolute top-1/2 left-1/3 w-[300px] h-[300px] rounded-full bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.12),transparent_70%)] pointer-events-none blur-3xl -z-10" />
 
       {/* ── SECTION 1: Welcome Hero Banner ── */}
-      <motion.section
-        custom={0}
-        initial="hidden"
-        animate="visible"
-        variants={sectionVariants}
-        className="relative overflow-hidden rounded-3xl border border-blue-400/25 bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-900 p-8 text-white shadow-xl"
-      >
-        {/* Crystal Bevel Top Border */}
-        <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
-
-        {/* Radial glows inside the hero */}
-        <div className="absolute -right-12 -top-12 h-64 w-64 rounded-full bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.22),transparent_70%)] pointer-events-none blur-2xl animate-pulse" />
-        <div className="absolute -left-12 -bottom-12 h-48 w-48 rounded-full bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.18),transparent_70%)] pointer-events-none blur-2xl" />
-        
-        {/* Horizontal scan line on hero */}
-        <div className="absolute inset-0 overflow-hidden rounded-3xl pointer-events-none">
-          <div className="w-full h-[1.5px] bg-gradient-to-r from-transparent via-white/25 to-transparent absolute top-1/2 cyber-shimmer" />
-        </div>
-
-        <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/10 border border-white/20 text-[9px] font-black uppercase tracking-widest text-blue-200 font-mono shadow-sm">
-              Central Admin Portal
-            </div>
-            <h1 className="mt-4 text-3xl font-black tracking-tight text-white sm:text-4xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
-              Operations at a glance
-            </h1>
-            <p className="mt-3.5 max-w-2xl text-xs font-semibold text-blue-100/80 leading-relaxed drop-shadow-[0_1px_2px_rgba(0,0,0,0.1)]">
-              Revenue, occupancy and operational controls in one focused workspace. Track real-time cash flow, manage payment-method distribution, review recent transactions and monitor live parking activity.
-            </p>
-          </div>
+      <AdminHeroBanner
+        badge="Central Admin Portal"
+        title="Operations at a glance"
+        description="Revenue, occupancy and operational controls in one focused workspace. Track real-time cash flow, manage payment-method distribution, review recent transactions and monitor live parking activity."
+        rightElement={
           <div className="flex items-center gap-3 rounded-2xl border border-white/20 bg-white/10 px-4 py-3 backdrop-blur-md shadow-md shrink-0">
             <span className={`h-3 w-3 rounded-full ${systemHealthy ? 'bg-emerald-400 shadow-[0_0_10px_#34d399]' : reconciliationIssueCount > 0 ? 'bg-amber-400 shadow-[0_0_10px_#fbbf24]' : 'bg-blue-300'}`} />
             <div>
@@ -159,8 +135,9 @@ export function DashboardOverviewPage() {
               <p className="mt-0.5 text-[11px] text-blue-200 font-semibold">{reconciliationIssueCount > 0 ? `${reconciliationIssueCount} reconciliation item${reconciliationIssueCount === 1 ? '' : 's'}` : 'Live monitoring enabled'}</p>
             </div>
           </div>
-        </div>
-      </motion.section>
+        }
+      />
+
 
       {/* ── SECTION 2: Metric Cards Grid with stagger ── */}
       <motion.section

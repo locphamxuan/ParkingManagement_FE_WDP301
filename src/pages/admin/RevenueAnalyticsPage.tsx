@@ -16,12 +16,14 @@ import {
   TrendingDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { AdminHeroBanner } from '@/components/admin/AdminHeroBanner';
 import {
   adminApi,
   type AdminPayment,
   type RevenueReconciliation,
   type RevenueReport,
 } from '@/services/admin/adminApi';
+
 
 const fmtVnd = (value: number | null | undefined) => `${Number(value || 0).toLocaleString('vi-VN')} ₫`;
 const isoDay = (date: Date) => date.toISOString().slice(0, 10);
@@ -113,32 +115,12 @@ export function RevenueAnalyticsPage() {
     <div className="space-y-6 pb-12">
 
       {/* ── SECTION 1: Revenue Hero Banner ── */}
-      <section className="relative overflow-hidden rounded-3xl border border-blue-400/25 bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-900 p-7 text-white shadow-xl">
-        {/* Crystal Bevel Top Border */}
-        <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
-
-        {/* Ambient Glow Orbs */}
-        <div className="absolute -right-12 -top-12 h-64 w-64 rounded-full bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.22),transparent_70%)] pointer-events-none blur-2xl animate-pulse" />
-        <div className="absolute -left-12 -bottom-12 h-48 w-48 rounded-full bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.18),transparent_70%)] pointer-events-none blur-2xl" />
-
-        <div className="relative z-10 flex flex-col justify-between gap-5 xl:flex-row xl:items-center">
-          <div className="flex items-start gap-4">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/10 text-white backdrop-blur-md shadow-md">
-              <Landmark size={22} />
-            </span>
-            <div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-lg bg-white/10 border border-white/20 text-[9px] font-black uppercase tracking-widest text-blue-200 font-mono shadow-sm mb-2">
-                SYSTEM-OWNER FINANCE
-              </div>
-              <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
-                Revenue, without the noise.
-              </h1>
-              <p className="mt-1 max-w-xl text-xs font-semibold text-blue-100/80 leading-relaxed">
-                A focused view of collected revenue, exceptions, refunds and system payment ledger.
-              </p>
-            </div>
-          </div>
-
+      <AdminHeroBanner
+        badge="SYSTEM-OWNER FINANCE"
+        title="Revenue, without the noise."
+        description="A focused view of collected revenue, exceptions, refunds and system payment ledger."
+        icon={<Landmark size={22} />}
+        rightElement={
           <div className="flex flex-wrap items-center gap-2.5">
             {[
               { label: 'From', value: from, set: setFrom },
@@ -169,8 +151,9 @@ export function RevenueAnalyticsPage() {
               Refresh
             </Button>
           </div>
-        </div>
-      </section>
+        }
+      />
+
 
 
       {error && (

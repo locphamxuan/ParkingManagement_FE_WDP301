@@ -5,7 +5,6 @@ import {
   Banknote,
   Building2,
   Calendar,
-  ChevronDown,
   CircleAlert,
   Clock3,
   Coins,
@@ -15,7 +14,6 @@ import {
   Scale,
   ShieldCheck,
   TrendingDown,
-  Wallet,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,7 +22,6 @@ import {
   type RevenueReconciliation,
   type RevenueReport,
 } from '@/services/admin/adminApi';
-
 
 const fmtVnd = (value: number | null | undefined) => `${Number(value || 0).toLocaleString('vi-VN')} ₫`;
 const isoDay = (date: Date) => date.toISOString().slice(0, 10);
@@ -40,27 +37,6 @@ const STATUS_STYLE: Record<string, string> = {
   success: 'border-emerald-200 bg-emerald-50 text-emerald-700', pending: 'border-amber-200 bg-amber-50 text-amber-700', failed: 'border-rose-200 bg-rose-50 text-rose-700', refunded: 'border-sky-200 bg-sky-50 text-sky-700', reconciliation_required: 'border-orange-200 bg-orange-50 text-orange-700',
 };
 
-function DateControl({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
-  return <label className="flex h-10 items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-3 text-left backdrop-blur-sm">
-    <Calendar size={13} className="text-blue-100" />
-    <span className="text-[9px] font-black uppercase tracking-wider text-blue-100/80">{label}</span>
-    <input type="date" value={value} onChange={(event) => onChange(event.target.value)} className="w-[106px] bg-transparent text-xs font-bold text-white outline-none [color-scheme:dark]" />
-  </label>;
-}
-
-function SupportingMetric({ label, value, note, icon: Icon, tone }: { label: string; value: string; note: string; icon: typeof Coins; tone: string }) {
-  return <div className="min-w-0 rounded-xl border border-slate-100 bg-slate-50/70 p-3.5 transition-colors hover:border-blue-100 hover:bg-white">
-    <div className="flex items-center gap-2"><span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${tone}`}><Icon size={14} /></span><p className="truncate text-[10px] font-black uppercase tracking-[0.1em] text-slate-500">{label}</p></div>
-    <p className="mt-3 truncate text-lg font-black tracking-tight text-slate-900">{value}</p><p className="mt-1 line-clamp-2 text-[10px] leading-4 text-slate-500">{note}</p>
-  </div>;
-}
-
-function ReconciliationSignal({ label, count, amount, tone }: { label: string; count: number; amount: number; tone: 'amber' | 'orange' | 'rose' | 'emerald' }) {
-  const theme = {
-    amber: 'border-amber-200 bg-amber-50/70 text-amber-700', orange: 'border-orange-200 bg-orange-50/70 text-orange-700', rose: 'border-rose-200 bg-rose-50/70 text-rose-700', emerald: 'border-emerald-200 bg-emerald-50/70 text-emerald-700',
-  }[tone];
-  return <div className={`rounded-xl border px-3.5 py-3 ${theme}`}><div className="flex items-center justify-between gap-3"><p className="text-[10px] font-black uppercase tracking-[0.09em]">{label}</p><span className="rounded-full bg-white/70 px-2 py-0.5 text-[10px] font-black">{count}</span></div><p className="mt-1.5 text-sm font-black text-slate-900">{fmtVnd(amount)}</p></div>;
-}
 
 function MetricCard({
   label,
@@ -99,29 +75,26 @@ export function RevenueAnalyticsPage() {
   const [report, setReport] = useState<RevenueReport | null>(null);
   const [reconciliation, setReconciliation] = useState<RevenueReconciliation | null>(null);
   const [payments, setPayments] = useState<AdminPayment[]>([]);
-  const [totalWalletBalance, setTotalWalletBalance] = useState(0);
   const [paymentType, setPaymentType] = useState('');
   const [paymentStatus, setPaymentStatus] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showAllTransactions, setShowAllTransactions] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true); setError(null);
     try {
-      const [reportRes, reconciliationRes, paymentsRes, usersRes] = await Promise.all([
+      const [reportRes, reconciliationRes, paymentsRes] = await Promise.all([
         adminApi.revenue.report({ from, to }), adminApi.revenue.reconciliation(24),
         adminApi.revenue.transactions({ from, to, limit: 30, type: paymentType || undefined, status: paymentStatus || undefined }),
-        adminApi.users.list({ role: 'user', limit: '200' }),
       ]);
       setReport((reportRes as { data?: RevenueReport }).data ?? null);
       setReconciliation((reconciliationRes as { data?: RevenueReconciliation }).data ?? null);
       setPayments((paymentsRes as { data?: { items?: AdminPayment[] } }).data?.items ?? []);
-      const users = (usersRes as { data?: { items?: Array<{ role?: string; walletBalance?: number }> } }).data?.items ?? [];
-      setTotalWalletBalance(users.filter((user) => user.role === 'user').reduce((total, user) => total + Number(user.walletBalance || 0), 0));
-      setShowAllTransactions(false);
-    } catch (caught) { setError(caught instanceof Error ? caught.message : 'Failed to load revenue data.'); }
-    finally { setLoading(false); }
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Failed to load revenue data.');
+    } finally {
+      setLoading(false);
+    }
   }, [from, to, paymentStatus, paymentType]);
 
   useEffect(() => { void loadData(); }, [loadData]);
@@ -133,7 +106,7 @@ export function RevenueAnalyticsPage() {
     const max = Math.max(...Object.values(totals), 1);
     return Object.entries(totals).map(([key, value]) => ({ key, value, percent: Math.round((value / max) * 100) }));
   }, [report]);
-  const visiblePayments = showAllTransactions ? payments : payments.slice(0, 8);
+
   const reconciliationCount = (reconciliation?.pendingCash.count || 0) + (reconciliation?.staleElectronic.count || 0) + (reconciliation?.reconciliationRequired.count || 0) + (reconciliation?.walletIntegrity.mismatchCount || 0);
 
   return (

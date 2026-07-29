@@ -247,6 +247,7 @@ export const staffApi = {
     sessionId: string,
     body?: {
       paymentMethod?: string;
+      penaltyPaymentMethod?: 'cash' | 'wallet';
       bypassMismatch?: boolean;
       /** Ảnh lúc xe RA để lưu bằng chứng / đối chiếu. */
       exitPlateImage?: string | null;

@@ -189,6 +189,10 @@ export interface PaymentStatus {
   settled: boolean;
 }
 
+export interface SessionPaymentIntent extends PaymentData {
+  status: 'pending' | 'success';
+}
+
 interface Wrap<T> {
   data: T;
 }
@@ -253,8 +257,17 @@ export const staffApi = {
   ) =>
     api.patch<Wrap<{ item: ParkingSession }>>(`/staff/parking-sessions/${sessionId}/check-out`, body ?? {}),
 
-  initiateSessionPayment: (sessionId: string) =>
-    api.post<Wrap<PaymentData>>(`/staff/parking-sessions/${sessionId}/initiate-payment`, {}),
+  initiateSessionPayment: (
+    sessionId: string,
+    body: {
+      exitPlateImage: string | null;
+      exitPortraitImage: string | null;
+    },
+  ) =>
+    api.post<Wrap<PaymentData>>(`/staff/parking-sessions/${sessionId}/initiate-payment`, body),
+
+  getSessionPaymentIntent: (sessionId: string) =>
+    api.get<Wrap<SessionPaymentIntent | null>>(`/staff/parking-sessions/${sessionId}/payment-intent`),
 
   verifySessionPayment: (orderCode: number) =>
     api.get<Wrap<PaymentStatus>>(`/staff/parking-sessions/payment/${orderCode}/status`),

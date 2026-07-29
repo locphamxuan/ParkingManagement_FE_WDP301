@@ -83,13 +83,14 @@ export function DashboardOverviewPage() {
         if (!mounted) return;
         setPayments(transactionsResponse.data.items || []);
         setReconciliation(reconciliationResponse.data);
-      } catch {
+      } catch (err) {
         // The overview remains useful if a supplementary finance endpoint is unavailable.
         if (mounted) {
           setPayments([]);
           setReconciliation(null);
         }
-      } finally {
+      }
+ finally {
         if (mounted) setIsFinanceLoading(false);
       }
     };

@@ -32,7 +32,7 @@ export default function UserNotificationsPage() {
       await notificationApi.markAllRead();
       setItems((p) => p.map((n) => ({ ...n, isRead: true })));
       setUnread(0);
-    } catch {
+    } catch (_err) {
       /* ignore */
     }
   };
@@ -43,10 +43,11 @@ export default function UserNotificationsPage() {
       await notificationApi.markRead(n._id);
       setItems((p) => p.map((x) => (x._id === n._id ? { ...x, isRead: true } : x)));
       setUnread((u) => Math.max(0, u - 1));
-    } catch {
+    } catch (_err) {
       /* ignore */
     }
   };
+
 
   if (!session) return <Navigate to="/auth/login" replace />;
 

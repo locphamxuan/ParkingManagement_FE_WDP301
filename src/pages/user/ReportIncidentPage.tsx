@@ -52,9 +52,10 @@ export default function ReportIncidentPage() {
     try {
       const res = await userApi.incidents.listMine({ limit: 20 });
       setItems(res.data.items ?? []);
-    } catch {
+    } catch (_err) {
       setItems([]);
     } finally {
+
       setLoading(false);
     }
   }, []);

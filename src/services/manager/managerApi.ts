@@ -335,7 +335,7 @@ export interface ManagerIncidentUpdatePayload {
   /** 'penalize_violator' → DUYỆT số tiền phạt (manager-only) — chưa thu, chưa checkout.
    * Staff thu thật + chọn phương thức lúc check-out xe vi phạm tại cổng. */
   action?: 'penalize_violator';
-  /** Bỏ trống → BE dùng mức phạt chuẩn từ ReservationPolicy.ruleViolationFee của toà. */
+  /** Bỏ trống → BE ép mức phạt theo ViolationType đã cấu hình cho toà. */
   penaltyFee?: number;
 }
 

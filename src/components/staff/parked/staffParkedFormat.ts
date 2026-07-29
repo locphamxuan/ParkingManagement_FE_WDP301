@@ -30,3 +30,28 @@ export function computeCheckoutFee(
   const dueFee = isUnderGracePeriod ? 0 : (target.currentFee ?? target.fee ?? 0);
   return { isUnderGracePeriod, dueFee, grandTotal: dueFee + pendingPenalty };
 }
+
+export type CheckoutPaymentKind = 'cash' | 'bank_transfer' | 'wallet';
+
+/**
+ * Payload check-out gửi lên BE. MỌI luồng còn được hỗ trợ (vãng lai / có tài khoản /
+ * gói dài hạn) đều PHẢI kèm `paymentMethod` — không còn nhánh nào bỏ trống phần thanh
+ * toán. `bank_transfer` chỉ có QR thật cho phí gửi xe: nếu không còn phí gửi xe
+ * (grandTotal = 0, vd chỉ còn phí phạt) thì hạ về `cash` để BE không đánh dấu đã thu
+ * điện tử trong khi chưa có giao dịch nào.
+ */
+export function buildCheckoutPayload(input: {
+  paymentMethod: CheckoutPaymentKind;
+  grandTotal: number;
+  exitPlateImage: string | null;
+  exitPortraitImage: string | null;
+}) {
+  const paymentMethod = input.grandTotal > 0
+    ? (input.paymentMethod === 'bank_transfer' ? 'cash' : input.paymentMethod)
+    : 'cash';
+  return {
+    paymentMethod,
+    exitPlateImage: input.exitPlateImage,
+    exitPortraitImage: input.exitPortraitImage,
+  };
+}

@@ -303,7 +303,7 @@ export function ManagerCustomersPage() {
             </div>
 
             <div className="rounded-xl border border-warning/25 bg-warning/10 px-4 py-3 text-sm text-foreground">
-              <p className="font-semibold mb-1">Refund policy for manager cancellation (per building reservation policy):</p>
+              <p className="font-semibold mb-1">Refund policy for manager cancellation (per building refund policy):</p>
               <ul className="text-xs space-y-0.5 list-disc list-inside">
                 <li>Deduct <strong>{100 - refundPercent}%</strong> processing fee</li>
                 <li>

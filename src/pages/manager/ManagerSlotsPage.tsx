@@ -507,7 +507,7 @@ export function ManagerSlotsPage() {
               onChange={(e) => setForm((f) => ({ ...f, reservable: e.target.checked }))}
               className="w-4 h-4 rounded border-blue-150 bg-white text-blue-500 focus:ring-0 focus:ring-offset-0 cursor-pointer"
             />
-            <span>Allow advance reservation</span>
+            <span>Can be held as a fixed slot for a long-term package</span>
           </label>
           <div className="grid gap-1.5 md:col-span-2">
             <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">Notes</label>

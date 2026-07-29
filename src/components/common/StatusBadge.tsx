@@ -29,7 +29,7 @@ export function StatusBadge({ status }: StatusBadgeProps) {
     available: 'Available',
     occupied: 'Parked',
     reserved: 'Reserved',
-    // Reservation statuses
+    // Session / subscription statuses
     confirmed: 'Confirmed',
     checked_in: 'Checked in',
     completed: 'Completed',

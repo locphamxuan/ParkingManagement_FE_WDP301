@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import type { LucideIcon } from 'lucide-react';
 import {
-  ShieldCheck, CheckCircle2, Wallet, Building2, Ticket, CalendarClock,
+  ShieldCheck, CheckCircle2, Wallet, Building2, Ticket,
   ScanLine, CreditCard, BellRing, Star, CarFront, ArrowRight,
 } from 'lucide-react';
 
@@ -12,7 +12,6 @@ export const moduleIcons: Record<string, LucideIcon> = {
   wallet: Wallet,
   buildings: Building2,
   packages: Ticket,
-  reservations: CalendarClock,
   sessions: ScanLine,
   payments: CreditCard,
   notifications: BellRing,

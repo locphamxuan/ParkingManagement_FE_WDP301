@@ -9,9 +9,11 @@ interface ActivityTimelineProps {
 const actionLabels: Record<string, string> = {
   ASSIGN_STAFF_SHIFT: 'Staff shift assigned',
   UPDATE_STAFF_SHIFT: 'Staff shift updated',
-  CREATE_RESERVATION: 'Reservation created',
-  UPDATE_RESERVATION: 'Reservation updated',
-  CANCEL_RESERVATION: 'Reservation cancelled',
+  // Audit action lịch sử (đặt chỗ theo giờ đã bỏ) — giữ nhãn để dòng log CŨ không
+  // hiện mã thô; BE không còn ghi 3 action này.
+  CREATE_RESERVATION: 'Legacy booking created',
+  UPDATE_RESERVATION: 'Legacy booking updated',
+  CANCEL_RESERVATION: 'Legacy booking cancelled',
   CHECK_IN: 'Vehicle checked in',
   CHECK_OUT: 'Vehicle checked out',
   TOP_UP: 'Wallet topped up',

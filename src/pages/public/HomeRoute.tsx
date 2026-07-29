@@ -63,7 +63,6 @@ export function HomeRoute() {
       onAction={onAction}
       user={userMapped}
       onLogout={onLogout}
-      onViewReservationHistory={() => navigate('/history')}
     />
   );
 }

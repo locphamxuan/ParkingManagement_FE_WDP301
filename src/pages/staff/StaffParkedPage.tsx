@@ -10,7 +10,7 @@ import { LivePlateCamera, type PlateScanResult, type LiveCameraHandle } from '@/
 import { LiveQRCamera } from '@/components/staff/LiveQRCamera';
 import { normalizePlate } from '@/utils/plate';
 import { getApiErrorCode, resolveErrorMessage } from '@/utils/apiErrors';
-import { fmtMoney, computeCheckoutFee } from '@/components/staff/parked/staffParkedFormat';
+import { fmtMoney, computeCheckoutFee, buildCheckoutPayload } from '@/components/staff/parked/staffParkedFormat';
 import { ParkedSessionCard } from '@/components/staff/parked/ParkedSessionCard';
 import { ParkedRejectModal } from '@/components/staff/parked/ParkedRejectModal';
 import { BankTransferModal } from '@/components/staff/parked/BankTransferModal';
@@ -229,19 +229,12 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
         return;
       }
 
-      // Bank transfer chỉ có QR thật cho phí gửi xe (nhánh trên) — không có luồng QR
-      // riêng cho phí phạt, nên nếu chỉ còn phạt (dueFee = 0) mà staff chọn "Transfer"
-      // thì hạ về cash thay vì gửi thẳng 'bank_transfer' (tránh BE đánh dấu đã thu điện
-      // tử trong khi chưa hề có giao dịch thật nào).
-      const effectivePaymentMethod = grandTotal > 0
-        ? (paymentMethod === 'bank_transfer' ? 'cash' : paymentMethod)
-        : 'cash';
-
-      const payload: any = {
-        ...(target.isReservation ? {} : { paymentMethod: effectivePaymentMethod }),
+      const payload = buildCheckoutPayload({
+        paymentMethod,
+        grandTotal,
         exitPlateImage: capturedPlateImage,
         exitPortraitImage: exitPortrait,
-      };
+      });
 
       await staffApi.checkOut(target._id, payload);
 
@@ -258,15 +251,13 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
 
       setOpMessage({
         type: 'ok',
-        text: target.isReservation
-          ? `Vehicle ${target.plateNumber} released — wallet auto-charged.`
-          : pendingPenalty > 0
-            ? `Fee collected (${grandTotal.toLocaleString('vi-VN')} ₫, incl. ${pendingPenalty.toLocaleString('vi-VN')} ₫ penalty). Vehicle ${target.plateNumber} released.`
-            : isUnderGracePeriod
-              ? `Vehicle ${target.plateNumber} released under 10-minute Grace Period (free).`
-              : dueFee > 0
-                ? `Fee collected (${dueFee.toLocaleString('vi-VN')} ₫). Vehicle ${target.plateNumber} released.`
-                : `Vehicle ${target.plateNumber} released (free under package).`,
+        text: pendingPenalty > 0
+          ? `Fee collected (${grandTotal.toLocaleString('vi-VN')} ₫, incl. ${pendingPenalty.toLocaleString('vi-VN')} ₫ penalty). Vehicle ${target.plateNumber} released.`
+          : isUnderGracePeriod
+            ? `Vehicle ${target.plateNumber} released under 10-minute Grace Period (free).`
+            : dueFee > 0
+              ? `Fee collected (${dueFee.toLocaleString('vi-VN')} ₫). Vehicle ${target.plateNumber} released.`
+              : `Vehicle ${target.plateNumber} released (free under package).`,
       });
       setPaymentMethod('cash');
       setCheckoutTarget(null);

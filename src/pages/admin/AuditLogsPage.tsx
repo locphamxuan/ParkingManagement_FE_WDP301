@@ -22,7 +22,8 @@ const TARGET_LABELS: Record<string, string> = {
   vehicle_types: 'Vehicle types',
   price_policies: 'Price policies',
   long_term_packages: 'Long-term packages',
-  reservation_policies: 'Reservation policies',
+  // Collection giữ tên cũ, nội dung hiện tại là % hoàn tiền khi huỷ gói dài hạn.
+  reservation_policies: 'Package refund policy',
   shifts: 'Shifts',
   staff_shifts: 'Staff shifts',
   feedbacks: 'Feedback',

@@ -30,10 +30,12 @@ const isoDay = (date: Date) => date.toISOString().slice(0, 10);
 const fmtTime = (value?: string | null) => value ? new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(value)) : 'Not reconciled';
 
 const SOURCE_LABELS: Record<string, string> = {
-  parking: 'Parking fee', reservation: 'Reservation', subscription: 'Subscription package', penalty: 'Penalty fee',
+  parking: 'Parking fee', subscription: 'Subscription package', penalty: 'Penalty fee', other: 'Other (legacy records)',
 };
+// `reservation` chỉ xuất hiện trên bản ghi tài chính CŨ (tính năng đặt chỗ đã bỏ) —
+// giữ nhãn để sổ giao dịch lịch sử không hiện mã thô, không phải sản phẩm hiện hành.
 const TYPE_LABELS: Record<string, string> = {
-  session: 'Parking fee', reservation: 'Reservation', subscription: 'Subscription package', penalty: 'Penalty fee', refund: 'Refund', topup: 'Top-up', cancellation_fee: 'Cancellation fee',
+  session: 'Parking fee', subscription: 'Subscription package', penalty: 'Penalty fee', refund: 'Refund', topup: 'Top-up', cancellation_fee: 'Cancellation fee', reservation: 'Legacy booking (discontinued)',
 };
 const STATUS_STYLE: Record<string, string> = {
   success: 'border-emerald-200 bg-emerald-50 text-emerald-700', pending: 'border-amber-200 bg-amber-50 text-amber-700', failed: 'border-rose-200 bg-rose-50 text-rose-700', refunded: 'border-sky-200 bg-sky-50 text-sky-700', reconciliation_required: 'border-orange-200 bg-orange-50 text-orange-700',
@@ -103,7 +105,7 @@ export function RevenueAnalyticsPage() {
 
   const summary = report?.summary;
   const sourceTotals = useMemo(() => {
-    const totals = { parking: 0, reservation: 0, subscription: 0, penalty: 0 };
+    const totals = { parking: 0, subscription: 0, penalty: 0, other: 0 };
     report?.items.forEach((row) => Object.keys(totals).forEach((key) => { totals[key as keyof typeof totals] += row.bySource?.[key as keyof typeof totals] || 0; }));
     const max = Math.max(...Object.values(totals), 1);
     return Object.entries(totals).map(([key, value]) => ({ key, value, percent: Math.round((value / max) * 100) }));

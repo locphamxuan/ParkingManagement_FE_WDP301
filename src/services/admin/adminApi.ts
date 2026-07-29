@@ -104,11 +104,15 @@ export interface RevenueReportRow {
   paymentCount: number;
   pendingCashCount: number;
   onlineAmount: number;
+  /**
+   * Nguồn doanh thu của sản phẩm ĐANG bán. `other` là phần còn lại của grossRevenue
+   * (hiện chỉ gồm bản ghi tài chính lịch sử) để 4 giá trị luôn cộng đúng bằng gross.
+   */
   bySource: {
     parking: number;
-    reservation: number;
     subscription: number;
     penalty: number;
+    other: number;
   };
 }
 
@@ -132,6 +136,7 @@ export interface RevenueReport {
 export interface AdminPayment {
   _id: string;
   building?: { _id: string; name: string; code: string } | null;
+  /** 'reservation' chỉ tồn tại trên bản ghi LỊCH SỬ — hệ thống hiện tại không tạo mới. */
   type: 'session' | 'reservation' | 'subscription' | 'penalty' | 'refund' | 'topup' | 'cancellation_fee';
   method: 'cash' | 'wallet' | 'qr' | 'card' | 'payos';
   amount: number;

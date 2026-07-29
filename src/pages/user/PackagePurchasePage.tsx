@@ -64,7 +64,6 @@ export default function PackagePurchasePage() {
           {/* Right: summary */}
           <BookingSummarySidebar
             selectedBuildingName={b.selectedBuilding?.building.name}
-            mode="package"
             selectedPkgName={b.selectedPkg?.name}
             selectedVehicleType={b.selectedVehicleType}
             selectedSlot={b.selectedSlot}
@@ -81,7 +80,6 @@ export default function PackagePurchasePage() {
           estimatedAmount={b.estimatedAmount}
           canSubmit={b.canSubmit}
           isSubmitting={b.isSubmitting}
-          mode="package"
           onConfirm={b.handleConfirmPurchase}
         />
 

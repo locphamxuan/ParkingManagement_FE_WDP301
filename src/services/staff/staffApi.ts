@@ -88,8 +88,6 @@ export interface ParkingSession {
   staff?: { _id: string; fullName?: string; email?: string } | null; // check-in staff
   paymentMethod?: 'cash' | 'wallet' | 'qr' | 'card' | 'payos' | 'long_term' | null;
   status: 'active' | 'completed' | 'cancelled';
-  isReservation?: boolean;
-  reservationRemainingFee?: number;
 }
 
 export interface StaffIncident {
@@ -156,7 +154,6 @@ export interface PlateInfo {
     building: string;
     entryTime: string;
   };
-  activeReservation?: any;
   /** Gói dài hạn còn hiệu lực → staff gán slot trống khi check-in (hoặc dùng slot cố định của gói). */
   hasActivePackage?: boolean;
   activePackage?: {

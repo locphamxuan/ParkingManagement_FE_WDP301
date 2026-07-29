@@ -81,11 +81,6 @@ export function MultiCamCheckIn({ ops }: { ops: StaffOperations }) {
             🅿️ Vehicle has a long-term package{plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''} — {isMotorcycle ? 'select a parking zone below; the system will assign capacity automatically.' : 'pick a free slot below.'}
           </div>
         )}
-        {plateNumber.trim().length >= 7 && checkInKind === 'reservation' && (
-          <div className="mt-1 rounded-lg border border-sky-500/30 bg-sky-500/10 p-2.5 text-xs text-sky-300">
-            📅 Vehicle has a reservation{plateAccountInfo?.activeReservation?.code ? ` (code ${plateAccountInfo.activeReservation.code})` : ''}.
-          </div>
-        )}
       </div>
 
       {/* Loại xe + cảnh báo */}

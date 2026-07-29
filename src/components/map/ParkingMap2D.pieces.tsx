@@ -25,13 +25,11 @@ export function getDetailedStatus(
   selectedSlot: string | null | undefined,
   maintenanceSlots: string[],
   unsupportedSlots: string[],
-  activeReservations: Array<{ slotCode: string }>,
   unavailableSlots: string[],
 ): SlotDetailedStatus {
   if (selectedSlot === slotCode) return 'selected';
   if (maintenanceSlots.includes(slotCode)) return 'maintenance';
   if (unsupportedSlots.includes(slotCode)) return 'unsupported';
-  if (activeReservations.some((r) => r.slotCode === slotCode)) return 'reserved';
   if (unavailableSlots.includes(slotCode)) return 'occupied';
   return 'available';
 }
@@ -111,7 +109,6 @@ export function ParkingRow({
   selectedSlot,
   maintenanceSlots,
   unsupportedSlots,
-  activeReservations,
   unavailableSlots,
   interactive,
   onSlotClick,
@@ -122,7 +119,6 @@ export function ParkingRow({
   selectedSlot: string | null | undefined;
   maintenanceSlots: string[];
   unsupportedSlots: string[];
-  activeReservations: Array<{ slotCode: string; plateNumber: string; vehicleType: 'car' | 'motorcycle' }>;
   unavailableSlots: string[];
   interactive: boolean;
   onSlotClick?: (code: string) => void;
@@ -140,7 +136,7 @@ export function ParkingRow({
   const rightSide = sorted.slice(mid);
 
   const renderSlot = (slot: ParkingSlot) => {
-    const status = getDetailedStatus(slot.code, selectedSlot, maintenanceSlots, unsupportedSlots, activeReservations, unavailableSlots);
+    const status = getDetailedStatus(slot.code, selectedSlot, maintenanceSlots, unsupportedSlots, unavailableSlots);
     return (
       <SlotCell
         key={slot.code}

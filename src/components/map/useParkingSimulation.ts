@@ -109,17 +109,18 @@ export function useParkingSimulation(interactive: boolean, paused = false) {
       setHudMessage('Aligning parking angle. Activating reverse sensors...');
       setCarAState('parking');
 
-      // Turn 90 degrees to face away from slot
+      // Turn 180 degrees to align with slot orientation (rotateZ: -90)
       await safeStart(controlsCarA, {
-        rotateZ: 0,
+        rotateZ: -90,
         transition: { duration: 0.5 }
       });
       if (!active) return;
 
-      // Reverse Park into Slot 3 (top Y: 31px)
+      // Reverse Park into Slot 3 (top Y: 31px, rotateZ: -90)
       setHudMessage('Reversing into slot 3...');
       await safeStart(controlsCarA, {
         y: 31,
+        rotateZ: -90,
         transition: { type: 'spring', stiffness: 40, damping: 12 }
       });
       if (!active) return;

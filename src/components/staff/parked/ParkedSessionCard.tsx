@@ -118,14 +118,12 @@ export function ParkedSessionCard({ session: s, canCheckout, onCheckout }: Parke
 
       <div className="mt-3 flex items-center justify-between border-t border-sky-50 pt-2.5">
         <span className="text-[9px] font-bold uppercase tracking-wide text-slate-400">
-          {s.isLongTerm ? 'Overage fee' : s.isReservation ? 'Remaining due' : 'Estimated fee'}
+          {s.isLongTerm ? 'Overage fee' : 'Estimated fee'}
         </span>
         <span className="text-sm font-black text-sky-600">
-          {s.isReservation
-            ? fmtMoney(s.reservationRemainingFee ?? 0)
-            : (s.currentFee ?? s.fee ?? 0) > 0
-              ? fmtMoney(s.currentFee ?? s.fee)
-              : s.isLongTerm ? 'Free' : fmtMoney(0)}
+          {(s.currentFee ?? s.fee ?? 0) > 0
+            ? fmtMoney(s.currentFee ?? s.fee)
+            : s.isLongTerm ? 'Free' : fmtMoney(0)}
         </span>
       </div>
 

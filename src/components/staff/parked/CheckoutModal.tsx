@@ -175,13 +175,7 @@ export function CheckoutModal({
               </div>
             )}
 
-            {checkoutTarget.isReservation ? (
-              <div className="mt-4 rounded-xl border border-sky-200 bg-sky-50 p-4 text-xs text-sky-800">
-                📅 Prior reservation — system will auto-charge remaining amount (<strong>{fmtMoney(checkoutTarget.reservationRemainingFee ?? 0)}</strong>) to member's wallet.
-              </div>
-            ) : (
-              <>
-                {(() => {
+            {(() => {
                   const pendingPenalty = pendingPenalties[normalizePlate(checkoutTarget.plateNumber)] || 0;
                   const { isUnderGracePeriod, grandTotal } = computeCheckoutFee(checkoutTarget, pendingPenalty);
 
@@ -238,8 +232,6 @@ export function CheckoutModal({
                     </>
                   );
                 })()}
-              </>
-            )}
 
             <div className="mt-5 flex gap-2.5">
               <Button type="button" variant="outline" onClick={() => setCoStep(1)} className="h-11 rounded-xl border-sky-100 hover:bg-sky-50 text-slate-600 font-bold">
@@ -254,7 +246,6 @@ export function CheckoutModal({
                 {(() => {
                   const total = (checkoutTarget.currentFee ?? checkoutTarget.fee ?? 0)
                     + (pendingPenalties[normalizePlate(checkoutTarget.plateNumber)] || 0);
-                  if (checkoutTarget.isReservation) return 'Release (auto wallet charge)';
                   if (total <= 0) return 'Release (Free)';
                   if (paymentMethod === 'bank_transfer') return 'Create payment QR';
                   return `Collect ${fmtMoney(total)} & release`;

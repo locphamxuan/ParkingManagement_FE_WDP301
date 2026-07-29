@@ -104,6 +104,7 @@ export default function PackagePurchasePage() {
         floorsError={b.floorsError}
         floorsData={b.floorsData}
         selectedVehicleType={b.selectedVehicleType}
+        selectedVehicleTypeId={b.selectedVehicleTypeId}
       />
 
       <BookingNotificationModal

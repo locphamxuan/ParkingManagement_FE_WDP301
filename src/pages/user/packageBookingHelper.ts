@@ -1,4 +1,4 @@
-import type { LongTermPackage } from '@/services/user/userApi';
+import type { LongTermPackage, VehicleType } from '@/services/user/userApi';
 
 export type BookingMode = 'hourly' | 'package';
 export type VehicleKind = 'car' | 'motorcycle';
@@ -49,8 +49,7 @@ export function normalizeVehicleTypeCode(raw?: string | null): VehicleKind | 'al
     code.includes('bike')
   )
     return 'motorcycle';
-  if (code.includes('car') || code.includes('ô tô') || code.includes('oto') || code.includes('ôto')) return 'car';
-  return 'all';
+  return 'car';
 }
 
 export function vehicleKindFromLicensePlate(raw?: string | null): VehicleKind {
@@ -68,6 +67,26 @@ export function vehicleKindFromVehicleType(
 
 export function isCarPackage(pkg: LongTermPackage): boolean {
   return vehicleKindFromVehicleType(pkg.vehicleType) === 'car';
+}
+
+/**
+ * A fixed slot must use the exact VehicleType configured on the selected package.
+ * Package APIs normally return a populated VehicleType; the string fallback keeps
+ * older responses working when they contain an id, code, or name instead.
+ */
+export function packageVehicleTypeId(
+  packageVehicleType: LongTermPackage['vehicleType'],
+  buildingVehicleTypes: VehicleType[],
+): string | undefined {
+  if (!packageVehicleType) return undefined;
+  if (typeof packageVehicleType === 'object') return packageVehicleType._id;
+
+  const normalized = packageVehicleType.trim().toLowerCase();
+  return buildingVehicleTypes.find((vehicleType) => (
+    vehicleType._id === packageVehicleType
+    || vehicleType.code.toLowerCase() === normalized
+    || vehicleType.name.toLowerCase() === normalized
+  ))?._id;
 }
 
 export function getMaxCalendarDate(mode: BookingMode, pkg?: LongTermPackage | null, maxAdvanceDays = 7): Date {

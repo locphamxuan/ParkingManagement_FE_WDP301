@@ -17,6 +17,7 @@ import {
   type VehicleKind,
   isCarPackage,
   normalizeVehicleTypeCode,
+  packageVehicleTypeId,
   vehicleKindFromLicensePlate,
 } from '@/pages/user/packageBookingHelper';
 
@@ -161,14 +162,8 @@ export function usePackagePurchase() {
   );
 
   const selectedVehicleTypeId = useMemo(() => {
-    if (!selectedVehicleType) return undefined;
-    const vt = vehicleTypesForBuilding.find((v) => {
-      const c = (v.code || v.name || '').toLowerCase();
-      if (selectedVehicleType === 'motorcycle') return /motor|xe|máy|bike|moto/i.test(c);
-      return /car|oto|ô t|auto/i.test(c);
-    });
-    return vt?._id;
-  }, [vehicleTypesForBuilding, selectedVehicleType]);
+    return packageVehicleTypeId(selectedPkg?.vehicleType, vehicleTypesForBuilding);
+  }, [selectedPkg?.vehicleType, vehicleTypesForBuilding]);
 
   // Load các TẦNG có ô dãy 'subscriber' đúng loại xe (cho slot picker của gói).
   useEffect(() => {

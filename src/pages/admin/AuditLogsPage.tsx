@@ -276,19 +276,11 @@ export function AuditLogsPage() {
         ].map((card) => (
           <div
             key={card.label}
-            className="relative overflow-hidden rounded-2xl bg-white p-4 flex items-center gap-4 transition-all duration-300 group cursor-default"
+            className="relative overflow-hidden rounded-2xl bg-white p-4 flex items-center gap-4 transition-all duration-300 group cursor-default hover:-translate-y-1 hover:shadow-lg"
             style={{
               border: `1px solid ${card.accent.border}`,
               background: card.accent.bg,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 8px 24px -6px rgba(0,0,0,0.06)',
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.boxShadow = `0 4px 16px rgba(0,0,0,0.06), 0 16px 40px -8px ${card.accent.border}`;
-              (e.currentTarget as HTMLElement).style.transform = 'translateY(-3px) scale(1.005)';
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.04), 0 8px 24px -6px rgba(0,0,0,0.06)';
-              (e.currentTarget as HTMLElement).style.transform = 'none';
+              boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
             }}
           >
             <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: card.accent.top }} />
@@ -409,16 +401,12 @@ export function AuditLogsPage() {
             type="button"
             disabled={safePage <= 1}
             onClick={() => setPage((p) => Math.max(1, p - 1))}
-            className="h-9 px-4 rounded-xl text-xs font-bold transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none"
-            style={{ background: '#fff', border: '1px solid rgba(226,232,240,0.9)', color: '#475569', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#f8fafc'; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = '#fff'; }}
+            className="h-9 px-4 rounded-xl text-xs font-bold transition-all duration-200 bg-white border border-slate-200 text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none"
           >
             Prev
           </button>
           <span
-            className="h-9 px-4 flex items-center rounded-xl text-xs font-mono font-bold"
-            style={{ background: '#f8fafc', border: '1px solid rgba(226,232,240,0.9)', color: '#64748b' }}
+            className="h-9 px-4 flex items-center rounded-xl text-xs font-mono font-bold bg-slate-50 border border-slate-200 text-slate-600"
           >
             Trang {safePage} / {maxPage}
           </span>
@@ -426,10 +414,7 @@ export function AuditLogsPage() {
             type="button"
             disabled={safePage >= maxPage}
             onClick={() => setPage((p) => Math.min(maxPage, p + 1))}
-            className="h-9 px-4 rounded-xl text-xs font-bold transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none"
-            style={{ background: '#fff', border: '1px solid rgba(226,232,240,0.9)', color: '#475569', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#f8fafc'; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = '#fff'; }}
+            className="h-9 px-4 rounded-xl text-xs font-bold transition-all duration-200 bg-white border border-slate-200 text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none"
           >
             Next
           </button>

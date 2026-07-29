@@ -341,10 +341,7 @@ export function RevenueAnalyticsPage() {
                   report.items.map((row) => (
                     <tr
                       key={row.buildingId}
-                      className="transition-colors duration-150"
-                      style={{ borderTop: '1px solid rgba(226,232,240,0.4)' }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,147,233,0.03)'; }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                      className="border-t border-slate-100 transition-colors duration-150 hover:bg-sky-50/40"
                     >
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-2">
@@ -452,9 +449,7 @@ export function RevenueAnalyticsPage() {
                 return (
                   <tr
                     key={payment._id}
-                    style={{ borderTop: '1px solid rgba(226,232,240,0.4)' }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,147,233,0.025)'; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                    className="border-t border-slate-100 transition-colors duration-150 hover:bg-sky-50/30"
                   >
                     <td className="px-5 py-4">
                       <p className="flex items-center gap-1.5 font-semibold text-slate-600">

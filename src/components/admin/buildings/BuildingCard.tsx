@@ -41,19 +41,7 @@ export function BuildingCard({
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -4, scale: 1.005 }}
       transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-      className="relative overflow-hidden rounded-3xl bg-white border border-slate-100 group flex flex-col"
-      style={{
-        boxShadow: '0 4px 6px -2px rgba(0,0,0,0.04), 0 12px 30px -8px rgba(0,147,233,0.10)',
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-      }}
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.boxShadow =
-          '0 8px 16px -4px rgba(0,0,0,0.06), 0 20px 48px -12px rgba(0,147,233,0.22), 0 0 0 1px rgba(0,147,233,0.12)';
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLElement).style.boxShadow =
-          '0 4px 6px -2px rgba(0,0,0,0.04), 0 12px 30px -8px rgba(0,147,233,0.10)';
-      }}
+      className="relative overflow-hidden rounded-3xl bg-white border border-slate-100 group flex flex-col shadow-[0_4px_6px_-2px_rgba(0,0,0,0.04),0_12px_30px_-8px_rgba(0,147,233,0.10)] hover:shadow-[0_8px_16px_-4px_rgba(0,0,0,0.06),0_20px_48px_-12px_rgba(0,147,233,0.22)] hover:border-sky-300/50 transition-all duration-300"
     >
       {/* Crystal Bevel Top */}
       <div
@@ -201,96 +189,44 @@ export function BuildingCard({
         >
           <button
             onClick={() => onViewDetail(b)}
-            className="flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-xl text-xs font-black transition-all duration-200"
-            style={{
-              background: 'rgba(0,147,233,0.08)',
-              border: '1px solid rgba(0,147,233,0.15)',
-              color: '#0073b7',
-            }}
-            onMouseEnter={(e) => {
-              Object.assign((e.currentTarget as HTMLElement).style, {
-                background: 'linear-gradient(135deg, #0093E9, #00C6FF)',
-                color: '#fff',
-                boxShadow: '0 4px 12px rgba(0,147,233,0.35)',
-                border: '1px solid transparent',
-              });
-            }}
-            onMouseLeave={(e) => {
-              Object.assign((e.currentTarget as HTMLElement).style, {
-                background: 'rgba(0,147,233,0.08)',
-                color: '#0073b7',
-                boxShadow: 'none',
-                border: '1px solid rgba(0,147,233,0.15)',
-              });
-            }}
+            className="flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-xl text-xs font-black transition-all duration-200 bg-sky-500/10 border border-sky-500/20 text-sky-700 hover:bg-gradient-to-r hover:from-[#0093E9] hover:to-[#00C6FF] hover:text-white hover:shadow-lg hover:shadow-sky-500/25 hover:border-transparent"
           >
             <Eye size={13} /> Details
           </button>
 
           <div className="flex items-center gap-1.5">
-            {[
-              {
-                onClick: () => onViewMembers(b),
-                label: `View members of ${b.name}`,
-                title: 'Members',
-                icon: <Users size={13} />,
-                color: { bg: 'rgba(139,92,246,0.08)', border: 'rgba(139,92,246,0.18)', text: '#7c3aed', hoverBg: '#8b5cf6' },
-              },
-              {
-                onClick: () => onEdit(b),
-                label: `Edit ${b.name}`,
-                title: 'Edit',
-                icon: <Edit size={13} />,
-                color: { bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.18)', text: '#d97706', hoverBg: '#f59e0b' },
-              },
-              {
-                onClick: () => onToggleStatus(b),
-                label: `${b.status === 'active' ? 'Deactivate' : 'Activate'} ${b.name}`,
-                title: b.status === 'active' ? 'Deactivate' : 'Activate',
-                icon: <Power size={13} />,
-                color: { bg: 'rgba(249,115,22,0.08)', border: 'rgba(249,115,22,0.18)', text: '#ea580c', hoverBg: '#f97316' },
-              },
-              {
-                onClick: () => onDelete(b),
-                label: `Delete ${b.name}`,
-                title: 'Delete',
-                icon: <Trash2 size={13} />,
-                color: { bg: 'rgba(239,68,68,0.08)', border: 'rgba(239,68,68,0.18)', text: '#dc2626', hoverBg: '#ef4444' },
-              },
-            ].map((btn) => (
-              <button
-                key={btn.title}
-                onClick={btn.onClick}
-                aria-label={btn.label}
-                title={btn.title}
-                className="flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-200"
-                style={{
-                  background: btn.color.bg,
-                  border: `1px solid ${btn.color.border}`,
-                  color: btn.color.text,
-                }}
-                onMouseEnter={(e) => {
-                  Object.assign((e.currentTarget as HTMLElement).style, {
-                    background: btn.color.hoverBg,
-                    color: '#fff',
-                    boxShadow: `0 4px 12px ${btn.color.border}`,
-                    border: '1px solid transparent',
-                    transform: 'scale(1.08)',
-                  });
-                }}
-                onMouseLeave={(e) => {
-                  Object.assign((e.currentTarget as HTMLElement).style, {
-                    background: btn.color.bg,
-                    color: btn.color.text,
-                    boxShadow: 'none',
-                    border: `1px solid ${btn.color.border}`,
-                    transform: 'scale(1)',
-                  });
-                }}
-              >
-                {btn.icon}
-              </button>
-            ))}
+            <button
+              onClick={() => onViewMembers(b)}
+              aria-label={`View members of ${b.name}`}
+              title="Members"
+              className="flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-200 bg-purple-500/10 border border-purple-500/20 text-purple-600 hover:bg-purple-600 hover:text-white hover:shadow-md hover:scale-105"
+            >
+              <Users size={13} />
+            </button>
+            <button
+              onClick={() => onEdit(b)}
+              aria-label={`Edit ${b.name}`}
+              title="Edit"
+              className="flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-200 bg-amber-500/10 border border-amber-500/20 text-amber-600 hover:bg-amber-500 hover:text-white hover:shadow-md hover:scale-105"
+            >
+              <Edit size={13} />
+            </button>
+            <button
+              onClick={() => onToggleStatus(b)}
+              aria-label={`${b.status === 'active' ? 'Deactivate' : 'Activate'} ${b.name}`}
+              title={b.status === 'active' ? 'Deactivate' : 'Activate'}
+              className="flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-200 bg-orange-500/10 border border-orange-500/20 text-orange-600 hover:bg-orange-500 hover:text-white hover:shadow-md hover:scale-105"
+            >
+              <Power size={13} />
+            </button>
+            <button
+              onClick={() => onDelete(b)}
+              aria-label={`Delete ${b.name}`}
+              title="Delete"
+              className="flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-200 bg-red-500/10 border border-red-500/20 text-red-600 hover:bg-red-500 hover:text-white hover:shadow-md hover:scale-105"
+            >
+              <Trash2 size={13} />
+            </button>
           </div>
         </div>
       </div>

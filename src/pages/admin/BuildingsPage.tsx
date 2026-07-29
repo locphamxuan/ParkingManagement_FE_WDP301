@@ -363,25 +363,12 @@ export function BuildingsPage() {
           type="button"
           onClick={() => setPage((p) => Math.max(1, p - 1))}
           disabled={page <= 1}
-          className="h-9 px-4 rounded-xl text-xs font-bold transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none"
-          style={{
-            background: '#fff',
-            border: '1px solid rgba(226,232,240,0.9)',
-            color: '#475569',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-          }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#f8fafc'; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = '#fff'; }}
+          className="h-9 px-4 rounded-xl text-xs font-bold transition-all duration-200 bg-white border border-slate-200 text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none"
         >
           Prev
         </button>
         <span
-          className="h-9 px-4 flex items-center rounded-xl text-xs font-mono font-bold"
-          style={{
-            background: '#f8fafc',
-            border: '1px solid rgba(226,232,240,0.9)',
-            color: '#64748b',
-          }}
+          className="h-9 px-4 flex items-center rounded-xl text-xs font-mono font-bold bg-slate-50 border border-slate-200 text-slate-600"
         >
           Page {page} / {maxPage}
         </span>
@@ -389,15 +376,7 @@ export function BuildingsPage() {
           type="button"
           onClick={() => setPage((p) => Math.min(maxPage, p + 1))}
           disabled={page >= maxPage}
-          className="h-9 px-4 rounded-xl text-xs font-bold transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none"
-          style={{
-            background: '#fff',
-            border: '1px solid rgba(226,232,240,0.9)',
-            color: '#475569',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-          }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#f8fafc'; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = '#fff'; }}
+          className="h-9 px-4 rounded-xl text-xs font-bold transition-all duration-200 bg-white border border-slate-200 text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none"
         >
           Next
         </button>

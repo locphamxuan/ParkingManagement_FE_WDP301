@@ -79,8 +79,6 @@
 
 /* ── Premium Hero Card ── */
 .premium-hero-card {
-  perspective: 1200px;
-  transform-style: preserve-3d;
   transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
               box-shadow 0.45s ease,
               border-color 0.45s ease;
@@ -125,9 +123,6 @@
 .card-3d {
   position: relative;
   isolation: isolate;
-  transform: translateZ(0);
-  transform-style: preserve-3d;
-  will-change: transform;
   transition:
     transform 280ms cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 280ms ease,
@@ -136,14 +131,11 @@
 
 .glass-premium-deep {
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(248, 251, 255, 0.72)),
-    rgba(255, 255, 255, 0.76);
+    linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(244, 249, 255, 0.96));
   box-shadow:
     0 18px 42px -22px rgba(15, 23, 42, 0.28),
     0 5px 14px -10px rgba(37, 99, 235, 0.16),
     inset 0 1px 0 rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px) saturate(145%);
-  -webkit-backdrop-filter: blur(20px) saturate(145%);
 }
 
 @keyframes float-up {
@@ -163,6 +155,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .card-3d:hover {
+    will-change: transform;
     transform: perspective(1200px) translate3d(0, -6px, 0) rotateX(1.25deg) rotateY(-0.7deg);
     box-shadow:
       0 26px 48px -24px rgba(15, 23, 42, 0.32),
@@ -1231,7 +1224,10 @@ button:not(:disabled) {
   box-shadow:
     0 16px 40px rgba(15, 23, 42, 0.065),
     inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
-  backdrop-filter: blur(18px) saturate(130%) !important;
+  /* These surfaces can cover long tables. A static gradient and shadow look
+     just as polished while avoiding a full-page GPU blur on every frame. */
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
 }
 
 .admin-theme table thead,
@@ -1272,8 +1268,7 @@ button:not(:disabled) {
 /* Purposeful depth utilities for hero and metric surfaces. */
 .premium-hero-card,
 .depth-card {
-  transform-style: preserve-3d;
-  will-change: transform;
+  transform-style: flat;
 }
 
 .depth-card::after {
@@ -1306,6 +1301,28 @@ button:not(:disabled) {
   .app-backdrop--midnight .app-backdrop__grid {
     bottom: -22%;
     height: 55%;
+  }
+
+  /* Blurring a scrolling page is costly on mobile GPUs.  Preserve the visual
+     hierarchy with solid translucent surfaces instead of live backdrop blur. */
+  .glass-panel,
+  .glass-card,
+  .glass-panel-dark,
+  .glass-premium,
+  .admin-theme .glass-premium,
+  .manager-theme .glass-premium,
+  .admin-theme .glass-panel,
+  .manager-theme .glass-panel,
+  .admin-theme .glass-panel-dark,
+  .manager-theme .glass-panel-dark,
+  .app-state-card {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .premium-hero-card::before,
+  .depth-card::after {
+    display: none;
   }
 }
 

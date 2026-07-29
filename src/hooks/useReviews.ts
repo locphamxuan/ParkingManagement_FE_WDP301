@@ -2,26 +2,29 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { userApi, type Feedback, type ParkingHistory } from '@/services/user/userApi';
-import { showToast } from '@/components/common/ToastNotification';
+import { userApi, type PublicReview, type ParkingHistory } from '@/services/user/userApi';
 
 export const fmtTime = (s?: string | null) =>
   s ? new Date(s).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' }) : '—';
 
 /**
  * State + business logic for the public Reviews page: loading/filtering the
- * reviews list, deleting own reviews, and the "write a review" submission
- * flow (parking session lookup + feedback creation). Tách khỏi ReviewsPage
- * để page chỉ còn lo phần hiển thị theo từng khu vực (stats, filters, list, modal).
+ * reviews list and the "write a review" submission flow (parking session lookup
+ * + feedback creation). Tách khỏi ReviewsPage để page chỉ còn lo phần hiển thị
+ * theo từng khu vực (stats, filters, list, modal).
+ *
+ * Deliberately read-only: the public feed contains only `resolved` reviews, and
+ * resolved feedback cannot be deleted (feedback.controller.js deleteFeedback),
+ * so there is no delete affordance here. Managing your own reviews would need a
+ * dedicated authenticated page — an open product decision, not built here.
  */
 export function useReviews() {
   const navigate = useNavigate();
   const { session, user } = useAuth();
 
   // Reviews states
-  const [reviews, setReviews] = useState<Feedback[]>([]);
+  const [reviews, setReviews] = useState<PublicReview[]>([]);
   const [loading, setLoading] = useState(true);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const [error, setError] = useState<string | null>(null);
   const [buildings, setBuildings] = useState<{ _id: string; name: string }[]>([]);
@@ -49,23 +52,6 @@ export function useReviews() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [buildingDropdownOpen, setBuildingDropdownOpen] = useState(false);
   const [ratingDropdownOpen, setRatingDropdownOpen] = useState(false);
-
-  // Xác nhận qua ConfirmModal (bỏ window.confirm/alert native).
-  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
-  const handleDeleteFeedback = (feedbackId: string) => setDeleteTargetId(feedbackId);
-  const confirmDeleteFeedback = async () => {
-    if (!deleteTargetId) return;
-    setDeletingId(deleteTargetId);
-    try {
-      await userApi.feedbacks.remove(deleteTargetId);
-      setDeleteTargetId(null);
-      loadReviews(page);
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Failed to delete review.', 'error');
-    } finally {
-      setDeletingId(null);
-    }
-  };
 
   // Get currently selected session details
   const selectedSession = useMemo(() => {
@@ -117,8 +103,8 @@ export function useReviews() {
   const loadReviews = useCallback((p = 1) => {
     setLoading(true);
     setError(null);
-    const query: { page: number; limit: number; buildingId?: string; rating?: number } = { page: p, limit: 10 };
-    if (selectedBuilding !== 'all') query.buildingId = selectedBuilding;
+    const query: { page: number; limit: number; building?: string; rating?: number } = { page: p, limit: 10 };
+    if (selectedBuilding !== 'all') query.building = selectedBuilding;
     if (selectedRating !== 'all') query.rating = Number(selectedRating);
 
     userApi.feedbacks
@@ -242,7 +228,6 @@ export function useReviews() {
     reviews,
     loading,
     error,
-    deletingId,
     buildings,
     selectedBuilding,
     setSelectedBuilding,
@@ -277,10 +262,6 @@ export function useReviews() {
     ratingDropdownOpen,
     setRatingDropdownOpen,
     stats,
-    deleteTargetId,
-    setDeleteTargetId,
-    handleDeleteFeedback,
-    confirmDeleteFeedback,
     handleOpenWriteReview,
     handleSubmitFeedback,
   };

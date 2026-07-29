@@ -87,9 +87,9 @@ function usePublicAuthFlow(initialMode: 'login' | 'register') {
             navigate('/user-dashboard', { replace: true });
           }
         } else if (m === 'register') {
+          // No password here — it is sent only with the verified OTP below.
           await requestRegistration({
             email: payload.email,
-            password: payload.password,
             fullName: payload.fullName,
             phone: payload.phone || undefined,
           });
@@ -103,6 +103,7 @@ function usePublicAuthFlow(initialMode: 'login' | 'register') {
           const session = await verifyRegistration({
             email: payload.email,
             otp: payload.otp,
+            password: payload.password,
           });
           completeRegistration(session);
 

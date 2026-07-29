@@ -56,7 +56,7 @@ export function useParkingSimulation(interactive: boolean, paused = false) {
       // Reset positions instantly
       try {
         controlsCarA.set({ x: -100, y: 160, rotateZ: 90, opacity: 0 });
-        controlsCarB.set({ x: 270, y: 30, rotateZ: -90, opacity: 1 });
+        controlsCarB.set({ x: 291, y: 31, rotateZ: -90, opacity: 1 });
       } catch (err) {
         console.warn('Animation controllers not yet ready:', err);
       }
@@ -98,9 +98,9 @@ export function useParkingSimulation(interactive: boolean, paused = false) {
         }
       };
 
-      // Drive to Slot 3 alignment
+      // Drive to Slot 3 alignment (center X: 240px - half car width 28px = 212px)
       await safeStart(controlsCarA, {
-        x: 190,
+        x: 212,
         y: 160,
         transition: { ease: 'linear', duration: 1.2 }
       });
@@ -116,10 +116,10 @@ export function useParkingSimulation(interactive: boolean, paused = false) {
       });
       if (!active) return;
 
-      // Reverse Park into Slot 3
+      // Reverse Park into Slot 3 (top Y: 31px)
       setHudMessage('Reversing into slot 3...');
       await safeStart(controlsCarA, {
-        y: 30,
+        y: 31,
         transition: { type: 'spring', stiffness: 40, damping: 12 }
       });
       if (!active) return;

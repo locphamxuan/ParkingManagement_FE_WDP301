@@ -30,6 +30,7 @@ interface SlotSelectionModalProps {
   floorsError: string;
   floorsData: FloorAvailability[];
   selectedVehicleType: VehicleKind | '';
+  selectedVehicleTypeId?: string;
 }
 
 export function SlotSelectionModal({
@@ -47,23 +48,20 @@ export function SlotSelectionModal({
   floorsError,
   floorsData,
   selectedVehicleType,
+  selectedVehicleTypeId,
 }: SlotSelectionModalProps) {
   const filteredFloorsData = useMemo(() => {
-    if (!selectedVehicleType) return floorsData;
+    if (!selectedVehicleTypeId) return floorsData;
     return floorsData.filter((f) => {
       const allowed = ((f as any).allowedVehicleTypes || []) as Array<{ _id?: string; code?: string; name?: string } | string>;
       if (allowed.length === 0) return true;
-      return allowed.some((vt) => {
-        const val = typeof vt === 'object' && vt ? (vt.code || vt.name || '') : String(vt || '');
-        const codeOrName = val.toLowerCase();
-        if (selectedVehicleType === 'car') {
-          return /car|oto|ô t|auto/i.test(codeOrName);
-        } else {
-          return /motor|xe|máy|bike|moto/i.test(codeOrName);
-        }
-      });
+      return allowed.some((vt) => (
+        typeof vt === 'object' && vt
+          ? vt._id === selectedVehicleTypeId
+          : String(vt || '') === selectedVehicleTypeId
+      ));
     });
-  }, [floorsData, selectedVehicleType]);
+  }, [floorsData, selectedVehicleTypeId]);
 
   const selectedFloor = useMemo(() => {
     return floorsData.find((f) => f._id === selectedFloorIdModal);

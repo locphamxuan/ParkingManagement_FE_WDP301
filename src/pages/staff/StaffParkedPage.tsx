@@ -9,7 +9,7 @@ import { staffApi, type ParkingSession } from '@/services/staff/staffApi';
 import { LivePlateCamera, type PlateScanResult, type LiveCameraHandle } from '@/components/staff/LivePlateCamera';
 import { LiveQRCamera } from '@/components/staff/LiveQRCamera';
 import { normalizePlate } from '@/utils/plate';
-import { resolveErrorMessage } from '@/utils/apiErrors';
+import { getApiErrorCode, resolveErrorMessage } from '@/utils/apiErrors';
 import { fmtMoney, computeCheckoutFee } from '@/components/staff/parked/staffParkedFormat';
 import { ParkedSessionCard } from '@/components/staff/parked/ParkedSessionCard';
 import { ParkedRejectModal } from '@/components/staff/parked/ParkedRejectModal';
@@ -50,6 +50,8 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
 
   const [bankTransfer, setBankTransfer] = useState<BankTransferState | null>(null);
   const [verifying, setVerifying] = useState(false);
+  const [payosPenaltyRequired, setPayosPenaltyRequired] = useState(false);
+  const [penaltyPaymentMethod, setPenaltyPaymentMethod] = useState<'cash' | 'wallet'>('cash');
 
   const [capturedPlateImage, setCapturedPlateImage] = useState<string | null>(null);
   const [capturedPortraitImage, setCapturedPortraitImage] = useState<string | null>(null);
@@ -203,6 +205,8 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
             plate: existing.plateNumber || target.plateNumber,
             status: existing.status,
           });
+          setPayosPenaltyRequired(false);
+          setPenaltyPaymentMethod('cash');
           setCheckoutTarget(null);
           return;
         }
@@ -218,6 +222,8 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
             plate: d.plateNumber || target.plateNumber,
             status: 'pending',
           });
+          setPayosPenaltyRequired(false);
+          setPenaltyPaymentMethod('cash');
           setCheckoutTarget(null);
         }
         return;
@@ -307,7 +313,11 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
       const res = await staffApi.verifySessionPayment(bankTransfer.orderCode);
       const status = (res as { data?: { status?: string } })?.data?.status;
       if (status === 'success') {
-        await staffApi.checkOut(bankTransfer.sessionId, { paymentMethod: 'payos' });
+        setBankTransfer((current) => current ? { ...current, status: 'success' } : current);
+        await staffApi.checkOut(bankTransfer.sessionId, {
+          paymentMethod: 'payos',
+          ...(payosPenaltyRequired ? { penaltyPaymentMethod } : {}),
+        });
         setBarrierState('opening');
         setTimeout(() => {
           setBarrierState('open');
@@ -317,6 +327,8 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
           }, 3000);
         }, 1000);
         setBankTransfer(null);
+        setPayosPenaltyRequired(false);
+        setPenaltyPaymentMethod('cash');
         setPaymentMethod('cash');
         setOpMessage({ type: 'ok', text: 'Payment received — parking session completed.' });
         setReloadTick((n) => n + 1);
@@ -334,6 +346,15 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
         setOpMessage({ type: 'err', text: 'Payment not received yet. The guest must complete the transfer.' });
       }
     } catch (err) {
+      if (getApiErrorCode(err) === 'PENALTY_PAYMENT_METHOD_REQUIRED') {
+        setPayosPenaltyRequired(true);
+        refreshSessions();
+        setOpMessage({
+          type: 'err',
+          text: 'The parking fee was received. Collect the approved penalty by cash or wallet to complete checkout.',
+        });
+        return;
+      }
       setOpMessage({ type: 'err', text: resolveErrorMessage(err, 'Payment confirmation failed') });
     } finally {
       setVerifying(false);
@@ -518,8 +539,16 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
       <BankTransferModal
         bankTransfer={bankTransfer}
         verifying={verifying}
+        penaltyRequired={payosPenaltyRequired}
+        penaltyAmount={bankTransfer ? pendingPenalties[normalizePlate(bankTransfer.plate)] ?? null : null}
+        penaltyPaymentMethod={penaltyPaymentMethod}
+        onPenaltyPaymentMethodChange={setPenaltyPaymentMethod}
         onVerify={onVerifyBankTransfer}
-        onClose={() => setBankTransfer(null)}
+        onClose={() => {
+          setBankTransfer(null);
+          setPayosPenaltyRequired(false);
+          setPenaltyPaymentMethod('cash');
+        }}
       />
       {/* Barrier Gate IoT Simulation Overlay */}
       <BarrierGateOverlay barrierState={barrierState} />

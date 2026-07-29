@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { ShieldCheck } from 'lucide-react';
-import { fmtMoney, fmtShort, type BookingMode } from '@/pages/user/packageBookingHelper';
+import { fmtMoney, fmtShort } from '@/pages/user/packageBookingHelper';
 
 interface BookingFooterProps {
   startDateTime: Date | null;
@@ -8,7 +8,6 @@ interface BookingFooterProps {
   estimatedAmount: number;
   canSubmit: boolean;
   isSubmitting: boolean;
-  mode: BookingMode;
   onConfirm: () => void;
 }
 
@@ -18,7 +17,6 @@ export function BookingFooter({
   estimatedAmount,
   canSubmit,
   isSubmitting,
-  mode,
   onConfirm,
 }: BookingFooterProps) {
   return (
@@ -34,7 +32,7 @@ export function BookingFooter({
               <span className="text-emerald-700 font-black">{fmtMoney(estimatedAmount)}</span>
             </>
           ) : (
-            'Select time and slot to pre-book'
+            'Select a package and slot to continue'
           )}
         </div>
         <motion.button
@@ -47,7 +45,7 @@ export function BookingFooter({
         >
           <span className="relative z-10 flex items-center gap-2">
             <ShieldCheck size={16} />
-            {isSubmitting ? 'Processing...' : mode === 'hourly' ? 'Confirm Booking' : 'Buy Package'}
+            {isSubmitting ? 'Processing...' : 'Buy Package'}
           </span>
         </motion.button>
       </div>

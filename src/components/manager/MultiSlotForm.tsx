@@ -280,7 +280,7 @@ export function MultiSlotForm({
                   disabled={submitting}
                   className="w-4 h-4 rounded border-slate-200 text-blue-600 focus:ring-blue-500/20 cursor-pointer"
                 />
-                <span>Allow advance reservation</span>
+                <span>Can be held as a fixed slot for a long-term package</span>
               </label>
             </div>
           </div>

@@ -252,11 +252,6 @@ export function StaffOperationsPage() {
                       🅿️ Vehicle has a <strong>long-term package</strong>{plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''} — next: capture portrait &amp; pick a free slot.
                     </div>
                   )}
-                  {plateNumber.trim().length >= 7 && checkInKind === 'reservation' && (
-                    <div className="mt-1 rounded-xl border border-sky-200 bg-sky-50 px-3 py-2.5 text-xs text-sky-800">
-                      📅 Vehicle has a <strong>reservation</strong>{plateAccountInfo?.activeReservation?.code ? ` (code ${plateAccountInfo.activeReservation.code})` : ''} — next: capture portrait to confirm.
-                    </div>
-                  )}
                 </div>
 
                 <Button
@@ -300,11 +295,6 @@ export function StaffOperationsPage() {
                 {checkInKind === 'package' && (
                   <div className="rounded-xl border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-800">
                     🅿️ Vehicle has a long-term package{plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''} — pick a free slot below then check in.
-                  </div>
-                )}
-                {checkInKind === 'reservation' && (
-                  <div className="rounded-xl border border-sky-200 bg-sky-50 p-2.5 text-xs text-sky-800">
-                    📅 Vehicle has a reservation{plateAccountInfo?.activeReservation?.code ? ` (code ${plateAccountInfo.activeReservation.code})` : ''} — confirm to admit.
                   </div>
                 )}
 
@@ -569,9 +559,9 @@ export function StaffOperationsPage() {
           }}
         >
           <p className="mb-1 flex items-center gap-1.5 font-bold text-slate-700">
-            <ScanLine size={13} className="text-sky-500" /> Packages &amp; reservations auto-detected
+            <ScanLine size={13} className="text-sky-500" /> Long-term packages auto-detected
           </p>
-          Vehicles with a <strong>package</strong> or a <strong>prior reservation</strong> are auto-matched as soon as the plate / QR is scanned in step 1 — no manual code entry needed.
+          Vehicles with an active <strong>long-term package</strong> are auto-matched as soon as the plate / QR is scanned in step 1 — no manual code entry needed.
           Fee collection &amp; vehicle exit are handled by the exit-gate staff in the{' '}
           <Link to="/staff/parked" className="font-bold text-sky-600 hover:underline">“Parked vehicles”</Link>.
         </div>

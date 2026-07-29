@@ -8,7 +8,6 @@ export type { ParkingSlot, SlotDetailedStatus };
 export interface ParkingMap2DProps {
   slots: ParkingSlot[];
   selectedSlot?: string | null;
-  activeReservations?: Array<{ slotCode: string; plateNumber: string; vehicleType: 'car' | 'motorcycle' }>;
   unavailableSlots?: string[];
   maintenanceSlots?: string[];
   unsupportedSlots?: string[];
@@ -101,7 +100,6 @@ function ViewToggle({ view, onChange }: { view: '2D' | '3D'; onChange: (v: '2D' 
 export function ParkingMap2D({
   slots,
   selectedSlot = null,
-  activeReservations = [],
   unavailableSlots = [],
   maintenanceSlots = [],
   unsupportedSlots = [],
@@ -325,7 +323,6 @@ export function ParkingMap2D({
                     selectedSlot={selectedSlot}
                     maintenanceSlots={maintenanceSlots}
                     unsupportedSlots={unsupportedSlots}
-                    activeReservations={activeReservations}
                     unavailableSlots={unavailableSlots}
                     interactive={interactive}
                     onSlotClick={handleSlotClick}
@@ -367,7 +364,6 @@ export function ParkingMap2D({
                         selectedSlot={selectedSlot}
                         maintenanceSlots={maintenanceSlots}
                         unsupportedSlots={unsupportedSlots}
-                        activeReservations={activeReservations}
                         unavailableSlots={unavailableSlots}
                         interactive={interactive}
                         onSlotClick={handleSlotClick}

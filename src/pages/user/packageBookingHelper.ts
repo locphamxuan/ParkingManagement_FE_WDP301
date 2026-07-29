@@ -1,6 +1,6 @@
 import type { LongTermPackage, VehicleType } from '@/services/user/userApi';
 
-export type BookingMode = 'hourly' | 'package';
+// Chỉ còn MỘT chế độ mua: gói dài hạn (đặt chỗ theo giờ đã bị gỡ khỏi sản phẩm).
 export type VehicleKind = 'car' | 'motorcycle';
 
 const MOTORCYCLE_LICENSE_PLATE_TYPES = new Set(['motorcycle', 'ebike', 'emotorbike']);
@@ -89,11 +89,8 @@ export function packageVehicleTypeId(
   ))?._id;
 }
 
-export function getMaxCalendarDate(mode: BookingMode, pkg?: LongTermPackage | null, maxAdvanceDays = 7): Date {
+export function getMaxCalendarDate(pkg?: LongTermPackage | null): Date {
   const now = new Date();
-  if (mode === 'hourly') {
-    return new Date(now.getTime() + maxAdvanceDays * 24 * 60 * 60 * 1000);
-  }
   if (!pkg) return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
   const days = pkg.durationDays ?? 30;
   if (days <= 7) {

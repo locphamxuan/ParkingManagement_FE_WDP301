@@ -7,7 +7,6 @@ import {
   BellRing,
   CarFront,
   Clock3,
-  History,
   MapPinned,
   Ticket,
   Wallet,
@@ -32,7 +31,6 @@ interface HomePageProps {
   modules: LegacyModule[];
   onOpenAuth: (mode?: 'login' | 'register') => void;
   onViewProfile: () => void;
-  onViewReservationHistory: () => void;
   onAction: (module: LegacyModule) => void;
   user?: { fullName?: string; email?: string; phone?: string; role?: string; licensePlates?: Array<{ plateNumber: string; vehicleType: 'car' | 'motorcycle' }> } | null;
   onLogout?: () => void;
@@ -60,13 +58,13 @@ const benefits = [
   },
   {
     icon: CarFront,
-    title: 'Reservations, Subscriptions & Wallet',
-    description: 'Pre-book spots, buy monthly packages, pay via e-wallet, and look up parking logs — all under a single account.',
+    title: 'Subscriptions & Wallet',
+    description: 'Buy long-term packages, pay via e-wallet, and look up parking logs — all under a single account.',
   },
 ];
 
 
-export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewReservationHistory, onAction, user, onLogout }: HomePageProps) {
+export default function HomePage({ modules, onOpenAuth, onViewProfile, onAction, user, onLogout }: HomePageProps) {
   const hasMissingInfo = Boolean(
     user &&
     user.role === 'user' &&
@@ -217,12 +215,6 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
                         onSelect={onViewWallet}
                       >
                         <Wallet size={15} /> E-Wallet
-                      </DropdownMenu.Item>
-                      <DropdownMenu.Item
-                        className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl px-3.5 text-xs font-bold text-slate-600 outline-none transition-colors duration-150 hover:bg-blue-50 hover:text-blue-700 focus:bg-blue-50 focus:text-blue-700"
-                        onSelect={onViewReservationHistory}
-                      >
-                        <History size={15} /> Booking History
                       </DropdownMenu.Item>
                       <DropdownMenu.Item asChild>
                         <a
@@ -390,7 +382,7 @@ export default function HomePage({ modules, onOpenAuth, onViewProfile, onViewRes
             <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-mono">PBMS SYSTEM</span>
             <h2 className="text-2xl md:text-3xl font-black mt-2 text-white">Comprehensive Parking Operation Solution</h2>
             <p className="mt-3 text-sm text-slate-400 font-semibold leading-relaxed max-w-3xl">
-              PBMS digitizes the entire parking operations workflow — from entry/exit checkpoints and floor layout management to pre-booking reservations and subscriptions. Designed for building managers and end-users.
+              PBMS digitizes the entire parking operations workflow — from entry/exit checkpoints and floor layout management to long-term subscriptions. Designed for building managers and end-users.
             </p>
             <div className="mt-6 grid md:grid-cols-3 gap-4">
               {benefits.map((benefit) => {

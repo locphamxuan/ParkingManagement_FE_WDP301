@@ -5,7 +5,7 @@ import { useAssignedGates } from '@/hooks/staff/useAssignedGates';
 import { type PlateScanResult, type LiveCameraHandle } from '@/components/staff/LivePlateCamera';
 import { useCameraDevices } from '@/hooks/useCameraDevices';
 import { normalizePlate } from '@/utils/plate';
-import { resolveStaffSlotSelection } from '@/utils/staffSlotSelection';
+import { resolveStaffSlotSelection, type StaffCheckInKind } from '@/utils/staffSlotSelection';
 import { resolveErrorMessage } from '@/utils/apiErrors';
 
 export type VehicleKind = 'car' | 'motorcycle';
@@ -17,10 +17,10 @@ export type OperationMode = 'check-in' | 'check-out';
 const ALLOWED_TYPES = ['CAR', 'MOTORCYCLE'];
 
 // Chuỗi ưu tiên đối tượng cho slot (mirror BE helpers.js USAGE_FALLBACK_CHAIN):
-// hội viên/đặt chỗ có thể mượn tạm slot chung (walk_in) khi hết slot đúng đối tượng,
-// NHƯNG khách vãng lai KHÔNG lấn slot hội viên/gói/đặt chỗ. Index nhỏ = ưu tiên hơn.
-// (`reserved` không có trong bảng — slot reserved có chỗ cố định, không đi qua
-// đường chọn zone/free-slots nên `slotUsageType` không bao giờ là 'reserved'.)
+// hội viên gói có thể mượn tạm slot chung (walk_in) khi hết slot đúng đối tượng,
+// NHƯNG khách vãng lai KHÔNG lấn slot hội viên/gói. Index nhỏ = ưu tiên hơn.
+// (slot của gói giữ chỗ cố định mang status 'reserved' và không đi qua đường chọn
+// zone/free-slots, nên `slotUsageType` không bao giờ là 'reserved'.)
 const USAGE_FALLBACK_CHAIN: Record<string, string[]> = {
   walk_in: ['walk_in'],
   registered: ['registered', 'walk_in'],
@@ -84,12 +84,8 @@ export function useStaffOperations() {
 
   // ── Đối tượng sử dụng (usageType) suy từ BE để gọi free-slots đúng pool + validate zone ──
   const hasActivePackage = Boolean(plateAccountInfo?.hasActivePackage);
-  const hasActiveReservation = Boolean(plateAccountInfo?.activeReservation);
-  const checkInKind: 'package' | 'reservation' | 'standard' = hasActivePackage
-    ? 'package'
-    : hasActiveReservation
-      ? 'reservation'
-      : 'standard';
+  // Chỉ 2 nhóm: có gói dài hạn hiệu lực (BE xác nhận) hoặc xe thường.
+  const checkInKind: StaffCheckInKind = hasActivePackage ? 'package' : 'standard';
   const { assignedSlotId, needsSlotSelection } = resolveStaffSlotSelection({
     fixedSlotId: plateAccountInfo?.activePackage?.slot?.id,
     selectedSlotId,
@@ -98,8 +94,8 @@ export function useStaffOperations() {
   });
   const isMotorcycle = vehicleType === 'motorcycle';
 
-  // Đối tượng thật để lọc slot: gói → subscriber; biển có tài khoản (không gói/đặt chỗ)
-  // → registered; còn lại → walk_in. (reserved đã có slot cố định nên không chọn zone.)
+  // Đối tượng thật để lọc slot: gói → subscriber; biển có tài khoản (không gói)
+  // → registered; còn lại → walk_in.
   const slotUsageType: 'walk_in' | 'registered' | 'subscriber' = hasActivePackage
     ? 'subscriber'
     : plateAccountInfo?.usageType === 'registered'
@@ -491,7 +487,7 @@ export function useStaffOperations() {
     allowedTypes,
     plateTypeWarning,
     buildingSupportWarning,
-    hasActivePackage, hasActiveReservation, checkInKind, needsSlotSelection, isMotorcycle,
+    hasActivePackage, checkInKind, needsSlotSelection, isMotorcycle,
     applyPlate, handlePlateDetected, proceedFromIdentify, capturePortraitAndNext,
     handleResolveIdQr, resetForm, onCheckIn, onReject,
     vehicleTypeMismatch,

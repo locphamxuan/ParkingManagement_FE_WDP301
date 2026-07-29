@@ -39,7 +39,7 @@ export function useWallet() {
       const balance = walletData?.walletBalance ?? walletData?.wallet?.balance ?? 0;
       setWallet({ balance } as UserWallet);
       setTransactions((txRes as { data?: { items: UserWalletTransaction[] } })?.data?.items ?? []);
-    } catch {
+    } catch (_err) {
       // silent — show stale data
     } finally {
       setIsLoading(false);
@@ -66,7 +66,7 @@ export function useWallet() {
           refreshWallet();
           clearInterval(pollInterval);
         }
-      } catch {
+      } catch (_err) {
         // silent fail - keep polling
       }
     };

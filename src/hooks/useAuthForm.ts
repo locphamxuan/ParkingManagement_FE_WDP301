@@ -197,7 +197,7 @@ export function useAuthForm({ mode, onModeChange, onSubmit }: UseAuthFormArgs) {
       };
       try {
         await onSubmit({ mode, payload });
-      } catch {
+      } catch (_err) {
         // Error already mapped in public auth flow hook
       }
     } else if (mode === 'verify-registration') {
@@ -217,7 +217,7 @@ export function useAuthForm({ mode, onModeChange, onSubmit }: UseAuthFormArgs) {
       }
       try {
         await onSubmit({ mode, payload: { email: form.email.trim(), otp, password: form.password } });
-      } catch {
+      } catch (_err) {
         // Error already mapped in public auth flow hook
       }
     } else {
@@ -254,7 +254,7 @@ export function useAuthForm({ mode, onModeChange, onSubmit }: UseAuthFormArgs) {
         },
       });
       setRegistrationOtp('');
-    } catch {
+    } catch (_err) {
       // Error already mapped in public auth flow hook
     }
   }

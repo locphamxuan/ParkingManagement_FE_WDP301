@@ -113,7 +113,7 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
             : prev,
         );
       }
-    } catch {
+    } catch (_err) {
       // Ignored
     }
   }, []);

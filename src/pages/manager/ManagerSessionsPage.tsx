@@ -127,7 +127,7 @@ export function ManagerSessionsPage() {
       if (full?._id) {
         setSelected((prev) => (prev && prev._id === session._id ? { ...prev, ...full } : prev));
       }
-    } catch {
+    } catch (_err) {
       /* ảnh/chi tiết bổ sung là phụ trợ — card đã có dữ liệu chính */
     } finally {
       setDetailLoading(false);

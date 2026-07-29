@@ -103,7 +103,7 @@ export async function syncPlates(
   // Re-fetch the final list to ensure consistency
   try {
     latestPlates = await listPlates();
-  } catch {
+  } catch (_err) {
     // Keep last known state if re-fetch fails
   }
 

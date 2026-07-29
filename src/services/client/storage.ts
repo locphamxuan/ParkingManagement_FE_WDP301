@@ -21,7 +21,7 @@ export function loadJson<T = unknown>(key: string): T | null {
   try {
     const raw = localStorage.getItem(key);
     return raw ? (JSON.parse(raw) as T) : null;
-  } catch {
+  } catch (_err) {
     return null;
   }
 }
@@ -29,7 +29,7 @@ export function loadJson<T = unknown>(key: string): T | null {
 export function saveJson(key: StorageKey, value: unknown): void {
   try {
     localStorage.setItem(key, JSON.stringify(value));
-  } catch {
+  } catch (_err) {
     // localStorage không khả dụng (private mode) — bỏ qua, không chặn UI
   }
 }
@@ -37,7 +37,7 @@ export function saveJson(key: StorageKey, value: unknown): void {
 export function loadString(key: StorageKey): string | null {
   try {
     return localStorage.getItem(key);
-  } catch {
+  } catch (_err) {
     return null;
   }
 }
@@ -45,7 +45,7 @@ export function loadString(key: StorageKey): string | null {
 export function saveString(key: StorageKey, value: string): void {
   try {
     localStorage.setItem(key, value);
-  } catch {
+  } catch (_err) {
     // localStorage không khả dụng — bỏ qua
   }
 }
@@ -53,7 +53,7 @@ export function saveString(key: StorageKey, value: string): void {
 export function removeStored(key: StorageKey): void {
   try {
     localStorage.removeItem(key);
-  } catch {
+  } catch (_err) {
     // localStorage không khả dụng — bỏ qua
   }
 }

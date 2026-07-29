@@ -60,7 +60,7 @@ export const LivePortraitCamera = forwardRef<LiveCameraHandle, LivePortraitCamer
             videoRef.current.play().catch(() => undefined);
           }
           setError(null);
-        } catch {
+        } catch (err) {
           if (!cancelled) setError('Cannot access the portrait camera. Please grant permission.');
         }
       })();

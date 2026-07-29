@@ -22,7 +22,7 @@ export function computeCheckoutFee(
   let entry = new Date();
   try {
     entry = new Date(target.entryTime);
-  } catch {
+  } catch (_err) {
     // fallback to now
   }
   const diffMin = Math.max(0, Math.floor((Date.now() - entry.getTime()) / 60000));

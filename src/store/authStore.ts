@@ -258,16 +258,16 @@ export const useAuthStore = create<AuthState>()(
           try {
             const s = sessionStorage.getItem(name);
             if (s) return s;
-          } catch {}
-          try { return localStorage.getItem(name); } catch { return null; }
+          } catch (_err) { /* private browsing */ }
+          try { return localStorage.getItem(name); } catch (_err) { return null; }
         },
         setItem: (name: string, value: string) => {
-          try { sessionStorage.setItem(name, value); } catch {}
-          try { localStorage.setItem(name, value); } catch {}
+          try { sessionStorage.setItem(name, value); } catch (_err) { /* ignore */ }
+          try { localStorage.setItem(name, value); } catch (_err) { /* ignore */ }
         },
         removeItem: (name: string) => {
-          try { sessionStorage.removeItem(name); } catch {}
-          try { localStorage.removeItem(name); } catch {}
+          try { sessionStorage.removeItem(name); } catch (_err) { /* ignore */ }
+          try { localStorage.removeItem(name); } catch (_err) { /* ignore */ }
         },
       })),
       partialize: (state) => ({ session: state.session }),
@@ -301,7 +301,7 @@ if (typeof window !== 'undefined') {
     try {
       const parsed = event.newValue ? JSON.parse(event.newValue) : null;
       incomingUserId = parsed?.state?.session?.userId ?? null;
-    } catch {
+    } catch (_err) {
       incomingUserId = null;
     }
 

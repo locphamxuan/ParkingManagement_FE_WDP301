@@ -67,7 +67,7 @@ export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps
           videoRef.current.play().catch(() => undefined);
         }
         setError(null);
-      } catch {
+      } catch (err) {
         if (!cancelled) setError('Cannot access the plate camera. Please grant permission.');
       }
     })();

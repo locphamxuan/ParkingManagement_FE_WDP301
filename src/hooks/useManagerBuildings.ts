@@ -14,7 +14,7 @@ export function useManagerBuildings() {
   const refreshBuildings = useCallback(async () => {
     try {
       await loadBuildings();
-    } catch {
+    } catch (_err) {
       // handled inside store
     }
   }, [loadBuildings]);

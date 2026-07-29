@@ -106,7 +106,7 @@ export const LiveQRCamera = forwardRef<LiveCameraHandle, LiveQRCameraProps>(func
           videoRef.current.play().catch(() => undefined);
         }
         setError(null);
-      } catch {
+      } catch (err) {
         if (!cancelled) setError('Cannot access the QR camera. Please grant permission.');
       }
     })();

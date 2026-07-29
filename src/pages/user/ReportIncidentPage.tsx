@@ -88,14 +88,14 @@ export default function ReportIncidentPage() {
           const sub = res.data.items?.[0];
           const building = sub?.building;
           buildingId = typeof building === 'string' ? building : building?._id;
-        } catch {
+        } catch (_err) {
           // ignore — no active subscription either, leave violationTypes empty
         }
       }
       try {
         const types = buildingId ? (await userApi.buildings.violationTypes(buildingId)).data.items ?? [] : [];
         if (!cancelled) setViolationTypes(types);
-      } catch {
+      } catch (_err) {
         if (!cancelled) setViolationTypes([]);
       }
     })();

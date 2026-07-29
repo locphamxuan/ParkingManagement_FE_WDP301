@@ -63,7 +63,7 @@ export async function apiRequest<T = unknown>(
   let payload: unknown = null;
   try {
     payload = await res.json();
-  } catch {
+  } catch (_err) {
     payload = null;
   }
 

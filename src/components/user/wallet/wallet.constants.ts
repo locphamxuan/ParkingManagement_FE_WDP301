@@ -90,7 +90,7 @@ export function parseVietQR(qrString?: string) {
       accountNumber: sub01['01'],
       accountName: rootTags['59'] || 'PHAM XUAN LOC',
     };
-  } catch {
+  } catch (_err) {
     return null;
   }
 }

@@ -86,7 +86,7 @@ export function StaffLayout() {
         } else {
           setSelectedBuildingId(null);
         }
-      } catch {
+      } catch (_err) {
         setSelectedBuildingId(assignedBuildingId);
       } finally {
         setBootstrapping(false);

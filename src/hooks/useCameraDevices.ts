@@ -19,7 +19,7 @@ const STORAGE_KEY = 'pbms.staffCameraDevices';
 const readAssignment = (): CameraAssignment => {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') as CameraAssignment;
-  } catch {
+  } catch (_err) {
     return {};
   }
 };
@@ -43,7 +43,7 @@ export function useCameraDevices() {
     try {
       const list = await navigator.mediaDevices.enumerateDevices();
       setDevices(list.filter((d) => d.kind === 'videoinput'));
-    } catch {
+    } catch (_err) {
       /* ignore */
     }
   }, []);
@@ -53,7 +53,7 @@ export function useCameraDevices() {
     try {
       const s = await navigator.mediaDevices.getUserMedia({ video: true });
       s.getTracks().forEach((t) => t.stop());
-    } catch {
+    } catch (_err) {
       /* permission denied — still try to enumerate (labels may be empty) */
     }
     await refresh();
@@ -65,7 +65,7 @@ export function useCameraDevices() {
       if (!deviceId) delete next[role];
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      } catch {
+      } catch (_err) {
         /* ignore */
       }
       return next;

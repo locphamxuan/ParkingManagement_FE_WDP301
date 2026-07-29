@@ -53,10 +53,10 @@ export function useParkingSimulation(interactive: boolean, paused = false) {
       setGateAOpen(false);
       setGateBOpen(false);
 
-      // Reset positions instantly
+      // Reset positions instantly (all cars HORIZONTAL rotateZ: 0)
       try {
-        controlsCarA.set({ x: -100, y: 160, rotateZ: 90, opacity: 0 });
-        controlsCarB.set({ x: 291, y: 31, rotateZ: -90, opacity: 1 });
+        controlsCarA.set({ x: -100, y: 155, rotateZ: 0, opacity: 0 });
+        controlsCarB.set({ x: 291, y: 37, rotateZ: 0, opacity: 1 });
       } catch (err) {
         console.warn('Animation controllers not yet ready:', err);
       }
@@ -77,7 +77,8 @@ export function useParkingSimulation(interactive: boolean, paused = false) {
         await controlsCarA.start({
           opacity: 1,
           x: 100,
-          y: 160,
+          y: 155,
+          rotateZ: 0,
           transition: { type: 'spring', stiffness: 50, damping: 14 }
         });
       } catch (err) {
@@ -101,26 +102,20 @@ export function useParkingSimulation(interactive: boolean, paused = false) {
       // Drive to Slot 3 alignment (center X: 240px - half car width 28px = 212px)
       await safeStart(controlsCarA, {
         x: 212,
-        y: 160,
+        y: 155,
+        rotateZ: 0,
         transition: { ease: 'linear', duration: 1.2 }
       });
       if (!active) return;
 
-      setHudMessage('Aligning parking angle. Activating reverse sensors...');
+      setHudMessage('Aligning parking position. Reversing into slot 3...');
       setCarAState('parking');
 
-      // Turn 180 degrees to align with slot orientation (rotateZ: -90)
+      // Reverse Park into Slot 3 (exact Y: 37px, rotateZ: 0 horizontal)
       await safeStart(controlsCarA, {
-        rotateZ: -90,
-        transition: { duration: 0.5 }
-      });
-      if (!active) return;
-
-      // Reverse Park into Slot 3 (top Y: 31px, rotateZ: -90)
-      setHudMessage('Reversing into slot 3...');
-      await safeStart(controlsCarA, {
-        y: 31,
-        rotateZ: -90,
+        x: 212,
+        y: 37,
+        rotateZ: 0,
         transition: { type: 'spring', stiffness: 40, damping: 12 }
       });
       if (!active) return;
@@ -139,18 +134,13 @@ export function useParkingSimulation(interactive: boolean, paused = false) {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       if (!active) return;
 
-      // Turn on headlights and drive out of slot 4
+      // Drive out of slot 4 down to lane
       setHudMessage('Fuchsia SUV is leaving slot 4...');
       await safeStart(controlsCarB, {
-        y: 160,
+        x: 291,
+        y: 155,
+        rotateZ: 0,
         transition: { type: 'spring', stiffness: 45, damping: 12 }
-      });
-      if (!active) return;
-
-      // Turn 90 degrees right to face exit
-      await safeStart(controlsCarB, {
-        rotateZ: 90,
-        transition: { duration: 0.5 }
       });
       if (!active) return;
 
@@ -160,7 +150,8 @@ export function useParkingSimulation(interactive: boolean, paused = false) {
       // Drive to exit gate
       await safeStart(controlsCarB, {
         x: 380,
-        y: 160,
+        y: 155,
+        rotateZ: 0,
         transition: { ease: 'linear', duration: 1.2 }
       });
       if (!active) return;
@@ -170,6 +161,8 @@ export function useParkingSimulation(interactive: boolean, paused = false) {
       // Exit screen
       await safeStart(controlsCarB, {
         x: 520,
+        y: 155,
+        rotateZ: 0,
         transition: { type: 'spring', stiffness: 50, damping: 12 }
       });
       if (!active) return;

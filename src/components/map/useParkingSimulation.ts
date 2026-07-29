@@ -54,9 +54,11 @@ export function useParkingSimulation(interactive: boolean, paused = false) {
       setGateBOpen(false);
 
       // Reset positions instantly (all cars HORIZONTAL rotateZ: 0)
+      // Car A (56×36): starts off-screen left, lane y=132 (centers at 150)
+      // Car B (58×38): starts parked in Slot 4, x=276 y=36 (centerX=305, centerY=55)
       try {
-        controlsCarA.set({ x: -100, y: 155, rotateZ: 0, opacity: 0 });
-        controlsCarB.set({ x: 275, y: 31, rotateZ: 0, opacity: 1 });
+        controlsCarA.set({ x: -100, y: 132, rotateZ: 0, opacity: 0 });
+        controlsCarB.set({ x: 276, y: 36, rotateZ: 0, opacity: 1 });
       } catch (err) {
         console.warn('Animation controllers not yet ready:', err);
       }
@@ -72,12 +74,12 @@ export function useParkingSimulation(interactive: boolean, paused = false) {
       await new Promise((resolve) => setTimeout(resolve, 800));
       if (!active) return;
 
-      // Drive through gate
+      // Drive through gate — appear just inside the entry gate along lane
       try {
         await controlsCarA.start({
           opacity: 1,
-          x: 100,
-          y: 155,
+          x: 60,
+          y: 132,
           rotateZ: 0,
           transition: { type: 'spring', stiffness: 50, damping: 14 }
         });
@@ -99,10 +101,10 @@ export function useParkingSimulation(interactive: boolean, paused = false) {
         }
       };
 
-      // Drive to Slot 3 alignment (golden center X: 196px)
+      // Drive along lane to align below Slot 3 (centerX=225, car w=56 → x=197)
       await safeStart(controlsCarA, {
-        x: 196,
-        y: 155,
+        x: 197,
+        y: 132,
         rotateZ: 0,
         transition: { ease: 'linear', duration: 1.2 }
       });
@@ -111,10 +113,10 @@ export function useParkingSimulation(interactive: boolean, paused = false) {
       setHudMessage('Aligning parking position. Reversing into slot 3...');
       setCarAState('parking');
 
-      // Reverse Park into Slot 3 (exact golden center: x: 196px, y: 31px, rotateZ: 0 horizontal)
+      // Reverse Park into Slot 3 — slot centerX=225, centerY=55, car 56×36 → x=197, y=37
       await safeStart(controlsCarA, {
-        x: 196,
-        y: 31,
+        x: 197,
+        y: 37,
         rotateZ: 0,
         transition: { type: 'spring', stiffness: 40, damping: 12 }
       });
@@ -134,11 +136,11 @@ export function useParkingSimulation(interactive: boolean, paused = false) {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       if (!active) return;
 
-      // Drive out of slot 4 down to lane
+      // Drive out of slot 4 down to lane — slot4 centerX=305, car 58×38 → lane x=276, y=131
       setHudMessage('Fuchsia SUV is leaving slot 4...');
       await safeStart(controlsCarB, {
-        x: 275,
-        y: 155,
+        x: 276,
+        y: 131,
         rotateZ: 0,
         transition: { type: 'spring', stiffness: 45, damping: 12 }
       });
@@ -149,8 +151,8 @@ export function useParkingSimulation(interactive: boolean, paused = false) {
 
       // Drive to exit gate
       await safeStart(controlsCarB, {
-        x: 380,
-        y: 155,
+        x: 370,
+        y: 131,
         rotateZ: 0,
         transition: { ease: 'linear', duration: 1.2 }
       });
@@ -158,10 +160,10 @@ export function useParkingSimulation(interactive: boolean, paused = false) {
 
       setHudMessage('RFID scan successful. Toll gate 2 open.');
 
-      // Exit screen
+      // Exit screen (off right edge)
       await safeStart(controlsCarB, {
         x: 520,
-        y: 155,
+        y: 131,
         rotateZ: 0,
         transition: { type: 'spring', stiffness: 50, damping: 12 }
       });
@@ -193,13 +195,13 @@ export function useParkingSimulation(interactive: boolean, paused = false) {
       if (simPhase === 1 && carAState === 'driving') {
         setSmokeParticles((prev) => [
           ...prev.slice(-4),
-          { id: Math.random(), x: 90, y: 170 }
+          { id: Math.random(), x: 90, y: 148 }
         ]);
       }
       if (simPhase === 2 && carBState === 'driving') {
         setSmokeParticles((prev) => [
           ...prev.slice(-4),
-          { id: Math.random(), x: 260, y: 170 }
+          { id: Math.random(), x: 260, y: 148 }
         ]);
       }
     }, 450);

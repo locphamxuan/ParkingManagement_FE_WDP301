@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Activity, Building2, ChevronRight, CircleAlert, CreditCard, Landmark, ReceiptText, ShieldCheck, WalletCards } from 'lucide-react';
 import { AnalyticsCard } from '@/components/charts/AnalyticsCard';
 import { ActivityTimeline } from '@/components/charts/ActivityTimeline';
@@ -9,8 +10,19 @@ import { useAdminDataset } from '@/hooks/admin/useAdminDataset';
 import { adminApi } from '@/services/admin/adminApi';
 import type { AdminPayment, RevenueReconciliation } from '@/services/admin/adminApi';
 import type { LiveActivityItem } from '@/services/admin/types';
+import styles from '@/styles/modules/DashboardOverviewPage.module.css';
 
 const STAT_ICONS = [<Building2 size={18} />, <Activity size={18} />, <CreditCard size={18} />, <ShieldCheck size={18} />];
+
+const sectionVariants = {
+  hidden: { opacity: 0, y: 28 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { type: 'spring', stiffness: 90, damping: 18, delay: i * 0.1 },
+  }),
+};
+
 
 const occupancyTone = (rate: number) => rate >= 75 ? 'bg-emerald-500' : rate >= 40 ? 'bg-blue-600' : 'bg-amber-500';
 const formatVnd = (value: number) => `${Math.round(value || 0).toLocaleString('vi-VN')} ₫`;
@@ -102,25 +114,74 @@ export function DashboardOverviewPage() {
   }
 
   return (
-    <div className="space-y-6 pb-12">
-      <section className="premium-hero-card relative overflow-hidden rounded-2xl bg-[linear-gradient(118deg,#073b8f_0%,#075fc7_54%,#0093e9_100%)] px-6 py-7 text-white shadow-[0_18px_44px_-24px_rgba(0,93,190,0.55)] sm:px-8">
-        <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_80%_28%,rgba(0,147,233,0.48),transparent_45%),radial-gradient(circle_at_58%_100%,rgba(128,208,199,0.22),transparent_42%)]" />
-        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
-            <p className="text-xs font-bold uppercase tracking-[0.14em] text-blue-200">Central admin portal</p>
-            <h1 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">Operations at a glance</h1>
-            <p className="mt-3 text-sm leading-6 text-slate-300">Revenue, occupancy and operational controls in one focused workspace.</p>
+    <div className="space-y-6 pb-12 relative">
+      {/* Dynamic 5D Crystal Ambient Glows */}
+      <div className={`absolute top-0 right-1/4 w-[450px] h-[450px] rounded-full bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.18),transparent_70%)] pointer-events-none blur-3xl -z-10 animate-pulse ${styles.ambientGlow}`} />
+      <div className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] rounded-full bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.16),transparent_70%)] pointer-events-none blur-3xl -z-10" />
+      <div className="absolute top-1/2 left-1/3 w-[300px] h-[300px] rounded-full bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.12),transparent_70%)] pointer-events-none blur-3xl -z-10" />
+
+      {/* ── SECTION 1: Welcome Hero Banner ── */}
+      <motion.section
+        custom={0}
+        initial="hidden"
+        animate="visible"
+        variants={sectionVariants}
+        className="relative overflow-hidden rounded-3xl border border-blue-400/25 bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-900 p-8 text-white shadow-xl"
+      >
+        {/* Crystal Bevel Top Border */}
+        <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
+
+        {/* Radial glows inside the hero */}
+        <div className="absolute -right-12 -top-12 h-64 w-64 rounded-full bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.22),transparent_70%)] pointer-events-none blur-2xl animate-pulse" />
+        <div className="absolute -left-12 -bottom-12 h-48 w-48 rounded-full bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.18),transparent_70%)] pointer-events-none blur-2xl" />
+        
+        {/* Horizontal scan line on hero */}
+        <div className="absolute inset-0 overflow-hidden rounded-3xl pointer-events-none">
+          <div className="w-full h-[1.5px] bg-gradient-to-r from-transparent via-white/25 to-transparent absolute top-1/2 cyber-shimmer" />
+        </div>
+
+        <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/10 border border-white/20 text-[9px] font-black uppercase tracking-widest text-blue-200 font-mono shadow-sm">
+              Central Admin Portal
+            </div>
+            <h1 className="mt-4 text-3xl font-black tracking-tight text-white sm:text-4xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
+              Operations at a glance
+            </h1>
+            <p className="mt-3.5 max-w-2xl text-xs font-semibold text-blue-100/80 leading-relaxed drop-shadow-[0_1px_2px_rgba(0,0,0,0.1)]">
+              Revenue, occupancy and operational controls in one focused workspace. Track real-time cash flow, manage payment-method distribution, review recent transactions and monitor live parking activity.
+            </p>
           </div>
-          <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-sm">
-            <span className={`h-2.5 w-2.5 rounded-full shadow-[0_0_0_4px_rgba(52,211,153,0.12)] ${systemHealthy ? 'bg-emerald-400' : reconciliationIssueCount > 0 ? 'bg-amber-400' : 'bg-blue-300'}`} />
-            <div><p className="text-xs font-bold">{systemHealthy ? 'System operational' : reconciliationIssueCount > 0 ? 'Review required' : 'Monitoring finance'}</p><p className="mt-0.5 text-[11px] text-slate-300">{reconciliationIssueCount > 0 ? `${reconciliationIssueCount} reconciliation item${reconciliationIssueCount === 1 ? '' : 's'}` : 'Live monitoring enabled'}</p></div>
+          <div className="flex items-center gap-3 rounded-2xl border border-white/20 bg-white/10 px-4 py-3 backdrop-blur-md shadow-md shrink-0">
+            <span className={`h-3 w-3 rounded-full ${systemHealthy ? 'bg-emerald-400 shadow-[0_0_10px_#34d399]' : reconciliationIssueCount > 0 ? 'bg-amber-400 shadow-[0_0_10px_#fbbf24]' : 'bg-blue-300'}`} />
+            <div>
+              <p className="text-xs font-black uppercase font-mono text-white">{systemHealthy ? 'System operational' : reconciliationIssueCount > 0 ? 'Review required' : 'Monitoring finance'}</p>
+              <p className="mt-0.5 text-[11px] text-blue-200 font-semibold">{reconciliationIssueCount > 0 ? `${reconciliationIssueCount} reconciliation item${reconciliationIssueCount === 1 ? '' : 's'}` : 'Live monitoring enabled'}</p>
+            </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {data.dashboardStats.map((stat, index) => <AnalyticsCard key={stat.key} label={stat.label} value={stat.value} delta={stat.delta} index={index} icon={STAT_ICONS[index % STAT_ICONS.length]} />)}
-      </section>
+      {/* ── SECTION 2: Metric Cards Grid with stagger ── */}
+      <motion.section
+        custom={1}
+        initial="hidden"
+        animate="visible"
+        variants={sectionVariants}
+        className={`grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4 ${styles.statGrid}`}
+      >
+        {data.dashboardStats.map((stat, index) => (
+          <AnalyticsCard
+            key={stat.key}
+            label={stat.label}
+            value={stat.value}
+            delta={stat.delta}
+            index={index}
+            icon={STAT_ICONS[index % STAT_ICONS.length]}
+          />
+        ))}
+      </motion.section>
+
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1.75fr)_minmax(320px,0.9fr)]">
         <RevenueChart data={data.revenueTrend} />

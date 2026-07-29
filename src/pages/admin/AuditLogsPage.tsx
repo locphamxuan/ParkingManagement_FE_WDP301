@@ -197,11 +197,37 @@ export function AuditLogsPage() {
 
   return (
     <div className="space-y-6 pb-12">
+      {/* Premium Hero Banner */}
+      <section className="relative overflow-hidden rounded-3xl border border-indigo-400/20 bg-gradient-to-br from-slate-800 via-indigo-900 to-blue-900 p-7 text-white shadow-xl">
+
+        <div className="absolute -right-10 -top-10 h-56 w-56 rounded-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.12),transparent_70%)] pointer-events-none blur-xl animate-pulse" />
+        <div className="absolute -left-6 -bottom-6 h-36 w-36 rounded-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.06),transparent_70%)] pointer-events-none blur-xl" />
+        <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-white/25 to-transparent pointer-events-none" />
+        <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/10 border border-white/20 text-[9px] font-black uppercase tracking-widest text-white font-mono shadow-sm mb-3">
+              System audit trail
+            </div>
+            <h1 className="text-2xl font-black tracking-tight text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
+              Activity &amp; Audit Logs
+            </h1>
+            <p className="mt-2 text-xs font-semibold text-blue-100/80 leading-relaxed">
+              Full chronological record of system-wide admin actions, filtered by module, actor and severity.
+            </p>
+          </div>
+          <div className="inline-flex items-center gap-2.5 rounded-full bg-white/10 border border-white/20 px-4 py-2.5 text-xs font-black text-white uppercase font-mono shadow-md backdrop-blur-md shrink-0">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34d399]" />
+            <span>Live logs</span>
+          </div>
+        </div>
+      </section>
+
       {/* Analytics Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total logs */}
         <div className="relative overflow-hidden rounded-2xl border border-sky-100/60 bg-white/40 p-4 shadow-sm flex items-center gap-4 group hover:border-blue-500/20 transition-all duration-300">
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500/10 via-blue-500/30 to-indigo-500/10" />
+
           <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center font-bold shrink-0">
             <Activity size={18} />
           </div>
@@ -310,7 +336,7 @@ export function AuditLogsPage() {
             { value: 'all', label: 'All severities' },
             { value: 'low', label: 'Low' },
             { value: 'medium', label: 'Medium' },
-            { value: 'high', label: 'Cao (High)' },
+            { value: 'high', label: 'High' },
             { value: 'critical', label: 'Critical' },
           ]}
         />
@@ -341,7 +367,7 @@ export function AuditLogsPage() {
             Prev
           </Button>
           <span className="text-xs font-mono font-bold text-slate-500 px-3 py-1.5 rounded-lg bg-slate-50 border border-sky-100/50">
-            Trang {safePage} / {maxPage}
+            Page {safePage} / {maxPage}
           </span>
           <Button
             variant="secondary"

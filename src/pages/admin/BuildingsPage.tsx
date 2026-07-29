@@ -367,8 +367,9 @@ export function BuildingsPage() {
           Prev
         </Button>
         <span className="text-xs font-mono font-bold text-slate-500 px-3 py-1.5 rounded-lg bg-slate-50 border border-sky-100/50">
-          Trang {page} / {maxPage}
+          Page {page} / {maxPage}
         </span>
+
         <Button
           variant="secondary"
           size="sm"

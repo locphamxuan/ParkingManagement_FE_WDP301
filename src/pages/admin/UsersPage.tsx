@@ -176,6 +176,30 @@ export function UsersPage() {
         </div>
       ) : null}
 
+      {/* Premium Hero Banner */}
+      <section className="relative overflow-hidden rounded-3xl border border-blue-400/20 bg-gradient-to-br from-blue-800 via-blue-700 to-indigo-700 p-7 text-white shadow-xl">
+        <div className="absolute -right-10 -top-10 h-56 w-56 rounded-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.14),transparent_70%)] pointer-events-none blur-xl animate-pulse" />
+        <div className="absolute -left-6 -bottom-6 h-36 w-36 rounded-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.07),transparent_70%)] pointer-events-none blur-xl" />
+        <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-white/25 to-transparent pointer-events-none" />
+        <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/10 border border-white/20 text-[9px] font-black uppercase tracking-widest text-white font-mono shadow-sm mb-3">
+              Customer accounts
+            </div>
+            <h1 className="text-2xl font-black tracking-tight text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
+              User Management
+            </h1>
+            <p className="mt-2 text-xs font-semibold text-blue-100/80 leading-relaxed">
+              Manage customer accounts, control access, and monitor linked license plates across the system.
+            </p>
+          </div>
+          <div className="inline-flex items-center gap-2.5 rounded-full bg-white/10 border border-white/20 px-4 py-2.5 text-xs font-black text-white uppercase font-mono shadow-md backdrop-blur-md shrink-0">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34d399]" />
+            <span>Live data</span>
+          </div>
+        </div>
+      </section>
+
       {/* Analytics Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Total Users */}
@@ -267,7 +291,8 @@ export function UsersPage() {
               <motion.div
                 key={u.id}
                 whileHover={{ scale: 1.01, y: -4 }}
-                className="relative overflow-hidden rounded-3xl glass-premium p-6 shadow-md border border-sky-100/85 transition-all duration-300 hover:shadow-[0_20px_40px_rgba(37,99,235,0.06)] hover:border-blue-500/25 group bg-white/40"
+                className="relative overflow-hidden rounded-3xl glass-premium p-6 shadow-md border border-sky-100/85 transition-all duration-300 hover:shadow-[0_20px_40px_rgba(37,99,235,0.10)] hover:border-blue-500/30 group bg-white/40 depth-card"
+
               >
                 {/* Crystal Bevel Border */}
                 <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500/10 via-blue-500/40 to-indigo-500/10" />
@@ -301,6 +326,7 @@ export function UsersPage() {
                     </span>
                   </div>
                 </div>
+
 
                 {/* Linked Plates Container */}
                 <div className="mt-4">

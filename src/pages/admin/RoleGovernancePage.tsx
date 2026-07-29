@@ -68,22 +68,35 @@ export function RoleGovernancePage() {
 
   return (
     <div className="space-y-6 pb-12">
-      <section className="overflow-hidden rounded-3xl border border-blue-200/70 bg-gradient-to-br from-blue-50/90 via-white/80 to-cyan-50/80 p-6 shadow-sm">
-        <div className="max-w-4xl">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600">
-            Platform governance
-          </p>
-          <h2 className="mt-2 text-2xl font-black text-slate-900">
-            Admin is the PBMS system owner
-          </h2>
-          <p className="mt-3 text-sm leading-relaxed text-slate-600">
-            Admin represents the organization that purchased and owns the system:
-            administering the building catalog, accounts, staff assignment, consolidated
-            finance, reconciliation and logs. Day-to-day operations still belong to
-            Manager and Staff.
-          </p>
+      <section className="relative overflow-hidden rounded-3xl border border-blue-400/20 bg-gradient-to-br from-blue-700 via-indigo-600 to-violet-600 p-8 text-white shadow-xl">
+        {/* Decorative ambient glows */}
+        <div className="absolute -right-12 -top-12 h-64 w-64 rounded-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.15),transparent_70%)] pointer-events-none blur-xl animate-pulse" />
+        <div className="absolute -left-8 -bottom-8 h-40 w-40 rounded-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.08),transparent_70%)] pointer-events-none blur-xl" />
+        {/* Crystal bevel top */}
+        <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between max-w-4xl">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/10 border border-white/20 text-[9px] font-black uppercase tracking-widest text-white font-mono shadow-sm mb-4">
+              Platform governance
+            </div>
+            <h2 className="text-2xl font-black tracking-tight text-white sm:text-3xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]">
+              Admin is the PBMS system owner
+            </h2>
+            <p className="mt-3 max-w-2xl text-xs font-semibold text-blue-50/90 leading-relaxed drop-shadow-[0_1px_2px_rgba(0,0,0,0.1)]">
+              Admin represents the organization that purchased and owns the system:
+              administering the building catalog, accounts, staff assignment, consolidated
+              finance, reconciliation and logs. Day-to-day operations still belong to
+              Manager and Staff.
+            </p>
+          </div>
+          <div className="inline-flex items-center gap-2.5 rounded-full bg-white/10 border border-white/20 px-4 py-2.5 text-xs font-black text-white uppercase font-mono shadow-md backdrop-blur-md shrink-0">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34d399]" />
+            <span>Role matrix</span>
+          </div>
         </div>
       </section>
+
 
       {error && (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs font-bold text-rose-700">
@@ -98,10 +111,12 @@ export function RoleGovernancePage() {
           return (
             <article
               key={role.role}
-              className="rounded-3xl border border-sky-100/80 bg-white/70 p-5 shadow-sm backdrop-blur-xl"
+              className="relative overflow-hidden rounded-3xl glass-premium p-5 shadow-md border border-sky-100/80 transition-all duration-300 hover:shadow-[0_20px_40px_rgba(37,99,235,0.08)] hover:border-blue-500/25 hover:-translate-y-1 group"
             >
+              {/* Crystal bevel top border */}
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500/10 via-blue-500/40 to-indigo-500/10" />
               <div className="flex items-start gap-3">
-                <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border ${meta.tone}`}>
+                <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border ${meta.tone} transition-all duration-300 group-hover:scale-110`}>
                   <Icon size={19} />
                 </span>
                 <div>
@@ -111,7 +126,7 @@ export function RoleGovernancePage() {
               </div>
 
               <div className="mt-5 grid gap-4 md:grid-cols-2">
-                <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-4">
+                <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4 transition-colors duration-200 hover:bg-emerald-50/80">
                   <p className="mb-3 flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-emerald-700">
                     <CheckCircle2 size={13} /> Allowed
                   </p>
@@ -125,7 +140,7 @@ export function RoleGovernancePage() {
                   </ul>
                 </div>
 
-                <div className="rounded-2xl border border-rose-100 bg-rose-50/50 p-4">
+                <div className="rounded-2xl border border-rose-100 bg-rose-50/60 p-4 transition-colors duration-200 hover:bg-rose-50/80">
                   <p className="mb-3 flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-rose-700">
                     <LockKeyhole size={13} /> Boundaries
                   </p>
@@ -140,11 +155,14 @@ export function RoleGovernancePage() {
                 </div>
               </div>
             </article>
+
           );
         })}
       </section>
 
-      <section className="rounded-3xl border border-sky-100/80 bg-white/70 p-5 shadow-sm">
+      <section className="relative overflow-hidden rounded-3xl glass-premium p-6 shadow-md border border-sky-100/80 transition-all duration-300 hover:shadow-[0_20px_40px_rgba(37,99,235,0.07)] hover:border-blue-500/20">
+        {/* Crystal bevel top border */}
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500/10 via-blue-500/40 to-indigo-500/10" />
         <div className="mb-5">
           <h3 className="flex items-center gap-2 text-sm font-black text-slate-900">
             <WalletCards size={17} className="text-blue-600" />
@@ -155,23 +173,23 @@ export function RoleGovernancePage() {
           </p>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto rounded-2xl border border-sky-100/60">
           <table className="w-full min-w-[800px] text-left text-xs">
-            <thead className="bg-slate-50 text-[9px] font-black uppercase tracking-wider text-slate-400">
+            <thead className="bg-gradient-to-r from-slate-50/80 to-blue-50/40 text-[9px] font-black uppercase tracking-wider text-slate-400 border-b border-sky-100/60">
               <tr>
-                <th className="rounded-l-xl px-4 py-3">Business flow</th>
-                <th className="px-4 py-3">Staff</th>
-                <th className="px-4 py-3">Manager</th>
-                <th className="rounded-r-xl px-4 py-3">Admin</th>
+                <th className="px-5 py-3.5">Business flow</th>
+                <th className="px-5 py-3.5">Staff</th>
+                <th className="px-5 py-3.5">Manager</th>
+                <th className="px-5 py-3.5">Admin</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-sky-50">
-              {data?.separationOfDuties.map((flow) => (
-                <tr key={flow.flow}>
-                  <td className="px-4 py-4 font-black text-slate-700">{flow.flow}</td>
-                  <td className="px-4 py-4 leading-relaxed text-slate-600">{flow.staff || '—'}</td>
-                  <td className="px-4 py-4 leading-relaxed text-slate-600">{flow.manager || '—'}</td>
-                  <td className="px-4 py-4 leading-relaxed text-slate-600">{flow.admin || '—'}</td>
+            <tbody className="divide-y divide-sky-50/80">
+              {data?.separationOfDuties.map((flow, idx) => (
+                <tr key={flow.flow} className={`transition-colors duration-150 hover:bg-blue-500/[0.03] ${idx % 2 === 0 ? 'bg-white/30' : 'bg-sky-50/20'}`}>
+                  <td className="px-5 py-4 font-black text-slate-800">{flow.flow}</td>
+                  <td className="px-5 py-4 leading-relaxed text-slate-600">{flow.staff || <span className="text-slate-300 font-mono">—</span>}</td>
+                  <td className="px-5 py-4 leading-relaxed text-slate-600">{flow.manager || <span className="text-slate-300 font-mono">—</span>}</td>
+                  <td className="px-5 py-4 leading-relaxed text-slate-600">{flow.admin || <span className="text-slate-300 font-mono">—</span>}</td>
                 </tr>
               ))}
             </tbody>

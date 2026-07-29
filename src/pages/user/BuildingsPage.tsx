@@ -24,6 +24,7 @@ import {
   type LicensePlate,
   type UserVehicleType,
 } from '@/services/user/userApi';
+import { vehicleKindFromLicensePlate, vehicleKindFromVehicleType } from './packageBookingHelper';
 
 /* ─── Helpers ──────────────────────────────────────────────────────────────── */
 
@@ -39,12 +40,8 @@ function addressText(building: Building): string {
 /** Map FE vehicleType strings to backend vehicle type code for matching. */
 function plateMatchesVehicleTypes(plate: LicensePlate, vtypes: VehicleType[]): boolean {
   if (vtypes.length === 0) return true; // no filter
-  const t = plate.vehicleType?.toLowerCase() ?? '';
-  return vtypes.some((vt) => {
-    const c = (vt.code || vt.name || '').toLowerCase();
-    if (t === 'motorcycle' || t === 'bike') return /motor|xe|máy|bike|moto/i.test(c);
-    return /car|oto|ô t|auto/i.test(c); // car, suv, truck all map to car
-  });
+  const plateKind = vehicleKindFromLicensePlate(plate.vehicleType);
+  return vtypes.some((vt) => vehicleKindFromVehicleType(vt) === plateKind);
 }
 
 /* ─── Sub Components ───────────────────────────────────────────────────────── */

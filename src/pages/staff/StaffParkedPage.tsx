@@ -19,10 +19,12 @@ import { BarrierGateOverlay, type BarrierState } from '@/components/staff/Barrie
 import styles from '@/styles/modules/StaffParkedPage.module.css';
 
 interface BankTransferState {
+  sessionId: string;
   orderCode: number;
   checkoutUrl: string;
   amount: number;
   plate: string;
+  status: 'pending' | 'success';
 }
 
 export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }) {
@@ -175,21 +177,51 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
     const { isUnderGracePeriod, dueFee, grandTotal } = computeCheckoutFee(target, pendingPenalty);
 
     try {
+      const exitPortrait = capturedPortraitImage ?? portraitCamRef.current?.capture() ?? null;
+      const paymentEvidence = {
+        exitPlateImage: capturedPlateImage,
+        exitPortraitImage: exitPortrait,
+      };
+
+      if (paymentMethod === 'bank_transfer' && pendingPenalty > 0) {
+        setOpMessage({
+          type: 'err',
+          text: 'A pending penalty must be collected through the staffed checkout flow; PayOS QR is unavailable for this vehicle.',
+        });
+        return;
+      }
+
       if (paymentMethod === 'bank_transfer' && dueFee > 0) {
-        const res = await staffApi.initiateSessionPayment(target._id);
+        const existingIntent = await staffApi.getSessionPaymentIntent(target._id);
+        const existing = existingIntent.data;
+        if (existing) {
+          setBankTransfer({
+            sessionId: target._id,
+            orderCode: existing.orderCode,
+            checkoutUrl: existing.checkoutUrl,
+            amount: existing.amount,
+            plate: existing.plateNumber || target.plateNumber,
+            status: existing.status,
+          });
+          setCheckoutTarget(null);
+          return;
+        }
+
+        const res = await staffApi.initiateSessionPayment(target._id, paymentEvidence);
         const d = (res as unknown as { data?: { orderCode: number; checkoutUrl: string; amount: number; plateNumber?: string } })?.data;
         if (d) {
           setBankTransfer({
+            sessionId: target._id,
             orderCode: d.orderCode,
             checkoutUrl: d.checkoutUrl,
             amount: d.amount,
             plate: d.plateNumber || target.plateNumber,
+            status: 'pending',
           });
           setCheckoutTarget(null);
         }
         return;
       }
-      const exitPortrait = capturedPortraitImage ?? portraitCamRef.current?.capture() ?? null;
 
       // Bank transfer chỉ có QR thật cho phí gửi xe (nhánh trên) — không có luồng QR
       // riêng cho phí phạt, nên nếu chỉ còn phạt (dueFee = 0) mà staff chọn "Transfer"
@@ -275,6 +307,15 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
       const res = await staffApi.verifySessionPayment(bankTransfer.orderCode);
       const status = (res as { data?: { status?: string } })?.data?.status;
       if (status === 'success') {
+        await staffApi.checkOut(bankTransfer.sessionId, { paymentMethod: 'payos' });
+        setBarrierState('opening');
+        setTimeout(() => {
+          setBarrierState('open');
+          setTimeout(() => {
+            setBarrierState('closing');
+            setTimeout(() => setBarrierState('closed'), 1000);
+          }, 3000);
+        }, 1000);
         setBankTransfer(null);
         setPaymentMethod('cash');
         setOpMessage({ type: 'ok', text: 'Payment received — parking session completed.' });

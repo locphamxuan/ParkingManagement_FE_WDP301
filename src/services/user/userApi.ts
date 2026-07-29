@@ -117,7 +117,7 @@ export interface LongTermSubscription {
   updatedAt?: string;
 }
 
-export type UserVehicleType = 'motorcycle' | 'car' | 'suv' | 'truck' | 'other';
+export type UserVehicleType = 'motorcycle' | 'ebike' | 'emotorbike' | 'car' | 'suv' | 'truck' | 'other';
 
 export interface LicensePlate {
   _id: string;

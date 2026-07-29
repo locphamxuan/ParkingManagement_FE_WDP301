@@ -792,15 +792,15 @@ button[aria-expanded="true"] .chev {
   background-color: rgba(14, 165, 233, 0.08) !important;
   color: #0284c7 !important;
 }
-.admin-theme aside nav a[class*="bg-sky-500"] {
-  background-color: #0ea5e9 !important;
+.admin-theme aside nav a.portal-nav-link--active {
+  background: linear-gradient(90deg, #2563eb, #06b6d4) !important;
   color: #ffffff !important;
   box-shadow: 0 4px 15px rgba(14, 165, 233, 0.25) !important;
 }
-.admin-theme aside nav a:not([class*="bg-sky-500"]) {
+.admin-theme aside nav a:not(.portal-nav-link--active) {
   color: #475569 !important;
 }
-.admin-theme aside nav a:not([class*="bg-sky-500"]):hover {
+.admin-theme aside nav a:not(.portal-nav-link--active):hover {
   background-color: rgba(14, 165, 233, 0.08) !important;
   color: #0284c7 !important;
 }

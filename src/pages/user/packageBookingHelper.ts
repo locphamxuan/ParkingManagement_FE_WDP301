@@ -3,6 +3,8 @@ import type { LongTermPackage } from '@/services/user/userApi';
 export type BookingMode = 'hourly' | 'package';
 export type VehicleKind = 'car' | 'motorcycle';
 
+const MOTORCYCLE_LICENSE_PLATE_TYPES = new Set(['motorcycle', 'ebike', 'emotorbike']);
+
 const money = new Intl.NumberFormat('vi-VN', {
   style: 'currency',
   currency: 'VND',
@@ -51,30 +53,21 @@ export function normalizeVehicleTypeCode(raw?: string | null): VehicleKind | 'al
   return 'all';
 }
 
+export function vehicleKindFromLicensePlate(raw?: string | null): VehicleKind {
+  return MOTORCYCLE_LICENSE_PLATE_TYPES.has(String(raw || '').toLowerCase()) ? 'motorcycle' : 'car';
+}
+
+export function vehicleKindFromVehicleType(
+  vehicleType?: LongTermPackage['vehicleType'],
+): VehicleKind {
+  const label = typeof vehicleType === 'string'
+    ? vehicleType
+    : `${vehicleType?.code || ''} ${vehicleType?.name || ''}`;
+  return /motor|xe m|máy|bike|moto/i.test(label) ? 'motorcycle' : 'car';
+}
+
 export function isCarPackage(pkg: LongTermPackage): boolean {
-  const vt = pkg.vehicleType;
-  if (vt && typeof vt === 'object') {
-    const code = String(vt.code || vt.name || '').toLowerCase();
-    if (code.includes('motor') || code.includes('moto') || code.includes('xe') || code.includes('bike')) return false;
-    if (code.includes('car') || code.includes('oto') || code.includes('ô tô') || code.includes('ôto')) return true;
-  }
-  if (typeof vt === 'string') {
-    const code = vt.toLowerCase();
-    if (code.includes('motor') || code.includes('moto') || code.includes('xe') || code.includes('bike')) return false;
-    if (code.includes('car') || code.includes('oto') || code.includes('ô tô') || code.includes('ôto')) return true;
-  }
-  const name = String(pkg.name || '').toLowerCase();
-  const codeAttr = String(pkg.code || '').toLowerCase();
-  if (
-    name.includes('xe máy') ||
-    name.includes('motor') ||
-    name.includes('moto') ||
-    codeAttr.includes('moto') ||
-    codeAttr.includes('bike')
-  )
-    return false;
-  if (name.includes('ô tô') || name.includes('oto') || name.includes('car') || codeAttr.includes('car')) return true;
-  return false;
+  return vehicleKindFromVehicleType(pkg.vehicleType) === 'car';
 }
 
 export function getMaxCalendarDate(mode: BookingMode, pkg?: LongTermPackage | null, maxAdvanceDays = 7): Date {

@@ -17,6 +17,7 @@ import {
   type VehicleKind,
   isCarPackage,
   normalizeVehicleTypeCode,
+  vehicleKindFromLicensePlate,
 } from '@/pages/user/packageBookingHelper';
 
 export interface PackagePurchaseLocationState {
@@ -236,9 +237,7 @@ export function usePackagePurchase() {
     if (!user) return [];
     const base = selectedVehicleType
       ? user.licensePlates.filter((p) => {
-        const t = p.vehicleType?.toLowerCase();
-        if (selectedVehicleType === 'motorcycle') return t === 'motorcycle' || t === 'bike';
-        return t !== 'motorcycle' && t !== 'bike';
+        return vehicleKindFromLicensePlate(p.vehicleType) === selectedVehicleType;
       })
       : user.licensePlates;
     return base.filter((p) => !bookedPlates.includes(p.plateNumber));

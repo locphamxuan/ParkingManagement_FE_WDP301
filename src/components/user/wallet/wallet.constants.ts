@@ -21,10 +21,11 @@ export const TX_REASON_LABELS: Record<string, string> = {
   // Backend reason codes (from WalletTransaction model)
   payos_topup: 'Wallet Deposit (PayOS)',
   topup: 'Wallet Deposit',
-  reservation_fee: 'Reservation Fee',
+  // Lý do CŨ (đặt chỗ theo giờ đã bỏ) — giữ nhãn để lịch sử ví không hiện mã thô.
+  reservation_fee: 'Legacy Booking Fee',
   parking_checkout: 'Parking Fee',
   parking_fee: 'Parking Fee',
-  reservation_refund: 'Reservation Refund',
+  reservation_refund: 'Legacy Booking Refund',
   refund: 'Refund',
   long_term_subscription: 'Long-term Subscription',
   wallet_payment: 'Wallet Payment',

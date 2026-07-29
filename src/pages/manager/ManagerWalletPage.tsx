@@ -35,9 +35,10 @@ const fmtDay = (s: string) =>
 const fmtTime = (iso: string) =>
   new Date(iso).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' });
 
+// Nhãn cho sổ quỹ toà. reservation_fee CHỈ có trên bản ghi cũ (đặt chỗ đã bỏ).
 const TX_REASON_LABELS: Record<string, string> = {
   parking_fee: 'Parking fee',
-  reservation_fee: 'Reservation fee',
+  reservation_fee: 'Legacy booking fee',
   topup: 'Top-up',
   refund: 'Refund',
 };

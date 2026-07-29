@@ -56,7 +56,7 @@ export function useParkingSimulation(interactive: boolean, paused = false) {
       // Reset positions instantly (all cars HORIZONTAL rotateZ: 0)
       try {
         controlsCarA.set({ x: -100, y: 155, rotateZ: 0, opacity: 0 });
-        controlsCarB.set({ x: 291, y: 37, rotateZ: 0, opacity: 1 });
+        controlsCarB.set({ x: 259, y: 26, rotateZ: 0, opacity: 1 });
       } catch (err) {
         console.warn('Animation controllers not yet ready:', err);
       }
@@ -99,9 +99,9 @@ export function useParkingSimulation(interactive: boolean, paused = false) {
         }
       };
 
-      // Drive to Slot 3 alignment (center X: 240px - half car width 28px = 212px)
+      // Drive to Slot 3 alignment (target X: 180px)
       await safeStart(controlsCarA, {
-        x: 212,
+        x: 180,
         y: 155,
         rotateZ: 0,
         transition: { ease: 'linear', duration: 1.2 }
@@ -111,10 +111,10 @@ export function useParkingSimulation(interactive: boolean, paused = false) {
       setHudMessage('Aligning parking position. Reversing into slot 3...');
       setCarAState('parking');
 
-      // Reverse Park into Slot 3 (exact Y: 37px, rotateZ: 0 horizontal)
+      // Reverse Park into Slot 3 (exact fit: x: 180px, y: 26px, rotateZ: 0 horizontal)
       await safeStart(controlsCarA, {
-        x: 212,
-        y: 37,
+        x: 180,
+        y: 26,
         rotateZ: 0,
         transition: { type: 'spring', stiffness: 40, damping: 12 }
       });
@@ -137,7 +137,7 @@ export function useParkingSimulation(interactive: boolean, paused = false) {
       // Drive out of slot 4 down to lane
       setHudMessage('Fuchsia SUV is leaving slot 4...');
       await safeStart(controlsCarB, {
-        x: 291,
+        x: 259,
         y: 155,
         rotateZ: 0,
         transition: { type: 'spring', stiffness: 45, damping: 12 }

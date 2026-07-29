@@ -42,7 +42,7 @@ export function RevenueChart({ data, title = 'Revenue trend' }: RevenueChartProp
                   </div>
                 ) : null}
               />
-              <Area type="monotone" dataKey="revenue" stroke={SERIES} strokeWidth={2.5} fill="url(#revenue-area)" activeDot={{ r: 5, fill: SERIES, stroke: '#fff', strokeWidth: 2 }} />
+              <Area type="monotone" dataKey="revenue" stroke={SERIES} strokeWidth={2.5} fill="url(#revenue-area)" isAnimationActive animationDuration={700} animationEasing="ease-out" activeDot={{ r: 5, fill: SERIES, stroke: '#fff', strokeWidth: 2 }} />
             </AreaChart>
           </ResponsiveContainer>
         )}

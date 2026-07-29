@@ -8,7 +8,6 @@ import {
   Activity,
 } from 'lucide-react';
 import { DataTable, type DataColumn } from '@/components/common/DataTable';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CustomSelect } from '@/components/ui/select';
 import { useAdminDataset } from '@/hooks/admin/useAdminDataset';
@@ -198,84 +197,122 @@ export function AuditLogsPage() {
   return (
     <div className="space-y-6 pb-12">
       {/* Premium Hero Banner */}
-      <section className="relative overflow-hidden rounded-3xl border border-indigo-400/20 bg-gradient-to-br from-slate-800 via-indigo-900 to-blue-900 p-7 text-white shadow-xl">
-
-        <div className="absolute -right-10 -top-10 h-56 w-56 rounded-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.12),transparent_70%)] pointer-events-none blur-xl animate-pulse" />
-        <div className="absolute -left-6 -bottom-6 h-36 w-36 rounded-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.06),transparent_70%)] pointer-events-none blur-xl" />
-        <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-white/25 to-transparent pointer-events-none" />
+      <section
+        className="relative overflow-hidden rounded-3xl p-7 text-white shadow-2xl"
+        style={{
+          background: 'linear-gradient(135deg, #0052D4 0%, #1a6fe8 30%, #4364F7 65%, #2979ff 100%)',
+          boxShadow: '0 20px 60px -12px rgba(0,82,212,0.55), 0 8px 24px -6px rgba(0,0,0,0.15)',
+        }}
+      >
+        <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none" />
+        <div
+          className="absolute -right-14 -top-14 h-64 w-64 rounded-full pointer-events-none animate-pulse"
+          style={{ background: 'radial-gradient(circle at center, rgba(99,179,237,0.25) 0%, transparent 70%)', filter: 'blur(22px)' }}
+        />
+        <div
+          className="absolute -left-8 -bottom-8 h-44 w-44 rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, transparent 70%)', filter: 'blur(18px)' }}
+        />
+        <div className="absolute inset-0 pointer-events-none rounded-3xl overflow-hidden" aria-hidden="true">
+          <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'repeating-linear-gradient(60deg, transparent, transparent 40px, rgba(255,255,255,0.9) 40px, rgba(255,255,255,0.9) 41px)' }} />
+        </div>
         <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/10 border border-white/20 text-[9px] font-black uppercase tracking-widest text-white font-mono shadow-sm mb-3">
+            <div
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-[0.18em] text-blue-100 font-mono shadow-sm mb-2.5"
+              style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.22)', backdropFilter: 'blur(8px)' }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-300 shadow-[0_0_6px_rgba(103,232,249,0.9)]" />
               System audit trail
             </div>
-            <h1 className="text-2xl font-black tracking-tight text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
+            <h1 className="text-2xl font-black tracking-tight text-white" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.25)' }}>
               Activity &amp; Audit Logs
             </h1>
-            <p className="mt-2 text-xs font-semibold text-blue-100/80 leading-relaxed">
+            <p className="mt-2 text-[0.72rem] font-semibold text-blue-100/85 leading-relaxed max-w-lg">
               Full chronological record of system-wide admin actions, filtered by module, actor and severity.
             </p>
           </div>
-          <div className="inline-flex items-center gap-2.5 rounded-full bg-white/10 border border-white/20 px-4 py-2.5 text-xs font-black text-white uppercase font-mono shadow-md backdrop-blur-md shrink-0">
+          <div
+            className="inline-flex items-center gap-2.5 rounded-2xl px-4 py-3 text-xs font-black text-white uppercase font-mono shadow-md shrink-0"
+            style={{
+              background: 'rgba(255,255,255,0.13)',
+              border: '1px solid rgba(255,255,255,0.22)',
+              backdropFilter: 'blur(12px)',
+            }}
+          >
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34d399]" />
-            <span>Live logs</span>
+            Live logs
           </div>
         </div>
       </section>
 
-      {/* Analytics Stats Grid */}
+      {/* Severity Analytics Stat Cards — 3D elevated */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total logs */}
-        <div className="relative overflow-hidden rounded-2xl border border-sky-100/60 bg-white/40 p-4 shadow-sm flex items-center gap-4 group hover:border-blue-500/20 transition-all duration-300">
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500/10 via-blue-500/30 to-indigo-500/10" />
-
-          <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center font-bold shrink-0">
-            <Activity size={18} />
+        {[
+          {
+            label: 'Total logs',
+            value: stats.total,
+            icon: <Activity size={20} />,
+            accent: { bg: 'rgba(0,147,233,0.08)', border: 'rgba(0,147,233,0.22)', icon: 'rgba(0,147,233,0.12)', iconColor: '#0073b7', top: 'linear-gradient(90deg, transparent, #0093E9, transparent)' },
+          },
+          {
+            label: 'Low severity',
+            value: stats.lowCount,
+            icon: <ShieldCheck size={20} />,
+            accent: { bg: 'rgba(16,185,129,0.06)', border: 'rgba(16,185,129,0.2)', icon: 'rgba(16,185,129,0.12)', iconColor: '#059669', top: 'linear-gradient(90deg, transparent, #10b981, transparent)' },
+          },
+          {
+            label: 'Medium severity',
+            value: stats.mediumCount,
+            icon: <Info size={20} />,
+            accent: { bg: 'rgba(245,158,11,0.06)', border: 'rgba(245,158,11,0.2)', icon: 'rgba(245,158,11,0.12)', iconColor: '#d97706', top: 'linear-gradient(90deg, transparent, #f59e0b, transparent)' },
+          },
+          {
+            label: 'Critical severity',
+            value: stats.criticalCount,
+            icon: <ShieldAlert size={20} />,
+            accent: { bg: 'rgba(239,68,68,0.06)', border: 'rgba(239,68,68,0.2)', icon: 'rgba(239,68,68,0.12)', iconColor: '#dc2626', top: 'linear-gradient(90deg, transparent, #ef4444, transparent)' },
+          },
+        ].map((card) => (
+          <div
+            key={card.label}
+            className="relative overflow-hidden rounded-2xl bg-white p-4 flex items-center gap-4 transition-all duration-300 group cursor-default"
+            style={{
+              border: `1px solid ${card.accent.border}`,
+              background: card.accent.bg,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 8px 24px -6px rgba(0,0,0,0.06)',
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.boxShadow = `0 4px 16px rgba(0,0,0,0.06), 0 16px 40px -8px ${card.accent.border}`;
+              (e.currentTarget as HTMLElement).style.transform = 'translateY(-3px) scale(1.005)';
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.04), 0 8px 24px -6px rgba(0,0,0,0.06)';
+              (e.currentTarget as HTMLElement).style.transform = 'none';
+            }}
+          >
+            <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: card.accent.top }} />
+            <div
+              className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110"
+              style={{ background: card.accent.icon, color: card.accent.iconColor }}
+            >
+              {card.icon}
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.14em]" style={{ color: '#94a3b8' }}>
+                {card.label}
+              </p>
+              <p className="text-2xl font-black text-slate-800 mt-0.5 leading-none">{card.value}</p>
+            </div>
           </div>
-          <div>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total logs</p>
-            <p className="text-lg font-black text-slate-800 mt-0.5">{stats.total}</p>
-          </div>
-        </div>
-
-        {/* Low severity count */}
-        <div className="relative overflow-hidden rounded-2xl border border-emerald-100/60 bg-white/40 p-4 shadow-sm flex items-center gap-4 group hover:border-emerald-500/20 transition-all duration-300">
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500/10 via-emerald-500/30 to-teal-500/10" />
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-bold shrink-0">
-            <ShieldCheck size={18} />
-          </div>
-          <div>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Low severity</p>
-            <p className="text-lg font-black text-slate-800 mt-0.5">{stats.lowCount}</p>
-          </div>
-        </div>
-
-        {/* Medium severity count */}
-        <div className="relative overflow-hidden rounded-2xl border border-amber-100/60 bg-white/40 p-4 shadow-sm flex items-center gap-4 group hover:border-amber-500/20 transition-all duration-300">
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-amber-500/10 via-amber-500/30 to-orange-500/10" />
-          <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold shrink-0">
-            <Info size={18} />
-          </div>
-          <div>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Medium severity</p>
-            <p className="text-lg font-black text-slate-800 mt-0.5">{stats.mediumCount}</p>
-          </div>
-        </div>
-
-        {/* Critical severity count */}
-        <div className="relative overflow-hidden rounded-2xl border border-rose-100/60 bg-white/40 p-4 shadow-sm flex items-center gap-4 group hover:border-rose-500/20 transition-all duration-300">
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-rose-500/10 via-rose-500/30 to-red-500/10" />
-          <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center font-bold shrink-0">
-            <ShieldAlert size={18} />
-          </div>
-          <div>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Critical severity</p>
-            <p className="text-lg font-black text-slate-800 mt-0.5">{stats.criticalCount}</p>
-          </div>
-        </div>
+        ))}
       </div>
 
-      {/* Target Category Tabs */}
-      <div className="flex flex-wrap gap-2 bg-white/20 p-2.5 rounded-2xl border border-sky-100/30 backdrop-blur-md">
+      {/* Category Tab Pills */}
+      <div
+        className="flex flex-wrap gap-2 p-2.5 rounded-2xl"
+        style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(226,232,240,0.7)', backdropFilter: 'blur(12px)' }}
+      >
         {groups.map((g) => {
           const isActive = g.key === currentTab;
           return (
@@ -286,20 +323,26 @@ export function AuditLogsPage() {
                 setActiveTab(g.key);
                 setPage(1);
               }}
-              className={`inline-flex min-h-11 items-center gap-2 rounded-xl border px-4 py-2 text-xs font-bold transition-all duration-200 ${
-                isActive
-                  ? 'border-blue-500/30 bg-blue-500/10 text-blue-600 shadow-[0_0_12px_rgba(59,130,246,0.08)]'
-                  : 'border-sky-100/60 bg-white/60 text-slate-500 hover:text-slate-800 hover:bg-slate-50'
-              }`}
+              className="inline-flex min-h-9 items-center gap-2 rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all duration-200"
+              style={{
+                background: isActive
+                  ? 'linear-gradient(135deg, rgba(0,147,233,0.12), rgba(0,198,255,0.08))'
+                  : 'rgba(255,255,255,0.8)',
+                border: isActive
+                  ? '1px solid rgba(0,147,233,0.3)'
+                  : '1px solid rgba(226,232,240,0.8)',
+                color: isActive ? '#0073b7' : '#64748b',
+                boxShadow: isActive ? '0 0 12px rgba(0,147,233,0.12), inset 0 1px 0 rgba(255,255,255,0.5)' : 'none',
+              }}
             >
-              <FileText size={12} className={isActive ? 'text-blue-600' : 'text-slate-400'} />
+              <FileText size={11} style={{ color: isActive ? '#0093E9' : '#94a3b8' }} />
               <span>{targetLabel(g.key)}</span>
               <span
-                className={`rounded-lg px-2 py-0.5 text-[9px] font-black font-mono border ${
-                  isActive 
-                    ? 'bg-blue-500/20 border-blue-500/30 text-blue-600' 
-                    : 'bg-slate-100 border-slate-200/50 text-slate-400'
-                }`}
+                className="rounded-md px-1.5 py-0.5 text-[9px] font-black font-mono"
+                style={{
+                  background: isActive ? 'rgba(0,147,233,0.18)' : 'rgba(100,116,139,0.1)',
+                  color: isActive ? '#0073b7' : '#64748b',
+                }}
               >
                 {g.items.length}
               </span>
@@ -308,11 +351,17 @@ export function AuditLogsPage() {
         })}
       </div>
 
-      {/* Control Actions Row (Search, filter) grouped together beautifully */}
-      <div className="flex flex-col md:flex-row items-center gap-3 w-full rounded-2xl border border-sky-100/60 bg-white/45 p-3 shadow-sm backdrop-blur-md">
-        {/* Search Input */}
+      {/* Search + Severity Filter Bar */}
+      <div
+        className="flex flex-col md:flex-row items-center gap-3 w-full rounded-2xl p-3"
+        style={{ background: 'rgba(255,255,255,0.75)', border: '1px solid rgba(226,232,240,0.7)', backdropFilter: 'blur(16px)', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
+      >
         <div className="relative flex-1 w-full">
-          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+          <Search
+            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2"
+            size={15}
+            style={{ color: '#0093E9' }}
+          />
           <Input
             value={query}
             onChange={(e) => {
@@ -320,11 +369,10 @@ export function AuditLogsPage() {
               setQuery(e.target.value);
             }}
             placeholder="Search by actor, details or location..."
-            className="h-11 w-full rounded-xl border-sky-100 bg-white/90 pl-9 text-xs font-semibold focus-visible:ring-blue-500"
+            className="h-11 w-full rounded-xl pl-10 text-xs font-semibold"
+            style={{ background: '#f8fafc', border: '1px solid rgba(226,232,240,0.9)' }}
           />
         </div>
-
-        {/* Severity Filter Dropdown */}
         <CustomSelect
           className="h-11 w-full md:w-48 shrink-0"
           value={severity}
@@ -349,35 +397,42 @@ export function AuditLogsPage() {
         columns={columns}
       />
 
-      {/* Glassmorphic Pagination controls */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/20 p-3 rounded-2xl border border-sky-100/30 backdrop-blur-md">
-        <span className="text-xs font-bold text-slate-400">
+      {/* Pagination — clean bottom-right */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl p-3.5" style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(226,232,240,0.7)', backdropFilter: 'blur(12px)' }}>
+        <span className="text-xs font-bold" style={{ color: '#94a3b8' }}>
           {filtered.length > 0
-            ? `Showing ${(safePage - 1) * PAGE_SIZE + 1} – ${Math.min(safePage * PAGE_SIZE, filtered.length)} of ${filtered.length} events`
+            ? `Showing ${(safePage - 1) * PAGE_SIZE + 1}\u2013${Math.min(safePage * PAGE_SIZE, filtered.length)} of ${filtered.length} events`
             : 'No matching events'}
         </span>
-        <div className="flex items-center gap-2.5">
-          <Button
-            variant="secondary"
-            size="sm"
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
             disabled={safePage <= 1}
             onClick={() => setPage((p) => Math.max(1, p - 1))}
-            className="bg-white/80 hover:bg-slate-100 text-slate-700 font-bold border border-sky-100 rounded-xl px-4 py-2 text-xs shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all h-auto disabled:opacity-50 disabled:pointer-events-none"
+            className="h-9 px-4 rounded-xl text-xs font-bold transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none"
+            style={{ background: '#fff', border: '1px solid rgba(226,232,240,0.9)', color: '#475569', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#f8fafc'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = '#fff'; }}
           >
             Prev
-          </Button>
-          <span className="text-xs font-mono font-bold text-slate-500 px-3 py-1.5 rounded-lg bg-slate-50 border border-sky-100/50">
-            Page {safePage} / {maxPage}
+          </button>
+          <span
+            className="h-9 px-4 flex items-center rounded-xl text-xs font-mono font-bold"
+            style={{ background: '#f8fafc', border: '1px solid rgba(226,232,240,0.9)', color: '#64748b' }}
+          >
+            Trang {safePage} / {maxPage}
           </span>
-          <Button
-            variant="secondary"
-            size="sm"
+          <button
+            type="button"
             disabled={safePage >= maxPage}
             onClick={() => setPage((p) => Math.min(maxPage, p + 1))}
-            className="bg-white/80 hover:bg-slate-100 text-slate-700 font-bold border border-sky-100 rounded-xl px-4 py-2 text-xs shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all h-auto disabled:opacity-50 disabled:pointer-events-none"
+            className="h-9 px-4 rounded-xl text-xs font-bold transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none"
+            style={{ background: '#fff', border: '1px solid rgba(226,232,240,0.9)', color: '#475569', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#f8fafc'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = '#fff'; }}
           >
             Next
-          </Button>
+          </button>
         </div>
       </div>
     </div>

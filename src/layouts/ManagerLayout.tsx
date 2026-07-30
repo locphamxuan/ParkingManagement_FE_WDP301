@@ -79,7 +79,7 @@ const navItems: readonly PortalNavEntry[] = [
 
 const titles: Record<string, string> = {
   '/manager': 'Manager Dashboard',
-  '/manager/dashboard': 'Management Report',
+  '/manager/dashboard': 'Manager Dashboard',
   '/manager/buildings': 'Building Management',
   '/manager/vehicle-types': 'Vehicle Types',
   '/manager/floors': 'Floors',

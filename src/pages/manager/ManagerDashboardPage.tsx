@@ -102,7 +102,7 @@ export function ManagerDashboardPage() {
       initial="hidden"
       animate="show"
       variants={containerVariants}
-      className="mx-auto max-w-6xl space-y-6 pb-12 relative"
+      className="relative mx-auto w-full space-y-6 pb-12"
     >
       {/* Hero: Clean, Premium Layered Welcome Panel */}
       <motion.section
@@ -158,7 +158,9 @@ export function ManagerDashboardPage() {
                 
                 <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:border-blue-300">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Floors:</span>
-                  <span className="font-extrabold text-slate-900">{selectedBuilding.totalFloors} floors</span>
+                  <span className="font-extrabold text-slate-900">
+                    {selectedBuilding.totalFloors} {selectedBuilding.totalFloors === 1 ? 'floor' : 'floors'}
+                  </span>
                 </div>
 
                 <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:border-blue-300">
@@ -203,7 +205,7 @@ export function ManagerDashboardPage() {
 
               <div className="mt-6">
                 <p className="text-[10px] font-extrabold text-blue-100 uppercase tracking-widest">Facility</p>
-                <h3 className="text-lg font-black tracking-tight mt-0.5 truncate text-white !text-white">{selectedBuilding.name}</h3>
+                <h3 className="mt-0.5 truncate text-lg font-black tracking-tight text-white">{selectedBuilding.name}</h3>
               </div>
             </div>
           )}
@@ -249,7 +251,7 @@ export function ManagerDashboardPage() {
                 ) : buildings.length === 0 ? (
                   <p className="text-xs text-slate-500 italic">This account is not assigned to manage any building.</p>
                 ) : (
-                  <div className="grid gap-3 sm:grid-cols-2">
+                  <div className={`grid gap-3 ${buildings.length === 1 ? 'grid-cols-1' : 'sm:grid-cols-2'}`}>
                     {buildings.map((b) => {
                       const isSelected = selectedBuildingId === b._id;
                       const state = resolveBuildingOperationalState(b.status, b.operatingHours, now);
@@ -346,13 +348,33 @@ export function ManagerDashboardPage() {
 
           {/* Xu hướng doanh thu 7 ngày */}
           <motion.div variants={itemVariants}>
-            <RevenueChart
-              data={(overview?.revenue?.weekly ?? []).map((w) => ({
-                date: w.date,
-                revenue: w.revenue,
-                sessions: w.sessions,
-              }))}
-            />
+            {isLoadingOverview ? (
+              <Card className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+                <CardHeader className="border-b border-slate-100 bg-slate-50/70 px-6 py-4">
+                  <div className="h-4 w-32 animate-pulse rounded bg-slate-200" />
+                  <div className="mt-2 h-3 w-56 animate-pulse rounded bg-slate-100" />
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="h-[252px] animate-pulse rounded-xl bg-gradient-to-br from-slate-50 to-blue-50/60" />
+                </CardContent>
+              </Card>
+            ) : overview ? (
+              <RevenueChart
+                data={overview.revenue.weekly.map((w) => ({
+                  date: w.date,
+                  revenue: w.revenue,
+                  sessions: w.sessions,
+                }))}
+              />
+            ) : (
+              <Card className="rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+                <CardContent className="flex min-h-[180px] items-center justify-center p-6 text-center">
+                  <p className="max-w-sm text-sm font-medium leading-relaxed text-slate-500">
+                    Revenue data will appear here after the building report has loaded.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </motion.div>
 
         </div>

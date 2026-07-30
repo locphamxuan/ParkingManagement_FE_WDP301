@@ -45,6 +45,7 @@ export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps
   const [active, setActive] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
@@ -100,8 +101,23 @@ export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps
       setError('Select a building before scanning a vehicle.');
       return;
     }
+    // The API validates an image data URL (`data:image/jpeg;base64,...`), not a
+    // bare base64 payload.  Keep the prefix produced by canvas/FileReader so
+    // camera capture and uploaded images follow the exact same contract.
     const res = await staffApi.scanVehicle(dataUrl, buildingId);
-    const data = (res as { data?: { plateNumber?: string; brand?: string | null; vehicleType?: 'car' | 'motorcycle' | null } })?.data;
+    const data = (res as {
+      data?: {
+        scanStatus?: 'available' | 'unavailable';
+        plateNumber?: string;
+        brand?: string | null;
+        vehicleType?: 'car' | 'motorcycle' | null;
+      };
+    })?.data;
+    if (data?.scanStatus === 'unavailable') {
+      onDetected({ plateNumber: '', brand: null, vehicleType: null, plateImage: dataUrl });
+      setNotice('Automatic plate recognition is temporarily unavailable. Enter the plate manually or scan its QR code.');
+      return;
+    }
     // Normalize and validate the AI result — reject garbage / non-VN-format strings
     const raw = data?.plateNumber ?? '';
     const normalized = normalizePlate(raw);
@@ -130,6 +146,7 @@ export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps
 
   const handleCapture = async () => {
     setError(null);
+    setNotice(null);
     setSuccess(null);
     onScanStart?.();
     const dataUrl = captureFrame();
@@ -151,6 +168,7 @@ export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps
     const file = e.target.files?.[0];
     if (!file) return;
     setError(null);
+    setNotice(null);
     setSuccess(null);
     onScanStart?.();
     setProcessing(true);
@@ -279,6 +297,11 @@ export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps
       {error && active && (
         <div className="flex items-start gap-2 rounded-lg border border-rose-500/30 bg-rose-500/10 p-2 text-xs text-rose-400">
           <AlertCircle size={14} className="mt-0.5 shrink-0" /> <span>{error}</span>
+        </div>
+      )}
+      {notice && (
+        <div className="flex items-start gap-2 rounded-lg border border-amber-400/40 bg-amber-400/10 p-2 text-xs text-amber-700 dark:text-amber-300">
+          <AlertCircle size={14} className="mt-0.5 shrink-0" /> <span>{notice}</span>
         </div>
       )}
 

@@ -100,8 +100,10 @@ export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps
       setError('Select a building before scanning a vehicle.');
       return;
     }
-    const base64 = dataUrl.split(',')[1];
-    const res = await staffApi.scanVehicle(base64, buildingId);
+    // The API validates an image data URL (`data:image/jpeg;base64,...`), not a
+    // bare base64 payload.  Keep the prefix produced by canvas/FileReader so
+    // camera capture and uploaded images follow the exact same contract.
+    const res = await staffApi.scanVehicle(dataUrl, buildingId);
     const data = (res as { data?: { plateNumber?: string; brand?: string | null; vehicleType?: 'car' | 'motorcycle' | null } })?.data;
     // Normalize and validate the AI result — reject garbage / non-VN-format strings
     const raw = data?.plateNumber ?? '';

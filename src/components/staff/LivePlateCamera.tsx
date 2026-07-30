@@ -1,7 +1,8 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { ScanLine, Loader2, AlertCircle, CheckCircle2, Upload } from 'lucide-react';
 import { staffApi } from '@/services/staff/staffApi';
-import { videoConstraintFor } from '@/hooks/useCameraDevices';
+import { useCameraStream, captureVideoFrame } from '@/hooks/useCameraStream';
+import { CameraErrorOverlay } from '@/components/staff/CameraErrorOverlay';
 import { normalizePlate, isValidVietnamPlate } from '@/utils/plate';
 
 export interface PlateScanResult {
@@ -39,62 +40,23 @@ export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps
   { onDetected, onScanStart, busy = false, deviceId, buildingId },
   ref,
 ) {
-  const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [active, setActive] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const { videoRef, active, error: cameraError, retry } = useCameraStream({
+    deviceId,
+    facing: 'environment',
+    role: 'plate',
+  });
 
-  useEffect(() => {
-    let stream: MediaStream | null = null;
-    let cancelled = false;
+  const captureFrame = () => captureVideoFrame(videoRef.current, canvasRef.current);
 
-    (async () => {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: videoConstraintFor(deviceId, 'environment') });
-        if (cancelled) {
-          stream.getTracks().forEach((t) => t.stop());
-          return;
-        }
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.onloadedmetadata = () => {
-            videoRef.current?.play().catch(() => undefined);
-            setActive(true);
-          };
-          videoRef.current.play().catch(() => undefined);
-        }
-        setError(null);
-      } catch (err) {
-        if (!cancelled) setError('Cannot access the plate camera. Please grant permission.');
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-      const s = (videoRef.current?.srcObject as MediaStream | null) ?? stream;
-      s?.getTracks().forEach((t) => t.stop());
-    };
-  }, [deviceId]);
-
-  const captureFrame = (): string | null => {
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    if (!video || !canvas || video.videoWidth === 0) return null;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return null;
-    const MAX_W = 1280;
-    const scale = Math.min(1, MAX_W / video.videoWidth);
-    canvas.width = Math.round(video.videoWidth * scale);
-    canvas.height = Math.round(video.videoHeight * scale);
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    return canvas.toDataURL('image/jpeg', 0.8);
-  };
-
-  useImperativeHandle(ref, () => ({ capture: () => captureFrame() }), []);
+  useImperativeHandle(ref, () => ({
+    capture: () => captureVideoFrame(videoRef.current, canvasRef.current),
+  }), [videoRef]);
 
   const runScan = async (dataUrl: string, isRetry = false) => {
     if (!buildingId) {
@@ -247,16 +209,12 @@ export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps
             <div className={processing ? 'laser-scanner-line laser-scanner-line-active' : 'laser-scanner-line'} />
           </>
         )}
-        {!active && !error && (
+        {!active && !cameraError && (
           <div className="absolute inset-0 flex items-center justify-center">
             <Loader2 size={28} className="animate-spin text-emerald-400" />
           </div>
         )}
-        {error && !active && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/70 p-3 text-center">
-            <p className="text-xs text-rose-300">{error}</p>
-          </div>
-        )}
+        {cameraError && <CameraErrorOverlay message={cameraError} onRetry={retry} />}
       </div>
 
       <div className="flex gap-2">
@@ -294,7 +252,7 @@ export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps
           <CheckCircle2 size={14} className="shrink-0" /> <span>{success}</span>
         </div>
       )}
-      {error && active && (
+      {error && (
         <div className="flex items-start gap-2 rounded-lg border border-rose-500/30 bg-rose-500/10 p-2 text-xs text-rose-400">
           <AlertCircle size={14} className="mt-0.5 shrink-0" /> <span>{error}</span>
         </div>

@@ -35,7 +35,7 @@ export function StaffOperationsPage() {
     plateCamRef, qrCamRef, portraitCamRef,
     assignment, requestAndRefresh,
     setCameraSettingsOpen, multiCamMode, setMultiCamMode,
-    step, setStep, identifyMode, setIdentifyMode, identificationMethod,
+    step, setStep, identifyMode, chooseIdentifyMode, identificationMethod,
     plateAccountInfo, freeSlots, selectedSlotId, setSelectedSlotId, selectedZoneId, setSelectedZoneId,
     availableZones, setRejectOpen,
     slotUsageType, selectedZone, zoneUsageBlocked, zoneUsageFallback, hasExactZoneFree,
@@ -184,7 +184,7 @@ export function StaffOperationsPage() {
                 <div className="flex gap-2 p-1 rounded-xl bg-slate-50 border border-sky-100">
                   <button
                     type="button"
-                    onClick={() => setIdentifyMode('plate')}
+                    onClick={() => chooseIdentifyMode('plate')}
                     aria-pressed={identifyMode === 'plate'}
                     className={`flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg text-xs font-extrabold transition-all duration-200 ${identifyMode === 'plate' ? 'bg-white text-sky-600 shadow-sm border border-sky-100/50' : 'text-slate-500 hover:text-slate-800'}`}
                   >
@@ -192,7 +192,7 @@ export function StaffOperationsPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setIdentifyMode('qr')}
+                    onClick={() => chooseIdentifyMode('qr')}
                     aria-pressed={identifyMode === 'qr'}
                     className={`flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg text-xs font-extrabold transition-all duration-200 ${identifyMode === 'qr' ? 'bg-white text-sky-600 shadow-sm border border-sky-100/50' : 'text-slate-500 hover:text-slate-800'}`}
                   >
@@ -325,6 +325,12 @@ export function StaffOperationsPage() {
                     </div>
                   </div>
                 </div>
+
+                {identificationMethod === 'qr' && (
+                  <p className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
+                    <QrCode size={13} className="text-sky-500" /> Identified by QR — only the driver portrait is required, no plate scan.
+                  </p>
+                )}
 
                 {/* Form fields */}
                 <div className="grid gap-2">

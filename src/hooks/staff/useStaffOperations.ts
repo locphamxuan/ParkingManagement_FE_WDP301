@@ -284,6 +284,18 @@ export function useStaffOperations() {
     if (plate) applyPlate(plate, brand);
   };
 
+  /**
+   * Picking an identification method also decides what evidence check-in needs:
+   * the QR route never scans a plate, so only the driver portrait is captured.
+   * Without this the method stayed 'plate' whenever staff typed the plate by
+   * hand in QR mode, and check-in was blocked asking for a plate photo.
+   */
+  const chooseIdentifyMode = (mode: 'plate' | 'qr') => {
+    setIdentifyMode(mode);
+    setIdentificationMethod(mode);
+    if (mode === 'qr') setPlateImage(null);
+  };
+
   const proceedFromIdentify = () => {
     setStep(2);
   };
@@ -479,7 +491,7 @@ export function useStaffOperations() {
     distinctDeviceCount,
     multiCamMode, setMultiCamMode,
     step, setStep,
-    identifyMode, setIdentifyMode,
+    identifyMode,
     identificationMethod,
     plateAccountInfo, setPlateAccountInfo,
     freeSlots, setFreeSlots,
@@ -496,7 +508,7 @@ export function useStaffOperations() {
     plateTypeWarning,
     buildingSupportWarning,
     hasActivePackage, checkInKind, needsSlotSelection, isMotorcycle,
-    applyPlate, handlePlateDetected, proceedFromIdentify, capturePortraitAndNext,
+    applyPlate, handlePlateDetected, chooseIdentifyMode, proceedFromIdentify, capturePortraitAndNext,
     handleResolveIdQr, resetForm, onCheckIn, onReject,
     vehicleTypeMismatch,
   };

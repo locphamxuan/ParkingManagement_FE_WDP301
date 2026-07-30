@@ -2,7 +2,8 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 're
 import { QrCode, Loader2, CheckCircle2 } from 'lucide-react';
 import jsQR from 'jsqr';
 import type { LiveCameraHandle } from '@/components/staff/LivePlateCamera';
-import { videoConstraintFor } from '@/hooks/useCameraDevices';
+import { useCameraStream, captureVideoFrame } from '@/hooks/useCameraStream';
+import { CameraErrorOverlay } from '@/components/staff/CameraErrorOverlay';
 
 interface LiveQRCameraProps {
   /** Fired when a QR is decoded (account ID or vehicle PLT- token). */
@@ -12,6 +13,11 @@ interface LiveQRCameraProps {
   /** Physical camera device assigned to the QR role. */
   deviceId?: string;
 }
+
+// Detection budget: decoding every frame at full sensor resolution starves the
+// other two live feeds on the same machine, which is what made cameras stall.
+const DETECT_INTERVAL_MS = 120;
+const DETECT_MAX_WIDTH = 800;
 
 /**
  * Camera 2 — always-on QR camera (account / vehicle). The live feed is shown
@@ -24,101 +30,55 @@ export const LiveQRCamera = forwardRef<LiveCameraHandle, LiveQRCameraProps>(func
   { onResult, paused = false, deviceId },
   ref,
 ) {
-  const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const rafRef = useRef<number | null>(null);
-  const pausedRef = useRef(paused);
-  const lastHitRef = useRef(0);
-  const [active, setActive] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [flash, setFlash] = useState(false);
+  const { videoRef, active, error, retry } = useCameraStream({ deviceId, facing: 'environment', role: 'QR' });
 
-  useEffect(() => {
-    pausedRef.current = paused;
-  }, [paused]);
+  // Held in refs so the detection loop never restarts (and never fires a stale
+  // handler that captured an empty building id from the first render).
+  const onResultRef = useRef(onResult);
+  const pausedRef = useRef(paused);
+  useEffect(() => { onResultRef.current = onResult; }, [onResult]);
+  useEffect(() => { pausedRef.current = paused; }, [paused]);
 
-  // Grab the current frame as a portrait snapshot (used at check-in to ensure a
-  // portrait is captured even when no QR was scanned).
   useImperativeHandle(ref, () => ({
-    capture: () => {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      if (!video || !canvas || video.videoWidth === 0) return null;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return null;
-      // Downscale to max 1280px wide (same as the plate camera) so the saved frame
-      // — used as the plate image in the QR→plate flow — stays a light payload.
-      const MAX_W = 1280;
-      const scale = Math.min(1, MAX_W / video.videoWidth);
-      canvas.width = Math.round(video.videoWidth * scale);
-      canvas.height = Math.round(video.videoHeight * scale);
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      return canvas.toDataURL('image/jpeg', 0.8);
-    },
-  }), []);
+    capture: () => captureVideoFrame(videoRef.current, canvasRef.current),
+  }), [videoRef]);
 
   useEffect(() => {
-    let stream: MediaStream | null = null;
-    let cancelled = false;
+    if (!active) return;
+    let raf = 0;
+    let lastDetect = 0;
+    let lastHit = 0;
+    const work = document.createElement('canvas');
+    const ctx = work.getContext('2d', { willReadFrequently: true });
 
-    const scan = () => {
+    const scan = (now: number) => {
+      raf = requestAnimationFrame(scan);
       const video = videoRef.current;
-      const canvas = canvasRef.current;
-      if (!video || !canvas || video.videoWidth === 0) {
-        rafRef.current = requestAnimationFrame(scan);
-        return;
-      }
-      const ctx = canvas.getContext('2d', { willReadFrequently: true } as CanvasRenderingContext2DSettings);
-      if (!ctx) {
-        rafRef.current = requestAnimationFrame(scan);
-        return;
-      }
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const code = jsQR(imageData.data, imageData.width, imageData.height);
+      if (!ctx || !video || video.videoWidth === 0) return;
+      if (pausedRef.current || now - lastDetect < DETECT_INTERVAL_MS) return;
+      lastDetect = now;
+
+      const scale = Math.min(1, DETECT_MAX_WIDTH / video.videoWidth);
+      work.width = Math.round(video.videoWidth * scale);
+      work.height = Math.round(video.videoHeight * scale);
+      ctx.drawImage(video, 0, 0, work.width, work.height);
+      const frame = ctx.getImageData(0, 0, work.width, work.height);
+      const code = jsQR(frame.data, frame.width, frame.height);
 
       // Debounce so the same QR doesn't fire repeatedly.
-      if (code?.data && !pausedRef.current && Date.now() - lastHitRef.current > 2500) {
-        lastHitRef.current = Date.now();
+      if (code?.data && now - lastHit > 2500) {
+        lastHit = now;
         setFlash(true);
         setTimeout(() => setFlash(false), 600);
-        onResult(code.data);
+        onResultRef.current(code.data);
       }
-      rafRef.current = requestAnimationFrame(scan);
     };
 
-    (async () => {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: videoConstraintFor(deviceId, 'environment') });
-        if (cancelled) {
-          stream.getTracks().forEach((t) => t.stop());
-          return;
-        }
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.onloadedmetadata = () => {
-            videoRef.current?.play().catch(() => undefined);
-            setActive(true);
-            rafRef.current = requestAnimationFrame(scan);
-          };
-          videoRef.current.play().catch(() => undefined);
-        }
-        setError(null);
-      } catch (err) {
-        if (!cancelled) setError('Cannot access the QR camera. Please grant permission.');
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      const s = (videoRef.current?.srcObject as MediaStream | null) ?? stream;
-      s?.getTracks().forEach((t) => t.stop());
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deviceId]);
+    raf = requestAnimationFrame(scan);
+    return () => cancelAnimationFrame(raf);
+  }, [active, videoRef]);
 
   return (
     <div className="rounded-xl border border-border bg-card/40 p-3 space-y-2.5">
@@ -175,11 +135,7 @@ export const LiveQRCamera = forwardRef<LiveCameraHandle, LiveQRCameraProps>(func
             <Loader2 size={28} className="animate-spin text-sky-400" />
           </div>
         )}
-        {error && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/70 p-3 text-center">
-            <p className="text-xs text-rose-300">{error}</p>
-          </div>
-        )}
+        {error && <CameraErrorOverlay message={error} onRetry={retry} />}
       </div>
 
       <p className="text-center text-[11px] text-muted-foreground">

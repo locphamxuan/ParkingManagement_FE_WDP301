@@ -59,7 +59,9 @@ export function CameraSettingsModal({ ops }: { ops: StaffOperations }) {
 
         {devices.length === 0 && (
           <p className="mt-3 text-[11px] text-amber-400">
-            No devices found — tap “Refresh” and grant the browser camera permission.
+            {typeof navigator !== 'undefined' && !navigator.mediaDevices
+              ? 'The browser only exposes cameras on a secure origin — open this app over HTTPS or on localhost.'
+              : 'No devices found — tap “Refresh” and grant the browser camera permission.'}
           </p>
         )}
 

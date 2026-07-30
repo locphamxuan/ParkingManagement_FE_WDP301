@@ -444,7 +444,9 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
                 )}
               </div>
               <p className="text-center text-[11px] text-slate-400 font-medium px-4">
-                Scan the vehicle plate / QR code to find the vehicle record and open fee collection.
+                {identifyMode === 'qr'
+                  ? 'Scan the QR code to open fee collection — no plate scan needed, only the exit portrait is captured.'
+                  : 'Scan the vehicle plate to find the vehicle record and open fee collection.'}
               </p>
             </section>
           ) : null}
@@ -513,6 +515,7 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
           capturedPortraitImage={capturedPortraitImage}
           setCapturedPortraitImage={setCapturedPortraitImage}
           portraitCamRef={portraitCamRef}
+          portraitDeviceId={assignment.portrait}
           paymentMethod={paymentMethod}
           setPaymentMethod={setPaymentMethod}
           pendingPenalties={pendingPenalties}

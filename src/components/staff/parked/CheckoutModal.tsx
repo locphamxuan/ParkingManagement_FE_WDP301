@@ -35,6 +35,8 @@ interface CheckoutModalProps {
   capturedPortraitImage: string | null;
   setCapturedPortraitImage: (img: string | null) => void;
   portraitCamRef: React.RefObject<LiveCameraHandle>;
+  /** Physical camera assigned to the portrait role, so the exit shot uses the same device as check-in. */
+  portraitDeviceId?: string;
   paymentMethod: PaymentKind;
   setPaymentMethod: (m: PaymentKind) => void;
   pendingPenalties: Record<string, number>;
@@ -55,6 +57,7 @@ export function CheckoutModal({
   capturedPortraitImage,
   setCapturedPortraitImage,
   portraitCamRef,
+  portraitDeviceId,
   paymentMethod,
   setPaymentMethod,
   pendingPenalties,
@@ -64,6 +67,11 @@ export function CheckoutModal({
   onOpenReject,
   onCaptureError,
 }: CheckoutModalProps) {
+  // Vehicles identified by QR (or picked from the parked list) never go through a
+  // plate scan, so there is no exit plate photo to compare — verification is the
+  // driver portrait alone and the plate row would only show an empty box.
+  const comparePlates = Boolean(capturedPlateImage);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-md">
       <motion.div
@@ -104,7 +112,7 @@ export function CheckoutModal({
         {coStep === 1 && (
           <div className="space-y-4">
             <div className="relative overflow-hidden rounded-2xl border border-sky-100 bg-slate-50 shadow-inner">
-              <LivePortraitCamera ref={portraitCamRef} />
+              <LivePortraitCamera ref={portraitCamRef} deviceId={portraitDeviceId} />
             </div>
             {capturedPortraitImage && (
               <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-2.5 text-xs text-emerald-800">
@@ -136,22 +144,27 @@ export function CheckoutModal({
             {/* Photo comparisons */}
             <div className="mb-4 rounded-2xl border border-sky-100 bg-sky-50/30 p-3.5 shadow-inner">
               <p className="mb-2.5 text-[10px] font-bold uppercase tracking-[0.2em] text-sky-600">
-                Compare plate &amp; portrait photos
+                {comparePlates ? 'Compare plate & portrait photos' : 'Compare portrait photos'}
               </p>
               <div className="grid grid-cols-2 gap-4">
                 {/* Entry Column */}
                 <div className="space-y-2 border-r border-sky-100/50 pr-2">
                   <p className="text-[9px] font-black uppercase tracking-wide text-slate-400">On entry (saved)</p>
-                  <CompareImg src={checkoutTarget.plateImage} label="Plate" />
+                  {comparePlates && <CompareImg src={checkoutTarget.plateImage} label="Plate" />}
                   <CompareImg src={checkoutTarget.portraitImage} label="Portrait" />
                 </div>
                 {/* Exit Column */}
                 <div className="space-y-2 pl-2">
                   <p className="text-[9px] font-black uppercase tracking-wide text-slate-400">On exit (just scanned)</p>
-                  <CompareImg src={capturedPlateImage} label="Plate" />
+                  {comparePlates && <CompareImg src={capturedPlateImage} label="Plate" />}
                   <CompareImg src={capturedPortraitImage} label="Portrait" />
                 </div>
               </div>
+              {!comparePlates && (
+                <p className="mt-2.5 flex items-center justify-center gap-1.5 text-[10px] font-medium text-slate-500">
+                  <QrIcon size={11} className="text-sky-500" /> Vehicle identified without a plate scan — verify the driver portrait only.
+                </p>
+              )}
               <p className="mt-3 text-[10px] text-slate-400 text-center font-medium">
                 Ensure details match. If there is a mismatch, click <strong className="text-rose-500 font-bold">Reject</strong>.
               </p>

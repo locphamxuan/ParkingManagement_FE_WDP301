@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle2, Loader2, QrCode, AlertCircle, UserCog } from 'lucide-react';
 import { LiveQRCamera } from '@/components/staff/LiveQRCamera';
+import type { LiveCameraHandle } from '@/components/staff/LivePlateCamera';
 import { kioskApi } from '@/services/kioskApi';
 
 type Result =
@@ -15,6 +16,7 @@ type Result =
 export default function KioskCheckInPage() {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
+  const qrCameraRef = useRef<LiveCameraHandle>(null);
 
   const submit = async (payload: { qrCode: string; portraitImage?: string | null }) => {
     if (busy) return;
@@ -38,7 +40,7 @@ export default function KioskCheckInPage() {
   };
 
   const handleQr = (code: string) => {
-    void submit({ qrCode: code });
+    void submit({ qrCode: code, portraitImage: qrCameraRef.current?.capture() ?? null });
   };
 
   return (
@@ -54,7 +56,7 @@ export default function KioskCheckInPage() {
           </p>
         </div>
 
-        <LiveQRCamera onResult={handleQr} paused={busy || !!result} />
+        <LiveQRCamera ref={qrCameraRef} onResult={handleQr} paused={busy || !!result} />
 
         {busy && (
           <div className="flex items-center justify-center gap-2 text-sm text-slate-300">

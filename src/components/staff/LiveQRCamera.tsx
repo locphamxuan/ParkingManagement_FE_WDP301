@@ -124,7 +124,7 @@ export const LiveQRCamera = forwardRef<LiveCameraHandle, LiveQRCameraProps>(func
     <div className="rounded-xl border border-border bg-card/40 p-3 space-y-2.5">
       <div className="flex items-center gap-2">
         <QrCode size={15} className="text-sky-400" />
-        <p className="text-sm font-semibold text-foreground">Camera 3 · QR scan (account / vehicle)</p>
+        <p className="text-sm font-semibold text-foreground">Camera 2 · QR scan (account / vehicle)</p>
       </div>
 
       <div className="relative aspect-[4/3] overflow-hidden rounded-lg border border-white/10 bg-black/60">

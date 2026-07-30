@@ -12,7 +12,7 @@ import { usageLabel, type StaffOperations } from '@/hooks/staff/useStaffOperatio
 export function MultiCamCheckIn({ ops }: { ops: StaffOperations }) {
   const {
     buildingId, loading, plateNumber, setPlateNumber, vehicleBrand, vehicleType, setVehicleType,
-    plateCamRef, qrCamRef, portraitCamRef, assignment, distinctDeviceCount, multiCamMode,
+    plateCamRef, qrCamRef, portraitCamRef, assignment, distinctDeviceCount, multiCamMode, identificationMethod,
     plateAccountInfo, freeSlots, selectedSlotId, setSelectedSlotId, selectedZoneId, setSelectedZoneId,
     availableZones, setRejectOpen, allowedTypes, plateTypeWarning, buildingSupportWarning,
     hasActivePackage, checkInKind, needsSlotSelection, isMotorcycle,
@@ -25,8 +25,10 @@ export function MultiCamCheckIn({ ops }: { ops: StaffOperations }) {
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-3 lg:grid-cols-3">
-        <LivePlateCamera ref={plateCamRef} onDetected={handlePlateDetected} busy={loading} deviceId={assignment.plate} buildingId={buildingId} />
+      <div className={`grid gap-3 ${identificationMethod === 'qr' ? 'lg:grid-cols-2' : 'lg:grid-cols-3'}`}>
+        {identificationMethod !== 'qr' && (
+          <LivePlateCamera ref={plateCamRef} onDetected={handlePlateDetected} busy={loading} deviceId={assignment.plate} buildingId={buildingId} />
+        )}
         <LivePortraitCamera ref={portraitCamRef} deviceId={assignment.portrait} />
         <LiveQRCamera ref={qrCamRef} onResult={handleResolveIdQr} deviceId={assignment.qr} />
       </div>

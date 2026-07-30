@@ -74,6 +74,7 @@ export function useStaffOperations() {
   // Wizard tuần tự: 1: Nhận diện xe · 2: Chụp chân dung · 3: Xác nhận & check-in
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [identifyMode, setIdentifyMode] = useState<'plate' | 'qr'>('plate');
+  const [identificationMethod, setIdentificationMethod] = useState<'plate' | 'qr'>('plate');
 
   const [plateAccountInfo, setPlateAccountInfo] = useState<PlateInfo | null>(null);
   const [freeSlots, setFreeSlots] = useState<{ _id: string; code: string; floor?: { name?: string; code?: string } | null; zone?: { _id: string; code: string; usageType: string } | string | null }[]>([]);
@@ -278,6 +279,7 @@ export function useStaffOperations() {
   };
 
   const handlePlateDetected = ({ plateNumber: plate, brand, plateImage: img }: PlateScanResult) => {
+    setIdentificationMethod('plate');
     setPlateImage(img);
     if (plate) applyPlate(plate, brand);
   };
@@ -318,6 +320,8 @@ export function useStaffOperations() {
         setOpMessage({ type: 'err', text: 'Could not read the QR code.' });
         return;
       }
+      setIdentificationMethod('qr');
+      setPlateImage(null);
       if (data.kind === 'plate' && data.plate?.plateNumber) {
         if (data.plate.vehicleType === 'motorcycle') setVehicleType('motorcycle');
         else if (data.plate.vehicleType) setVehicleType('car');
@@ -348,12 +352,14 @@ export function useStaffOperations() {
     setSelectedZoneId('');
     setStep(1);
     setIdentifyMode('plate');
+    setIdentificationMethod('plate');
   };
 
   const onCheckIn = async () => {
     setOpMessage(null);
     const requiresZone = needsSlotSelection && freeSlots.length > 0;
     const requiresManualSlot = requiresZone && !isMotorcycle;
+    const isQrCheckIn = identificationMethod === 'qr';
     if (requiresZone && !selectedZoneId) {
       setOpMessage({ type: 'err', text: 'Please select a parking zone before checking in.' });
       return;
@@ -377,15 +383,15 @@ export function useStaffOperations() {
     }
     setLoading(true);
     const currentPlate = normalizePlate(plateNumber) || plateNumber.trim().toUpperCase();
-    const plateImg = plateImage ?? plateCamRef.current?.capture() ?? null;
+    const plateImg = isQrCheckIn ? null : plateImage ?? plateCamRef.current?.capture() ?? null;
     const portraitImg = portraitImage ?? portraitCamRef.current?.capture() ?? null;
-    if (!plateImg || !portraitImg) {
+    if (!portraitImg || (!isQrCheckIn && !plateImg)) {
       setLoading(false);
       setOpMessage({
         type: 'err',
-        text: !plateImg
-          ? 'Capture a license-plate photo before admitting the vehicle.'
-          : 'Capture a driver portrait before admitting the vehicle.',
+        text: !portraitImg
+          ? 'Capture a driver portrait before admitting the vehicle.'
+          : 'Capture a license-plate photo before admitting the vehicle.',
       });
       return;
     }
@@ -405,6 +411,7 @@ export function useStaffOperations() {
         vehicleBrand: vehicleBrand || undefined,
         plateImage: plateImg,
         portraitImage: portraitImg,
+        identificationMethod,
         zone: selectedZoneId || undefined,
         slot: isMotorcycle ? undefined : assignedSlotId || undefined,
         gate: entryGateId || undefined,
@@ -473,6 +480,7 @@ export function useStaffOperations() {
     multiCamMode, setMultiCamMode,
     step, setStep,
     identifyMode, setIdentifyMode,
+    identificationMethod,
     plateAccountInfo, setPlateAccountInfo,
     freeSlots, setFreeSlots,
     selectedSlotId: assignedSlotId, setSelectedSlotId,

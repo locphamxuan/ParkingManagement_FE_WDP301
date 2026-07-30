@@ -35,7 +35,7 @@ export function StaffOperationsPage() {
     plateCamRef, qrCamRef, portraitCamRef,
     assignment, requestAndRefresh,
     setCameraSettingsOpen, multiCamMode, setMultiCamMode,
-    step, setStep, identifyMode, setIdentifyMode,
+    step, setStep, identifyMode, setIdentifyMode, identificationMethod,
     plateAccountInfo, freeSlots, selectedSlotId, setSelectedSlotId, selectedZoneId, setSelectedZoneId,
     availableZones, setRejectOpen,
     slotUsageType, selectedZone, zoneUsageBlocked, zoneUsageFallback, hasExactZoneFree,
@@ -299,19 +299,21 @@ export function StaffOperationsPage() {
                 )}
 
                 {/* Compare Photos Grid */}
-                <div className="grid grid-cols-2 gap-3.5">
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
-                      Plate photo
-                    </p>
-                    <div className="aspect-[4/3] overflow-hidden rounded-xl border border-sky-100 bg-slate-50 flex items-center justify-center shadow-inner">
-                      {plateImage ? (
-                        <img src={plateImage} alt="Plate photo" className="h-full w-full object-cover" />
-                      ) : (
-                        <ImageIcon size={20} className="text-slate-300" />
-                      )}
+                <div className={`grid gap-3.5 ${identificationMethod === 'qr' ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                  {identificationMethod !== 'qr' && (
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                        Plate photo
+                      </p>
+                      <div className="aspect-[4/3] overflow-hidden rounded-xl border border-sky-100 bg-slate-50 flex items-center justify-center shadow-inner">
+                        {plateImage ? (
+                          <img src={plateImage} alt="Plate photo" className="h-full w-full object-cover" />
+                        ) : (
+                          <ImageIcon size={20} className="text-slate-300" />
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
                   <div className="space-y-1">
                     <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Portrait photo</p>
                     <div className="aspect-[4/3] overflow-hidden rounded-xl border border-sky-100 bg-slate-50 flex items-center justify-center shadow-inner">
@@ -504,7 +506,7 @@ export function StaffOperationsPage() {
                     <AlertCircle size={13} /> Requires a <strong>portrait photo</strong> to check in (go back to capture).
                   </p>
                 )}
-                {!plateImage && (
+                {identificationMethod !== 'qr' && !plateImage && (
                   <p className="text-[11px] text-rose-600 flex items-center gap-1.5 font-semibold">
                     <AlertCircle size={13} /> Requires a <strong>license-plate photo</strong> to check in.
                   </p>
@@ -517,7 +519,7 @@ export function StaffOperationsPage() {
                   </Button>
                   <Button
                     onClick={onCheckIn}
-                    disabled={!plateNumber.trim() || loading || !!buildingSupportWarning || zoneUsageBlocked || slotSelectionBlocked || vehicleTypeMismatch || !plateImage || !portraitImage || (needsSlotSelection && freeSlots.length > 0 && !selectedZoneId) || (!isMotorcycle && needsSlotSelection && freeSlots.length > 0 && !selectedSlotId)}
+                    disabled={!plateNumber.trim() || loading || !!buildingSupportWarning || zoneUsageBlocked || slotSelectionBlocked || vehicleTypeMismatch || (identificationMethod !== 'qr' && !plateImage) || !portraitImage || (needsSlotSelection && freeSlots.length > 0 && !selectedZoneId) || (!isMotorcycle && needsSlotSelection && freeSlots.length > 0 && !selectedSlotId)}
                     className="flex-1 h-11 gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-extrabold hover:brightness-110 disabled:opacity-60 rounded-xl shadow-md shadow-emerald-500/10"
                   >
                     <ScanLine size={16} /> Confirm &amp; Admit

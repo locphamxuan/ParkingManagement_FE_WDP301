@@ -100,8 +100,7 @@ export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps
       setError('Select a building before scanning a vehicle.');
       return;
     }
-    const base64 = dataUrl.split(',')[1];
-    const res = await staffApi.scanVehicle(base64, buildingId);
+    const res = await staffApi.scanVehicle(dataUrl, buildingId);
     const data = (res as { data?: { plateNumber?: string; brand?: string | null; vehicleType?: 'car' | 'motorcycle' | null } })?.data;
     // Normalize and validate the AI result — reject garbage / non-VN-format strings
     const raw = data?.plateNumber ?? '';
@@ -175,7 +174,7 @@ export const LivePlateCamera = forwardRef<LiveCameraHandle, LivePlateCameraProps
     <div className="rounded-xl border border-border bg-card/40 p-3 space-y-2.5">
       <div className="flex items-center gap-2">
         <ScanLine size={15} className="text-primary" />
-        <p className="text-sm font-semibold text-foreground">Camera 2 · Plate scan</p>
+        <p className="text-sm font-semibold text-foreground">Camera 1 · Plate scan</p>
       </div>
 
       <div className="relative aspect-[4/3] overflow-hidden rounded-lg border border-white/10 bg-black/60">

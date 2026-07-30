@@ -11,7 +11,7 @@ import { LiveQRCamera } from '@/components/staff/LiveQRCamera';
 import { useCameraDevices } from '@/hooks/useCameraDevices';
 import { normalizePlate } from '@/utils/plate';
 import { getApiErrorCode, resolveErrorMessage } from '@/utils/apiErrors';
-import { fmtMoney, computeCheckoutFee, buildCheckoutPayload } from '@/components/staff/parked/staffParkedFormat';
+import { fmtMoney, getCheckoutCharges, buildCheckoutPayload } from '@/components/staff/parked/staffParkedFormat';
 import { ParkedSessionCard } from '@/components/staff/parked/ParkedSessionCard';
 import { ParkedRejectModal } from '@/components/staff/parked/ParkedRejectModal';
 import { BankTransferModal } from '@/components/staff/parked/BankTransferModal';
@@ -175,10 +175,18 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
     
     // Phí phạt (nếu có) đang chờ thu cho biển số này — BE tự cộng/khấu trừ khi check-out
     // (settlePendingPenaltyAtCheckout), nhưng phương thức thanh toán gửi lên phải phản
-    // ánh đúng lựa chọn của staff kể cả khi phí gửi xe = 0 (miễn phí/grace period) mà
+    // ánh đúng lựa chọn của staff kể cả khi phí gửi xe = 0 (gói miễn phí trong hạn mức) mà
     // vẫn còn phạt phải thu.
     const pendingPenalty = pendingPenalties[normalizePlate(target.plateNumber)] || 0;
-    const { isUnderGracePeriod, dueFee, grandTotal } = computeCheckoutFee(target, pendingPenalty);
+    const { parkingFee, grandTotal, pricePolicyConfigured } = getCheckoutCharges(target, pendingPenalty);
+
+    if (!pricePolicyConfigured) {
+      setOpMessage({
+        type: 'err',
+        text: 'No active Price Policy is configured for this building and vehicle type. Ask a manager to configure pricing before checkout.',
+      });
+      return;
+    }
 
     try {
       const exitPortrait = capturedPortraitImage ?? portraitCamRef.current?.capture() ?? null;
@@ -195,7 +203,7 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
         return;
       }
 
-      if (paymentMethod === 'bank_transfer' && dueFee > 0) {
+      if (paymentMethod === 'bank_transfer' && parkingFee > 0) {
         const existingIntent = await staffApi.getSessionPaymentIntent(target._id);
         const existing = existingIntent.data;
         if (existing) {
@@ -255,10 +263,8 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
         type: 'ok',
         text: pendingPenalty > 0
           ? `Fee collected (${grandTotal.toLocaleString('vi-VN')} ₫, incl. ${pendingPenalty.toLocaleString('vi-VN')} ₫ penalty). Vehicle ${target.plateNumber} released.`
-          : isUnderGracePeriod
-            ? `Vehicle ${target.plateNumber} released under 10-minute Grace Period (free).`
-            : dueFee > 0
-              ? `Fee collected (${dueFee.toLocaleString('vi-VN')} ₫). Vehicle ${target.plateNumber} released.`
+          : parkingFee > 0
+              ? `Fee collected (${parkingFee.toLocaleString('vi-VN')} ₫). Vehicle ${target.plateNumber} released.`
               : `Vehicle ${target.plateNumber} released (free under package).`,
       });
       setPaymentMethod('cash');
@@ -388,7 +394,7 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
             <p className="text-base font-black text-slate-700 leading-tight">{loading ? '–' : sessions.length}</p>
           </div>
           <div className="rounded-xl border border-sky-100 bg-white/70 px-4 py-1.5 text-center shadow-sm">
-            <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Total estimated fee</p>
+            <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Current parking fee</p>
             <p className="text-base font-black text-sky-600 leading-tight">{loading ? '–' : fmtMoney(totalFee)}</p>
           </div>
           <Button

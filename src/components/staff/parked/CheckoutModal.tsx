@@ -5,7 +5,7 @@ import { LivePortraitCamera } from '@/components/staff/LivePortraitCamera';
 import type { LiveCameraHandle } from '@/components/staff/LivePlateCamera';
 import { LicensePlate } from '@/components/common/LicensePlate';
 import { normalizePlate } from '@/utils/plate';
-import { fmtTime, fmtMoney, fmtDuration, computeCheckoutFee } from '@/components/staff/parked/staffParkedFormat';
+import { fmtTime, fmtMoney, fmtDuration, getCheckoutCharges } from '@/components/staff/parked/staffParkedFormat';
 import type { ParkingSession } from '@/services/staff/staffApi';
 import styles from '@/styles/modules/StaffParkedPage.module.css';
 
@@ -190,7 +190,7 @@ export function CheckoutModal({
 
             {(() => {
                   const pendingPenalty = pendingPenalties[normalizePlate(checkoutTarget.plateNumber)] || 0;
-                  const { isUnderGracePeriod, grandTotal } = computeCheckoutFee(checkoutTarget, pendingPenalty);
+                  const { grandTotal, pricePolicyConfigured } = getCheckoutCharges(checkoutTarget, pendingPenalty);
 
                   return (
                     <>
@@ -201,26 +201,27 @@ export function CheckoutModal({
                         </div>
                       )}
 
+                      {!pricePolicyConfigured && (
+                        <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-3.5 text-xs font-bold text-rose-700">
+                          No active Price Policy is configured for this building and vehicle type. Checkout is unavailable until a manager configures one.
+                        </div>
+                      )}
+
                       <div className="mt-4 rounded-2xl border border-sky-100 bg-sky-50/50 p-4 flex flex-col gap-1">
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total due</span>
                           <span className="font-mono text-2xl font-black text-sky-600">
-                            {grandTotal <= 0
+                            {pricePolicyConfigured && grandTotal <= 0
                               ? 'Free (0 ₫)'
-                              : fmtMoney(grandTotal)}
+                              : pricePolicyConfigured ? fmtMoney(grandTotal) : '—'}
                           </span>
                         </div>
                         <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
                           Need to fine a violation? Report it via Incidents — a manager approves the penalty fee.
                         </p>
-                        {isUnderGracePeriod && pendingPenalty <= 0 && (
-                          <p className="text-[10px] text-emerald-600 font-bold mt-0.5 flex items-center gap-1.5">
-                            <CheckCircle2 size={11} className="text-emerald-500" /> Free parking under 10-minute Grace Period
-                          </p>
-                        )}
                       </div>
 
-                      {grandTotal > 0 && (
+                      {pricePolicyConfigured && grandTotal > 0 && (
                         <div className="mt-4 space-y-2">
                           <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Payment method</p>
                           <div className="grid gap-2 grid-cols-3">
@@ -252,13 +253,17 @@ export function CheckoutModal({
               </Button>
               <Button
                 onClick={onCheckOut}
-                disabled={loading}
+                disabled={loading || (!checkoutTarget.isLongTerm && checkoutTarget.pricePolicyConfigured === false)}
                 className="flex-1 h-11 gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-extrabold hover:brightness-110 disabled:opacity-60 rounded-xl shadow-md"
               >
                 <CheckCircle2 size={16} />
                 {(() => {
-                  const total = (checkoutTarget.currentFee ?? checkoutTarget.fee ?? 0)
-                    + (pendingPenalties[normalizePlate(checkoutTarget.plateNumber)] || 0);
+                  const { grandTotal, pricePolicyConfigured } = getCheckoutCharges(
+                    checkoutTarget,
+                    pendingPenalties[normalizePlate(checkoutTarget.plateNumber)] || 0,
+                  );
+                  if (!pricePolicyConfigured) return 'Price policy required';
+                  const total = grandTotal;
                   if (total <= 0) return 'Release (Free)';
                   if (paymentMethod === 'bank_transfer') return 'Create payment QR';
                   return `Collect ${fmtMoney(total)} & release`;

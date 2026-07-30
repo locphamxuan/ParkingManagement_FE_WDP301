@@ -15,6 +15,7 @@ export function ParkedSessionCard({ session: s, canCheckout, onCheckout }: Parke
   const slotCode = s.slot?.code || '—';
   const isMember = Boolean(s.isMember ?? s.user) || s.isLongTerm;
   const hasSlot = Boolean(s.slot);
+  const hasPricePolicy = s.isLongTerm || s.pricePolicyConfigured !== false;
 
   return (
     <motion.button
@@ -118,10 +119,12 @@ export function ParkedSessionCard({ session: s, canCheckout, onCheckout }: Parke
 
       <div className="mt-3 flex items-center justify-between border-t border-sky-50 pt-2.5">
         <span className="text-[9px] font-bold uppercase tracking-wide text-slate-400">
-          {s.isLongTerm ? 'Overage fee' : 'Estimated fee'}
+          {s.isLongTerm ? 'Overage fee' : 'Parking fee'}
         </span>
         <span className="text-sm font-black text-sky-600">
-          {(s.currentFee ?? s.fee ?? 0) > 0
+          {!hasPricePolicy
+            ? 'Policy unavailable'
+            : (s.currentFee ?? s.fee ?? 0) > 0
             ? fmtMoney(s.currentFee ?? s.fee)
             : s.isLongTerm ? 'Free' : fmtMoney(0)}
         </span>

@@ -77,6 +77,8 @@ export interface ParkingSession {
   duration?: number | null;
   fee?: number | null;
   currentFee?: number | null;        // live fee (per manager PricePolicy) for active sessions
+  /** False when a regular vehicle type has no active PricePolicy in this building. */
+  pricePolicyConfigured?: boolean;
   isMember?: boolean;                 // true if the plate is linked to an account
   // Gói dài hạn (long_term): miễn phí trong maxHoursPerDay/ngày; currentFee = phí phần vượt.
   isLongTerm?: boolean;

@@ -94,6 +94,10 @@ export function useStaffOperations() {
     checkInKind,
   });
   const isMotorcycle = vehicleType === 'motorcycle';
+  // Ô đỗ cố định user đã chọn lúc mua gói — BE tự gán lúc check-in, staff chỉ xác
+  // nhận. Có giá trị này thì `needsSlotSelection` = false, nên phần hiển thị PHẢI
+  // nằm ngoài khối chọn slot (trước đây bị lồng bên trong nên không bao giờ hiện).
+  const fixedPackageSlot = plateAccountInfo?.activePackage?.slot ?? null;
 
   // Đối tượng thật để lọc slot: gói → subscriber; biển có tài khoản (không gói)
   // → registered; còn lại → walk_in.
@@ -507,7 +511,7 @@ export function useStaffOperations() {
     allowedTypes,
     plateTypeWarning,
     buildingSupportWarning,
-    hasActivePackage, checkInKind, needsSlotSelection, isMotorcycle,
+    hasActivePackage, checkInKind, needsSlotSelection, isMotorcycle, fixedPackageSlot,
     applyPlate, handlePlateDetected, chooseIdentifyMode, proceedFromIdentify, capturePortraitAndNext,
     handleResolveIdQr, resetForm, onCheckIn, onReject,
     vehicleTypeMismatch,

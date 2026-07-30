@@ -7,6 +7,7 @@ import { LivePlateCamera } from '@/components/staff/LivePlateCamera';
 import { LiveQRCamera } from '@/components/staff/LiveQRCamera';
 import { LivePortraitCamera } from '@/components/staff/LivePortraitCamera';
 import { normalizePlate } from '@/utils/plate';
+import { FixedSlotPanel } from '@/components/staff/operations/FixedSlotPanel';
 import { usageLabel, type StaffOperations } from '@/hooks/staff/useStaffOperations';
 
 export function MultiCamCheckIn({ ops }: { ops: StaffOperations }) {
@@ -17,7 +18,7 @@ export function MultiCamCheckIn({ ops }: { ops: StaffOperations }) {
     availableZones, setRejectOpen, allowedTypes, plateTypeWarning, buildingSupportWarning,
     hasActivePackage, checkInKind, needsSlotSelection, isMotorcycle,
     slotUsageType, selectedZone, zoneUsageBlocked, zoneUsageFallback, hasExactZoneFree,
-    slotPoolState, slotSelectionBlocked,
+    slotPoolState, slotSelectionBlocked, fixedPackageSlot,
     handlePlateDetected, handleResolveIdQr, onCheckIn, vehicleTypeMismatch,
   } = ops;
 
@@ -80,7 +81,9 @@ export function MultiCamCheckIn({ ops }: { ops: StaffOperations }) {
         )}
         {plateNumber.trim().length >= 7 && checkInKind === 'package' && (
           <div className="mt-1 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-300">
-            🅿️ Vehicle has a long-term package{plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''} — {isMotorcycle ? 'select a parking zone below; the system will assign capacity automatically.' : 'pick a free slot below.'}
+            🅿️ Vehicle has a long-term package{plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''} — {fixedPackageSlot
+              ? `slot ${fixedPackageSlot.code} is reserved for it, just confirm below.`
+              : isMotorcycle ? 'select a parking zone below; the system will assign capacity automatically.' : 'pick a free slot below.'}
           </div>
         )}
       </div>
@@ -106,6 +109,11 @@ export function MultiCamCheckIn({ ops }: { ops: StaffOperations }) {
           </p>
         )}
       </div>
+
+      {/* Ô đỗ cố định mua kèm gói — BE tự gán, staff chỉ xác nhận. */}
+      {fixedPackageSlot && (
+        <FixedSlotPanel slot={fixedPackageSlot} packageName={plateAccountInfo?.activePackage?.name} />
+      )}
 
       {/* Chọn ô đỗ — gói dài hạn và standard (walk-in / user thường) */}
       {needsSlotSelection && (

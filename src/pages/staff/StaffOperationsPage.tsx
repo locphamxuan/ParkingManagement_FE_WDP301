@@ -22,6 +22,7 @@ import { normalizePlate } from '@/utils/plate';
 import { useStaffOperations, usageLabel } from '@/hooks/staff/useStaffOperations';
 import { MultiCamCheckIn } from '@/components/staff/operations/MultiCamCheckIn';
 import { CameraSettingsModal } from '@/components/staff/operations/CameraSettingsModal';
+import { FixedSlotPanel } from '@/components/staff/operations/FixedSlotPanel';
 import { RejectCheckInModal } from '@/components/staff/operations/RejectCheckInModal';
 import { UserQrInfoModal } from '@/components/staff/operations/UserQrInfoModal';
 import { BarrierGateOverlay } from '@/components/staff/BarrierGateOverlay';
@@ -41,7 +42,7 @@ export function StaffOperationsPage() {
     slotUsageType, selectedZone, zoneUsageBlocked, zoneUsageFallback, hasExactZoneFree,
     slotPoolState, slotSelectionBlocked,
     allowedTypes, plateTypeWarning, buildingSupportWarning, barrierState,
-    hasActivePackage, checkInKind, needsSlotSelection, isMotorcycle,
+    hasActivePackage, checkInKind, needsSlotSelection, isMotorcycle, fixedPackageSlot,
     handlePlateDetected, proceedFromIdentify, capturePortraitAndNext,
     handleResolveIdQr, onCheckIn, vehicleTypeMismatch,
   } = ops;
@@ -249,7 +250,10 @@ export function StaffOperationsPage() {
                   )}
                   {plateNumber.trim().length >= 7 && checkInKind === 'package' && (
                     <div className="mt-1 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs text-amber-800">
-                      🅿️ Vehicle has a <strong>long-term package</strong>{plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''} — next: capture portrait &amp; pick a free slot.
+                      🅿️ Vehicle has a <strong>long-term package</strong>{plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''}
+                      {fixedPackageSlot
+                        ? ` — slot ${fixedPackageSlot.code} is already reserved; next: capture portrait.`
+                        : ' — next: capture portrait & pick a free slot.'}
                     </div>
                   )}
                 </div>
@@ -294,7 +298,10 @@ export function StaffOperationsPage() {
               <div className="space-y-5">
                 {checkInKind === 'package' && (
                   <div className="rounded-xl border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-800">
-                    🅿️ Vehicle has a long-term package{plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''} — pick a free slot below then check in.
+                    🅿️ Vehicle has a long-term package{plateAccountInfo?.activePackage?.name ? ` "${plateAccountInfo.activePackage.name}"` : ''}
+                    {fixedPackageSlot
+                      ? ` — slot ${fixedPackageSlot.code} is reserved for it, just confirm below.`
+                      : ' — pick a free slot below then check in.'}
                   </div>
                 )}
 
@@ -403,6 +410,11 @@ export function StaffOperationsPage() {
                   )}
                 </div>
 
+                {/* Fixed bay bought with the package — assigned automatically, nothing to pick. */}
+                {fixedPackageSlot && (
+                  <FixedSlotPanel slot={fixedPackageSlot} packageName={plateAccountInfo?.activePackage?.name} />
+                )}
+
                 {/* Parking slot selection */}
                 {needsSlotSelection && (
                   <div className={`rounded-2xl border p-4 space-y-3 ${hasActivePackage ? 'border-amber-200 bg-amber-50/50' : 'border-sky-200 bg-sky-50/50'}`}>
@@ -418,17 +430,7 @@ export function StaffOperationsPage() {
                       </span>
                     </p>
 
-                    {plateAccountInfo?.activePackage?.slot ? (
-                      <div className="rounded-xl bg-amber-500/10 border border-amber-500/25 p-3 flex items-center justify-between text-xs text-amber-900 font-bold">
-                        <div>
-                          <p>Fixed Slot Assigned:</p>
-                          <p className="text-[10px] text-amber-700 font-medium">This customer has pre-selected a fixed slot during subscription.</p>
-                        </div>
-                        <span className="inline-flex items-center rounded-lg bg-amber-500 text-white px-3 py-1.5 font-black text-xs uppercase shadow-sm">
-                          {plateAccountInfo.activePackage.slot.code} {plateAccountInfo.activePackage.slot.floor && `· Floor ${plateAccountInfo.activePackage.slot.floor.name || plateAccountInfo.activePackage.slot.floor.code}`}
-                        </span>
-                      </div>
-                    ) : freeSlots.length > 0 ? (
+                    {freeSlots.length > 0 ? (
                       <div className={`grid gap-3 ${isMotorcycle ? 'grid-cols-1' : 'grid-cols-2'}`}>
                         <div>
                           <label className="block text-[9px] font-bold text-slate-400 mb-1 uppercase tracking-wider font-mono">Zone</label>

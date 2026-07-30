@@ -8,6 +8,7 @@ import { useAssignedGates } from '@/hooks/staff/useAssignedGates';
 import { staffApi, type ParkingSession } from '@/services/staff/staffApi';
 import { LivePlateCamera, type PlateScanResult, type LiveCameraHandle } from '@/components/staff/LivePlateCamera';
 import { LiveQRCamera } from '@/components/staff/LiveQRCamera';
+import { useCameraDevices } from '@/hooks/useCameraDevices';
 import { normalizePlate } from '@/utils/plate';
 import { getApiErrorCode, resolveErrorMessage } from '@/utils/apiErrors';
 import { fmtMoney, computeCheckoutFee, buildCheckoutPayload } from '@/components/staff/parked/staffParkedFormat';
@@ -31,6 +32,7 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
   const { buildingId, building } = useBuildingContext();
   const { user } = useAuth();
   const { showCheckOut } = useAssignedGates();
+  const { assignment } = useCameraDevices();
   const canCheckout = view === 'scanner' ? true : showCheckOut;
 
   const [sessions, setSessions] = useState<ParkingSession[]>([]);
@@ -430,10 +432,15 @@ export function StaffParkedPage({ view = 'list' }: { view?: 'scanner' | 'list' }
                   <LivePlateCamera
                     onDetected={handlePlateDetected}
                     busy={loading}
+                    deviceId={assignment.plate}
                     buildingId={buildingId}
                   />
                 ) : (
-                  <LiveQRCamera onResult={handleResolveIdQr} />
+                  <LiveQRCamera
+                    onResult={handleResolveIdQr}
+                    paused={Boolean(checkoutTarget || bankTransfer)}
+                    deviceId={assignment.qr}
+                  />
                 )}
               </div>
               <p className="text-center text-[11px] text-slate-400 font-medium px-4">
